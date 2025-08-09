@@ -3246,10 +3246,11 @@ background: linear-gradient(#2C5F5B,#87766A);
         <body>
             <section class="results-section">
                 <form id="backtest-form">
-                    <h3>Backtest Simulation</h3>
+                    <h3>Backtest Simulation for EpochSignaler (Basic)</h3>
                     <p style="line-height: 1.8;">Inputs:</p>
-                    <label for="asset">Asset Ticker:</label>
-                    <select id="asset" name="asset" required>
+                    
+                    <label for="ticker">Asset Ticker:</label>
+                    <select id="ticker" name="ticker" required>
                         <option value="ETH-USD">ETH-USD</option>
                         <option value="BTC-USD">BTC-USD</option>
                     </select>
@@ -3285,7 +3286,7 @@ background: linear-gradient(#2C5F5B,#87766A);
                     .catch(error => console.error('Error:', error));
                 });
 
-                function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve }) {
+                function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve, dates }) {
                     const resultsDiv = document.getElementById('results');
                     resultsDiv.innerHTML = `
                         <p>Final Value: $${final_value.toFixed(2)}</p>
@@ -3298,7 +3299,7 @@ background: linear-gradient(#2C5F5B,#87766A);
                     new Chart(ctx, {
                         type: 'line',
                         data: {
-                            labels: equity_curve.map((_, i) => `Day ${i + 1}`),
+                            labels: dates, // ✅ Use actual dates array from backend
                             datasets: [{
                                 label: 'Equity Curve',
                                 data: equity_curve,
@@ -3308,6 +3309,7 @@ background: linear-gradient(#2C5F5B,#87766A);
                         }
                     });
                 }
+
             </script>
         </body>
         </html>
