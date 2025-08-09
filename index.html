@@ -3248,12 +3248,24 @@ background: linear-gradient(#2C5F5B,#87766A);
                 <form id="backtest-form">
                     <h3>Backtest Simulation</h3>
                     <p style="line-height: 1.8;">Inputs:</p>
-                    <label>Asset Ticker: <input type="string" id="asset" name="asset" required /></label>
-                    <label>Initial Cash: <input type="number" id="cash" name="cash" required /></label>
-                    <label>Start Date: <input type="date" id="start" name="start" required /></label>
-                    <label>End Date: <input type="date" id="end" name="end" required /></label>
+                    <label for="asset">Asset Ticker:</label>
+                    <select id="asset" name="asset" required>
+                        <option value="ETH-USD">ETH-USD</option>
+                        <option value="BTC-USD">BTC-USD</option>
+                    </select>
+
+                    <label for="cash">Initial Cash:</label>
+                    <input type="number" id="cash" name="cash" required />
+
+                    <label for="start">Start Date:</label>
+                    <input type="date" id="start" name="start" required />
+
+                    <label for="end">End Date:</label>
+                    <input type="date" id="end" name="end" required />
+
                     <button type="submit">Run Backtest</button>
                 </form>
+
                 <div id="results"></div>
             </section>
 
