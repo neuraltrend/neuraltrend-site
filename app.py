@@ -12,6 +12,7 @@ def index():
 @app.route('/backtest', methods=['POST'])
 def backtest():
     cash = float(request.form['cash'])
+    ticker = request.form['ticker']
     start_date = request.form['start']
     end_date = request.form['end']
 
