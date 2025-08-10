@@ -81,19 +81,19 @@
                     `;
 
             const ctx = document.getElementById('equity-chart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: equity_curve.map((_, i) => `Day ${i + 1}`),
-                    datasets: [{
-                        label: 'Equity Curve',
-                        data: equity_curve,
-                        borderColor: 'blue',
-                        fill: false
-                    }]
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: dates, // ✅ Use actual dates array from backend
+                            datasets: [{
+                                label: 'Equity Curve',
+                                data: equity_curve,
+                                borderColor: 'blue',
+                                fill: false
+                            }]
+                        }
+                    });
                 }
-            });
-        }
     </script>
 </body>
 </html>
