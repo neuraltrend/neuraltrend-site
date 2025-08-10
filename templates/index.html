@@ -62,6 +62,7 @@
         /* Main content pushed down below navbar */
         main {
             padding-top: calc(var(--nav-height) + 20px);
+            padding-left: 30px; /* added left padding */
         }
 
         /* Results section */
@@ -78,6 +79,24 @@
             color: #000000;
             font-size: 20px;
             line-height: 1.6;
+        }
+
+        /* Footer styling */
+        .footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 14px;
+            background-color: #f2f2f2;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        .footer a {
+            color: black;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -128,6 +147,11 @@
         <div id="results"></div>
     </section>
 </main>
+
+<!-- Footer -->
+<div class="footer">
+    <a href="privacy.html">Privacy Notice</a>
+</div>
 
 <script>
 document.getElementById('backtest-form').addEventListener('submit', function(e) {
