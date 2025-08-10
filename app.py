@@ -32,6 +32,17 @@ def backtest():
         df[col] = values
         series[col] = pd.Series(values, index=df.index)
 
+    equity_curve = df['Close'].to_numpy().flatten().astype(float).tolist()
+    equity_curve_start=equity_curve[0]
+    print(equity_curve)
+    print(equity_curve_start)
+    print(cash)
+    equity_curve = np.array(equity_curve)  # convert list to numpy array
+    equity_curve = equity_curve / equity_curve[0] * cash
+    equity_curve = equity_curve.tolist()
+    profit_factor = float(final_value / cash)
+    final_value = float(equity_curve[-1])
+
     # Dummy backtest logic
     final_value = cash * 1.25
     profit_factor = 1.45
