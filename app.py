@@ -23,6 +23,15 @@ def backtest():
     df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
     df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
 
+    series = pd.DataFrame()
+    for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
+        df[col] = df[col].astype(float)
+        values = df[col].values
+        if values.ndim > 1:
+            values = values.flatten()
+        df[col] = values
+        series[col] = pd.Series(values, index=df.index)
+
     # Dummy backtest logic
     final_value = cash * 1.25
     profit_factor = 1.45
