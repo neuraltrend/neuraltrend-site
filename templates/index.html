@@ -31,20 +31,30 @@
 </head>
 <body>
     <section class="results-section">
-        <form id="backtest-form">
-            <label for="ticker">Asset Ticker:</label>
+                <form id="backtest-form">
+                    <h3>Backtest Simulation for EpochSignaler (Basic)</h3>
+                    <p style="line-height: 1.8;">Inputs:</p>
+                    
+                    <label for="ticker">Asset Ticker:</label>
                     <select id="ticker" name="ticker" required>
                         <option value="ETH-USD">ETH-USD</option>
                         <option value="BTC-USD">BTC-USD</option>
                     </select>
-            <label>Initial Cash: <input type="number" id="cash" name="cash" required /></label>
-            <label>Start Date: <input type="date" id="start" name="start" required /></label>
-            <label>End Date: <input type="date" id="end" name="end" required /></label>
-            <button type="submit">Run Backtest</button>
-        </form>
-        <div id="results"></div>
-    </section>
 
+                    <label for="cash">Initial Cash:</label>
+                    <input type="number" id="cash" name="cash" required />
+
+                    <label for="start">Start Date:</label>
+                    <input type="date" id="start" name="start" required />
+
+                    <label for="end">End Date:</label>
+                    <input type="date" id="end" name="end" required />
+
+                    <button type="submit">Run Backtest</button>
+                </form>
+
+                <div id="results"></div>
+            </section>
     <script>
         document.getElementById('backtest-form').addEventListener('submit', function(e) {
             e.preventDefault();
