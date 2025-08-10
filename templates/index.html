@@ -4,16 +4,30 @@
 <style>
 /* Navbar container */
 .navbar {
-    position: fixed;
-    top: 0;
-    right: 0;
+    display: flex;
+    justify-content: space-between; /* space between logo and links */
+    align-items: center;
     background-color: #333;
     padding: 10px 20px;
-    border-radius: 0 0 0 10px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
 }
 
-/* Links inside navbar */
-.navbar a {
+/* Logo styling */
+.navbar .logo img {
+    height: 40px; /* Adjust as needed */
+}
+
+/* Links container */
+.navbar .nav-links {
+    display: flex;
+}
+
+/* Links styling */
+.navbar .nav-links a {
     color: white;
     text-decoration: none;
     padding: 10px 15px;
@@ -25,7 +39,7 @@
 }
 
 /* Hover effect */
-.navbar a:hover {
+.navbar .nav-links a:hover {
     background-color: #575757;
 }
 
@@ -40,9 +54,19 @@ body {
 
 <!-- Navigation bar -->
 <div class="navbar">
-    <a href="index.html">Home</a>
-    <a href="mailto:youremail@example.com">Contact</a>
-    <a href="product.html">Product</a>
+    <!-- Logo (left) -->
+    <div class="logo">
+        <a href="index.html">
+            <img src="logo.png" alt="My Logo">
+        </a>
+    </div>
+
+    <!-- Navigation links (right) -->
+    <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="mailto:youremail@example.com">Contact</a>
+        <a href="product.html">Product</a>
+    </div>
 </div>
 
 <h1>Welcome to My Home Website</h1>
@@ -50,6 +74,7 @@ body {
 
 </body>
 </html>
+
 
 <!DOCTYPE html>
 <html lang="en">
