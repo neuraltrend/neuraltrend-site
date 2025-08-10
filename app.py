@@ -52,17 +52,17 @@ def backtest():
 
     sharpe_ratio = float((excess_returns.mean() / excess_returns.std()) * (252 ** 0.5))
 
-    # Dummy backtest logic
-    final_value = cash * 1.25
-    profit_factor = 1.45
-    sharpe_ratio = 1.75
-    equity_curve = [cash, cash * 1.05, cash * 1.10, final_value]
+    print("Equity curve length:", len(equity_curve))
+    print("First few values:", equity_curve[:5])
+    
+    dates = df.index.strftime('%Y-%m-%d').tolist()
 
     results = {
         'final_value': final_value,
         'profit_factor': profit_factor,
         'sharpe_ratio': sharpe_ratio,
-        'equity_curve': equity_curve
+        'equity_curve': equity_curve,
+        'dates': dates
     }
 
     return jsonify(results)
