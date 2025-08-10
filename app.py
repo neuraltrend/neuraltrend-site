@@ -16,10 +16,6 @@ def backtest():
     start_date = request.form['start']
     end_date = request.form['end']
 
-    final_value = cash * 1.25
-    profit_factor = 1.45
-    sharpe_ratio = 1.75
-
     df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
     df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
 
@@ -41,6 +37,7 @@ def backtest():
     equity_curve = equity_curve / equity_curve[0] * cash
     equity_curve = equity_curve.tolist()
     profit_factor = float(final_value / cash)
+    print(profit_factor)
     final_value = float(equity_curve[-1])
 
     returns = df['Close'].pct_change().dropna()
