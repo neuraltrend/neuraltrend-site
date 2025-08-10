@@ -43,6 +43,15 @@ def backtest():
     profit_factor = float(final_value / cash)
     final_value = float(equity_curve[-1])
 
+    returns = df['Close'].pct_change().dropna()
+
+    risk_free_rate_annual = 0.01
+    risk_free_rate_daily = (1 + risk_free_rate_annual) ** (1/252) - 1
+
+    excess_returns = returns - risk_free_rate_daily
+
+    sharpe_ratio = float((excess_returns.mean() / excess_returns.std()) * (252 ** 0.5))
+
     # Dummy backtest logic
     final_value = cash * 1.25
     profit_factor = 1.45
