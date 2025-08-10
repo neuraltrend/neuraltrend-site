@@ -9,6 +9,10 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
+@app.route('/')
+def privacy():
+    return render_template('privacy.html')
+
 @app.route('/backtest', methods=['POST'])
 def backtest():
     cash = float(request.form['cash'])
