@@ -71,14 +71,14 @@
             .catch(error => console.error('Error:', error));
         });
 
-        function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve }) {
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = `
-                <p>Final Value: $${final_value.toFixed(2)}</p>
-                <p>Profit Factor: ${profit_factor}</p>
-                <p>Sharpe Ratio: ${sharpe_ratio}</p>
-                <canvas id="equity-chart" width="600" height="400"></canvas>
-            `;
+        function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve, dates }) {
+                    const resultsDiv = document.getElementById('results');
+                    resultsDiv.innerHTML = `
+                        <p>Final Value: $${final_value.toFixed(2)}</p>
+                        <p>Profit Factor: ${profit_factor}</p>
+                        <p>Sharpe Ratio: ${sharpe_ratio}</p>
+                        <canvas id="equity-chart" width="600" height="400"></canvas>
+                    `;
 
             const ctx = document.getElementById('equity-chart').getContext('2d');
             new Chart(ctx, {
