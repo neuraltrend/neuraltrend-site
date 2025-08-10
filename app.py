@@ -50,7 +50,7 @@ def backtest():
 
     excess_returns = returns - risk_free_rate_daily
 
-    sharpe_ratio = float((excess_returns.mean() / excess_returns.std()) * (252 ** 0.5))
+    sharpe_ratio = float(((excess_returns.mean() / excess_returns.std()) * (252 ** 0.5)).iloc[0])
 
     print("Equity curve length:", len(equity_curve))
     print("First few values:", equity_curve[:5])
