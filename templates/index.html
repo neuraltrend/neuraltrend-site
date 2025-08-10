@@ -106,9 +106,10 @@
 <div class="navbar">
     <div class="logo">
         <a href="https://neuraltrend.org">
-            <img src="logo.png" alt="My Logo">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="My Logo">
         </a>
     </div>
+
     <div class="nav-links">
         <a href="https://neuraltrend.org">Home</a>
         <a href="mailto:contact@neuraltrend.org">Contact</a>
