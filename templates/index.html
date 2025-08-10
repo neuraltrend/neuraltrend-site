@@ -1,96 +1,70 @@
 <!DOCTYPE html>
-<html>
-<head>
-<style>
-/* Navbar container */
-.navbar {
-    display: flex;
-    justify-content: space-between; /* space between logo and links */
-    align-items: center;
-    background-color: #333;
-    padding: 10px 30px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    box-sizing: border-box;
-    z-index: 1000;
-}
-
-/* Logo styling */
-.navbar .logo img {
-    height: 40px; /* Adjust as needed */
-}
-
-/* Links container */
-.navbar .nav-links {
-    display: flex;
-}
-
-/* Links styling */
-.navbar .nav-links a {
-    color: white;
-    text-decoration: none;
-    padding: 10px 15px;
-    margin-left: 5px;
-    font-size: 16px;
-    font-family: Arial, sans-serif;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-}
-
-/* Hover effect */
-.navbar .nav-links a:hover {
-    background-color: #575757;
-}
-
-/* Push body content down so it’s not hidden under navbar */
-body {
-    margin: 0;
-    padding-top: 200px; /* Increased to make space for content */
-}
-</style>
-</head>
-<body>
-
-<!-- Navigation bar -->
-<div class="navbar">
-    <!-- Logo (left) -->
-    <div class="logo">
-        <a href="https://neuraltrend.org">
-            <img src="logo.png" alt="My Logo">
-        </a>
-    </div>
-
-    <!-- Navigation links (right) -->
-    <div class="nav-links">
-        <a href="https://neuraltrend.org">Home</a>
-        <a href="mailto:contact@neuraltrend.org">Contact</a>
-        <a href="https://github.com/neuraltrend/">Product</a>
-    </div>
-</div>
-
-<h1>Welcome to My Home Website</h1>
-<p>This is your homepage content.</p>
-
-</body>
-</html>
-
-
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Backtest Simulation</title>
+    <title>Home & Backtest Simulation</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --nav-height: 70px; /* adjust if needed */
+        }
+        * {
+            box-sizing: border-box;
+        }
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
+            font-family: Arial, sans-serif;
             font-size: 18px;
         }
+
+        /* Navbar container */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333;
+            padding: 10px 30px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            z-index: 1000;
+        }
+
+        /* Logo styling */
+        .navbar .logo img {
+            height: 40px;
+        }
+
+        /* Links container */
+        .navbar .nav-links {
+            display: flex;
+        }
+
+        /* Links styling */
+        .navbar .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            margin-left: 5px;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Hover effect */
+        .navbar .nav-links a:hover {
+            background-color: #575757;
+        }
+
+        /* Main content pushed down below navbar */
+        main {
+            padding-top: calc(var(--nav-height) + 20px);
+        }
+
+        /* Results section */
         .results-section {
             background-color: #ffffff;
             padding: 20px;
@@ -99,7 +73,6 @@ body {
             width: 90%;
             max-width: 1200px;
             border: 1px solid #e0e0e0;
-            box-sizing: border-box;
         }
         #results p {
             color: #000000;
@@ -109,70 +82,93 @@ body {
     </style>
 </head>
 <body>
+
+<!-- Navigation bar -->
+<div class="navbar">
+    <div class="logo">
+        <a href="https://neuraltrend.org">
+            <img src="logo.png" alt="My Logo">
+        </a>
+    </div>
+    <div class="nav-links">
+        <a href="https://neuraltrend.org">Home</a>
+        <a href="mailto:contact@neuraltrend.org">Contact</a>
+        <a href="https://github.com/neuraltrend/">Product</a>
+    </div>
+</div>
+
+<main>
+    <h1>Welcome to My Home Website</h1>
+    <p>This is your homepage content.</p>
+
+    <!-- Backtest Simulation -->
     <section class="results-section">
-                <form id="backtest-form">
-                    <h3>Backtest Simulation for EpochSignaler (Basic)</h3>
-                    <p style="line-height: 1.8;">Inputs:</p>
-                    
-                    <label for="ticker">Asset Ticker:</label>
-                    <select id="ticker" name="ticker" required>
-                        <option value="ETH-USD">ETH-USD</option>
-                        <option value="BTC-USD">BTC-USD</option>
-                    </select>
+        <form id="backtest-form">
+            <h3>Backtest Simulation for EpochSignaler (Basic)</h3>
+            <p style="line-height: 1.8;">Inputs:</p>
 
-                    <label for="cash">Initial Cash:</label>
-                    <input type="number" id="cash" name="cash" required />
+            <label for="ticker">Asset Ticker:</label>
+            <select id="ticker" name="ticker" required>
+                <option value="ETH-USD">ETH-USD</option>
+                <option value="BTC-USD">BTC-USD</option>
+            </select>
 
-                    <label for="start">Start Date:</label>
-                    <input type="date" id="start" name="start" required />
+            <label for="cash">Initial Cash:</label>
+            <input type="number" id="cash" name="cash" required />
 
-                    <label for="end">End Date:</label>
-                    <input type="date" id="end" name="end" required />
+            <label for="start">Start Date:</label>
+            <input type="date" id="start" name="start" required />
 
-                    <button type="submit">Run Backtest</button>
-                </form>
+            <label for="end">End Date:</label>
+            <input type="date" id="end" name="end" required />
 
-                <div id="results"></div>
-            </section>
-    <script>
-        document.getElementById('backtest-form').addEventListener('submit', function(e) {
-            e.preventDefault();
+            <button type="submit">Run Backtest</button>
+        </form>
 
-            const formData = new FormData(this);
-            fetch('/backtest', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                renderResults(data);
-            })
-            .catch(error => console.error('Error:', error));
-        });
+        <div id="results"></div>
+    </section>
+</main>
 
-        function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve, dates }) {
-                    const resultsDiv = document.getElementById('results');
-                    resultsDiv.innerHTML = `
-                        <p>Final Value: $${final_value.toFixed(2)}</p>
-                        <p>Profit Factor: ${profit_factor}</p>
-                        <p>Sharpe Ratio: ${sharpe_ratio}</p>
-                        <canvas id="equity-chart" width="600" height="400"></canvas>
-                    `;
+<script>
+document.getElementById('backtest-form').addEventListener('submit', function(e) {
+    e.preventDefault();
 
-            const ctx = document.getElementById('equity-chart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: dates, // ✅ Use actual dates array from backend
-                            datasets: [{
-                                label: 'Equity Curve',
-                                data: equity_curve,
-                                borderColor: 'blue',
-                                fill: false
-                            }]
-                        }
-                    });
-                }
-    </script>
+    const formData = new FormData(this);
+    fetch('/backtest', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        renderResults(data);
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve, dates }) {
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = `
+        <p>Final Value: $${final_value.toFixed(2)}</p>
+        <p>Profit Factor: ${profit_factor}</p>
+        <p>Sharpe Ratio: ${sharpe_ratio}</p>
+        <canvas id="equity-chart" width="600" height="400"></canvas>
+    `;
+
+    const ctx = document.getElementById('equity-chart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Equity Curve',
+                data: equity_curve,
+                borderColor: 'blue',
+                fill: false
+            }]
+        }
+    });
+}
+</script>
+
 </body>
 </html>
