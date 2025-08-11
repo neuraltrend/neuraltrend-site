@@ -108,10 +108,13 @@
         
         #contact {
             margin-top: 10px;   /* moves it up */
+            margin-bottom: 50px; 
         }
         #contact textarea {
-            min-width: 100px;  /* bigger message box */
-            resize: horizontal;
+            width: 100%;      /* makes the textarea fill the container's width */
+            max-width: 600px; /* optional: set a max width if you don't want it too wide */
+            height: 200px;    /* keep the height bigger as before */
+            resize: vertical; /* allow vertical resizing */
         }
     </style>
 </head>
