@@ -34,15 +34,11 @@ def backtest():
 
     equity_curve = df['Close'].to_numpy().flatten().astype(float).tolist()
     equity_curve_start=equity_curve[0]
-    print(equity_curve)
-    print(equity_curve_start)
-    print(cash)
     equity_curve = np.array(equity_curve)  # convert list to numpy array
     equity_curve = equity_curve / equity_curve[0] * cash
     equity_curve = equity_curve.tolist()
     final_value = float(equity_curve[-1])
     profit_factor = float(final_value / cash)
-    print(profit_factor)
 
     returns = df['Close'].pct_change().dropna()
 
@@ -52,9 +48,6 @@ def backtest():
     excess_returns = returns - risk_free_rate_daily
 
     sharpe_ratio = float(((excess_returns.mean() / excess_returns.std()) * (252 ** 0.5)).iloc[0])
-
-    print("Equity curve length:", len(equity_curve))
-    print("First few values:", equity_curve[:5])
     
     dates = df.index.strftime('%Y-%m-%d').tolist()
 
