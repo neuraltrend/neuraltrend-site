@@ -121,6 +121,18 @@
     <h1>NeuralTrend</h1>
     <p>Building advanced AI to deliver actionable insights across cryptocurrency and traditional markets (for informational purposes only — not financial advice).</p>
 
+    <!-- Products Section -->
+    <section id="products" style="padding: 40px 30px;">
+        <h1>Our Products</h1>
+        
+        <!-- EpochSignaler -->
+        <div style="margin-bottom: 60px;">
+            <h2>EpochSignaler</h2>
+            <p>
+                EpochSignaler analyzes market data to deliver actionable buy/sell signals, 
+                leveraging advanced AI for cryptocurrency and traditional assets.
+            </p>
+
     <!-- Backtest Simulation -->
     <section class="results-section">
         <form id="backtest-form">
@@ -153,6 +165,41 @@
 
         <div id="results"></div>
     </section>
+
+    <!-- EpochSignaler Image -->
+    <div style="text-align: center; margin-top: 20px;">
+        <img src="{{ url_for('static', filename='epoch_signaler.png') }}" alt="EpochSignaler" style="max-width: 100%; height: auto;">
+    </div>
+</div>
+
+        <!-- EpochForecaster -->
+        <div>
+            <h2>EpochForecaster</h2>
+            <p>
+                EpochForecaster predicts future market trends using deep learning models, 
+                providing insight into potential price trajectories.
+            </p>
+
+            <!-- EpochForecaster Image -->
+            <div style="text-align: center; margin-top: 20px;">
+                <img src="{{ url_for('static', filename='epoch_forecaster.png') }}" alt="EpochForecaster" style="max-width: 100%; height: auto;">
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Us Section -->
+    <section id="contact" style="padding: 40px 30px; background-color: #f9f9f9;">
+        <h1>Contact Us</h1>
+        <p>Have questions or feedback? Send us a message:</p>
+
+        <!-- Contact Form -->
+        <form action="https://formspree.io/f/your-form-id" method="POST">
+            <textarea name="message" placeholder="Write your message here..." style="width:100%; height:150px; padding:10px; font-size:16px;" required></textarea>
+            <br><br>
+            <button type="submit" style="padding: 10px 20px; font-size: 16px;">Send Message</button>
+        </form>
+    </section>
+            
 </main>
 
 <!-- Footer -->
