@@ -111,11 +111,21 @@
             margin-bottom: 50px; 
         }
         #contact textarea {
-            width: 100%;      /* makes the textarea fill the container's width */
-            max-width: 600px; /* optional: set a max width if you don't want it too wide */
-            height: 200px;    /* keep the height bigger as before */
-            resize: vertical; /* allow vertical resizing */
+            display: block;      /* ensures it starts at top */
+            vertical-align: top; /* just in case */
+            margin-top: 0;       /* no extra margin pushing it down */
+            width: 100%;         /* makes the textarea fill the container's width */
+            max-width: 600px;    /* optional: set a max width if you don't want it too wide */
+            height: 200px;       /* keep the height bigger as before */
         }
+
+        form {
+            display: flex;
+            flex-direction: column;   /* vertical stack */
+            align-items: flex-start;  /* align children to the top/start */
+            gap: 10px;                /* optional spacing */
+         }
+
     </style>
 </head>
 <body>
