@@ -124,6 +124,16 @@
   height: 100px;
   object-fit: contain;
 }
+        
+.tradingview-widget-copyright {
+    font-size: 10px !important;       /* smaller font */
+    color: #666 !important;           /* subtle gray color */
+    text-align: center !important;    /* center the text */
+    padding-top: 5px !important;      /* some spacing from widget */
+    font-family: Arial, sans-serif !important;
+    user-select: none;                /* prevent selection if you want */
+    opacity: 0.7;                    /* slight transparency */
+}
 
 
         /* Results section */
@@ -266,7 +276,13 @@
       <!-- TradingView Widget BEGIN -->
         <div class="tradingview-widget-container">
           <div class="tradingview-widget-container__widget"></div>
-          <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/CRYPTO-BTCUSD/?exchange=CRYPTO" rel="noopener nofollow" target="_blank"><span class="blue-text">BTCUSD chart by TradingView</span></a></div>
+          <div class="tradingview-widget-copyright">
+    <a href="https://www.tradingview.com/symbols/CRYPTO-BTCUSD/?exchange=CRYPTO" 
+       rel="noopener nofollow" target="_blank" 
+       style="color:#666; text-decoration:none;">
+      BTCUSD chart by TradingView
+    </a>
+  </div>
           <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
           {
           "allow_symbol_change": true,
