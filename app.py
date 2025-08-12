@@ -13,6 +13,10 @@ def index():
 def privacy():
     return render_template('privacy.html')
 
+@app.route('/market')
+def market():
+    return render_template('market.html')
+
 @app.route('/backtest', methods=['POST'])
 def backtest():
     cash = float(request.form['cash'])
