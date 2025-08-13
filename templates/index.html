@@ -194,28 +194,62 @@ button {
         }
         
         #contact {
-            margin-top: 10px;   /* moves it up */
-            margin-bottom: 60px; 
-            background-color: #f9f9f9; /* very light gray — you can use your own color */
-            padding: 20px;
-            border-radius: 8px; /* optional, for rounded edges */
-            box-shadow: 0 0 10px rgba(0,0,0,0.05); /* optional, soft shadow */
-        }
-        #contact textarea {
-            display: block;      /* ensures it starts at top */
-            vertical-align: top; /* just in case */
-            margin-top: 0;       /* no extra margin pushing it down */
-            width: 100%;         /* makes the textarea fill the container's width */
-            max-width: 600px;    /* optional: set a max width if you don't want it too wide */
-            height: 100px;       /* keep the height bigger as before */
-        }
+    margin-top: 10px;
+    margin-bottom: 60px; 
+    background-color: #f9f9f9;
+    padding: 20px 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
 
-        form-contact {
-            display: flex;
-            flex-direction: row;   /* vertical stack */
-            align-items: flex-start;  /* align children to the top/start */
-            gap: 10px;                /* optional spacing */
-         }
+/* Form styling */
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 500px;
+}
+
+/* Labels bigger */
+.contact-form label {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Inputs and textarea */
+.contact-form input,
+.contact-form textarea,
+.contact-form button {
+    font-size: 18px;
+    padding: 8px 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Placeholder text */
+.contact-form input::placeholder,
+.contact-form textarea::placeholder {
+    font-size: 18px;
+}
+
+/* Textarea height */
+.contact-form textarea {
+    min-height: 100px;
+}
+
+/* Button styling */
+.contact-form button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+}
+.contact-form button:hover {
+    background-color: #45a049;
+}
 
     </style>
 </head>
@@ -467,25 +501,24 @@ button {
     </section>
 
     <!-- Contact Us Section -->
-    <section id="contact" style="padding: 20px 30px; background-color: #f9f9f9;">
-        <h2>Contact Us</h2>
-        <p>Have questions or feedback? Send us a message:</p>
+    <section id="contact">
+    <h2>Contact Us</h2>
+    <p>Have questions or feedback? Send us a message:</p>
 
-        <!-- Contact Form -->
-        <form-contact action="https://formspree.io/f/xldlavwz" method="POST">
+    <!-- Contact Form -->
+    <form action="https://formspree.io/f/xldlavwz" method="POST" class="contact-form">
         <label for="name">Name</label>
-        <input type="text" name="name" id="name" required>
+        <input type="text" name="name" id="name" placeholder="Your full name" required>
 
         <label for="email">Email</label>
-        <input type="email" name="email" id="email" required>
+        <input type="email" name="email" id="email" placeholder="your@email.com" required>
 
         <label for="message">Message</label>
-        <textarea name="message" id="message" required></textarea>
+        <textarea name="message" id="message" placeholder="Type your message here..." required></textarea>
 
         <button type="submit">Send</button>
-        </form-contact>
-
-    </section>
+    </form>
+</section>
             
 </main>
 
