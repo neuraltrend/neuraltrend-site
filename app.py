@@ -17,6 +17,10 @@ def privacy():
 def market():
     return render_template('market.html')
 
+@app.route('/knowledge')
+def knowledge():
+    return render_template('knowledge.html')
+
 @app.route('/backtest', methods=['POST'])
 def backtest():
     cash = float(request.form['cash'])
