@@ -3,61 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Education</title>
+    <title>Knowledge Hub</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --nav-height: 110px; /* adjust if needed */
+        }
+        * {
+            box-sizing: border-box;
+        }
         body {
+            margin: 0;
             font-family: Arial, sans-serif;
-            line-height: 1.6;
-            max-width: 900px;
-            margin: auto;
-            padding: 20px;
+            font-size: 18px;
         }
-        nav {
-            background-color: #333;
-            padding: 10px;
-            text-align: center;
-            border-radius: 8px;
-            margin-bottom: 20px;
+
+        /* Navbar container */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1a7d9c;
+            padding: 10px 30px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            z-index: 1000;
         }
-        nav a {
+
+        /* Logo styling */
+        .navbar .logo img {
+            height: 100px;
+        }
+
+        /* Links container */
+        .navbar .nav-links {
+            display: flex;
+        }
+
+        /* Links styling */
+        .navbar .nav-links a {
             color: white;
             text-decoration: none;
-            margin: 0 15px;
-            font-weight: bold;
+            padding: 10px 15px;
+            margin-left: 5px;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
         }
-        nav a:hover {
+
+        /* Hover effect */
+        .navbar .nav-links a:hover {
+            background-color: #575757;
+        }
+
+        /* Main content pushed down below navbar */
+        main {
+            padding-top: calc(var(--nav-height) + 20px);
+            padding-left: 30px; /* added left padding */
+        }
+
+        .product-box {
+            background-color: #f9f9f9; /* very light gray — you can use your own color */
+            padding: 20px;
+            border-radius: 8px; /* optional, for rounded edges */
+            box-shadow: 0 0 10px rgba(0,0,0,0.05); /* optional, soft shadow */
+        }
+
+        .three-blocks {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 20px;
+}
+
+.block {
+  background-color: #f9f9f9; /* Light gray box */
+  border-radius: 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.block-title {
+  background-color: #e3e3e3; /* Title background */
+  padding: 10px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.block-chart {
+  flex: 1;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  min-height: 300px; /* adjust chart height */
+
+  /* Center widget content */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.block-bottom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.block-img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+        
+.tradingview-widget-copyright {
+    font-size: 10px !important;       /* smaller font */
+    color: #666 !important;           /* subtle gray color */
+    text-align: center !important;    /* center the text */
+    padding-top: 5px !important;      /* some spacing from widget */
+    font-family: Arial, sans-serif !important;
+    user-select: none;                /* prevent selection if you want */
+    opacity: 0.7;                    /* slight transparency */
+}
+
+        /* Results section */
+        .results-section {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px auto;
+            width: 90%;
+            max-width: 1200px;
+            border: 1px solid #e0e0e0;
+        }
+        #results p {
+            color: #000000;
+            font-size: 20px;
+            line-height: 1.6;
+        }
+
+        /* Footer styling */
+        .footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 14px;
+            background-color: #f2f2f2;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        .footer a {
+            color: black;
+            text-decoration: none;
+        }
+        .footer a:hover {
             text-decoration: underline;
         }
-        section {
-            margin-bottom: 50px;
+        
+        #contact {
+            margin-top: 10px;   /* moves it up */
+            margin-bottom: 60px; 
+            background-color: #f9f9f9; /* very light gray — you can use your own color */
+            padding: 20px;
+            border-radius: 8px; /* optional, for rounded edges */
+            box-shadow: 0 0 10px rgba(0,0,0,0.05); /* optional, soft shadow */
         }
-        h1, h2 {
-            color: #222;
+        #contact textarea {
+            display: block;      /* ensures it starts at top */
+            vertical-align: top; /* just in case */
+            margin-top: 0;       /* no extra margin pushing it down */
+            width: 100%;         /* makes the textarea fill the container's width */
+            max-width: 600px;    /* optional: set a max width if you don't want it too wide */
+            height: 100px;       /* keep the height bigger as before */
         }
-        h1 {
-            margin-bottom: 10px;
-        }
-        h2 {
-            margin-top: 0;
-        }
+
+        form-contact {
+            display: flex;
+            flex-direction: row;   /* vertical stack */
+            align-items: flex-start;  /* align children to the top/start */
+            gap: 10px;                /* optional spacing */
+         }
+
     </style>
 </head>
 <body>
 
-    <h1>Crypto Education</h1>
+<!-- Navigation bar -->
+<div class="navbar">
+    <div class="logo">
+        <a href="https://neuraltrend.org">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="My Logo">
+        </a>
+    </div>
 
-    <!-- Navigation Menu -->
-    <nav>
-        <a href="#blockchain">Blockchain Technology</a>
-        <a href="#crypto-cycle">Crypto & 4-Year Cycle</a>
-        <a href="#metrics">Important Metrics</a>
-        <a href="#risks">Risks & Safety</a>
-    </nav>
+    <div class="nav-links">
+        <a href="https://neuraltrend.org">Home</a>
+        <a href="https://github.com/neuraltrend/">Sample Algorithms</a>
+        <a href="/market">Market Insight</a>
+        <a href="mailto:contact@neuraltrend.org">Contact</a>
+    </div>
+</div>
 
-    <!-- Section 1 -->
-    <section id="blockchain">
+<main>
+    <h1>NeuralTrend</h1>
+    <p>AI-driven market clarity</p>
+
+    <!-- Products Section -->
+    <section id="products" style="padding: 40px 30px;">
         <h2>Blockchain Technology</h2>
-        <p>
+        <div class="product-box">
+        
+        <!-- EpochSignaler -->
+        <div style="margin-bottom: 30px;">
+            <p>
             Blockchain is a decentralized ledger that records transactions across a network of computers. 
             Instead of relying on a single central authority, blockchain uses cryptography and consensus mechanisms 
             to ensure that data is secure, transparent, and immutable. Every transaction is stored in a "block," 
@@ -66,10 +234,14 @@
         </p>
     </section>
 
-    <!-- Section 2 -->
-    <section id="crypto-cycle">
+    <!-- Products Section -->
+    <section id="products" style="padding: 40px 30px;">
         <h2>Crypto & the 4-Year Cycle</h2>
-        <p>
+        <div class="product-box">
+        
+        <!-- EpochSignaler -->
+        <div style="margin-bottom: 30px;">
+            <p>
             Many analysts believe cryptocurrency markets, especially Bitcoin, follow a 4-year cycle influenced 
             by the Bitcoin halving — an event where the mining reward is cut in half approximately every four years. 
             Historically, these cycles have included a year of rapid growth (bull market), followed by a year of decline 
@@ -79,10 +251,14 @@
         </p>
     </section>
 
-    <!-- Section 3 -->
-    <section id="metrics">
+    <!-- Products Section -->
+    <section id="products" style="padding: 40px 30px;">
         <h2>Important Metrics in Crypto</h2>
-        <p>
+        <div class="product-box">
+        
+        <!-- EpochSignaler -->
+        <div style="margin-bottom: 30px;">
+            <p>
             Key metrics help investors evaluate crypto projects and market trends. 
             Market capitalization shows the total value of a cryptocurrency and helps compare project sizes. 
             Trading volume indicates liquidity and interest. 
@@ -92,10 +268,14 @@
         </p>
     </section>
 
-    <!-- Section 4 -->
-    <section id="risks">
+    <!-- Products Section -->
+    <section id="products" style="padding: 40px 30px;">
         <h2>Risks & Safety in Crypto</h2>
-        <p>
+        <div class="product-box">
+        
+        <!-- EpochSignaler -->
+        <div style="margin-bottom: 30px;">
+            <p>
             The crypto market offers exciting opportunities but also carries unique risks. 
             Prices can be highly volatile, and scams such as rug pulls, phishing, and fake tokens are common. 
             To stay safe, always research projects before investing, use trusted exchanges, 
@@ -103,6 +283,54 @@
             Never share your private keys or seed phrases — once lost or stolen, they cannot be recovered.
         </p>
     </section>
+
+</main>
+
+<!-- Footer -->
+<div class="footer">
+    <a href="/privacy">Privacy Notice</a>
+</div>
+
+<script>
+document.getElementById('backtest-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    fetch('/backtest', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        renderResults(data);
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve, dates }) {
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = `
+        <p>Final Value: $${final_value.toFixed(2)}</p>
+        <p>Profit Factor: ${profit_factor}</p>
+        <p>Sharpe Ratio: ${sharpe_ratio}</p>
+        <canvas id="equity-chart" width="600" height="400"></canvas>
+    `;
+
+    const ctx = document.getElementById('equity-chart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Equity Curve',
+                data: equity_curve,
+                borderColor: 'blue',
+                fill: false
+            }]
+        }
+    });
+}
+</script>
 
 </body>
 </html>
