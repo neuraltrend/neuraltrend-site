@@ -193,92 +193,100 @@ button {
             text-decoration: underline;
         }
         
-        #contact {
-    display: flex; /* makes left & right columns */
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 40px;
-    margin: 10px auto 60px;
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    max-width: 900px;
+        /* Two-column container */
+#contact-section {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap; /* responsive for smaller screens */
+  margin: 10px auto 60px;
+  max-width: 1200px;
 }
 
-/* Left column (form) */
+/* Equal-sized blocks */
+.contact-block {
+  flex: 1 1 500px; /* grows/shrinks, min width */
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  box-sizing: border-box;
+}
+
+/* Reuse your contact form styles */
 .contact-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 500px;
 }
 
-/* Labels bigger */
 .contact-form label {
-    font-size: 20px;
-    font-weight: bold;
+  font-size: 20px;
+  font-weight: bold;
 }
 
-/* Inputs and textarea */
 .contact-form input,
 .contact-form textarea,
 .contact-form button {
-    font-size: 18px;
-    padding: 8px 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    width: 100%;
-    box-sizing: border-box;
+  font-size: 18px;
+  padding: 8px 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* Placeholder text */
 .contact-form input::placeholder,
 .contact-form textarea::placeholder {
-    font-size: 18px;
+  font-size: 18px;
 }
 
-/* Textarea height */
 .contact-form textarea {
-    min-height: 100px;
+  min-height: 100px;
 }
 
-/* Button styling */
 .contact-form button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    cursor: pointer;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
 }
 .contact-form button:hover {
-    background-color: #45a049;
+  background-color: #45a049;
 }
 
-/* Side-by-side name/email */
 .form-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 .form-row input {
-    flex: 1;
+  flex: 1;
+  padding: 8px;
+  font-size: 14px;
 }
 
-/* Right column (social links) */
+/* Social links styling */
 .social-links {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.social-links li {
+  margin: 15px 0;
 }
 
 .social-links a {
-    font-size: 18px;
-    text-decoration: none;
-    color: #0077b5; /* LinkedIn blue default */
+  font-size: 18px;
+  color: #0077b5;
+  text-decoration: none;
 }
+
 .social-links a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
     </style>
@@ -530,39 +538,39 @@ button {
         </div>
     </section>
 
-    <section id="contact">
-    <!-- Left: Contact Form -->
-    <div>
-        <h2>Contact Us</h2>
-        <p>Have questions or feedback? Send us a message:</p>
+    <section id="contact-section">
+  <!-- Left: Contact Us -->
+  <div class="contact-block">
+    <h2>Contact Us</h2>
+    <p>Have questions or feedback? Send us a message:</p>
 
-        <form action="https://formspree.io/f/xldlavwz" method="POST" class="contact-form">
-            <div class="form-row">
-                <div>
-                    <label for="name">Name</label>
-                    <input type="text" name="name" id="name" placeholder="Your full name" required>
-                </div>
-                <div>
-                    <label for="email">Email</label>
-                    <input type="email" name="email" id="email" placeholder="your@email.com" required>
-                </div>
-            </div>
+    <form action="https://formspree.io/f/xldlavwz" method="POST" class="contact-form">
+      <div class="form-row">
+        <label for="name">Name</label>
+        <input type="text" name="name" id="name" placeholder="Your full name" required>
 
-            <div class="form-row" style="flex-direction: column;">
-                <label for="message">Message</label>
-                <textarea name="message" id="message" placeholder="Type your message here..." required></textarea>
-            </div>
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email" placeholder="your@email.com" required>
+      </div>
 
-            <button type="submit">Send</button>
-        </form>
-    </div>
+      <div class="form-row">
+        <label for="message">Message</label>
+        <textarea name="message" id="message" placeholder="Type your message here..." required></textarea>
+      </div>
 
-    <!-- Right: Social Links -->
-    <div class="social-links">
-        <a href="https://www.linkedin.com/company/neuraltrend-llc/" target="_blank">LinkedIn</a>
-        <a href="https://x.com/neuraltrendllc?s=21" target="_blank">Twitter</a>
-        <a href="https://www.facebook.com/profile.php?id=61579289244747" target="_blank">Facebook</a>
-    </div>
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <!-- Right: Follow Us -->
+  <div class="contact-block">
+    <h2>Follow Us</h2>
+    <ul class="social-links">
+      <li><a href="https://www.linkedin.com/company/neuraltrend-llc/" target="_blank">LinkedIn</a></li>
+      <li><a href="https://x.com/neuraltrendllc?s=21" target="_blank">Twitter</a></li>
+      <li><a href="https://www.facebook.com/profile.php?id=61579289244747" target="_blank">Facebook</a></li>
+    </ul>
+  </div>
 </section>
             
 </main>
