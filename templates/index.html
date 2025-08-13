@@ -194,19 +194,68 @@ button {
         }
         
 /* Layout for Contact + Follow Us */
+/* Main layout: Contact Us + Follow Us side by side */
 #contact-section {
     display: flex;
     gap: 20px;
     max-width: 1200px;
     margin: 20px auto;
+    flex-wrap: wrap; /* Makes it responsive on small screens */
 }
 
+/* Shared box styling */
 .contact-box, .follow-box {
     flex: 1;
     background-color: #f9f9f9;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    min-width: 300px; /* Prevents boxes from shrinking too much */
+}
+
+/* Headings */
+.contact-box h2, .follow-box h2 {
+    font-size: 1.5em;
+    margin-bottom: 15px;
+}
+
+/* Contact form styles */
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.contact-form label {
+    font-weight: bold;
+}
+
+.contact-form input,
+.contact-form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.contact-form textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.contact-form button {
+    background-color: #0077B5;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.contact-form button:hover {
+    background-color: #005f87;
 }
 
 /* Follow Us buttons */
@@ -231,7 +280,7 @@ button {
 .social-btn.twitter { background-color: #1DA1F2; }
 .social-btn.facebook { background-color: #1877F2; }
 
-/* Hover effect */
+/* Hover effect for Follow Us buttons */
 .social-btn:hover {
     transform: translateY(-3px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
