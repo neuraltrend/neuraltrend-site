@@ -193,100 +193,48 @@ button {
             text-decoration: underline;
         }
         
-        /* Two-column container */
+/* Layout for Contact + Follow Us */
 #contact-section {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  flex-wrap: wrap; /* responsive for smaller screens */
-  margin: 10px auto 60px;
-  max-width: 1200px;
+    display: flex;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 20px auto;
 }
 
-/* Equal-sized blocks */
-.contact-block {
-  flex: 1 1 500px; /* grows/shrinks, min width */
-  background-color: #f9f9f9;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.05);
-  box-sizing: border-box;
+.contact-box, .follow-box {
+    flex: 1;
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
 }
 
-/* Reuse your contact form styles */
-.contact-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  max-width: 500px;
+/* Follow Us buttons */
+.social-btn {
+    display: block;
+    padding: 12px 15px;
+    margin: 10px 0;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.contact-form label {
-  font-size: 20px;
-  font-weight: bold;
+.social-btn i {
+    margin-right: 10px;
 }
 
-.contact-form input,
-.contact-form textarea,
-.contact-form button {
-  font-size: 18px;
-  padding: 8px 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  width: 100%;
-  box-sizing: border-box;
-}
+/* Brand colors */
+.social-btn.linkedin { background-color: #0077B5; }
+.social-btn.twitter { background-color: #1DA1F2; }
+.social-btn.facebook { background-color: #1877F2; }
 
-.contact-form input::placeholder,
-.contact-form textarea::placeholder {
-  font-size: 18px;
-}
-
-.contact-form textarea {
-  min-height: 100px;
-}
-
-.contact-form button {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  cursor: pointer;
-}
-.contact-form button:hover {
-  background-color: #45a049;
-}
-
-.form-row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.form-row input {
-  flex: 1;
-  padding: 8px;
-  font-size: 14px;
-}
-
-/* Social links styling */
-.social-links {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.social-links li {
-  margin: 15px 0;
-}
-
-.social-links a {
-  font-size: 18px;
-  color: #0077b5;
-  text-decoration: none;
-}
-
-.social-links a:hover {
-  text-decoration: underline;
+/* Hover effect */
+.social-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
     </style>
@@ -539,40 +487,46 @@ button {
     </section>
 
     <section id="contact-section">
-  <!-- Left: Contact Us -->
-  <div class="contact-block">
-    <h2>Contact Us</h2>
-    <p>Have questions or feedback? Send us a message:</p>
+    <!-- Contact Us Block -->
+    <div class="contact-box">
+        <h2>Contact Us</h2>
+        <p>Have questions or feedback? Send us a message:</p>
+        <form action="https://formspree.io/f/xldlavwz" method="POST" class="contact-form">
+            <div class="form-row">
+                <label for="name">Name</label>
+                <input type="text" name="name" id="name" placeholder="Your full name" required>
 
-    <form action="https://formspree.io/f/xldlavwz" method="POST" class="contact-form">
-      <div class="form-row">
-        <label for="name">Name</label>
-        <input type="text" name="name" id="name" placeholder="Your full name" required>
+                <label for="email">Email</label>
+                <input type="email" name="email" id="email" placeholder="your@email.com" required>
+            </div>
 
-        <label for="email">Email</label>
-        <input type="email" name="email" id="email" placeholder="your@email.com" required>
-      </div>
+            <div class="form-row">
+                <label for="message">Message</label>
+                <textarea name="message" id="message" placeholder="Type your message here..." required></textarea>
+            </div>
 
-      <div class="form-row">
-        <label for="message">Message</label>
-        <textarea name="message" id="message" placeholder="Type your message here..." required></textarea>
-      </div>
+            <button type="submit">Send</button>
+        </form>
+    </div>
 
-      <button type="submit">Send</button>
-    </form>
-  </div>
-
-  <!-- Right: Follow Us -->
-  <div class="contact-block">
-    <h2>Follow Us</h2>
-    <ul class="social-links">
-      <li><a href="https://www.linkedin.com/company/neuraltrend-llc/" target="_blank">LinkedIn</a></li>
-      <li><a href="https://x.com/neuraltrendllc?s=21" target="_blank">Twitter</a></li>
-      <li><a href="https://www.facebook.com/profile.php?id=61579289244747" target="_blank">Facebook</a></li>
-    </ul>
-  </div>
+    <!-- Follow Us Block -->
+    <div class="follow-box">
+        <h2>Follow Us</h2>
+        <a href="https://www.linkedin.com/company/neuraltrend-llc/" target="_blank" class="social-btn linkedin">
+            <i class="fab fa-linkedin"></i> LinkedIn
+        </a>
+        <a href="https://x.com/neuraltrendllc?s=21" target="_blank" class="social-btn twitter">
+            <i class="fab fa-twitter"></i> Twitter
+        </a>
+        <a href="https://www.facebook.com/profile.php?id=61579289244747" target="_blank" class="social-btn facebook">
+            <i class="fab fa-facebook"></i> Facebook
+        </a>
+    </div>
 </section>
-            
+
+<!-- Font Awesome for icons -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
 </main>
 
 <!-- Footer -->
