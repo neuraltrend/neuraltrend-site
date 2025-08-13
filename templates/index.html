@@ -136,6 +136,29 @@
     opacity: 0.7;                    /* slight transparency */
 }
 
+        /* Make form labels bigger */
+label {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Make inputs bigger (both text & number/date selectors) */
+input, select, textarea, button {
+    font-size: 18px;   /* text inside box */
+    padding: 8px 10px; /* a bit more padding for comfort */
+}
+
+/* Make placeholder text bigger */
+input::placeholder, textarea::placeholder {
+    font-size: 18px;
+}
+
+/* Optional: make the "Run Backtest" button match */
+button {
+    font-size: 18px;
+    padding: 10px 15px;
+    cursor: pointer;
+}
 
         /* Results section */
         .results-section {
