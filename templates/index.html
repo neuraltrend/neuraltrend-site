@@ -194,15 +194,19 @@ button {
         }
         
         #contact {
-    margin: 10px auto 60px; /* top, sides(auto), bottom */
+    display: flex; /* makes left & right columns */
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px;
+    margin: 10px auto 60px;
     background-color: #f9f9f9;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    max-width: 600px; /* limit box width */
+    max-width: 900px;
 }
 
-/* Form styling */
+/* Left column (form) */
 .contact-form {
     display: flex;
     flex-direction: column;
@@ -251,16 +255,31 @@ button {
     background-color: #45a049;
 }
 
+/* Side-by-side name/email */
 .form-row {
     display: flex;
-    gap: 10px; /* space between fields */
+    gap: 10px;
     margin-bottom: 10px;
-  }
+}
 .form-row input {
-    flex: 1; /* make inputs equal width */
-    padding: 8px;
-    font-size: 14px;
-  }
+    flex: 1;
+}
+
+/* Right column (social links) */
+.social-links {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.social-links a {
+    font-size: 18px;
+    text-decoration: none;
+    color: #0077b5; /* LinkedIn blue default */
+}
+.social-links a:hover {
+    text-decoration: underline;
+}
 
     </style>
 </head>
@@ -511,28 +530,39 @@ button {
         </div>
     </section>
 
-    <!-- Contact Us Section -->
     <section id="contact">
-    <h2>Contact Us</h2>
-    <p>Have questions or feedback? Send us a message:</p>
+    <!-- Left: Contact Form -->
+    <div>
+        <h2>Contact Us</h2>
+        <p>Have questions or feedback? Send us a message:</p>
 
-    <!-- Contact Form -->
-    <form action="https://formspree.io/f/xldlavwz" method="POST" class="contact-form">
-        <div class="form-row">
-            <label for="name">Name</label>
-            <input type="text" name="name" id="name" placeholder="Your full name" required>
+        <form action="https://formspree.io/f/xldlavwz" method="POST" class="contact-form">
+            <div class="form-row">
+                <div>
+                    <label for="name">Name</label>
+                    <input type="text" name="name" id="name" placeholder="Your full name" required>
+                </div>
+                <div>
+                    <label for="email">Email</label>
+                    <input type="email" name="email" id="email" placeholder="your@email.com" required>
+                </div>
+            </div>
 
-            <label for="email">Email</label>
-            <input type="email" name="email" id="email" placeholder="your@email.com" required>
-        </div>
+            <div class="form-row" style="flex-direction: column;">
+                <label for="message">Message</label>
+                <textarea name="message" id="message" placeholder="Type your message here..." required></textarea>
+            </div>
 
-        <div class="form-row">
-            <label for="message">Message</label>
-            <textarea name="message" id="message" placeholder="Type your message here..." required></textarea>
-        </div>
+            <button type="submit">Send</button>
+        </form>
+    </div>
 
-        <button type="submit">Send</button>
-    </form>
+    <!-- Right: Social Links -->
+    <div class="social-links">
+        <a href="https://linkedin.com/company/yourcompany" target="_blank">LinkedIn</a>
+        <a href="https://twitter.com/yourcompany" target="_blank">Twitter</a>
+        <a href="https://facebook.com/yourcompany" target="_blank">Facebook</a>
+    </div>
 </section>
             
 </main>
