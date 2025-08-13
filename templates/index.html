@@ -251,6 +251,17 @@ button {
     background-color: #45a049;
 }
 
+.form-row {
+    display: flex;
+    gap: 10px; /* space between fields */
+    margin-bottom: 10px;
+  }
+.form-row input {
+    flex: 1; /* make inputs equal width */
+    padding: 8px;
+    font-size: 14px;
+  }
+
     </style>
 </head>
 <body>
@@ -507,14 +518,18 @@ button {
 
     <!-- Contact Form -->
     <form action="https://formspree.io/f/xldlavwz" method="POST" class="contact-form">
-        <label for="name">Name</label>
-        <input type="text" name="name" id="name" placeholder="Your full name" required>
+        <div class="form-row">
+            <label for="name">Name</label>
+            <input type="text" name="name" id="name" placeholder="Your full name" required>
 
-        <label for="email">Email</label>
-        <input type="email" name="email" id="email" placeholder="your@email.com" required>
+            <label for="email">Email</label>
+            <input type="email" name="email" id="email" placeholder="your@email.com" required>
+        </div>
 
-        <label for="message">Message</label>
-        <textarea name="message" id="message" placeholder="Type your message here..." required></textarea>
+        <div class="form-row">
+            <label for="message">Message</label>
+            <textarea name="message" id="message" placeholder="Type your message here..." required></textarea>
+        </div>
 
         <button type="submit">Send</button>
     </form>
