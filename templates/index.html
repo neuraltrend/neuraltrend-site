@@ -136,11 +136,39 @@
     opacity: 0.7;                    /* slight transparency */
 }
 
+/* Make the form layout two rows: title row and inputs row */
 #backtest-form {
     display: flex;
-    flex-wrap: wrap; /* allows wrapping if screen is too small */
+    flex-direction: column;
     align-items: center;
-    gap: 10px; /* space between items */
+    gap: 10px;
+}
+
+/* First row (title) */
+#backtest-form h3 {
+    margin: 0;
+    text-align: center;
+}
+
+/* Second row (all inputs in one line) */
+.form-row {
+    display: flex;
+    flex-wrap: wrap; /* Wrap on smaller screens */
+    gap: 10px;
+    justify-content: center;
+}
+
+/* Make labels and inputs stay together */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* Reduce input width so they fit in one line */
+.form-group input,
+.form-group select {
+    width: 150px;
 }
 
 #backtest-form label {
@@ -401,41 +429,55 @@ button {
     <form id="backtest-form">
         <h3>Backtest Simulation for EpochSignaler (Basic)</h3>
 
-        <label for="ticker">Asset Ticker:</label>
-        <select id="ticker" name="ticker" required>
-            <option value="BTC-USD">BTC-USD</option>
-            <option value="ETH-USD">ETH-USD</option>
-            <option value="BNB-USD">BNB-USD</option>
-            <option value="SOL-USD">SOL-USD</option>
-            <option value="XRP-USD">XRP-USD</option>
-            <option value="ADA-USD">ADA-USD</option>
-            <option value="LINK-USD">LINK-USD</option>
-            <option value="DOGE-USD">DOGE-USD</option>
-        </select>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="ticker">Asset Ticker:</label>
+                <select id="ticker" name="ticker" required>
+                    <option value="BTC-USD">BTC-USD</option>
+                    <option value="ETH-USD">ETH-USD</option>
+                    <option value="BNB-USD">BNB-USD</option>
+                    <option value="SOL-USD">SOL-USD</option>
+                    <option value="XRP-USD">XRP-USD</option>
+                    <option value="ADA-USD">ADA-USD</option>
+                    <option value="LINK-USD">LINK-USD</option>
+                    <option value="DOGE-USD">DOGE-USD</option>
+                </select>
+            </div>
 
-        <label for="cash">Initial Cash:</label>
-        <input type="number" id="cash" name="cash" required />
+            <div class="form-group">
+                <label for="cash">Initial Cash:</label>
+                <input type="number" id="cash" name="cash" required />
+            </div>
 
-        <label for="start">Start Date:</label>
-        <input type="date" id="start" name="start" required />
+            <div class="form-group">
+                <label for="start">Start Date:</label>
+                <input type="date" id="start" name="start" required />
+            </div>
 
-        <label for="end">End Date:</label>
-        <input type="date" id="end" name="end" required />
+            <div class="form-group">
+                <label for="end">End Date:</label>
+                <input type="date" id="end" name="end" required />
+            </div>
 
-        <label for="compare">Compare with (Optional):</label>
-        <select id="compare" name="compare">
-            <option value="">-- None --</option>
-            <option value="BTC-USD">BTC-USD</option>
-            <option value="ETH-USD">ETH-USD</option>
-            <option value="BNB-USD">BNB-USD</option>
-            <option value="SOL-USD">SOL-USD</option>
-            <option value="XRP-USD">XRP-USD</option>
-            <option value="ADA-USD">ADA-USD</option>
-            <option value="LINK-USD">LINK-USD</option>
-            <option value="DOGE-USD">DOGE-USD</option>
-        </select>
+            <div class="form-group">
+                <label for="compare">Compare with (Optional):</label>
+                <select id="compare" name="compare">
+                    <option value="">None</option>
+                    <option value="BTC-USD">BTC-USD</option>
+                    <option value="ETH-USD">ETH-USD</option>
+                    <option value="BNB-USD">BNB-USD</option>
+                    <option value="SOL-USD">SOL-USD</option>
+                    <option value="XRP-USD">XRP-USD</option>
+                    <option value="ADA-USD">ADA-USD</option>
+                    <option value="LINK-USD">LINK-USD</option>
+                    <option value="DOGE-USD">DOGE-USD</option>
+                </select>
+            </div>
 
-        <button type="submit">Run Backtest</button>
+            <div class="form-group" style="align-self: flex-end;">
+                <button type="submit">Run Backtest</button>
+            </div>
+        </div>
     </form>
 
     <div id="results"></div>
@@ -449,6 +491,7 @@ button {
         <p id="modal-message"></p>
     </div>
 </div>
+
 
     <!-- EpochSignaler Image -->
     <div style="text-align: center; margin-top: 20px;">
