@@ -402,6 +402,18 @@ button {
             <label for="end">End Date:</label>
             <input type="date" id="end" name="end" required />
 
+            <label for="ticker">Compare with (Optional):</label>
+            <select id="ticker" name="ticker" >
+                <option value="BTC-USD">BTC-USD</option>
+                <option value="ETH-USD">ETH-USD</option>
+                <option value="BNB-USD">BNB-USD</option>
+                <option value="SOL-USD">SOL-USD</option>
+                <option value="XRP-USD">XRP-USD</option>
+                <option value="ADA-USD">ADA-USD</option>
+                <option value="LINK-USD">LINK-USD</option>
+                <option value="DOGE-USD">DOGE-USD</option>
+            </select>
+
             <button type="submit">Run Backtest</button>
         </form>
 
