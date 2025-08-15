@@ -739,12 +739,15 @@ document.getElementById('backtest-form').addEventListener('submit', function(e) 
     .catch(error => console.error('Error:', error));
 });
 
-function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve, dates }) {
+function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve, final_value_2, profit_factor_2, sharpe_ratio_2, equity_curve_2, dates }) {
     const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = `
         <p>Final Value: $${final_value.toFixed(2)}</p>
         <p>Profit Factor: ${profit_factor}</p>
         <p>Sharpe Ratio: ${sharpe_ratio}</p>
+        <p>Final Value_2: $${final_value_2.toFixed(2)}</p>
+        <p>Profit Factor_2: ${profit_factor_2}</p>
+        <p>Sharpe Ratio_2: ${sharpe_ratio_2}</p>
         <canvas id="equity-chart" width="600" height="400"></canvas>
     `;
 
@@ -757,6 +760,12 @@ function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve,
                 label: 'Equity Curve',
                 data: equity_curve,
                 borderColor: 'blue',
+                fill: false
+            },
+            {
+                label: 'Equity Curve_2',
+                data: equity_curve_2,
+                borderColor: 'red',
                 fill: false
             }]
         }
