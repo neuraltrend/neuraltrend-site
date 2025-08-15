@@ -739,7 +739,7 @@ document.getElementById('backtest-form').addEventListener('submit', function(e) 
     .catch(error => console.error('Error:', error));
 });
 
-function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve, dates }) {
+function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve, equity_curve_2, dates }) {
     const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = `
         <p>Final Value: $${final_value.toFixed(2)}</p>
@@ -761,7 +761,7 @@ function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve,
             },
             {
                 label: 'Equity Curve (2)',
-                data: equity_curve*1.2,
+                data: equity_curve_2,
                 borderColor: 'red',
                 fill: false
             }]
