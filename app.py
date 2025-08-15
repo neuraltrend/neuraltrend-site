@@ -83,7 +83,7 @@ def backtest():
     
     dates = df.index.strftime('%Y-%m-%d').tolist()
     print(equity_curve)
-    print(equity_curve_2)
+    # print(equity_curve_2)
     results = {
         'final_value': final_value,
         'profit_factor': profit_factor,
