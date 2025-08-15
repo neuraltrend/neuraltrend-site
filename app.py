@@ -91,7 +91,9 @@ def backtest():
         'sharpe_ratio': sharpe_ratio,
         'equity_curve': equity_curve,
         'equity_curve_2': equity_curve_2,
-        'dates': dates
+        'dates': dates,
+        'ticker': ticker,
+        'ticker_2': ticker_2
     }
 
     return jsonify(results)
