@@ -28,9 +28,13 @@ def backtest():
     start_date = request.form['start']
     end_date = request.form['end']
     ticker_2 = request.form['ticker_2']
+    print(ticker_2)
 
     df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
     df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
+
+    df_2 = yf.download(ticker_2, start=start_date, end=end_date, interval='1d')  # FIXED
+    df_2 = df_2[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
 
     series = pd.DataFrame()
     for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
