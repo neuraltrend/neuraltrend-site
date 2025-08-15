@@ -424,185 +424,184 @@
                 An AI-based (transformer+LSTM) algorithm for crypto and traditional assets analytics signal. Basic model is based on a forward-looking fixed x% price movement normalized by volatility. Advanced signals coming soon...(Q4 2025)
             </p>
 
-    <!-- Backtest Simulation -->
-<section class="results-section">
-    <form id="backtest-form">
-        <h3>Backtest Simulation for EpochSignaler (Basic)</h3>
+        <!-- Backtest Simulation -->
+        <section class="results-section">
+            <form id="backtest-form">
+                <h3>Backtest Simulation for EpochSignaler (Basic)</h3>
+        
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ticker">Asset Ticker:</label>
+                        <select id="ticker" name="ticker" required>
+                            <option value="BTC-USD">BTC-USD</option>
+                            <option value="ETH-USD">ETH-USD</option>
+                            <option value="BNB-USD">BNB-USD</option>
+                            <option value="SOL-USD">SOL-USD</option>
+                            <option value="XRP-USD">XRP-USD</option>
+                            <option value="ADA-USD">ADA-USD</option>
+                            <option value="LINK-USD">LINK-USD</option>
+                            <option value="DOGE-USD">DOGE-USD</option>
+                        </select>
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="cash">Initial Cash:</label>
+                        <input type="number" id="cash" name="cash" required />
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="start">Start Date:</label>
+                        <input type="date" id="start" name="start" required />
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="end">End Date:</label>
+                        <input type="date" id="end" name="end" required />
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="compare">Compare with (Optional):</label>
+                        <select id="compare" name="compare">
+                            <option value="">None</option>
+                            <option value="BTC-USD">BTC-USD</option>
+                            <option value="ETH-USD">ETH-USD</option>
+                            <option value="BNB-USD">BNB-USD</option>
+                            <option value="SOL-USD">SOL-USD</option>
+                            <option value="XRP-USD">XRP-USD</option>
+                            <option value="ADA-USD">ADA-USD</option>
+                            <option value="LINK-USD">LINK-USD</option>
+                            <option value="DOGE-USD">DOGE-USD</option>
+                        </select>
+                    </div>
+        
+                    <div class="form-group" style="align-self: flex-end;">
+                        <button type="submit">Run Backtest</button>
+                    </div>
+                </div>
+            </form>
+        
+            <div id="results"></div>
+        </section>
 
-        <div class="form-row">
-            <div class="form-group">
-                <label for="ticker">Asset Ticker:</label>
-                <select id="ticker" name="ticker" required>
-                    <option value="BTC-USD">BTC-USD</option>
-                    <option value="ETH-USD">ETH-USD</option>
-                    <option value="BNB-USD">BNB-USD</option>
-                    <option value="SOL-USD">SOL-USD</option>
-                    <option value="XRP-USD">XRP-USD</option>
-                    <option value="ADA-USD">ADA-USD</option>
-                    <option value="LINK-USD">LINK-USD</option>
-                    <option value="DOGE-USD">DOGE-USD</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="cash">Initial Cash:</label>
-                <input type="number" id="cash" name="cash" required />
-            </div>
-
-            <div class="form-group">
-                <label for="start">Start Date:</label>
-                <input type="date" id="start" name="start" required />
-            </div>
-
-            <div class="form-group">
-                <label for="end">End Date:</label>
-                <input type="date" id="end" name="end" required />
-            </div>
-
-            <div class="form-group">
-                <label for="compare">Compare with (Optional):</label>
-                <select id="compare" name="compare">
-                    <option value="">None</option>
-                    <option value="BTC-USD">BTC-USD</option>
-                    <option value="ETH-USD">ETH-USD</option>
-                    <option value="BNB-USD">BNB-USD</option>
-                    <option value="SOL-USD">SOL-USD</option>
-                    <option value="XRP-USD">XRP-USD</option>
-                    <option value="ADA-USD">ADA-USD</option>
-                    <option value="LINK-USD">LINK-USD</option>
-                    <option value="DOGE-USD">DOGE-USD</option>
-                </select>
-            </div>
-
-            <div class="form-group" style="align-self: flex-end;">
-                <button type="submit">Run Backtest</button>
+        <!-- Custom Modal -->
+        <div id="customModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <div id="modal-icon"></div>
+                <p id="modal-message"></p>
             </div>
         </div>
-    </form>
 
-    <div id="results"></div>
-</section>
+        <!-- EpochSignaler Image -->
+        <div style="text-align: center; margin-top: 20px;">
+            <img src="{{ url_for('static', filename='epoch_signaler.png') }}" alt="EpochSignaler" style="max-width: 75%; height: auto;">
+        </div>
+        </div>
 
-<!-- Custom Modal -->
-<div id="customModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <div id="modal-icon"></div>
-        <p id="modal-message"></p>
-    </div>
-</div>
-
-    <!-- EpochSignaler Image -->
-    <div style="text-align: center; margin-top: 20px;">
-        <img src="{{ url_for('static', filename='epoch_signaler.png') }}" alt="EpochSignaler" style="max-width: 75%; height: auto;">
-    </div>
-</div>
-
-            <div class="three-blocks">
-  <!-- Block 1 -->
-  <div class="block">
-    <div class="block-title">EpochSignaler-BTC-USD</div>
-    <div class="block-chart">
-      <!-- TradingView Widget BEGIN -->
+        <div class="three-blocks">
+        <!-- Block 1 -->
+        <div class="block">
+        <div class="block-title">EpochSignaler-BTC-USD</div>
+        <div class="block-chart">
+        <!-- TradingView Widget BEGIN -->
         <div class="tradingview-widget-container">
-          <div class="tradingview-widget-container__widget"></div>
-          <div class="tradingview-widget-copyright">
-    <a href="https://www.tradingview.com/symbols/CRYPTO-BTCUSD/?exchange=CRYPTO" 
-       rel="noopener nofollow" target="_blank" 
-       style="color:#666; text-decoration:none;">
-      BTCUSD chart by TradingView
-    </a>
-  </div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-          {
-          "allow_symbol_change": true,
-          "calendar": false,
-          "details": false,
-          "hide_side_toolbar": true,
-          "hide_top_toolbar": false,
-          "hide_legend": true,
-          "hide_volume": false,
-          "hotlist": false,
-          "interval": "D",
-          "locale": "en",
-          "save_image": true,
-          "style": "1",
-          "symbol": "CRYPTO:BTCUSD",
-          "theme": "dark",
-          "timezone": "Etc/UTC",
-          "backgroundColor": "rgba(184, 184, 184, 1)",
-          "gridColor": "rgba(242, 242, 242, 0.06)",
-          "watchlist": [],
-          "withdateranges": false,
-          "compareSymbols": [],
-          "studies": [],
-          "width": 400,
-          "height": 500
+        <div class="tradingview-widget-container__widget"></div>
+        <div class="tradingview-widget-copyright">
+        <a href="https://www.tradingview.com/symbols/CRYPTO-BTCUSD/?exchange=CRYPTO" 
+            rel="noopener nofollow" target="_blank" 
+            style="color:#666; text-decoration:none;">
+            BTCUSD chart by TradingView
+        </a>
+        </div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+        {
+            "allow_symbol_change": true,
+            "calendar": false,
+            "details": false,
+            "hide_side_toolbar": true,
+            "hide_top_toolbar": false,
+            "hide_legend": true,
+            "hide_volume": false,
+            "hotlist": false,
+            "interval": "D",
+            "locale": "en",
+            "save_image": true,
+            "style": "1",
+            "symbol": "CRYPTO:BTCUSD",
+            "theme": "dark",
+            "timezone": "Etc/UTC",
+            "backgroundColor": "rgba(184, 184, 184, 1)",
+            "gridColor": "rgba(242, 242, 242, 0.06)",
+            "watchlist": [],
+            "withdateranges": false,
+            "compareSymbols": [],
+            "studies": [],
+            "width": 400,
+            "height": 500
         }
-          </script>
+        </script>
         </div>
         <!-- TradingView Widget END -->
-    </div>
-    <div class="block-bottom">
-      <p>Current EpochSignaler-BTC-USD signal (basic model):</p>
-        <a href="https://coinmarketcap.com/currencies/bitcoin/" target="_blank">
-      <img src="{{ url_for('static', filename='sell.png') }}" alt="Icon" class="block-img">
-      </a>
-
-    </div>
-  </div>
+        </div>
+        <div class="block-bottom">
+            <p>Current EpochSignaler-BTC-USD signal (basic model):</p>
+            <a href="https://coinmarketcap.com/currencies/bitcoin/" target="_blank">
+            <img src="{{ url_for('static', filename='sell.png') }}" alt="Icon" class="block-img">
+            </a>
+        </div>
+        </div>
 
   <!-- Block 2 -->
-  <div class="block">
-    <div class="block-title">EpochSignaler-ETH-USD</div>
-    <div class="block-chart">
-      <!-- TradingView Widget BEGIN -->
+        <div class="block">
+        <div class="block-title">EpochSignaler-ETH-USD</div>
+        <div class="block-chart">
+        <!-- TradingView Widget BEGIN -->
         <div class="tradingview-widget-container">
-          <div class="tradingview-widget-container__widget"></div>
-          <div class="tradingview-widget-copyright">
-    <a href="https://www.tradingview.com/symbols/CRYPTO-ETHUSD/?exchange=CRYPTO" 
-       rel="noopener nofollow" target="_blank" 
-       style="color:#666; text-decoration:none;">
-      ETHUSD chart by TradingView
-    </a>
-  </div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-          {
-          "allow_symbol_change": true,
-          "calendar": false,
-          "details": false,
-          "hide_side_toolbar": true,
-          "hide_top_toolbar": false,
-          "hide_legend": true,
-          "hide_volume": false,
-          "hotlist": false,
-          "interval": "D",
-          "locale": "en",
-          "save_image": true,
-          "style": "1",
-          "symbol": "CRYPTO:ETHUSD",
-          "theme": "dark",
-          "timezone": "Etc/UTC",
-          "backgroundColor": "rgba(184, 184, 184, 1)",
-          "gridColor": "rgba(242, 242, 242, 0.06)",
-          "watchlist": [],
-          "withdateranges": false,
-          "compareSymbols": [],
-          "studies": [],
-          "width": 400,
-          "height": 500
+        <div class="tradingview-widget-container__widget"></div>
+        <div class="tradingview-widget-copyright">
+        <a href="https://www.tradingview.com/symbols/CRYPTO-ETHUSD/?exchange=CRYPTO" 
+            rel="noopener nofollow" target="_blank" 
+            style="color:#666; text-decoration:none;">
+            ETHUSD chart by TradingView
+        </a>
+        </div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+        {
+            "allow_symbol_change": true,
+            "calendar": false,
+            "details": false,
+            "hide_side_toolbar": true,
+            "hide_top_toolbar": false,
+            "hide_legend": true,
+            "hide_volume": false,
+            "hotlist": false,
+            "interval": "D",
+            "locale": "en",
+            "save_image": true,
+            "style": "1",
+            "symbol": "CRYPTO:ETHUSD",
+            "theme": "dark",
+            "timezone": "Etc/UTC",
+            "backgroundColor": "rgba(184, 184, 184, 1)",
+            "gridColor": "rgba(242, 242, 242, 0.06)",
+            "watchlist": [],
+            "withdateranges": false,
+            "compareSymbols": [],
+            "studies": [],
+            "width": 400,
+            "height": 500
         }
-          </script>
+        </script>
         </div>
         <!-- TradingView Widget END -->
-    </div>
-    <div class="block-bottom">
-      <p>Current EpochSignaler-ETH-USD signal (basic model):</p>
-        <a href="https://coinmarketcap.com/currencies/ethereum/" target="_blank">
-      <img src="{{ url_for('static', filename='hold.png') }}" alt="Icon" class="block-img">
-      </a>
-    </div>
-  </div>
+        </div>
+        <div class="block-bottom">
+            <p>Current EpochSignaler-ETH-USD signal (basic model):</p>
+            <a href="https://coinmarketcap.com/currencies/ethereum/" target="_blank">
+            <img src="{{ url_for('static', filename='hold.png') }}" alt="Icon" class="block-img">
+            </a>
+        </div>
+        </div>
 
   <!-- Block 3 -->
   <div class="block">
