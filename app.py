@@ -89,7 +89,7 @@ def backtest():
         'profit_factor': profit_factor,
         'sharpe_ratio': sharpe_ratio,
         'equity_curve': equity_curve,
-        'equity_curve_2': equity_curve_2,
+        'equity_curve_2': equity_curve_2 if equity_curve_2 else [],
         'dates': dates
     }
 
