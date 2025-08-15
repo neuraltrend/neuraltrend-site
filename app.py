@@ -85,16 +85,35 @@ def backtest():
     dates = df.index.strftime('%Y-%m-%d').tolist()
     print(equity_curve)
     # print(equity_curve_2)
+    # results = {
+    #     'final_value': final_value,
+    #     'profit_factor': profit_factor,
+    #     'sharpe_ratio': sharpe_ratio,
+    #     'equity_curve': equity_curve,
+    #     'equity_curve_2': equity_curve_2,
+    #     'dates': dates,
+    #     'ticker': ticker,
+    #     'ticker_2': ticker_2
+    # }
     results = {
+        'ticker': ticker,
         'final_value': final_value,
         'profit_factor': profit_factor,
         'sharpe_ratio': sharpe_ratio,
         'equity_curve': equity_curve,
-        'equity_curve_2': equity_curve_2,
         'dates': dates,
-        'ticker': ticker,
-        'ticker_2': ticker_2
     }
+
+    if ticker_2 and equity_curve_2:  # or however you check for optional input
+        results.update({
+            'ticker_2': ticker_2,
+            'final_value_2': final_value_2,
+            'profit_factor_2': profit_factor_2,
+            'sharpe_ratio_2': sharpe_ratio_2,
+            'equity_curve_2': equity_curve_2
+        })
+    else:
+        results['equity_curve_2'] = []  # keep chart code safe
 
     return jsonify(results)
 
