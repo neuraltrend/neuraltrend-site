@@ -750,7 +750,7 @@ function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve,
 
     const datasets = [
         {
-            label: ${ticker} 'Equity Curve',
+            label: `${ticker} (Equity Curve)`,
             data: equity_curve,
             borderColor: 'blue',
             fill: false
@@ -760,7 +760,7 @@ function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve,
     // Only add the red curve if there's data
     if (equity_curve_2 && equity_curve_2.length > 0) {
         datasets.push({
-            label: ${ticker_2} 'Equity Curve (2)',
+            label: `${ticker_2} (Equity Curve)`,
             data: equity_curve_2,
             borderColor: 'red',
             fill: false
