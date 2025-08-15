@@ -869,19 +869,19 @@ document.getElementById("backtest-form").addEventListener("submit", function(eve
     today.setHours(0,0,0,0);
 
     if (startDate > endDate) {
-        showModal("Start Date cannot be after End Date.", "error");
+        showModal("❌ Start Date cannot be after End Date.", "Error!");
         event.preventDefault();
         return;
     }
 
     if (endDate > today) {
-        showModal("End Date cannot be in the future.", "error");
+        showModal("❌ End Date cannot be in the future.", "Error!");
         event.preventDefault();
         return;
     }
 
     // If passes validation
-    showModal("✅ Backtest started successfully!", "success");
+    showModal("✅ Backtest started successfully!", "Success!");
 });
 </script>
 
