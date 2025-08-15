@@ -56,6 +56,7 @@ def backtest():
     excess_returns = returns - risk_free_rate_daily
     sharpe_ratio = float(((excess_returns.mean() / excess_returns.std()) * (252 ** 0.5)).iloc[0])
 
+    equity_curve_2=[]
     if ticker_2:
         df_2 = yf.download(ticker_2, start=start_date, end=end_date, interval='1d')  # FIXED
         df_2 = df_2[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
@@ -89,7 +90,7 @@ def backtest():
         'profit_factor': profit_factor,
         'sharpe_ratio': sharpe_ratio,
         'equity_curve': equity_curve,
-        'equity_curve_2': equity_curve_2 if equity_curve_2 else [],
+        'equity_curve_2': equity_curve_2,
         'dates': dates
     }
 
