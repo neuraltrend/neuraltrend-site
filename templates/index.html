@@ -854,13 +854,6 @@ window.addEventListener("click", function (event) {
     }
 });
 
-// Close modal on background click
-window.onclick = function(event) {
-    if (event.target == document.getElementById("customModal")) {
-        document.getElementById("customModal").style.display = "none";
-    }
-};
-
 // Form Validation
 document.getElementById("backtest-form").addEventListener("submit", function(event) {
     const startDate = new Date(document.getElementById("start").value);
