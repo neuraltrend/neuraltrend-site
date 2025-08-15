@@ -245,19 +245,6 @@
             opacity: 1;
         }
     
-        /* Modal Box */
-/*        .modal-content {
-            background-color: #fff;
-            margin: auto;
-            padding: 20px;
-            border-radius: 14px;
-            width: 340px;
-            text-align: center;
-            font-family: Arial, sans-serif;
-            box-shadow: 0px 4px 14px rgba(0,0,0,0.3);
-            animation: fadeIn 0.3s ease-in-out;
-            position: relative;
-        } */
         .modal-content {
             background-color: #fefefe;
             margin: auto;
@@ -268,16 +255,6 @@
             text-align: center;
         }
 
-        /* Close Button */
-/*        .close-btn {
-            color: #aaa;
-            position: absolute;
-            right: 12px;
-            top: 8px;
-            font-size: 20px;
-            font-weight: bold;
-            cursor: pointer;
-        } */
         .close-btn {
             float: right;
             font-size: 20px;
@@ -788,31 +765,6 @@ function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve,
 </script>
 
 <script>
-// function showModal(message, type = "error") {
-//     const modal = document.getElementById("customModal");
-//     const iconContainer = document.getElementById("modal-icon");
-//     const msgContainer = document.getElementById("modal-message");
-
-//     msgContainer.textContent = message;
-
-//     // Set icon depending on type
-//     if (type === "success") {
-//         iconContainer.innerHTML = "&#10004;"; // Check mark
-//         iconContainer.className = "success-icon";
-//     } else {
-//         iconContainer.innerHTML = "&#10060;"; // Cross mark
-//         iconContainer.className = "error-icon";
-//     }
-
-//     modal.style.display = "block";
-
-//     // Auto-close after 3s for success messages
-//     if (type === "success") {
-//         setTimeout(() => {
-//             modal.style.display = "none";
-//         }, 3000);
-//     }
-// }
 function showModal(message, iconHTML) {
     const modal = document.getElementById("customModal");
     const modalMessage = document.getElementById("modal-message");
@@ -834,10 +786,6 @@ function showModal(message, iconHTML) {
     modal.style.display = "block";
 }
 
-// // Close modal on X click
-// document.querySelector(".close-btn").onclick = function() {
-//     document.getElementById("customModal").style.display = "none";
-// };
 // Manual close
 document.querySelector(".close-btn").addEventListener("click", function () {
     const modal = document.getElementById("customModal");
