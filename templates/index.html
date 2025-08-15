@@ -739,28 +739,54 @@ document.getElementById('backtest-form').addEventListener('submit', function(e) 
     .catch(error => console.error('Error:', error));
 });
 
-function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve, equity_curve_2, dates, ticker, ticker_2 }) {
+function renderResults({
+    ticker, final_value, profit_factor, sharpe_ratio,
+    equity_curve, dates,
+    ticker_2, final_value_2, profit_factor_2, sharpe_ratio_2,
+    equity_curve_2
+}) {
     const resultsDiv = document.getElementById('results');
+
+    let ticker1Stats = `
+        <div>
+            <h3>${ticker}</h3>
+            <p>Final Value: $${final_value.toFixed(2)}</p>
+            <p>Profit Factor: ${profit_factor}</p>
+            <p>Sharpe Ratio: ${sharpe_ratio}</p>
+        </div>
+    `;
+
+    let ticker2Stats = '';
+    if (ticker_2) {
+        ticker2Stats = `
+            <div>
+                <h3>${ticker_2}</h3>
+                <p>Final Value: $${final_value_2.toFixed(2)}</p>
+                <p>Profit Factor: ${profit_factor_2}</p>
+                <p>Sharpe Ratio: ${sharpe_ratio_2}</p>
+            </div>
+        `;
+    }
+
     resultsDiv.innerHTML = `
-        <p>Final Value: $${final_value.toFixed(2)}</p>
-        <p>Profit Factor: ${profit_factor}</p>
-        <p>Sharpe Ratio: ${sharpe_ratio}</p>
+        <div style="display: grid; grid-template-columns: 1fr ${ticker_2 ? '1fr' : ''}; gap: 20px; align-items: start;">
+            ${ticker1Stats}
+            ${ticker2Stats}
+        </div>
         <canvas id="equity-chart" width="600" height="400"></canvas>
     `;
 
-    const datasets = [
-        {
-            label: `${ticker} (Equity Curve)`,
-            data: equity_curve,
-            borderColor: 'blue',
-            fill: false
-        }
-    ];
+    // Chart datasets
+    const datasets = [{
+        label: `${ticker} (Equity Curve)`,
+        data: equity_curve,
+        borderColor: 'blue',
+        fill: false
+    }];
 
-    // Only add the red curve if there's data
     if (equity_curve_2 && equity_curve_2.length > 0) {
         datasets.push({
-            label: `${ticker_2} (Equity Curve)`,
+            label: `${ticker_2} (Equity Curve 2)`,
             data: equity_curve_2,
             borderColor: 'red',
             fill: false
@@ -776,6 +802,7 @@ function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve,
         }
     });
 }
+
 
 </script>
 
