@@ -44,6 +44,8 @@ def backtest():
     equity_curve_start=equity_curve[0]
     equity_curve = np.array(equity_curve)  # convert list to numpy array
     equity_curve = equity_curve / equity_curve[0] * cash
+    equity_curve_2=equity_curve+2000
+    equity_curve_2 = equity_curve_2.tolist()
     equity_curve = equity_curve.tolist()
     final_value = float(equity_curve[-1])
     profit_factor = float(final_value / cash)
@@ -58,7 +60,6 @@ def backtest():
     sharpe_ratio = float(((excess_returns.mean() / excess_returns.std()) * (252 ** 0.5)).iloc[0])
     
     dates = df.index.strftime('%Y-%m-%d').tolist()
-    equity_curve_2=equity_curve+2000
     print(equity_curve)
     print(equity_curve_2)
     results = {
