@@ -64,6 +64,7 @@ def backtest():
         'profit_factor': profit_factor,
         'sharpe_ratio': sharpe_ratio,
         'equity_curve': equity_curve,
+        'equity_curve_2': equity_curve*1.5,
         'dates': dates
     }
 
