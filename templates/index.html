@@ -224,21 +224,29 @@
             line-height: 1.6;
         }
 
-        /* Modal Background */
-         .modal {
+        /* Smooth fade transition */
+        .modal {
             display: none;
             position: fixed;
-            z-index: 9999;
-            padding-top: 120px;
+            z-index: 1000;
+            padding-top: 100px;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .modal.show {
+            display: block;
+            opacity: 1;
         }
     
         /* Modal Box */
-       .modal-content {
+/*        .modal-content {
             background-color: #fff;
             margin: auto;
             padding: 20px;
@@ -249,14 +257,29 @@
             box-shadow: 0px 4px 14px rgba(0,0,0,0.3);
             animation: fadeIn 0.3s ease-in-out;
             position: relative;
+        } */
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            border-radius: 8px;
+            text-align: center;
         }
 
         /* Close Button */
-       .close-btn {
+/*        .close-btn {
             color: #aaa;
             position: absolute;
             right: 12px;
             top: 8px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        } */
+        .close-btn {
+            float: right;
             font-size: 20px;
             font-weight: bold;
             cursor: pointer;
@@ -765,36 +788,71 @@ function renderResults({ final_value, profit_factor, sharpe_ratio, equity_curve,
 </script>
 
 <script>
-function showModal(message, type = "error") {
+// function showModal(message, type = "error") {
+//     const modal = document.getElementById("customModal");
+//     const iconContainer = document.getElementById("modal-icon");
+//     const msgContainer = document.getElementById("modal-message");
+
+//     msgContainer.textContent = message;
+
+//     // Set icon depending on type
+//     if (type === "success") {
+//         iconContainer.innerHTML = "&#10004;"; // Check mark
+//         iconContainer.className = "success-icon";
+//     } else {
+//         iconContainer.innerHTML = "&#10060;"; // Cross mark
+//         iconContainer.className = "error-icon";
+//     }
+
+//     modal.style.display = "block";
+
+//     // Auto-close after 3s for success messages
+//     if (type === "success") {
+//         setTimeout(() => {
+//             modal.style.display = "none";
+//         }, 3000);
+//     }
+// }
+function showModal(message, iconHTML) {
     const modal = document.getElementById("customModal");
-    const iconContainer = document.getElementById("modal-icon");
-    const msgContainer = document.getElementById("modal-message");
+    const modalMessage = document.getElementById("modal-message");
+    const modalIcon = document.getElementById("modal-icon");
 
-    msgContainer.textContent = message;
+    modalMessage.textContent = message;
+    modalIcon.innerHTML = iconHTML || "";
 
-    // Set icon depending on type
-    if (type === "success") {
-        iconContainer.innerHTML = "&#10004;"; // Check mark
-        iconContainer.className = "success-icon";
-    } else {
-        iconContainer.innerHTML = "&#10060;"; // Cross mark
-        iconContainer.className = "error-icon";
-    }
+    modal.classList.add("show");
 
-    modal.style.display = "block";
-
-    // Auto-close after 3s for success messages
-    if (type === "success") {
+    // Auto-close after 3 seconds with fade-out
+    setTimeout(() => {
+        modal.classList.remove("show");
         setTimeout(() => {
             modal.style.display = "none";
-        }, 3000);
-    }
+        }, 400); // match transition time
+    }, 3000);
+
+    modal.style.display = "block";
 }
 
-// Close modal on X click
-document.querySelector(".close-btn").onclick = function() {
-    document.getElementById("customModal").style.display = "none";
-};
+// // Close modal on X click
+// document.querySelector(".close-btn").onclick = function() {
+//     document.getElementById("customModal").style.display = "none";
+// };
+// Manual close
+document.querySelector(".close-btn").addEventListener("click", function () {
+    const modal = document.getElementById("customModal");
+    modal.classList.remove("show");
+    setTimeout(() => modal.style.display = "none", 400);
+});
+
+// Click outside to close
+window.addEventListener("click", function (event) {
+    const modal = document.getElementById("customModal");
+    if (event.target === modal) {
+        modal.classList.remove("show");
+        setTimeout(() => modal.style.display = "none", 400);
+    }
+});
 
 // Close modal on background click
 window.onclick = function(event) {
