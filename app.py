@@ -33,10 +33,6 @@ def backtest():
     df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
     df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
 
-    if ticker_2:
-        df_2 = yf.download(ticker_2, start=start_date, end=end_date, interval='1d')  # FIXED
-        df_2 = df_2[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
-
     series = pd.DataFrame()
     for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
         df[col] = df[col].astype(float)
@@ -50,20 +46,40 @@ def backtest():
     equity_curve_start=equity_curve[0]
     equity_curve = np.array(equity_curve)  # convert list to numpy array
     equity_curve = equity_curve / equity_curve[0] * cash
-    equity_curve_2=equity_curve+2000
-    equity_curve_2 = equity_curve_2.tolist()
     equity_curve = equity_curve.tolist()
     final_value = float(equity_curve[-1])
     profit_factor = float(final_value / cash)
 
     returns = df['Close'].pct_change().dropna()
-
     risk_free_rate_annual = 0.01
     risk_free_rate_daily = (1 + risk_free_rate_annual) ** (1/252) - 1
-
     excess_returns = returns - risk_free_rate_daily
-
     sharpe_ratio = float(((excess_returns.mean() / excess_returns.std()) * (252 ** 0.5)).iloc[0])
+
+    if ticker_2:
+        df_2 = yf.download(ticker_2, start=start_date, end=end_date, interval='1d')  # FIXED
+        df_2 = df_2[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
+
+        series_2 = pd.DataFrame()
+        for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
+            df_2[col] = df_2[col].astype(float)
+            values_2 = df_2[col].values
+            if values_2.ndim > 1:
+                values_2 = values_2.flatten()
+            df_2[col] = values_2
+            series_2[col] = pd.Series(values_2, index=df_2.index)
+
+        equity_curve_2 = df_2['Close'].to_numpy().flatten().astype(float).tolist()
+        equity_curve_start=equity_curve_2[0]
+        equity_curve_2 = np.array(equity_curve_2)  # convert list to numpy array
+        equity_curve_2 = equity_curve_2 / equity_curve_2[0] * cash
+        equity_curve_2 = equity_curve_2.tolist()
+        final_value_2 = float(equity_curve_2[-1])
+        profit_factor_2 = float(final_value_2 / cash)
+
+        returns_2 = df_2['Close'].pct_change().dropna()
+        excess_returns_2 = returns_2 - risk_free_rate_daily
+        sharpe_ratio_2 = float(((excess_returns_2.mean() / excess_returns_2.std()) * (252 ** 0.5)).iloc[0])
     
     dates = df.index.strftime('%Y-%m-%d').tolist()
     print(equity_curve)
