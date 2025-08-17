@@ -193,10 +193,10 @@ def backtest():
         dates = df.index.strftime('%Y-%m-%d').tolist()
         print(equity_curve)
         
-        if isinstance(eq_strat, pd.DataFrame):
-            eq_strat = eq_strat.iloc[:, 0]  # take the first (and only) column
-        if isinstance(eq_bh, pd.DataFrame):
-            eq_bh = eq_bh.iloc[:, 0]  # take the first (and only) column
+        # if isinstance(eq_strat, pd.DataFrame):
+        #     eq_strat = eq_strat.iloc[:, 0]  # take the first (and only) column
+        # if isinstance(eq_bh, pd.DataFrame):
+        #     eq_bh = eq_bh.iloc[:, 0]  # take the first (and only) column
 
         results = {
             'ticker': ticker,
