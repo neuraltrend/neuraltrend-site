@@ -148,7 +148,9 @@ def backtest():
         eq_bh = buy_and_hold_equity(df['Close'], cash)
         print(eq_bh)
         fv_bh, pf_bh, sh_bh = metrics_from_equity(eq_bh)
-        print(fv_bh, pf_bh, sh_bh)
+        print(fv_bh)
+        print(pf_bh)
+        print(sh_bh)
 
         # Strategy equity (SMA crossover) + signals
         eq_strat, buys, sells, strat_idx = sma_strategy_equity(df, cash, fast=10, slow=30)
