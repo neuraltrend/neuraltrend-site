@@ -27,28 +27,72 @@ def buy_and_hold_equity(close, cash):
     eq = (close / close.iloc[0]) * cash
     return eq
 
-def sma_strategy_equity(close, cash, fast=10, slow=30):
+def sma_strategy_equity(df: pd.DataFrame, cash):
+    # Ensure required columns exist
+    if 'Close' not in df.columns:
+        raise ValueError("DataFrame must contain a 'Close' column")
+
+    # Now you can work directly with df['Close'] inside
+    close = df['Close']
+
+    # Example: simple moving average
+    df['SMA'] = close.rolling(window=20).mean()
+
+    # Your trading logic here...
+    equity_curve = [cash]  # dummy init
+    buys, sells, idx = [], [], []
+
+    return equity_curve, buys, sells, idx
+
+
+def sma_strategy_equity(df, cash, fast=10, slow=30):
     """
-    Simple SMA crossover: long when SMA(fast) > SMA(slow), flat otherwise.
-    Emits buy at cross-up and sell at cross-down.
+    Simple SMA crossover strategy:
+    - Long when SMA(fast) > SMA(slow), flat otherwise.
+    - Emits buy signal at cross-up and sell signal at cross-down.
+    
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Must contain at least a 'Close' column (and optionally other OHLCV columns).
+    cash : float
+        Initial capital.
+    fast : int
+        Window for fast SMA.
+    slow : int
+        Window for slow SMA.
+
+    Returns
+    -------
+    eq : pd.Series
+        Equity curve of the strategy.
+    buys : list of dict
+        Buy signals with {date, y} for plotting.
+    sells : list of dict
+        Sell signals with {date, y} for plotting.
+    idx : pd.DatetimeIndex
+        Index of the DataFrame (for alignment).
     """
-    df = pd.DataFrame({'Close': close})
+    df = df.copy()  # don’t overwrite original
+
+    # Compute SMAs
     df['SMA_f'] = df['Close'].rolling(fast).mean()
     df['SMA_s'] = df['Close'].rolling(slow).mean()
     df.dropna(inplace=True)
 
-    # position: 1 if SMA_f > SMA_s else 0
+    # Position: 1 if SMA_f > SMA_s, else 0
     df['pos'] = (df['SMA_f'] > df['SMA_s']).astype(int)
 
-    # daily returns
+    # Daily returns
     df['ret'] = df['Close'].pct_change().fillna(0.0)
-    # strategy returns (apply pos of previous day)
+
+    # Strategy returns (apply position of previous day)
     df['strat_ret'] = df['pos'].shift(1).fillna(0.0) * df['ret']
 
-    # equity
+    # Equity curve
     eq = (1 + df['strat_ret']).cumprod() * cash
 
-    # signals
+    # Detect crossovers
     df['pos_prev'] = df['pos'].shift(1).fillna(df['pos'])
     crosses_up = (df['pos_prev'] == 0) & (df['pos'] == 1)
     crosses_dn = (df['pos_prev'] == 1) & (df['pos'] == 0)
@@ -56,7 +100,7 @@ def sma_strategy_equity(close, cash, fast=10, slow=30):
     buy_dates = df.index[crosses_up]
     sell_dates = df.index[crosses_dn]
 
-    # y-values of equity at signal times (to place markers at equity level)
+    # y-values of equity at signal times (for plotting markers)
     buys = [{'date': d.strftime('%Y-%m-%d'), 'y': float(eq.loc[d])} for d in buy_dates]
     sells = [{'date': d.strftime('%Y-%m-%d'), 'y': float(eq.loc[d])} for d in sell_dates]
 
@@ -110,7 +154,7 @@ def backtest():
         return jsonify({'error': f'No data for {ticker} in selected range.'}), 400
 
     eq_bh = buy_and_hold_equity(df['Close'], cash)
-    eq_strat, buys, sells, idx = sma_strategy_equity(df['Close'], cash)
+    eq_strat, buys, sells, idx = sma_strategy_equity(df, cash)
     dates = [d.strftime('%Y-%m-%d') for d in eq_strat.index]
     fv, pf, sh = metrics_from_equity(eq_strat)
 
