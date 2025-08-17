@@ -95,7 +95,12 @@ def backtest():
     ticker_2 = request.form.get('ticker_2', '').strip()  # optional
     print(ticker_2)
 
-    df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
+    # PRIMARY
+    df = download_prices(ticker, start_date, end_date)
+    if df.empty:
+        return jsonify({'error': f'No data for {ticker} in selected range.'}), 400
+
+    # df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
     df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
 
     series = pd.DataFrame()
