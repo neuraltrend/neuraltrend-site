@@ -213,55 +213,6 @@ def backtest():
         else:
             results['equity_curve_2'] = []  # keep chart code safe
 
-        results = {
-            'ticker': ticker,
-            'dates': dates,
-            'buy_hold': {
-                'final_value': fv_bh,
-                'profit_factor': pf_bh,
-                'sharpe_ratio': sh_bh,
-                'equity_curve': eq_bh.tolist(),
-            },
-            'strategy': {
-                'name': 'SMA(10/30) crossover',
-                'final_value': fv_strat,
-                'profit_factor': pf_strat,
-                'sharpe_ratio': sh_strat,
-                'equity_curve': eq_strat.tolist() if len(eq_strat) > 0 else [],
-                'signals': {
-                    'buys': buys,
-                    'sells': sells
-                }
-            }
-        }
-
-        # --- Optional compare asset (buy & hold only)
-        if ticker_2:
-            df2 = download_prices(ticker_2, start_date, end_date)
-            if not df2.empty:
-                eq_bh_2 = buy_and_hold_equity(df2['Close'], cash)
-                fv2, pf2, sh2 = metrics_from_equity(eq_bh_2)
-                results['compare_asset'] = {
-                    'ticker': ticker_2,
-                    'buy_hold': {
-                        'final_value': fv2,
-                        'profit_factor': pf2,
-                        'sharpe_ratio': sh2,
-                        'equity_curve': eq_bh_2.tolist(),
-                    }
-                }
-            else:
-                # Ensure front-end code does not break if no data
-                results['compare_asset'] = {
-                    'ticker': ticker_2,
-                    'buy_hold': {
-                        'final_value': 0.0,
-                        'profit_factor': 0.0,
-                        'sharpe_ratio': 0.0,
-                        'equity_curve': [],
-                    }
-                }
-
         return jsonify(results)
 
     except Exception as e:
