@@ -153,7 +153,7 @@ def backtest():
         print(sh_bh)
 
         # Strategy equity (SMA crossover) + signals
-        eq_strat, buys, sells, strat_idx = sma_strategy_equity(df, cash, fast=10, slow=30)
+        eq_strat, buys, sells, strat_idx = sma_strategy_equity(df, cash, fast=1, slow=2)
         print('moj')
         print(eq_strat)
         print(buys)
