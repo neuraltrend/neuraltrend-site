@@ -91,6 +91,9 @@ def metrics_from_equity(eq_series):
 
     # daily returns of the equity curve
     rets = eq_series.pct_change().dropna()
+    # if eq_series came as a DataFrame with one column
+    if isinstance(rets, pd.DataFrame):
+        rets = rets.iloc[:, 0]  # take the first (and only) column
     print(rets)
     if rets.std() == 0 or rets.empty:
         print('a')
