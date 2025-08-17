@@ -130,11 +130,10 @@ def knowledge():
 def backtest():
     try:
         cash = float(request.form['cash'])
-        ticker = request.form['ticker']
+        ticker = request.form['ticker'].strip()
         start_date = request.form['start']
         end_date = request.form['end']
-        ticker_2 = request.form['ticker_2']
-        print(ticker_2)
+        ticker_2 = request.form.get('ticker_2', '').strip()  # optional
     
         df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
         df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
