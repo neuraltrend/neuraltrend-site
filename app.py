@@ -139,6 +139,10 @@ def backtest():
         df = download_prices(ticker, start_date, end_date)
         if df.empty:
             return jsonify({'error': f'No data for {ticker} in selected range.'}), 400
+
+        # Buy & Hold for baseline
+        eq_bh = buy_and_hold_equity(df['Close'], cash)
+        fv_bh, pf_bh, sh_bh = metrics_from_equity(eq_bh)
     
         series = pd.DataFrame()
         for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
