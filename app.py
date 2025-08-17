@@ -45,6 +45,24 @@ def backtest():
     position = 0
     equity_curve = []
 
+    for date, row in signals_df.iterrows():
+        price = row['Close']
+        signal = row['epoch_signal']
+
+        if signal == 1 and cash > 0:  # Buy
+            position = cash / price
+            cash = 0
+        elif signal == -1 and position > 0:  # Sell
+            cash = position * price
+            position = 0
+        # else hold
+
+        equity = cash + position * price
+        equity_curve.append((date, equity))
+
+    eq_df = pd.DataFrame(equity_curve, columns=['Date', 'Equity']).set_index('Date')
+    print(eq_df)
+
     series = pd.DataFrame()
     for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
         df[col] = df[col].astype(float)
