@@ -37,17 +37,26 @@ def backtest():
     # --- Load CSV of signals ---
     csv_path = os.path.join(app.root_path, 'data', 'epoch_BTC.csv')
     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
-    signals_df.set_index('Date', inplace=True)
-
-    # If df has MultiIndex, keep only Date level
-    if isinstance(df.index, pd.MultiIndex):
-        df.index = df.index.get_level_values(0)  # use only first level (Date)
-
-    # Merge signals into market data (optional)
-    df = df.merge(signals_df[['epoch_signal']], left_index=True, right_index=True, how='left')
-    df['epoch_signal'] = df['epoch_signal'].fillna(0).astype(int)
-
-    print(df)
+    
+    # Make sure both DataFrames have Date as a column
+    df_reset = df.reset_index()  # brings Date from index into column
+    df_reset.rename(columns={'index': 'Date'}, inplace=True)  # just in case name is different
+    signals_df.rename(columns={'Date': 'Date'}, inplace=True)
+    
+    # Merge on 'Date' column
+    df_merged = df_reset.merge(
+        signals_df[['Date', 'epoch_signal']],
+        on='Date',
+        how='left'
+    )
+    
+    # Fill missing signals with 0 and convert to int
+    df_merged['epoch_signal'] = df_merged['epoch_signal'].fillna(0).astype(int)
+    
+    # Optional: set Date back as index
+    df_merged.set_index('Date', inplace=True)
+    
+    print(df_merged.head())
 
     series = pd.DataFrame()
     for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
