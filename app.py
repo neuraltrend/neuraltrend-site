@@ -32,6 +32,7 @@ def backtest():
 
     df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
     df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
+    df['Signal']=0
     print(df)
 
     series = pd.DataFrame()
