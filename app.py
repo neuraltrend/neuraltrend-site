@@ -24,13 +24,21 @@ def download_prices(ticker: str, start: str, end: str) -> pd.DataFrame:
     df = df.dropna()
     return df
 
-def buy_and_hold_equity(close: pd.Series, cash: float) -> pd.Series:
-    """
-    Normalize equity to start at 'cash' and track value over time.
-    """
-    if close is None or len(close) == 0:
-        return pd.Series(dtype=float)
-    return (close / close.iloc[0]) * cash
+# def buy_and_hold_equity(close: pd.Series, cash: float) -> pd.Series:
+#     """
+#     Normalize equity to start at 'cash' and track value over time.
+#     """
+#     if close is None or len(close) == 0:
+#         return pd.Series(dtype=float)
+#     return (close / close.iloc[0]) * cash
+
+def buy_and_hold_equity(close, cash):
+    """Return equity curve of buy-and-hold starting with `cash`."""
+    if len(close) == 0:
+        return pd.Series(dtype=float)  # empty series
+    close = pd.Series(close, index=close.index if hasattr(close, 'index') else None)
+    eq = (close / close.iloc[0]) * cash
+    return eq
 
 
 def sma_strategy_equity(df: pd.DataFrame, cash: float, fast: int = 10, slow: int = 30):
@@ -82,20 +90,39 @@ def sma_strategy_equity(df: pd.DataFrame, cash: float, fast: int = 10, slow: int
 
     return eq, buys, sells, work.index
 
-def metrics_from_equity(eq_series):
-    final_value = eq_series.iloc[-1].item()
-    start_value = eq_series.iloc[0].item()
-    profit_factor = final_value / start_value if start_value != 0 else np.nan
+# def metrics_from_equity(eq_series):
+#     final_value = eq_series.iloc[-1].item()
+#     start_value = eq_series.iloc[0].item()
+#     profit_factor = final_value / start_value if start_value != 0 else np.nan
 
-    # daily returns of the equity curve
+#     # daily returns of the equity curve
+#     rets = eq_series.pct_change().dropna()
+#     if rets.std() == 0 or rets.empty:
+#         sharpe = 0.0
+#     else:
+#         rf_annual = 0.01
+#         rf_daily = (1 + rf_annual) ** (1/252) - 1
+#         excess = rets - rf_daily
+#         sharpe = float((excess.mean() / excess.std()) * np.sqrt(252))
+#     return final_value, profit_factor, sharpe
+
+def metrics_from_equity(eq_series):
+    """Compute final value, profit factor, and Sharpe ratio safely."""
+    if eq_series.empty:
+        return 0.0, 0.0, 0.0  # nothing to compute
+    final_value = float(eq_series.iloc[-1])
+    start_value = float(eq_series.iloc[0])
+    profit_factor = final_value / start_value if start_value != 0 else 0.0
+
+    # Daily returns
     rets = eq_series.pct_change().dropna()
-    if rets.std() == 0 or rets.empty:
+    if rets.empty or rets.std() == 0:
         sharpe = 0.0
     else:
         rf_annual = 0.01
-        rf_daily = (1 + rf_annual) ** (1/252) - 1
+        rf_daily = (1 + rf_annual) ** (1 / 252) - 1
         excess = rets - rf_daily
-        sharpe = float((excess.mean() / excess.std()) * np.sqrt(252))
+        sharpe = float((excess.mean() / excess.std()) * (252 ** 0.5))
     return final_value, profit_factor, sharpe
 
 # ----------------------------
