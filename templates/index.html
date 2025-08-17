@@ -731,88 +731,126 @@
 </div>
 
 <script>
-document.getElementById('backtest-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const formData = new FormData(this);
-    fetch('/backtest', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        renderResults(data);
-    })
-    .catch(error => console.error('Error:', error));
-});
-
-function renderResults({
-    ticker, final_value, profit_factor, sharpe_ratio,
-    equity_curve, dates,
-    ticker_2, final_value_2, profit_factor_2, sharpe_ratio_2,
-    equity_curve_2
-}) {
+async function renderResults(results) {
     const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '';
 
-    let ticker1Stats = `
-        <div>
-            <h3>${ticker}</h3>
-            <p>Final Value: $${final_value.toFixed(2)}</p>
-            <p>Profit Factor: ${profit_factor}</p>
-            <p>Sharpe Ratio: ${sharpe_ratio}</p>
+    // Metrics columns
+    const metricsHtml = `<div class="metrics">
+        <div class="col">
+            <h3>${results.ticker} Metrics</h3>
+            <p>Buy & Hold Final: $${results.buy_hold.final_value.toFixed(2)}</p>
+            <p>Buy & Hold PF: ${results.buy_hold.profit_factor.toFixed(2)}</p>
+            <p>Buy & Hold Sharpe: ${results.buy_hold.sharpe_ratio.toFixed(2)}</p>
+            <p>Strategy Final: $${results.strategy.final_value.toFixed(2)}</p>
+            <p>Strategy PF: ${results.strategy.profit_factor.toFixed(2)}</p>
+            <p>Strategy Sharpe: ${results.strategy.sharpe_ratio.toFixed(2)}</p>
         </div>
-    `;
+        ${results.compare_asset ? `<div class="col">
+            <h3>${results.compare_asset.ticker} Metrics</h3>
+            <p>Buy & Hold Final: $${results.compare_asset.buy_hold.final_value.toFixed(2)}</p>
+            <p>Buy & Hold PF: ${results.compare_asset.buy_hold.profit_factor.toFixed(2)}</p>
+            <p>Buy & Hold Sharpe: ${results.compare_asset.buy_hold.sharpe_ratio.toFixed(2)}</p>
+        </div>` : ''}
+    </div>`;
+    resultsDiv.innerHTML = metricsHtml;
 
-    let ticker2Stats = '';
-    if (ticker_2) {
-        ticker2Stats = `
-            <div>
-                <h3>${ticker_2}</h3>
-                <p>Final Value: $${final_value_2.toFixed(2)}</p>
-                <p>Profit Factor: ${profit_factor_2}</p>
-                <p>Sharpe Ratio: ${sharpe_ratio_2}</p>
-            </div>
-        `;
-    }
+    // Canvas for equity curves
+    const canvas = document.createElement('canvas');
+    canvas.id = 'equity-chart';
+    canvas.width = 900;
+    canvas.height = 400;
+    resultsDiv.appendChild(canvas);
 
-    resultsDiv.innerHTML = `
-        <div style="display: grid; grid-template-columns: 1fr ${ticker_2 ? '1fr' : ''}; gap: 20px; align-items: start;">
-            ${ticker1Stats}
-            ${ticker2Stats}
-        </div>
-        <canvas id="equity-chart" width="600" height="400"></canvas>
-    `;
+    const ctx = canvas.getContext('2d');
 
-    // Chart datasets
-    const datasets = [{
-        label: `${ticker} Equity Curve`,
-        data: equity_curve,
-        borderColor: 'blue',
-        fill: false
-    }];
+    // Prepare datasets
+    const datasets = [
+        {
+            label: 'Buy & Hold (' + results.ticker + ')',
+            data: results.buy_hold.equity_curve,
+            borderColor: 'blue',
+            fill: false,
+            tension: 0.1
+        },
+        {
+            label: 'Strategy (' + results.strategy.name + ')',
+            data: results.strategy.equity_curve,
+            borderColor: 'green',
+            fill: false,
+            tension: 0.1,
+            pointRadius: 0 // Hide default points
+        }
+    ];
 
-    if (equity_curve_2 && equity_curve_2.length > 0) {
+    // Add compare asset if exists
+    if (results.compare_asset) {
         datasets.push({
-            label: `${ticker_2} Equity Curve`,
-            data: equity_curve_2,
-            borderColor: 'red',
-            fill: false
+            label: 'Compare BH (' + results.compare_asset.ticker + ')',
+            data: results.compare_asset.buy_hold.equity_curve,
+            borderColor: 'orange',
+            fill: false,
+            tension: 0.1,
+            borderDash: [5,5]
         });
     }
 
-    const ctx = document.getElementById('equity-chart').getContext('2d');
-    new Chart(ctx, {
+    // Chart
+    const chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: dates,
+            labels: results.dates,
             datasets: datasets
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: { mode: 'index', intersect: false }
+            },
+            interaction: { mode: 'nearest', intersect: false },
+            scales: {
+                x: { display: true },
+                y: { display: true }
+            }
         }
     });
+
+    // Draw buy/sell markers
+    function drawSignals(signals, color, symbol) {
+        if (!signals) return;
+        signals.forEach(s => {
+            const idx = results.dates.indexOf(s.date);
+            if (idx >= 0) {
+                const meta = chart.getDatasetMeta(1); // strategy dataset index
+                const x = meta.data[idx].x;
+                const y = meta.data[idx].y;
+                ctx.fillStyle = color;
+                ctx.font = "16px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(symbol, x, y - (symbol === '▲' ? 10 : -5));
+            }
+        });
+    }
+
+    drawSignals(results.strategy.signals.buys, 'green', '▲');   // up arrow
+    drawSignals(results.strategy.signals.sells, 'red', '▼');    // down arrow
 }
 
-
+// Handle form submission
+document.getElementById('backtestForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const response = await fetch('/backtest', { method: 'POST', body: formData });
+    const data = await response.json();
+    if (data.error) {
+        alert(data.error);
+    } else {
+        renderResults(data);
+    }
+});
 </script>
-
+    
 <script>
 function showModal(message, iconHTML) {
     const modal = document.getElementById("customModal");
