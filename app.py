@@ -133,13 +133,13 @@ def backtest():
         if df.empty:
             return jsonify({'error': f'No data for {ticker} in selected range.'}), 400
 
-        # Buy & Hold for baseline
-        eq_bh = buy_and_hold_equity(df['Close'], cash)
-        fv_bh, pf_bh, sh_bh = metrics_from_equity(eq_bh)
+        # # Buy & Hold for baseline
+        # eq_bh = buy_and_hold_equity(df['Close'], cash)
+        # fv_bh, pf_bh, sh_bh = metrics_from_equity(eq_bh)
 
-        # Strategy equity (SMA crossover) + signals
-        eq_strat, buys, sells, strat_idx = sma_strategy_equity(df, cash, fast=10, slow=30)
-        fv_strat, pf_strat, sh_strat = metrics_from_equity(eq_strat)
+        # # Strategy equity (SMA crossover) + signals
+        # eq_strat, buys, sells, strat_idx = sma_strategy_equity(df, cash, fast=10, slow=30)
+        # fv_strat, pf_strat, sh_strat = metrics_from_equity(eq_strat)
     
         series = pd.DataFrame()
         for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
