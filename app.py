@@ -93,15 +93,18 @@ def metrics_from_equity(eq_series):
     rets = eq_series.pct_change().dropna()
     print(rets)
     if rets.std() == 0 or rets.empty:
-        sharpe = 0.0
         print('a')
+        sharpe = 0.0
         print(sharpe)
     else:
         rf_annual = 0.01
-        rf_daily = (1 + rf_annual) ** (1/252) - 1
-        excess = rets - rf_daily
-        sharpe = float((excess.mean() / excess.std()) * np.sqrt(252))
         print('b')
+        rf_daily = (1 + rf_annual) ** (1/252) - 1
+        print('c')
+        excess = rets - rf_daily
+        print('d')
+        sharpe = float((excess.mean() / excess.std()) * np.sqrt(252))
+        print('e')
         print(sharpe)
     return final_value, profit_factor, sharpe
 
