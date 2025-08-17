@@ -33,38 +33,12 @@ def backtest():
 
     df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
     df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
-
-    # --- Flatten yfinance DataFrame index ---
-    if isinstance(df.index, pd.MultiIndex):
-        # Take only the 'Date' level (level 0)
-        df = df.copy()
-        df['Date'] = df.index.get_level_values(0)
-        df.reset_index(drop=True, inplace=True)
-    else:
-        df = df.copy()
-        df.reset_index(inplace=True)  # moves index (Date) to column 'Date'
-    
-    # Ensure 'Date' is datetime
-    df['Date'] = pd.to_datetime(df['Date'])
     
     # --- Load CSV of signals ---
     csv_path = os.path.join(app.root_path, 'data', 'epoch_BTC.csv')
     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
     
-    # Merge on 'Date' column
-    df_merged = df.merge(
-        signals_df[['Date', 'epoch_signal']],
-        on='Date',
-        how='left'
-    )
-    
-    # Fill missing signals with 0 and convert to int
-    df_merged['epoch_signal'] = df_merged['epoch_signal'].fillna(0).astype(int)
-    
-    # Optional: set Date back as index
-    df_merged.set_index('Date', inplace=True)
-    
-    print(df_merged.head())
+    print(signals_df.head())
 
     series = pd.DataFrame()
     for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
