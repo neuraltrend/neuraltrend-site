@@ -32,7 +32,16 @@ def backtest():
 
     df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
     df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
-    df['Signal']=0
+
+    # --- Load CSV of signals ---
+    csv_path = os.path.join(app.root_path, 'data', 'epoch_BTC.csv')
+    signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
+    signals_df.set_index('Date', inplace=True)
+
+    # Merge signals into market data (optional)
+    df = df.merge(signals_df[['epoch_signal']], left_index=True, right_index=True, how='left')
+    df['epoch_signal'] = df['epoch_signal'].fillna(0).astype(int)
+
     print(df)
 
     series = pd.DataFrame()
