@@ -76,9 +76,11 @@ def backtest():
     equity_curve_start=equity_curve[0]
     equity_curve = np.array(equity_curve)  # convert list to numpy array
     equity_curve = equity_curve / equity_curve[0] * initial_cash
+    print(equity_curve)
     equity_curve = equity_curve.tolist()
     final_value = float(equity_curve[-1])
     profit_factor = float(final_value / initial_cash)
+    print(equity_curve)
 
     returns = df['Close'].pct_change().dropna()
     risk_free_rate_annual = 0.01
