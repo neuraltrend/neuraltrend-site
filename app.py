@@ -5,6 +5,25 @@ import numpy as np
 
 app = Flask(__name__)
 
+# ----------------------------
+# Data utilities
+# ----------------------------
+def download_prices(ticker: str, start: str, end: str) -> pd.DataFrame:
+    """
+    Download daily OHLCV for a ticker and ensure numeric columns.
+    Returns an empty DataFrame if no data.
+    """
+    df = yf.download(ticker, start=start, end=end, interval='1d', progress=False)
+    if df.empty:
+        return df
+
+    # Keep only standard columns we might use later
+    df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
+    for col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+    df = df.dropna()
+    return df
+
 @app.route('/')
 def index():
     return render_template('index.html')
