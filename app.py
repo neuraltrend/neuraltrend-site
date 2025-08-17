@@ -24,6 +24,92 @@ def download_prices(ticker: str, start: str, end: str) -> pd.DataFrame:
     df = df.dropna()
     return df
 
+def buy_and_hold_equity(close: pd.Series, cash: float) -> pd.Series:
+    """
+    Normalize equity to start at 'cash' and track value over time.
+    """
+    if close is None or len(close) == 0:
+        return pd.Series(dtype=float)
+    return (close / close.iloc[0]) * cash
+
+
+def sma_strategy_equity(df: pd.DataFrame, cash: float, fast: int = 10, slow: int = 30):
+    """
+    Simple SMA crossover strategy:
+      - Long when SMA(fast) > SMA(slow), flat otherwise.
+      - Emits buy on cross-up and sell on cross-down.
+
+    Returns:
+      eq (pd.Series): strategy equity curve
+      buys (list[dict]): [{'date': 'YYYY-MM-DD', 'y': float}, ...]
+      sells (list[dict]): [{'date': 'YYYY-MM-DD', 'y': float}, ...]
+      idx (pd.DatetimeIndex): index for alignment
+    """
+    if df is None or df.empty or 'Close' not in df.columns:
+        return pd.Series(dtype=float), [], [], pd.DatetimeIndex([])
+
+    if len(df) < max(fast, slow):
+        # Not enough data to compute both SMAs
+        return pd.Series(dtype=float), [], [], df.index
+
+    work = df.copy()
+    work['SMA_f'] = work['Close'].rolling(fast).mean()
+    work['SMA_s'] = work['Close'].rolling(slow).mean()
+    work = work.dropna()
+    if work.empty:
+        return pd.Series(dtype=float), [], [], df.index
+
+    # Position: 1 if SMA_f > SMA_s, else 0
+    work['pos'] = (work['SMA_f'] > work['SMA_s']).astype(int)
+
+    # Daily returns and strategy returns (use previous day's position)
+    work['ret'] = work['Close'].pct_change().fillna(0.0)
+    work['strat_ret'] = work['pos'].shift(1).fillna(0.0) * work['ret']
+
+    # Strategy equity curve
+    eq = (1 + work['strat_ret']).cumprod() * cash
+
+    # Crossovers for signals
+    work['pos_prev'] = work['pos'].shift(1).fillna(work['pos'])
+    crosses_up = (work['pos_prev'] == 0) & (work['pos'] == 1)
+    crosses_dn = (work['pos_prev'] == 1) & (work['pos'] == 0)
+
+    buy_dates = work.index[crosses_up]
+    sell_dates = work.index[crosses_dn]
+
+    buys = [{'date': d.strftime('%Y-%m-%d'), 'y': float(eq.loc[d])} for d in buy_dates]
+    sells = [{'date': d.strftime('%Y-%m-%d'), 'y': float(eq.loc[d])} for d in sell_dates]
+
+    return eq, buys, sells, work.index
+
+
+def metrics_from_equity(eq_series: pd.Series):
+    """
+    Returns (final_value, profit_factor, sharpe).
+    Safe for empty/constant series.
+    """
+    if eq_series is None or len(eq_series) == 0:
+        return 0.0, 0.0, 0.0
+
+    final_value = float(eq_series.iloc[-1])
+    start_value = float(eq_series.iloc[0]) if eq_series.iloc[0] != 0 else 1.0
+    profit_factor = final_value / start_value if start_value != 0 else 0.0
+
+    rets = eq_series.pct_change().dropna()
+    if rets.empty or rets.std() == 0:
+        sharpe = 0.0
+    else:
+        rf_annual = 0.01
+        rf_daily = (1 + rf_annual) ** (1 / 252) - 1
+        excess = rets - rf_daily
+        sharpe = float((excess.mean() / excess.std()) * np.sqrt(252))
+
+    return final_value, profit_factor, sharpe
+
+
+# ----------------------------
+# Routes
+# ----------------------------
 @app.route('/')
 def index():
     return render_template('index.html')
