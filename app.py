@@ -39,6 +39,10 @@ def backtest():
     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
     signals_df.set_index('Date', inplace=True)
 
+    # If df has MultiIndex, keep only Date level
+    if isinstance(df.index, pd.MultiIndex):
+        df.index = df.index.get_level_values(0)  # use only first level (Date)
+
     # Merge signals into market data (optional)
     df = df.merge(signals_df[['epoch_signal']], left_index=True, right_index=True, how='left')
     df['epoch_signal'] = df['epoch_signal'].fillna(0).astype(int)
