@@ -152,7 +152,9 @@ def backtest():
 
         # Strategy equity (SMA crossover) + signals
         eq_strat, buys, sells, strat_idx = sma_strategy_equity(df, cash, fast=10, slow=30)
+        print('moj')
         fv_strat, pf_strat, sh_strat = metrics_from_equity(eq_strat)
+        print('mojijoon')
     
         series = pd.DataFrame()
         for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
