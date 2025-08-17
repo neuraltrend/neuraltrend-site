@@ -18,6 +18,57 @@ def buy_and_hold_equity(close, cash):
     eq = (close / close.iloc[0]) * cash
     return eq
 
+def sma_strategy_equity(close, cash, fast=10, slow=30):
+    """
+    Simple SMA crossover: long when SMA(fast) > SMA(slow), flat otherwise.
+    Emits buy at cross-up and sell at cross-down.
+    """
+    df = pd.DataFrame({'Close': close})
+    df['SMA_f'] = df['Close'].rolling(fast).mean()
+    df['SMA_s'] = df['Close'].rolling(slow).mean()
+    df.dropna(inplace=True)
+
+    # position: 1 if SMA_f > SMA_s else 0
+    df['pos'] = (df['SMA_f'] > df['SMA_s']).astype(int)
+
+    # daily returns
+    df['ret'] = df['Close'].pct_change().fillna(0.0)
+    # strategy returns (apply pos of previous day)
+    df['strat_ret'] = df['pos'].shift(1).fillna(0.0) * df['ret']
+
+    # equity
+    eq = (1 + df['strat_ret']).cumprod() * cash
+
+    # signals
+    df['pos_prev'] = df['pos'].shift(1).fillna(df['pos'])
+    crosses_up = (df['pos_prev'] == 0) & (df['pos'] == 1)
+    crosses_dn = (df['pos_prev'] == 1) & (df['pos'] == 0)
+
+    buy_dates = df.index[crosses_up]
+    sell_dates = df.index[crosses_dn]
+
+    # y-values of equity at signal times (to place markers at equity level)
+    buys = [{'date': d.strftime('%Y-%m-%d'), 'y': float(eq.loc[d])} for d in buy_dates]
+    sells = [{'date': d.strftime('%Y-%m-%d'), 'y': float(eq.loc[d])} for d in sell_dates]
+
+    return eq, buys, sells, df.index
+
+def metrics_from_equity(eq_series):
+    final_value = float(eq_series.iloc[-1])
+    start_value = float(eq_series.iloc[0])
+    profit_factor = final_value / start_value if start_value != 0 else np.nan
+
+    # daily returns of the equity curve
+    rets = eq_series.pct_change().dropna()
+    if rets.std() == 0 or rets.empty:
+        sharpe = 0.0
+    else:
+        rf_annual = 0.01
+        rf_daily = (1 + rf_annual) ** (1/252) - 1
+        excess = rets - rf_daily
+        sharpe = float((excess.mean() / excess.std()) * np.sqrt(252))
+    return final_value, profit_factor, sharpe
+
 @app.route('/')
 def index():
     return render_template('index.html')
