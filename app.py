@@ -215,7 +215,7 @@ def backtest():
         print('mojo')
         print(eq_bh.tolist())
         print('mojal')
-        if ticker_2 and eq_bh:  # or however you check for optional input
+        if ticker_2 and len(eq_bh)>0:  # or however you check for optional input
             print('a')
             results.update({
                 'ticker_2': ticker_2,
