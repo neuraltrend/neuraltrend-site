@@ -205,7 +205,11 @@ def backtest():
         print(fv_bh)
         print(pf_bh)
         print(sh_bh)
+        print('moj')
+        print(eq_bh)
+        print('mojo')
         print(eq_bh.tolist())
+        print('mojal')
         if ticker_2 and eq_bh:  # or however you check for optional input
             print('a')
             results.update({
