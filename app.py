@@ -200,32 +200,22 @@ def backtest():
 
         results = {
             'ticker': ticker,
-            'final_value': fv_strat,
-            'profit_factor': pf_strat,
-            'sharpe_ratio': sh_strat,
-            'equity_curve': eq_strat.tolist() if len(eq_strat) > 0 else [],
+            'final_value': final_value,
+            'profit_factor': profit_factor,
+            'sharpe_ratio': sharpe_ratio,
+            'equity_curve': equity_curve.tolist() if len(equity_curve) > 0 else [],
             'dates': dates,
         }
-        print(ticker_2)
-        print(fv_bh)
-        print(pf_bh)
-        print(sh_bh)
-        print('moj')
-        print(eq_bh)
-        print('mojo')
-        print(eq_bh.tolist())
-        print('mojal')
-        if ticker_2 and len(eq_bh)>0:  # or however you check for optional input
-            print('a')
+        
+        if ticker_2 and len(equity_curve_2)>0:  # or however you check for optional input
             results.update({
                 'ticker_2': ticker_2,
-                'final_value_2': fv_bh,
-                'profit_factor_2': pf_bh,
-                'sharpe_ratio_2': sh_bh,
-                'equity_curve_2': eq_bh.tolist()
+                'final_value_2': final_value_2,
+                'profit_factor_2': profit_factor_2,
+                'sharpe_ratio_2': sharpe_ratio_2,
+                'equity_curve_2': equity_curve.tolist()
             })
         else:
-            print('b')
             results['equity_curve_2'] = []  # keep chart code safe
 
         # results = {
