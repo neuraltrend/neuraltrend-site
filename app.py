@@ -91,7 +91,8 @@ def backtest():
     ticker = request.form['ticker']
     start_date = request.form['start']
     end_date = request.form['end']
-    ticker_2 = request.form['ticker_2']
+    # ticker_2 = request.form['ticker_2']
+    ticker_2 = request.form.get('ticker_2', '').strip()  # optional
     print(ticker_2)
 
     df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
