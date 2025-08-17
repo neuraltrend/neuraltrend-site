@@ -82,29 +82,22 @@ def sma_strategy_equity(df: pd.DataFrame, cash: float, fast: int = 10, slow: int
 
     return eq, buys, sells, work.index
 
+def metrics_from_equity(eq_series):
+    final_value = eq_series.iloc[-1].item()
+    start_value = eq_series.iloc[0].item()
+    profit_factor = final_value / start_value if start_value != 0 else np.nan
 
-def metrics_from_equity(eq_series: pd.Series):
-    """
-    Returns (final_value, profit_factor, sharpe).
-    Safe for empty/constant series.
-    """
-    if eq_series is None or len(eq_series) == 0:
-        return 0.0, 0.0, 0.0
-
-    final_value = float(eq_series.iloc[-1])
-    start_value = float(eq_series.iloc[0]) if eq_series.iloc[0] != 0 else 1.0
-    profit_factor = final_value / start_value if start_value != 0 else 0.0
-
+    # daily returns of the equity curve
     rets = eq_series.pct_change().dropna()
-    if rets.empty or rets.std() == 0:
+    if rets.std() == 0 or rets.empty:
         sharpe = 0.0
     else:
         rf_annual = 0.01
-        rf_daily = (1 + rf_annual) ** (1 / 252) - 1
+        rf_daily = (1 + rf_annual) ** (1/252) - 1
         excess = rets - rf_daily
         sharpe = float((excess.mean() / excess.std()) * np.sqrt(252))
-
     return final_value, profit_factor, sharpe
+
 
 
 # ----------------------------
