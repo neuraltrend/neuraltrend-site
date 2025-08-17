@@ -135,8 +135,10 @@ def backtest():
         end_date = request.form['end']
         ticker_2 = request.form.get('ticker_2', '').strip()  # optional
     
-        df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
-        df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
+        # --- Primary asset
+        df = download_prices(ticker, start_date, end_date)
+        if df.empty:
+            return jsonify({'error': f'No data for {ticker} in selected range.'}), 400
     
         series = pd.DataFrame()
         for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
@@ -189,17 +191,7 @@ def backtest():
         
         dates = df.index.strftime('%Y-%m-%d').tolist()
         print(equity_curve)
-        # print(equity_curve_2)
-        # results = {
-        #     'final_value': final_value,
-        #     'profit_factor': profit_factor,
-        #     'sharpe_ratio': sharpe_ratio,
-        #     'equity_curve': equity_curve,
-        #     'equity_curve_2': equity_curve_2,
-        #     'dates': dates,
-        #     'ticker': ticker,
-        #     'ticker_2': ticker_2
-        # }
+
         results = {
             'ticker': ticker,
             'final_value': final_value,
