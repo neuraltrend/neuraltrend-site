@@ -201,8 +201,13 @@ def backtest():
             'equity_curve': eq_strat.tolist() if len(eq_strat) > 0 else [],
             'dates': dates,
         }
-    
+        print(ticker_2)
+        print(fv_bh)
+        print(pf_bh)
+        print(sh_bh)
+        print(eq_bh.tolist())
         if ticker_2 and eq_bh:  # or however you check for optional input
+            print('a')
             results.update({
                 'ticker_2': ticker_2,
                 'final_value_2': fv_bh,
@@ -211,6 +216,7 @@ def backtest():
                 'equity_curve_2': eq_bh.tolist()
             })
         else:
+            print('b')
             results['equity_curve_2'] = []  # keep chart code safe
 
         # results = {
