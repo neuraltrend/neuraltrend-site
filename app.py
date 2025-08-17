@@ -5,123 +5,6 @@ import numpy as np
 
 app = Flask(__name__)
 
-def download_prices(ticker, start, end):
-    df = yf.download(ticker, start=start, end=end, interval='1d', progress=False)
-    if df.empty:
-        return df
-    df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
-
-    series = pd.DataFrame()
-    for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
-        df[col] = df[col].astype(float)
-        values = df[col].values
-        if values.ndim > 1:
-            values = values.flatten()
-        df[col] = values
-        series[col] = pd.Series(values, index=df.index)
-
-    return df
-
-def buy_and_hold_equity(close, cash):
-    # normalize to start = cash
-    eq = (close / close.iloc[0]) * cash
-    return eq
-
-def sma_strategy_equity(df: pd.DataFrame, cash):
-    # Ensure required columns exist
-    if 'Close' not in df.columns:
-        raise ValueError("DataFrame must contain a 'Close' column")
-
-    # Now you can work directly with df['Close'] inside
-    close = df['Close']
-
-    # Example: simple moving average
-    df['SMA'] = close.rolling(window=20).mean()
-
-    # Your trading logic here...
-    equity_curve = [cash]  # dummy init
-    buys, sells, idx = [], [], []
-
-    return equity_curve, buys, sells, idx
-
-
-def sma_strategy_equity(df, cash, fast=10, slow=30):
-    """
-    Simple SMA crossover strategy:
-    - Long when SMA(fast) > SMA(slow), flat otherwise.
-    - Emits buy signal at cross-up and sell signal at cross-down.
-    
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Must contain at least a 'Close' column (and optionally other OHLCV columns).
-    cash : float
-        Initial capital.
-    fast : int
-        Window for fast SMA.
-    slow : int
-        Window for slow SMA.
-
-    Returns
-    -------
-    eq : pd.Series
-        Equity curve of the strategy.
-    buys : list of dict
-        Buy signals with {date, y} for plotting.
-    sells : list of dict
-        Sell signals with {date, y} for plotting.
-    idx : pd.DatetimeIndex
-        Index of the DataFrame (for alignment).
-    """
-    df = df.copy()  # don’t overwrite original
-
-    # Compute SMAs
-    df['SMA_f'] = df['Close'].rolling(fast).mean()
-    df['SMA_s'] = df['Close'].rolling(slow).mean()
-    df.dropna(inplace=True)
-
-    # Position: 1 if SMA_f > SMA_s, else 0
-    df['pos'] = (df['SMA_f'] > df['SMA_s']).astype(int)
-
-    # Daily returns
-    df['ret'] = df['Close'].pct_change().fillna(0.0)
-
-    # Strategy returns (apply position of previous day)
-    df['strat_ret'] = df['pos'].shift(1).fillna(0.0) * df['ret']
-
-    # Equity curve
-    eq = (1 + df['strat_ret']).cumprod() * cash
-
-    # Detect crossovers
-    df['pos_prev'] = df['pos'].shift(1).fillna(df['pos'])
-    crosses_up = (df['pos_prev'] == 0) & (df['pos'] == 1)
-    crosses_dn = (df['pos_prev'] == 1) & (df['pos'] == 0)
-
-    buy_dates = df.index[crosses_up]
-    sell_dates = df.index[crosses_dn]
-
-    # y-values of equity at signal times (for plotting markers)
-    buys = [{'date': d.strftime('%Y-%m-%d'), 'y': float(eq.loc[d])} for d in buy_dates]
-    sells = [{'date': d.strftime('%Y-%m-%d'), 'y': float(eq.loc[d])} for d in sell_dates]
-
-    return eq, buys, sells, df.index
-
-def metrics_from_equity(eq_series):
-    final_value = float(eq_series.iloc[-1])
-    start_value = float(eq_series.iloc[0])
-    profit_factor = final_value / start_value if start_value != 0 else np.nan
-
-    # daily returns of the equity curve
-    rets = eq_series.pct_change().dropna()
-    if rets.std() == 0 or rets.empty:
-        sharpe = 0.0
-    else:
-        rf_annual = 0.01
-        rf_daily = (1 + rf_annual) ** (1/252) - 1
-        excess = rets - rf_daily
-        sharpe = float((excess.mean() / excess.std()) * np.sqrt(252))
-    return final_value, profit_factor, sharpe
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -144,19 +27,20 @@ def backtest():
     ticker = request.form['ticker']
     start_date = request.form['start']
     end_date = request.form['end']
-    # ticker_2 = request.form['ticker_2']
-    ticker_2 = request.form.get('ticker_2', '').strip()  # optional
+    ticker_2 = request.form['ticker_2']
     print(ticker_2)
 
-    # PRIMARY
-    df = download_prices(ticker, start_date, end_date)
-    if df.empty:
-        return jsonify({'error': f'No data for {ticker} in selected range.'}), 400
+    df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
+    df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
 
-    eq_bh = buy_and_hold_equity(df['Close'], cash)
-    eq_strat, buys, sells, idx = sma_strategy_equity(df, cash)
-    dates = [d.strftime('%Y-%m-%d') for d in eq_strat.index]
-    fv, pf, sh = metrics_from_equity(eq_strat)
+    series = pd.DataFrame()
+    for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
+        df[col] = df[col].astype(float)
+        values = df[col].values
+        if values.ndim > 1:
+            values = values.flatten()
+        df[col] = values
+        series[col] = pd.Series(values, index=df.index)
 
     equity_curve = df['Close'].to_numpy().flatten().astype(float).tolist()
     equity_curve_start=equity_curve[0]
