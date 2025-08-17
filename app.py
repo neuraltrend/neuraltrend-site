@@ -109,17 +109,10 @@ def backtest():
     if df.empty:
         return jsonify({'error': f'No data for {ticker} in selected range.'}), 400
 
-    # # df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
-    # df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
-
-    # series = pd.DataFrame()
-    # for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
-    #     df[col] = df[col].astype(float)
-    #     values = df[col].values
-    #     if values.ndim > 1:
-    #         values = values.flatten()
-    #     df[col] = values
-    #     series[col] = pd.Series(values, index=df.index)
+    eq_bh = buy_and_hold_equity(df['Close'], cash)
+    eq_strat, buys, sells, idx = sma_strategy_equity(df['Close'], cash)
+    dates = [d.strftime('%Y-%m-%d') for d in eq_strat.index]
+    fv, pf, sh = metrics_from_equity(eq_strat)
 
     equity_curve = df['Close'].to_numpy().flatten().astype(float).tolist()
     equity_curve_start=equity_curve[0]
