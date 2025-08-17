@@ -5,6 +5,19 @@ import numpy as np
 
 app = Flask(__name__)
 
+def download_prices(ticker, start, end):
+    df = yf.download(ticker, start=start, end=end, interval='1d', progress=False)
+    if df.empty:
+        return df
+    df = df[['Close']].dropna().copy()
+    df['Close'] = df['Close'].astype(float)
+    return df
+
+def buy_and_hold_equity(close, cash):
+    # normalize to start = cash
+    eq = (close / close.iloc[0]) * cash
+    return eq
+
 @app.route('/')
 def index():
     return render_template('index.html')
