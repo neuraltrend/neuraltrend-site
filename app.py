@@ -37,6 +37,7 @@ def backtest():
     # --- Load CSV of signals ---
     csv_path = os.path.join(app.root_path, 'data', 'epoch_BTC.csv')
     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
+    signals_df = signals_df.dropna()
     
     print(signals_df.head())
 
