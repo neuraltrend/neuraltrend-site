@@ -9,8 +9,17 @@ def download_prices(ticker, start, end):
     df = yf.download(ticker, start=start, end=end, interval='1d', progress=False)
     if df.empty:
         return df
-    df = df[['Close']].dropna().copy()
-    df['Close'] = df['Close'].astype(float)
+    df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
+
+    series = pd.DataFrame()
+    for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
+        df[col] = df[col].astype(float)
+        values = df[col].values
+        if values.ndim > 1:
+            values = values.flatten()
+        df[col] = values
+        series[col] = pd.Series(values, index=df.index)
+
     return df
 
 def buy_and_hold_equity(close, cash):
@@ -100,17 +109,17 @@ def backtest():
     if df.empty:
         return jsonify({'error': f'No data for {ticker} in selected range.'}), 400
 
-    # df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
-    df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
+    # # df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
+    # df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
 
-    series = pd.DataFrame()
-    for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
-        df[col] = df[col].astype(float)
-        values = df[col].values
-        if values.ndim > 1:
-            values = values.flatten()
-        df[col] = values
-        series[col] = pd.Series(values, index=df.index)
+    # series = pd.DataFrame()
+    # for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
+    #     df[col] = df[col].astype(float)
+    #     values = df[col].values
+    #     if values.ndim > 1:
+    #         values = values.flatten()
+    #     df[col] = values
+    #     series[col] = pd.Series(values, index=df.index)
 
     equity_curve = df['Close'].to_numpy().flatten().astype(float).tolist()
     equity_curve_start=equity_curve[0]
