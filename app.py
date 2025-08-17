@@ -24,7 +24,7 @@ def knowledge():
 
 @app.route('/backtest', methods=['POST'])
 def backtest():
-    cash = float(request.form['cash'])
+    initial_cash = float(request.form['cash'])
     ticker = request.form['ticker']
     start_date = request.form['start']
     end_date = request.form['end']
@@ -41,6 +41,10 @@ def backtest():
     
     print(signals_df.head())
 
+    cash = initial_cash
+    position = 0
+    equity_curve = []
+
     series = pd.DataFrame()
     for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
         df[col] = df[col].astype(float)
@@ -53,10 +57,10 @@ def backtest():
     equity_curve = df['Close'].to_numpy().flatten().astype(float).tolist()
     equity_curve_start=equity_curve[0]
     equity_curve = np.array(equity_curve)  # convert list to numpy array
-    equity_curve = equity_curve / equity_curve[0] * cash
+    equity_curve = equity_curve / equity_curve[0] * initial_cash
     equity_curve = equity_curve.tolist()
     final_value = float(equity_curve[-1])
-    profit_factor = float(final_value / cash)
+    profit_factor = float(final_value / initial_cash)
 
     returns = df['Close'].pct_change().dropna()
     risk_free_rate_annual = 0.01
@@ -81,10 +85,10 @@ def backtest():
         equity_curve_2 = df_2['Close'].to_numpy().flatten().astype(float).tolist()
         equity_curve_start=equity_curve_2[0]
         equity_curve_2 = np.array(equity_curve_2)  # convert list to numpy array
-        equity_curve_2 = equity_curve_2 / equity_curve_2[0] * cash
+        equity_curve_2 = equity_curve_2 / equity_curve_2[0] * initial_cash
         equity_curve_2 = equity_curve_2.tolist()
         final_value_2 = float(equity_curve_2[-1])
-        profit_factor_2 = float(final_value_2 / cash)
+        profit_factor_2 = float(final_value_2 / initial_cash)
 
         returns_2 = df_2['Close'].pct_change().dropna()
         excess_returns_2 = returns_2 - risk_free_rate_daily
