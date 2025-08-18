@@ -793,107 +793,68 @@ function renderResults({
     const adjustedBuySignals = dates.map((d, i) => buy_dates.includes(d) ? epoch_equity_curve[i] - offset : null);
     const adjustedSellSignals = dates.map((d, i) => sell_dates.includes(d) ? epoch_equity_curve[i] + offset : null);
 
-//     const datasets = [
-//     {
-//         label: `${ticker} Equity Curve`,
-//         data: epoch_equity_curve,
-//         borderColor: 'blue',
-//         fill: false,
-//         pointRadius: 0,
-//         borderWidth: 2,
-//         // Legend marker as line
-//         // pointStyle and usePointStyle are ignored if pointRadius=0
-//     },
-//     {
-//         label: `${ticker} Buy&Hold Equity Curve`,
-//         data: equity_curve,
-//         borderColor: 'green',
-//         fill: false,
-//         pointRadius: 0,
-//         borderDash: [5,5],
-//         borderWidth: 2,
-//     },
-//     {
-//         label: 'Buy Signals',
-//         data: adjustedBuySignals,
-//         borderColor: 'green',
-//         backgroundColor: 'green',
-//         showLine: false,
-//         pointStyle: 'triangle',
-//         rotation: 0,
-//         pointRadius: 8,
-//         // Legend marker as triangle
-//         // Only this dataset uses point style in legend
-//         usePointStyle: true
-//     },
-//     {
-//         label: 'Sell Signals',
-//         data: adjustedSellSignals,
-//         borderColor: 'red',
-//         backgroundColor: 'red',
-//         showLine: false,
-//         pointStyle: 'triangle',
-//         rotation: 180,
-//         pointRadius: 8,
-//         usePointStyle: true
-//     }
-// ];
+    const datasets = [
+    {
+        label: `${ticker} Equity Curve`,
+        data: epoch_equity_curve,
+        borderColor: 'blue',
+        fill: false,
+        pointRadius: 0,
+        borderWidth: 2,
+        // Legend marker as line
+        // pointStyle and usePointStyle are ignored if pointRadius=0
+    },
+    {
+        label: `${ticker} Buy&Hold Equity Curve`,
+        data: equity_curve,
+        borderColor: 'green',
+        fill: false,
+        pointRadius: 0,
+        borderDash: [5,5],
+        borderWidth: 2,
+    },
+    {
+        label: 'Buy Signals',
+        data: adjustedBuySignals,
+        borderColor: 'green',
+        backgroundColor: 'green',
+        showLine: false,
+        pointStyle: 'triangle',
+        rotation: 0,
+        pointRadius: 8,
+        // Legend marker as triangle
+        // Only this dataset uses point style in legend
+        usePointStyle: true
+    },
+    {
+        label: 'Sell Signals',
+        data: adjustedSellSignals,
+        borderColor: 'red',
+        backgroundColor: 'red',
+        showLine: false,
+        pointStyle: 'triangle',
+        rotation: 180,
+        pointRadius: 8,
+        usePointStyle: true
+    }
+];
 
-//     if (equity_curve_2 && equity_curve_2.length > 0) {
-//         datasets.push({
-//             label: `${ticker_2} Buy&Hold Equity Curve`,
-//             data: equity_curve_2,
-//             borderColor: 'black',
-//             fill: false,
-//             pointRadius: 0,
-//             borderDash: [5, 5],
-//             borderWidth: 2
-//         });
-//     }
+    if (equity_curve_2 && equity_curve_2.length > 0) {
+        datasets.push({
+            label: `${ticker_2} Buy&Hold Equity Curve`,
+            data: equity_curve_2,
+            borderColor: 'black',
+            fill: false,
+            pointRadius: 0,
+            borderDash: [5, 5],
+            borderWidth: 2
+        });
+    }
 
     new Chart(ctx, {
     type: 'line',
     data: {
         labels: dates,
-        datasets: [
-            {
-                label: `${ticker} Equity Curve`,
-                data: epoch_equity_curve,
-                borderColor: 'blue',
-                fill: false,
-                pointRadius: 0,
-                borderWidth: 2
-            },
-            {
-                label: `${ticker} Buy&Hold Equity Curve`,
-                data: equity_curve,
-                borderColor: 'green',
-                fill: false,
-                pointRadius: 0,
-                borderDash: [5,5],
-                borderWidth: 2
-            },
-            {
-                label: 'Buy Signals',
-                data: adjustedBuySignals,
-                borderColor: 'green',
-                backgroundColor: 'green',
-                showLine: false,
-                pointStyle: 'triangle',
-                rotation: -90,
-                pointRadius: 8
-            },
-            {
-                label: 'Sell Signals',
-                data: adjustedSellSignals,
-                borderColor: 'red',
-                backgroundColor: 'red',
-                showLine: false,
-                pointStyle: 'triangle',
-                rotation: 90,
-                pointRadius: 8
-            }
-        ]
     },
     options: {
         plugins: {
@@ -920,7 +881,6 @@ function renderResults({
         }
     }
 });
-}
     
 </script>
 
