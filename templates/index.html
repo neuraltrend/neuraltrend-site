@@ -783,13 +783,39 @@ function renderResults({
         <canvas id="equity-chart" width="600" height="400"></canvas>
     `;
 
+    // Offset multipliers (e.g. ±2%)
+    const buyOffset = 0.98;   // place buys 2% below
+    const sellOffset = 1.02;  // place sells 2% above
+    
+    // Apply offsets to signals
+    const adjustedBuySignals = buySignals.map((v, i) => v !== null ? v * buyOffset : null);
+    const adjustedSellSignals = sellSignals.map((v, i) => v !== null ? v * sellOffset : null);
+
     // Chart datasets
     const datasets = [{
-        label: `${ticker} Equity Curve`,
-        data: epoch_equity_curve,
-        borderColor: 'blue',
-        fill: false
-    },
+    label: 'Price',
+    data: prices,
+    borderColor: 'blue',
+    borderWidth: 2,
+    fill: false
+  },
+  {
+    label: 'Buy',
+    data: adjustedBuySignals,
+    pointStyle: 'triangle',
+    pointRadius: 10,
+    backgroundColor: 'green',
+    showLine: false
+  },
+  {
+    label: 'Sell',
+    data: adjustedSellSignals,
+    pointStyle: 'triangle',
+    pointRadius: 10,
+    rotation: 180,
+    backgroundColor: 'red',
+    showLine: false
+  },
     {
         label: `${ticker} Buy&Hold Equity Curve`,
         data: equity_curve,
@@ -806,33 +832,33 @@ function renderResults({
         });
     }
 
-    // Add BUY markers (green upward triangles)
-    if (buy_dates && buy_prices) {
-        datasets.push({
-            label: 'Buy Signals',
-            data: buy_dates.map((d, i) => ({ x: d, y: buy_prices[i] })),
-            borderColor: 'green',
-            backgroundColor: 'green',
-            showLine: false,
-            pointStyle: 'triangle',
-            pointRotation: 0, // upwards
-            pointRadius: 8
-        });
-    }
+    // // Add BUY markers (green upward triangles)
+    // if (buy_dates && buy_prices) {
+    //     datasets.push({
+    //         label: 'Buy Signals',
+    //         data: buy_dates.map((d, i) => ({ x: d, y: buy_prices[i] })),
+    //         borderColor: 'green',
+    //         backgroundColor: 'green',
+    //         showLine: false,
+    //         pointStyle: 'triangle',
+    //         pointRotation: 0, // upwards
+    //         pointRadius: 8
+    //     });
+    // }
 
-    // Add SELL markers (red downward triangles)
-    if (sell_dates && sell_prices) {
-        datasets.push({
-            label: 'Sell Signals',
-            data: sell_dates.map((d, i) => ({ x: d, y: sell_prices[i] })),
-            borderColor: 'red',
-            backgroundColor: 'red',
-            showLine: false,
-            pointStyle: 'triangle',
-            pointRotation: 180, // upside down
-            pointRadius: 8
-        });
-    }
+    // // Add SELL markers (red downward triangles)
+    // if (sell_dates && sell_prices) {
+    //     datasets.push({
+    //         label: 'Sell Signals',
+    //         data: sell_dates.map((d, i) => ({ x: d, y: sell_prices[i] })),
+    //         borderColor: 'red',
+    //         backgroundColor: 'red',
+    //         showLine: false,
+    //         pointStyle: 'triangle',
+    //         pointRotation: 180, // upside down
+    //         pointRadius: 8
+    //     });
+    // }
 
     const ctx = document.getElementById('equity-chart').getContext('2d');
     new Chart(ctx, {
