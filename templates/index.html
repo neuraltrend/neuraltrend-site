@@ -795,7 +795,7 @@ function renderResults({
 
     const datasets = [
         {
-            label: `${ticker} Equity Curve`,
+            label: `${ticker} EpochSignaler Equity Curve`,
             data: epoch_equity_curve,
             borderColor: 'blue',
             pointStyle: 'line',
@@ -834,7 +834,7 @@ function renderResults({
 
     if (equity_curve_2 && equity_curve_2.length > 0) {
         datasets.push({
-            label: `${ticker_2} Equity Curve`,
+            label: `${ticker_2} Buy&Hold Equity Curve`,
             data: equity_curve_2,
             pointStyle: 'line',
             borderColor: 'darkgray',
