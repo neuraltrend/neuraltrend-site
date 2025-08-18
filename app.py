@@ -76,6 +76,13 @@ def backtest():
 
     eq_df = pd.DataFrame(equity_curve, columns=['Date', 'Equity']).set_index('Date')
     # print(eq_df)
+     # --- Extract buy/sell points ---
+    buy_dates = signals_df.index[signals_df['epoch_signal'] == 1]
+    sell_dates = signals_df.index[signals_df['epoch_signal'] == -1]
+    buy_prices = eq_df.loc[buy_dates, 'Equity']
+    sell_prices = eq_df.loc[sell_dates, 'Equity']
+    print(buy_dates)
+    print(buy_prices)
 
     series = pd.DataFrame()
     for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
