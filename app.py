@@ -41,7 +41,7 @@ def backtest():
     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
     
     # Convert Close to float explicitly
-    df['Close'] = pd.to_numeric(df['Close'], errors='coerce')
+    signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
 
     signals_df = signals_df.dropna()
     print(signals_df.dtypes)
