@@ -806,6 +806,20 @@ function renderResults({
         });
     }
 
+    // Add BUY markers (green upward triangles)
+    if (buy_dates && buy_prices) {
+        datasets.push({
+            label: 'Buy Signals',
+            data: buy_dates.map((d, i) => ({ x: d, y: buy_prices[i] })),
+            borderColor: 'green',
+            backgroundColor: 'green',
+            showLine: false,
+            pointStyle: 'triangle',
+            pointRotation: 0, // upwards
+            pointRadius: 8
+        });
+    }
+
     const ctx = document.getElementById('equity-chart').getContext('2d');
     new Chart(ctx, {
         type: 'line',
