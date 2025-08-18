@@ -118,9 +118,9 @@ def backtest():
         sharpe_ratio_2 = float(((excess_returns_2.mean() / excess_returns_2.std()) * (252 ** 0.5)).iloc[0])
     
     dates = df.index.strftime('%Y-%m-%d').tolist()
-    print(dates)
-    print(eq_df)
-    print(equity_curve)
+    print(dates, type(dates))
+    print(eq_df, type(eq_df))
+    print(equity_curve, type(equity_curve))
     print(equity_curve_2)
     # results = {
     #     'final_value': final_value,
