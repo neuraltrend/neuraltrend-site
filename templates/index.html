@@ -795,42 +795,42 @@ function renderResults({
 
     const datasets = [
         {
-    label: `${ticker} Equity Curve`,
-    data: epoch_equity_curve,
-    borderColor: 'blue',
-    fill: false,
-    pointRadius: 0,
-    borderWidth: 2
-},
-{
-    label: `${ticker} Buy&Hold Equity Curve`,
-    data: equity_curve,
-    borderColor: 'green',
-    fill: false,
-    pointRadius: 0,
-    borderDash: [5, 5],
-    borderWidth: 2
-},
-{
-    label: 'Buy Signals',
-    data: adjustedBuySignals,
-    borderColor: 'green',
-    backgroundColor: 'green',
-    showLine: false,
-    pointStyle: 'triangle',
-    rotation: -90,
-    pointRadius: 8
-},
-{
-    label: 'Sell Signals',
-    data: adjustedSellSignals,
-    borderColor: 'red',
-    backgroundColor: 'red',
-    showLine: false,
-    pointStyle: 'triangle',
-    rotation: 90,
-    pointRadius: 8
-}
+            label: `${ticker} Equity Curve`,
+            data: epoch_equity_curve,
+            borderColor: 'blue',
+            fill: false,
+            pointRadius: 0,
+            borderWidth: 2
+        },
+        {
+            label: `${ticker} Buy&Hold Equity Curve`,
+            data: equity_curve,
+            borderColor: 'green',
+            fill: false,
+            pointRadius: 0,
+            borderDash: [5, 5],
+            borderWidth: 2
+        },
+        {
+            label: 'Buy Signals',
+            data: adjustedBuySignals,
+            borderColor: 'green',
+            backgroundColor: 'green',
+            showLine: false,
+            pointStyle: 'triangle',
+            rotation: 180,
+            pointRadius: 8
+        },
+        {
+            label: 'Sell Signals',
+            data: adjustedSellSignals,
+            borderColor: 'red',
+            backgroundColor: 'red',
+            showLine: false,
+            pointStyle: 'triangle',
+            rotation: 0,
+            pointRadius: 8
+        }
     ];
 
     if (equity_curve_2 && equity_curve_2.length > 0) {
