@@ -776,11 +776,11 @@ function renderResults({
     }
 
     resultsDiv.innerHTML = `
-        <div style="display: grid; grid-template-columns: 1fr ${ticker_2 ? '1fr' : ''}; gap: 5px; align-items: start;">
+        <div style="display: grid; grid-template-columns: 1fr ${ticker_2 ? '1fr' : ''}; gap: 20px; align-items: start;">
             ${ticker1Stats}
             ${ticker2Stats}
         </div>
-        <canvas id="equity-chart" width="600" height="400"></canvas>
+        <canvas id="equity-chart" width="800" height="400"></canvas>
     `;
 
     const ctx = document.getElementById('equity-chart').getContext('2d');
