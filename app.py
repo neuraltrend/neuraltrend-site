@@ -158,9 +158,9 @@ def backtest():
         'equity_curve': equity_curve,
         'epoch_equity_curve': eq_df['Equity'].to_numpy().flatten().astype(float).tolist(),
         'dates': dates,
-        'buy_dates':buy_dates, 
+        'buy_dates': [d.strftime("%Y-%m-%d") for d in buy_dates],
         'buy_prices':buy_prices,
-        'sell_dates':sell_dates,
+        'sell_dates': [d.strftime("%Y-%m-%d") for d in sell_dates],
         'sell_prices':sell_prices
     }
 
