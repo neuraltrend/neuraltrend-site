@@ -159,9 +159,9 @@ def backtest():
         'epoch_equity_curve': eq_df['Equity'].to_numpy().flatten().astype(float).tolist(),
         'dates': dates,
         'buy_dates': [d.strftime("%Y-%m-%d") for d in buy_dates],
-        'buy_prices':buy_prices,
+        'buy_prices': buy_prices.tolist() if isinstance(buy_prices, pd.Series) else buy_prices,
         'sell_dates': [d.strftime("%Y-%m-%d") for d in sell_dates],
-        'sell_prices':sell_prices
+        'sell_prices': sell_prices.tolist() if isinstance(sell_prices, pd.Series) else sell_prices,
     }
 
     if ticker_2 and equity_curve_2:  # or however you check for optional input
