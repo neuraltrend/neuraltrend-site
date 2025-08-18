@@ -29,7 +29,7 @@ def backtest():
     start_date = request.form['start']
     end_date = request.form['end']
     ticker_2 = request.form['ticker_2']
-    print(ticker_2)
+    # print(ticker_2)
 
     df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
     df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
@@ -42,7 +42,7 @@ def backtest():
     signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
     signals_df = signals_df.dropna()
     
-    print(signals_df)
+    # print(signals_df)
 
     cash = initial_cash
     position = 0
@@ -64,7 +64,7 @@ def backtest():
         equity_curve.append((date, equity))
 
     eq_df = pd.DataFrame(equity_curve, columns=['Date', 'Equity']).set_index('Date')
-    print(eq_df)
+    # print(eq_df)
 
     series = pd.DataFrame()
     for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
@@ -79,11 +79,11 @@ def backtest():
     equity_curve_start=equity_curve[0]
     equity_curve = np.array(equity_curve)  # convert list to numpy array
     equity_curve = equity_curve / equity_curve[0] * initial_cash
-    print(equity_curve)
+    # print(equity_curve)
     equity_curve = equity_curve.tolist()
     final_value = float(equity_curve[-1])
     profit_factor = float(final_value / initial_cash)
-    print(equity_curve)
+    # print(equity_curve)
 
     returns = df['Close'].pct_change().dropna()
     risk_free_rate_annual = 0.01
@@ -118,8 +118,10 @@ def backtest():
         sharpe_ratio_2 = float(((excess_returns_2.mean() / excess_returns_2.std()) * (252 ** 0.5)).iloc[0])
     
     dates = df.index.strftime('%Y-%m-%d').tolist()
+    print(dates)
+    print(eq_df)
     print(equity_curve)
-    # print(equity_curve_2)
+    print(equity_curve_2)
     # results = {
     #     'final_value': final_value,
     #     'profit_factor': profit_factor,
