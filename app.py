@@ -38,6 +38,14 @@ def backtest():
     csv_path = os.path.join(app.root_path, 'data', 'epoch_BTC.csv')
     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
     
+    # Filter for the desired period
+    mask = (signals_df['Date'] >= pd.to_datetime(start_date)) & (signals_df['Date'] <= pd.to_datetime(end_date))
+    df_filtered = signals_df.loc[mask].copy()
+    
+    # Optional: set Date as index
+    df_filtered.set_index('Date', inplace=True)
+    signals_df=df_filtered
+    
     # Convert Close to float explicitly
     signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
     signals_df = signals_df.dropna()
