@@ -799,7 +799,7 @@ function renderResults({
             data: epoch_equity_curve,
             borderColor: 'blue',
             pointRadius: 0,   // <-- remove circle markers
-            fill: false
+            fill: true
         },
         {
             label: `${ticker} Buy&Hold Equity Curve`,
@@ -807,7 +807,7 @@ function renderResults({
             borderColor: 'green',
             borderDash: [5, 5],
             pointRadius: 0,   // <-- remove circle markers
-            fill: false
+            fill: true
         },
         {
             label: 'Buy Signal',
@@ -834,7 +834,7 @@ function renderResults({
             data: equity_curve_2,
             borderColor: 'red',
             pointRadius: 0,   // <-- remove circle markers
-            fill: false
+            fill: true
         });
     }
 
