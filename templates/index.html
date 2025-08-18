@@ -794,93 +794,69 @@ function renderResults({
     const adjustedSellSignals = dates.map((d, i) => sell_dates.includes(d) ? epoch_equity_curve[i] + offset : null);
 
     const datasets = [
-    {
-        label: `${ticker} Equity Curve`,
-        data: epoch_equity_curve,
-        borderColor: 'blue',
-        fill: false,
-        pointRadius: 0,
-        borderWidth: 2,
-        // Legend marker as line
-        // pointStyle and usePointStyle are ignored if pointRadius=0
-    },
-    {
-        label: `${ticker} Buy&Hold Equity Curve`,
-        data: equity_curve,
-        borderColor: 'green',
-        fill: false,
-        pointRadius: 0,
-        borderDash: [5,5],
-        borderWidth: 2,
-    },
-    {
-        label: 'Buy Signals',
-        data: adjustedBuySignals,
-        borderColor: 'green',
-        backgroundColor: 'green',
-        showLine: false,
-        pointStyle: 'triangle',
-        rotation: 0,
-        pointRadius: 8,
-        // Legend marker as triangle
-        // Only this dataset uses point style in legend
-        usePointStyle: true
-    },
-    {
-        label: 'Sell Signals',
-        data: adjustedSellSignals,
-        borderColor: 'red',
-        backgroundColor: 'red',
-        showLine: false,
-        pointStyle: 'triangle',
-        rotation: 180,
-        pointRadius: 8,
-        usePointStyle: true
-    }
-];
+        {
+            label: `${ticker} Equity Curve`,
+            data: epoch_equity_curve,
+            borderColor: 'blue',
+            pointRadius: 0,   // <-- remove circle markers
+            fill: false
+        },
+        {
+            label: `${ticker} Buy&Hold Equity Curve`,
+            data: equity_curve,
+            borderColor: 'green',
+            borderDash: [5, 5],
+            pointRadius: 0,   // <-- remove circle markers
+            fill: false
+        },
+        {
+            label: 'Buy Signal',
+            data: adjustedBuySignals,
+            pointStyle: 'triangle',
+            pointRadius: 10,
+            backgroundColor: 'green',
+            showLine: false
+        },
+        {
+            label: 'Sell Signal',
+            data: adjustedSellSignals,
+            pointStyle: 'triangle',
+            rotation: 180,
+            pointRadius: 10,
+            backgroundColor: 'red',
+            showLine: false
+        }
+    ];
 
     if (equity_curve_2 && equity_curve_2.length > 0) {
         datasets.push({
-            label: `${ticker_2} Buy&Hold Equity Curve`,
+            label: `${ticker_2} Equity Curve`,
             data: equity_curve_2,
-            borderColor: 'black',
-            fill: false,
-            pointRadius: 0,
-            borderDash: [5, 5],
-            borderWidth: 2
+            borderColor: 'red',
+            pointRadius: 0,   // <-- remove circle markers
+            fill: false
         });
     }
 
     new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: dates,
-    },
-    options: {
-        plugins: {
-            legend: {
-                labels: {
-                    generateLabels: function(chart) {
-                        const original = Chart.overrides.line.plugins.legend.labels.generateLabels(chart);
-                        // Override only buy/sell markers
-                        original.forEach(label => {
-                            if (label.text === 'Buy Signals' || label.text === 'Sell Signals') {
-                                label.pointStyle = 'triangle';
-                                label.fillStyle = label.text === 'Buy Signals' ? 'green' : 'red';
-                                label.strokeStyle = label.fillStyle;
-                            }
-                        });
-                        return original;
-                    }
-                }
-            }
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: datasets
         },
-        scales: {
-            x: { display: true, title: { display: true, text: 'Date' } },
-            y: { display: true, title: { display: true, text: 'Equity ($)' } }
+        options: {
+            plugins: {
+                legend: {
+                    labels: { usePointStyle: true }  // match triangle markers
+                }
+            },
+            scales: {
+                x: { display: true, title: { display: true, text: 'Date' } },
+                y: { display: true, title: { display: true, text: 'Equity ($)' } }
+            }
         }
-    }
-});
+    });
+}
     
 </script>
 
