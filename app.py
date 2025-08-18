@@ -33,13 +33,14 @@ def backtest():
 
     df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
     df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
+    print(df)
     
     # --- Load CSV of signals ---
     csv_path = os.path.join(app.root_path, 'data', 'epoch_BTC.csv')
     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
     signals_df = signals_df.dropna()
     
-    print(signals_df.head())
+    print(signals_df)
 
     cash = initial_cash
     position = 0
