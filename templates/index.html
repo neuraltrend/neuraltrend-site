@@ -788,7 +788,7 @@ function renderResults({
     // --- Compute dynamic offset for markers ---
     const equity_min = Math.min(...epoch_equity_curve);
     const equity_max = Math.max(...epoch_equity_curve);
-    const offset = (equity_max - equity_min) * 0.02; // 2% of range
+    const offset = (equity_max - equity_min) * 0.05; // 5% of range
 
     const adjustedBuySignals = dates.map((d, i) => buy_dates.includes(d) ? epoch_equity_curve[i] - offset : null);
     const adjustedSellSignals = dates.map((d, i) => sell_dates.includes(d) ? epoch_equity_curve[i] + offset : null);
