@@ -811,7 +811,7 @@ function renderResults({
     if (buy_dates && buy_prices) {
         datasets.push({
             label: 'Buy Signals',
-            data: buy_dates.map((d, i) => ({ x: d, y: buy_prices[i] })),
+            data: buy_dates.map((d, i) => ({ x: d, y: buy_prices[i]*0.9 })),
             borderColor: 'green',
             backgroundColor: 'green',
             showLine: false,
@@ -825,7 +825,7 @@ function renderResults({
     if (sell_dates && sell_prices) {
         datasets.push({
             label: 'Sell Signals',
-            data: sell_dates.map((d, i) => ({ x: d, y: sell_prices[i] })),
+            data: sell_dates.map((d, i) => ({ x: d, y: sell_prices[i]*1.1 })),
             borderColor: 'red',
             backgroundColor: 'red',
             showLine: false,
