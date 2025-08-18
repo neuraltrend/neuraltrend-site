@@ -748,7 +748,7 @@ document.getElementById('backtest-form').addEventListener('submit', function(e) 
 
 function renderResults({
     ticker, final_value, profit_factor, sharpe_ratio,
-    equity_curve, dates,
+    equity_curve, equity_curve, dates,
     ticker_2, final_value_2, profit_factor_2, sharpe_ratio_2,
     equity_curve_2
 }) {
@@ -786,8 +786,14 @@ function renderResults({
     // Chart datasets
     const datasets = [{
         label: `${ticker} Equity Curve`,
-        data: equity_curve,
+        data: epoch_equity_curve,
         borderColor: 'blue',
+        fill: false
+    },
+    {
+        label: `${ticker} Buy&Hold Equity Curve`,
+        data: equity_curve,
+        borderColor: 'green',
         fill: false
     }];
 
