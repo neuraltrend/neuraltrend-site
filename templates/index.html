@@ -798,6 +798,7 @@ function renderResults({
             label: `${ticker} Equity Curve`,
             data: epoch_equity_curve,
             borderColor: 'blue',
+            pointStyle: 'line',
             pointRadius: 0,   // <-- remove circle markers
             fill: false,
             backgroundColor: 'blue',
@@ -805,7 +806,8 @@ function renderResults({
         {
             label: `${ticker} Buy&Hold Equity Curve`,
             data: equity_curve,
-            borderColor: 'green',
+            borderColor: 'purple',
+            pointStyle: 'line',
             borderDash: [5, 5],
             pointRadius: 0,   // <-- remove circle markers
             fill: false,
@@ -834,7 +836,8 @@ function renderResults({
         datasets.push({
             label: `${ticker_2} Equity Curve`,
             data: equity_curve_2,
-            borderColor: 'red',
+            pointStyle: 'line',
+            borderColor: 'darkgray',
             pointRadius: 0,   // <-- remove circle markers
             fill: false
         });
