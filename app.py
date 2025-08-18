@@ -31,11 +31,14 @@ def backtest():
     ticker_2 = request.form['ticker_2']
     # print(ticker_2)
 
+    base_symbol = ticker.split('-')[0]  # -> "BTC"
+
     df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
     df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
     
     # --- Load CSV of signals ---
-    csv_path = os.path.join(app.root_path, 'data', 'epoch_BTC.csv')
+    csv_filename = f"epoch_{base_symbol}.csv"
+    csv_path = os.path.join(app.root_path, 'data', csv_filename)
     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
     
     # Filter for the desired period
