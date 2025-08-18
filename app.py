@@ -152,7 +152,7 @@ def backtest():
     # }
     results = {
         'ticker': ticker,
-        'final_value': final_value,
+        'final_value': float(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()[-1]),
         'profit_factor': profit_factor,
         'sharpe_ratio': sharpe_ratio,
         'equity_curve': equity_curve,
