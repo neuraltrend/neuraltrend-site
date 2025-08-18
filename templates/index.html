@@ -820,6 +820,20 @@ function renderResults({
         });
     }
 
+    // Add SELL markers (red downward triangles)
+    if (sell_dates && sell_prices) {
+        datasets.push({
+            label: 'Sell Signals',
+            data: sell_dates.map((d, i) => ({ x: d, y: sell_prices[i] })),
+            borderColor: 'red',
+            backgroundColor: 'red',
+            showLine: false,
+            pointStyle: 'triangle',
+            pointRotation: 180, // upside down
+            pointRadius: 8
+        });
+    }
+
     const ctx = document.getElementById('equity-chart').getContext('2d');
     new Chart(ctx, {
         type: 'line',
