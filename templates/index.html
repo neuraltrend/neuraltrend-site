@@ -747,7 +747,7 @@ document.getElementById('backtest-form').addEventListener('submit', function(e) 
 });
 
 function renderResults({
-    ticker, final_value, profit_factor, sharpe_ratio,
+    ticker, final_value, final_value_epoch, profit_factor, sharpe_ratio,
     equity_curve, epoch_equity_curve, dates,
     ticker_2, final_value_2, profit_factor_2, sharpe_ratio_2,
     equity_curve_2, buy_dates, buy_prices, sell_dates, sell_prices
@@ -756,9 +756,10 @@ function renderResults({
 
     let ticker1Stats = `
         <div>
-            <h3>EpochSignaler-${ticker}</h3>
-            <p>Final Value: $${final_value.toFixed(2)}</p>
-            <p>Profit Factor: ${profit_factor}</p>
+            <h3>${ticker}</h3>
+            <p>Final Value EpochSignaler: $${final_value_epoch.toFixed(2)}</p>
+            <p>Final Value Buy&Hold: $${final_value.toFixed(2)}</p>
+            <p>Profit Factor EpochSignaler: ${profit_factor}</p>
             <p>Sharpe Ratio: ${sharpe_ratio}</p>
         </div>
     `;
@@ -780,7 +781,7 @@ function renderResults({
             ${ticker1Stats}
             ${ticker2Stats}
         </div>
-        <canvas id="equity-chart" width="1200" height="400"></canvas>
+        <canvas id="equity-chart" width="600" height="400"></canvas>
     `;
 
     const ctx = document.getElementById('equity-chart').getContext('2d');
