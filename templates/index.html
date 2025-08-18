@@ -835,11 +835,13 @@ function renderResults({
 
     if (equity_curve_2 && equity_curve_2.length > 0) {
         datasets.push({
-            label: `${ticker_2} Equity Curve`,
+            label: `${ticker_2} Buy&Hold Equity Curve`,
             data: equity_curve_2,
-            borderColor: 'red',
-            pointRadius: 0,   // <-- remove circle markers
-            fill: false
+            borderColor: 'black',
+            fill: false,
+            pointRadius: 0,
+            borderDash: [5, 5],
+            borderWidth: 2
         });
     }
 
