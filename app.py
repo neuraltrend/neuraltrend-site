@@ -152,8 +152,8 @@ def backtest():
     # }
     results = {
         'ticker': ticker,
-        'final_value': float(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()[-1]),
-        'profit_factor': profit_factor,
+        'final_value': float(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()[-1]/),
+        'profit_factor': float(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()[-1])/initial_cash,
         'sharpe_ratio': sharpe_ratio,
         'equity_curve': equity_curve,
         'epoch_equity_curve': eq_df['Equity'].to_numpy().flatten().astype(float).tolist(),
