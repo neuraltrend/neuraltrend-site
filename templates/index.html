@@ -785,9 +785,13 @@ function renderResults({
 
     const ctx = document.getElementById('equity-chart').getContext('2d');
 
-    // --- Prepare buy/sell marker datasets ---
-    const adjustedBuySignals = dates.map((d, i) => buy_dates.includes(d) ? epoch_equity_curve[i] - 0.02*epoch_equity_curve[i] : null);
-    const adjustedSellSignals = dates.map((d, i) => sell_dates.includes(d) ? epoch_equity_curve[i] + 0.02*epoch_equity_curve[i] : null);
+    // --- Compute dynamic offset for markers ---
+    const equity_min = Math.min(...epoch_equity_curve);
+    const equity_max = Math.max(...epoch_equity_curve);
+    const offset = (equity_max - equity_min) * 0.02; // 2% of range
+
+    const adjustedBuySignals = dates.map((d, i) => buy_dates.includes(d) ? epoch_equity_curve[i] - offset : null);
+    const adjustedSellSignals = dates.map((d, i) => sell_dates.includes(d) ? epoch_equity_curve[i] + offset : null);
 
     const datasets = [
         {
@@ -822,7 +826,6 @@ function renderResults({
         }
     ];
 
-    // Optional second ticker
     if (equity_curve_2 && equity_curve_2.length > 0) {
         datasets.push({
             label: `${ticker_2} Equity Curve`,
@@ -841,9 +844,7 @@ function renderResults({
         options: {
             plugins: {
                 legend: {
-                    labels: {
-                        usePointStyle: true  // 👈 make legend match triangle markers
-                    }
+                    labels: { usePointStyle: true }  // match triangle markers
                 }
             },
             scales: {
@@ -853,8 +854,7 @@ function renderResults({
         }
     });
 }
-
-
+    
 </script>
 
 <script>
