@@ -119,7 +119,7 @@ def backtest():
     
     dates = df.index.strftime('%Y-%m-%d').tolist()
     print(dates, type(dates))
-    print(eq_df.tolist(), type(eq_df.tolist()))
+    print(eq_df['Equity'].to_numpy().flatten().astype(float).tolist(), type(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()))
     print(equity_curve, type(equity_curve))
     print(equity_curve_2)
     # results = {
@@ -138,7 +138,7 @@ def backtest():
         'profit_factor': profit_factor,
         'sharpe_ratio': sharpe_ratio,
         'equity_curve': equity_curve,
-        'epoch_equity_curve': eq_df.tolist(),
+        'epoch_equity_curve': eq_df['Equity'].to_numpy().flatten().astype(float).tolist(),
         'dates': dates,
     }
 
