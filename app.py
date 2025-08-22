@@ -22,6 +22,10 @@ def market():
 def knowledge():
     return render_template('knowledge.html')
 
+@app.route('/ads.txt')
+def ads_txt():
+    return send_from_directory(os.path.dirname(__file__), 'ads.txt')
+
 @app.route('/backtest', methods=['POST'])
 def backtest():
     initial_cash = float(request.form['cash'])
