@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 import yfinance as yf
 import pandas as pd  # FIXED
 import numpy as np
