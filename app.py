@@ -51,6 +51,10 @@ def backtest():
     ticker_2=[]
     # print(ticker_2)
 
+    # Parse dates
+    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+    today = date.today()
+
     base_symbol = ticker.split('-')[0]  # -> "BTC"
 
     df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
