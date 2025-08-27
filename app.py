@@ -32,7 +32,7 @@ def backtest():
     ticker = request.form['ticker']
     start_date = request.form['start']
     end_date = request.form['end']
-    ticker_2 = request.form['ticker_2']
+    # ticker_2 = request.form['ticker_2']
     # print(ticker_2)
 
     base_symbol = ticker.split('-')[0]  # -> "BTC"
