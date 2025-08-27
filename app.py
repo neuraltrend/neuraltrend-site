@@ -47,6 +47,7 @@ def backtest():
     ticker = request.form['ticker']
     start_date = request.form['start']
     end_date = request.form['end']
+    duration = request.form["duration"]    # e.g. '1mo','3mo','6mo','1yr'
     # ticker_2 = request.form['ticker_2']
     ticker_2=[]
     # print(ticker_2)
@@ -56,7 +57,7 @@ def backtest():
 
     # Compute intended end and cap at today
     duration_str='1mo'
-    delta = parse_duration(duration_str)
+    delta = parse_duration(duration)
     print(delta)
 
     base_symbol = ticker.split('-')[0]  # -> "BTC"
