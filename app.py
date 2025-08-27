@@ -1,25 +1,10 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
-from datetime import datetime, timedelta, date
-import dateutil.relativedelta  # for months/years
 import yfinance as yf
 import pandas as pd  # FIXED
 import numpy as np
 import os
 
 app = Flask(__name__)
-
-def parse_duration(duration: str):
-    """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
-    s = duration.strip().lower()
-    if s.endswith("mo"):
-        return relativedelta(months=int(s[:-2]))
-    if s.endswith("yr") or s.endswith("y"):
-        return relativedelta(years=int(s.rstrip('yr').rstrip('y')))
-    if s.endswith("w"):
-        return timedelta(weeks=int(s[:-1]))
-    if s.endswith("d"):
-        return timedelta(days=int(s[:-1]))
-    raise ValueError(f"Unsupported duration: {duration}")
 
 @app.route('/')
 def index():
@@ -45,41 +30,14 @@ def ads_txt():
 def backtest():
     initial_cash = float(request.form['cash'])
     ticker = request.form['ticker']
-    start_str = request.form['start']
-    duration_str = request.form['duration']  # e.g. "1mo", "3mo", "6mo", "1yr"
-    # end_date = request.form['end']
+    start_date = request.form['start']
+    end_date = request.form['end']
     ticker_2 = request.form['ticker_2']
-
-    # Parse dates
-    start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
-    today = date.today()
-
-    # if start_date > today:
-    #     return jsonify({"error": "Start date cannot be in the future."}), 400
-
-    # Compute intended end and cap at today
-    delta = parse_duration(duration_str)
-    intended_end = start_date + delta
-    end_date = min(intended_end, today)
-
-    print(start_date)
-    print(today)
-    print(intended_end)
-    print(end_date)
-
-    # yfinance quirk: `end` is exclusive for daily data.
-    # Add +1 day so the last day (end_date) is included.
-    end_for_download = end_date + timedelta(days=1)
-    print(end_for_download)
-
-    # Download OHLCV
-    df = yf.download(ticker, start=start_date, end=end_for_download, interval="1d")
-    # Extra safety: clip to inclusive [start_date, end_date]
-    df = df.loc[str(start_date):str(end_date)]
+    # print(ticker_2)
 
     base_symbol = ticker.split('-')[0]  # -> "BTC"
 
-    # df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
+    df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
     df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
     
     # --- Load CSV of signals ---
