@@ -70,7 +70,7 @@ def backtest():
 
     base_symbol = ticker.split('-')[0]  # -> "BTC"
 
-    df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
+    df = yf.download(ticker, start=start_date, end=end_date_2, interval='1d')  # FIXED
     df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
     
     # --- Load CSV of signals ---
@@ -79,7 +79,7 @@ def backtest():
     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
     
     # Filter for the desired period
-    mask = (signals_df['Date'] >= pd.to_datetime(start_date)) & (signals_df['Date'] <= pd.to_datetime(end_date))
+    mask = (signals_df['Date'] >= pd.to_datetime(start_date)) & (signals_df['Date'] <= pd.to_datetime(end_date_2))
     df_filtered = signals_df.loc[mask].copy()
     
     # Optional: set Date as index
