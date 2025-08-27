@@ -465,21 +465,24 @@
                         <label for="start">Start Date:</label>
                         <input type="date" id="start" name="start" required />
                     </div>
-
+        
                     <div class="form-group">
-                        <label for="duration">Backtest Duration:</label>
-                        <select id="duration" name="duration" required>
-                            <option value="1mo">1 mo</option>
-                            <option value="3mo">3 mo</option>
-                            <option value="6mo">6 mo</option>
-                            <option value="1yr">1 yr</option>
-                        </select>
+                        <label for="end">End Date:</label>
+                        <input type="date" id="end" name="end" required />
                     </div>
         
                     <div class="form-group">
-                        <label for="dca_pct">DCA in/out %:</label>
-                        <select id="dca_pct" name="dca_pct" required>
-                            <option value="100_pct">100%</option>
+                        <label for="ticker_2">Compare with (Optional):</label>
+                        <select id="ticker_2" name="ticker_2">
+                            <option value="">None</option>
+                            <option value="BTC-USD">BTC-USD</option>
+                            <option value="ETH-USD">ETH-USD</option>
+                            <option value="BNB-USD">BNB-USD</option>
+                            <option value="SOL-USD">SOL-USD</option>
+                            <option value="XRP-USD">XRP-USD</option>
+                            <option value="ADA-USD">ADA-USD</option>
+                            <option value="LINK-USD">LINK-USD</option>
+                            <option value="DOGE-USD">DOGE-USD</option>
                         </select>
                     </div>
         
@@ -923,21 +926,21 @@ window.addEventListener("click", function (event) {
 // Form Validation
 document.getElementById("backtest-form").addEventListener("submit", function(event) {
     const startDate = new Date(document.getElementById("start").value);
-    const duration = new Date(document.getElementById("duration").value);
+    const endDate = new Date(document.getElementById("end").value);
     const today = new Date();
     today.setHours(0,0,0,0);
 
-    // if (startDate > endDate) {
-    //     showModal("❌ Start Date cannot be after End Date.", "Error!");
-    //     event.preventDefault();
-    //     return;
-    // }
+    if (startDate > endDate) {
+        showModal("❌ Start Date cannot be after End Date.", "Error!");
+        event.preventDefault();
+        return;
+    }
 
-    // if (endDate > today) {
-    //     showModal("❌ End Date cannot be in the future.", "Error!");
-    //     event.preventDefault();
-    //     return;
-    // }
+    if (endDate > today) {
+        showModal("❌ End Date cannot be in the future.", "Error!");
+        event.preventDefault();
+        return;
+    }
 
     // If passes validation
     showModal("✅ Backtest started successfully!", "Success!");
