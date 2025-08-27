@@ -1,8 +1,23 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
+from datetime import datetime, date, timedelta
+from dateutil.relativedelta import relativedelta  # pip install python-dateutil
 import yfinance as yf
-import pandas as pd  # FIXED
+import pandas as pd
 import numpy as np
 import os
+
+def parse_duration(duration: str):
+    """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
+    s = duration.strip().lower()
+    if s.endswith("mo"):
+        return relativedelta(months=int(s[:-2]))
+    if s.endswith("yr") or s.endswith("y"):
+        return relativedelta(years=int(s.rstrip('yr').rstrip('y')))
+    if s.endswith("w"):
+        return timedelta(weeks=int(s[:-1]))
+    if s.endswith("d"):
+        return timedelta(days=int(s[:-1]))
+    raise ValueError(f"Unsupported duration: {duration}")
 
 app = Flask(__name__)
 
