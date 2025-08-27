@@ -46,7 +46,7 @@ def backtest():
     initial_cash = float(request.form['cash'])
     ticker = request.form['ticker']
     start_date = request.form['start']
-    end_date = request.form['end']
+    # end_date = request.form['end']
     duration = request.form["duration"]    # e.g. '1mo','3mo','6mo','1yr'
     # ticker_2 = request.form['ticker_2']
     ticker_2=[]
@@ -66,7 +66,7 @@ def backtest():
     # Add +1 day so the last day (end_date) is included.
     end_for_download = end_date_2 + timedelta(days=1)
     print(end_for_download)
-    print(end_date)
+    # print(end_date)
 
     base_symbol = ticker.split('-')[0]  # -> "BTC"
 
@@ -148,7 +148,7 @@ def backtest():
 
     equity_curve_2=[]
     if ticker_2:
-        df_2 = yf.download(ticker_2, start=start_date, end=end_date, interval='1d')  # FIXED
+        df_2 = yf.download(ticker_2, start=start_date, end=end_date_2, interval='1d')  # FIXED
         df_2 = df_2[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
 
         series_2 = pd.DataFrame()
