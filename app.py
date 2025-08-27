@@ -59,6 +59,14 @@ def backtest():
     duration_str='1mo'
     delta = parse_duration(duration)
     print(delta)
+    end_date_2 = start_date + delta
+    print(end_date_2)
+
+    # yfinance quirk: `end` is exclusive for daily data.
+    # Add +1 day so the last day (end_date) is included.
+    end_for_download = end_date_2 + timedelta(days=1)
+    print(end_for_download)
+    print(end_date)
 
     base_symbol = ticker.split('-')[0]  # -> "BTC"
 
