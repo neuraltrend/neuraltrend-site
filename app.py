@@ -54,6 +54,11 @@ def backtest():
     # Parse dates
     start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
 
+    # Compute intended end and cap at today
+    duration_str='1mo'
+    delta = parse_duration(duration_str)
+    print(delta)
+
     base_symbol = ticker.split('-')[0]  # -> "BTC"
 
     df = yf.download(ticker, start=start_date, end=end_date, interval='1d')  # FIXED
