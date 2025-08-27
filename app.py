@@ -62,9 +62,15 @@ def backtest():
     intended_end = start_date + delta
     end_date = min(intended_end, today)
 
+    print(start_date)
+    print(today)
+    print(intended_end)
+    print(end_date)
+
     # yfinance quirk: `end` is exclusive for daily data.
     # Add +1 day so the last day (end_date) is included.
     end_for_download = end_date + timedelta(days=1)
+    print(end_for_download)
 
     # Download OHLCV
     df = yf.download(ticker, start=start_date, end=end_for_download, interval="1d")
