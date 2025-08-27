@@ -53,7 +53,6 @@ def backtest():
 
     # Parse dates
     start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-    today = date.today()
 
     base_symbol = ticker.split('-')[0]  # -> "BTC"
 
