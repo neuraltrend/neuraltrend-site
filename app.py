@@ -56,18 +56,18 @@ def backtest():
     start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
 
     # Compute intended end and cap at today
-    duration_str='1mo'
     delta = parse_duration(duration)
     print(delta)
     end_date_2 = start_date + delta
     print(end_date_2)
 
-    # yfinance quirk: `end` is exclusive for daily data.
-    # Add +1 day so the last day (end_date) is included.
-    end_for_download = end_date_2 + timedelta(days=1)
-    end_for_download=min(end_for_download,datetime.today().date())
+    end_for_download=min(end_date_2,datetime.today().date())
     print(end_for_download)
     # print(end_date)
+
+    # yfinance quirk: `end` is exclusive for daily data.
+    # Add +1 day so the last day (end_date) is included.
+    end_for_download = end_for_download + timedelta(days=1)
 
     base_symbol = ticker.split('-')[0]  # -> "BTC"
 
