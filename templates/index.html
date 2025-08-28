@@ -942,7 +942,7 @@ document.getElementById("backtest-form").addEventListener("submit", function(eve
     //     return;
     // }
 
-    if (startDate > today) {
+    if (startDate >= today) {
         showModal("❌ Start Date cannot be in the future.", "Error!");
         event.preventDefault();
         return;
