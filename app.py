@@ -65,6 +65,7 @@ def backtest():
     # yfinance quirk: `end` is exclusive for daily data.
     # Add +1 day so the last day (end_date) is included.
     end_for_download = end_date_2 + timedelta(days=1)
+    end_for_download=min(end_for_download,datetime.today().date())
     print(end_for_download)
     # print(end_date)
 
