@@ -70,7 +70,7 @@ def backtest():
 
     base_symbol = ticker.split('-')[0]  # -> "BTC"
 
-    df = yf.download(ticker, start=start_date, end=end_date_2, interval='1d')  # FIXED
+    df = yf.download(ticker, start=start_date, end=end_for_download, interval='1d')  # FIXED
     df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
     print(df)
     
