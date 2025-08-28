@@ -72,15 +72,18 @@ def backtest():
 
     df = yf.download(ticker, start=start_date, end=end_date_2, interval='1d')  # FIXED
     df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
+    print(df)
     
     # --- Load CSV of signals ---
     csv_filename = f"epoch_{base_symbol}.csv"
     csv_path = os.path.join(app.root_path, 'data', csv_filename)
     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
+    print(signals_df)
     
     # Filter for the desired period
     mask = (signals_df['Date'] >= pd.to_datetime(start_date)) & (signals_df['Date'] <= pd.to_datetime(end_date_2))
     df_filtered = signals_df.loc[mask].copy()
+    print(df_filtered)
     
     # Optional: set Date as index
     df_filtered.set_index('Date', inplace=True)
@@ -112,7 +115,7 @@ def backtest():
         equity_curve.append((date, equity))
 
     eq_df = pd.DataFrame(equity_curve, columns=['Date', 'Equity']).set_index('Date')
-    # print(eq_df)
+    print(eq_df)
      # --- Extract buy/sell points ---
     buy_dates = signals_df.index[signals_df['epoch_signal'] == 1]
     sell_dates = signals_df.index[signals_df['epoch_signal'] == -1]
@@ -134,11 +137,11 @@ def backtest():
     equity_curve_start=equity_curve[0]
     equity_curve = np.array(equity_curve)  # convert list to numpy array
     equity_curve = equity_curve / equity_curve[0] * initial_cash
-    # print(equity_curve)
+    print(equity_curve)
     equity_curve = equity_curve.tolist()
     final_value = float(equity_curve[-1])
     profit_factor = float(final_value / initial_cash)
-    # print(equity_curve)
+    print(equity_curve)
 
     returns = df['Close'].pct_change().dropna()
     risk_free_rate_annual = 0.01
