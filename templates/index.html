@@ -934,6 +934,7 @@ document.getElementById("backtest-form").addEventListener("submit", function(eve
     const startDate = new Date(document.getElementById("start").value);
     // const endDate = new Date(document.getElementById("end").value);
     const today = new Date();
+    startDate.setHours(0,0,0,0);
     today.setHours(0,0,0,0);
 
     // if (startDate > endDate) {
@@ -942,7 +943,7 @@ document.getElementById("backtest-form").addEventListener("submit", function(eve
     //     return;
     // }
 
-    if (startDate > today-1) {
+    if (startDate >= today) {
         showModal("❌ Start Date cannot be in the future.", "Error!");
         event.preventDefault();
         return;
