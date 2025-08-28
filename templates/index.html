@@ -952,6 +952,25 @@ document.getElementById("backtest-form").addEventListener("submit", function(eve
     // If passes validation
     showModal("✅ Backtest started successfully!", "Success!");
 });
+
+document.addEventListener("DOMContentLoaded", function() {
+    const startInput = document.getElementById("start");
+
+    // Calculate (today - 2 days)
+    const today = new Date();
+    today.setDate(today.getDate() - 2);
+
+    // Format to yyyy-mm-dd for input[type=date]
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+
+    const maxDate = `${yyyy}-${mm}-${dd}`;
+
+    // Apply restriction
+    startInput.setAttribute("max", maxDate);
+});
+    
 </script>
 
 <!-- 100% privacy-first analytics -->
