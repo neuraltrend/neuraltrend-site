@@ -943,18 +943,18 @@ window.addEventListener("click", function (event) {
 // Form Validation
 document.getElementById("backtest-form").addEventListener("submit", function(event) {
     const startDate = new Date(document.getElementById("start").value);
-    const endDate = new Date(document.getElementById("end").value);
+    // const endDate = new Date(document.getElementById("end").value);
     const today = new Date();
     today.setHours(0,0,0,0);
 
-    if (startDate > endDate) {
-        showModal("❌ Start Date cannot be after End Date.", "Error!");
-        event.preventDefault();
-        return;
-    }
+    // if (startDate > endDate) {
+    //     showModal("❌ Start Date cannot be after End Date.", "Error!");
+    //     event.preventDefault();
+    //     return;
+    // }
 
-    if (endDate > today) {
-        showModal("❌ End Date cannot be in the future.", "Error!");
+    if (startDate > today) {
+        showModal("❌ Start Date cannot be in the future.", "Error!");
         event.preventDefault();
         return;
     }
