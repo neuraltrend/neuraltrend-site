@@ -67,7 +67,7 @@ def backtest():
 
     # yfinance quirk: `end` is exclusive for daily data.
     # Add +1 day so the last day (end_date) is included.
-    end_for_download = end_for_download + timedelta(days=1)
+    # end_for_download = end_for_download + timedelta(days=1)
 
     base_symbol = ticker.split('-')[0]  # -> "BTC"
 
