@@ -57,12 +57,12 @@ def backtest():
 
     # Compute intended end and cap at today
     delta = parse_duration(duration)
-    print(delta)
+    # print(delta)
     end_date_2 = start_date + delta
-    print(end_date_2)
+    # print(end_date_2)
 
     end_for_download=min(end_date_2,datetime.today().date())
-    print(end_for_download)
+    # print(end_for_download)
     # print(end_date)
 
     # yfinance quirk: `end` is exclusive for daily data.
@@ -71,20 +71,20 @@ def backtest():
 
     base_symbol = ticker.split('-')[0]  # -> "BTC"
 
-    df = yf.download(ticker, start=start_date, end=end_for_download, interval='1d')  # FIXED
-    df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
-    print(df)
+    # df = yf.download(ticker, start=start_date, end=end_for_download, interval='1d')  # FIXED
+    # df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
+    # print(df)
     
     # --- Load CSV of signals ---
     csv_filename = f"epoch_{base_symbol}.csv"
     csv_path = os.path.join(app.root_path, 'data', csv_filename)
     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
-    print(signals_df)
+    # print(signals_df)
     
     # Filter for the desired period
     mask = (signals_df['Date'] >= pd.to_datetime(start_date)) & (signals_df['Date'] <= pd.to_datetime(end_date_2))
     df_filtered = signals_df.loc[mask].copy()
-    print(df_filtered)
+    # print(df_filtered)
     
     # Optional: set Date as index
     df_filtered.set_index('Date', inplace=True)
@@ -116,23 +116,23 @@ def backtest():
         equity_curve.append((date, equity))
 
     eq_df = pd.DataFrame(equity_curve, columns=['Date', 'Equity']).set_index('Date')
-    print(eq_df)
+    # print(eq_df)
      # --- Extract buy/sell points ---
     buy_dates = signals_df.index[signals_df['epoch_signal'] == 1]
     sell_dates = signals_df.index[signals_df['epoch_signal'] == -1]
     buy_prices = eq_df.loc[buy_dates, 'Equity']
     sell_prices = eq_df.loc[sell_dates, 'Equity']
-    print(buy_dates)
-    print(buy_prices)
+    # print(buy_dates)
+    # print(buy_prices)
 
-    series = pd.DataFrame()
-    for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
-        df[col] = df[col].astype(float)
-        values = df[col].values
-        if values.ndim > 1:
-            values = values.flatten()
-        df[col] = values
-        series[col] = pd.Series(values, index=df.index)
+    # series = pd.DataFrame()
+    # for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
+    #     df[col] = df[col].astype(float)
+    #     values = df[col].values
+    #     if values.ndim > 1:
+    #         values = values.flatten()
+    #     df[col] = values
+    #     series[col] = pd.Series(values, index=df.index)
 
     equity_curve = signals_df['Close'].to_numpy().flatten().astype(float).tolist()
     equity_curve_start=equity_curve[0]
@@ -177,10 +177,10 @@ def backtest():
         sharpe_ratio_2 = float(((excess_returns_2.mean() / excess_returns_2.std()) * (252 ** 0.5)).iloc[0])
     
     dates = signals_df.index.strftime('%Y-%m-%d').tolist()
-    print(dates, type(dates))
-    print(eq_df['Equity'].to_numpy().flatten().astype(float).tolist(), type(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()))
-    print(equity_curve, type(equity_curve))
-    print(equity_curve_2)
+    # print(dates, type(dates))
+    # print(eq_df['Equity'].to_numpy().flatten().astype(float).tolist(), type(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()))
+    # print(equity_curve, type(equity_curve))
+    # print(equity_curve_2)
     # results = {
     #     'final_value': final_value,
     #     'profit_factor': profit_factor,
