@@ -148,7 +148,7 @@ def backtest():
     risk_free_rate_annual = 0.01
     risk_free_rate_daily = (1 + risk_free_rate_annual) ** (1/252) - 1
     excess_returns = returns - risk_free_rate_daily
-    sharpe_ratio = float(((excess_returns.mean() / excess_returns.std()) * (252 ** 0.5))[0])
+    sharpe_ratio = float(((excess_returns.mean() / excess_returns.std()) * (252 ** 0.5)))
 
     equity_curve_2=[]
     if ticker_2:
