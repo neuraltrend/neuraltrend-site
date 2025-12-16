@@ -429,7 +429,7 @@
 
         <!-- Signal -->
         <section class="results-section">
-            <form id="backtest-form2">
+            <form id="backtest-form">
                 <h3>Real Time Signal for EpochSignaler (Basic)</h3>
         
                 <div class="form-row">
@@ -606,14 +606,80 @@
                         </select>
                     </div>
         
+                    <div class="form-group">
+                        <label for="cash">Initial Cash:</label>
+                        <input type="number" id="cash" name="cash" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="interval">Interval:</label>
+                        <select id="interval" name="interval" required>
+                            <option value="D">D</option>
+                        </select>
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="start">Start Date:</label>
+                        <input type="date" id="start" name="start" required />
+                    </div>
+        
+<!--                     <div class="form-group">
+                        <label for="end">End Date:</label>
+                        <input type="date" id="end" name="end" required />
+                    </div> -->
+
+                    <div class="form-group">
+                        <label for="duration">Backtest Duration:</label>
+                        <select id="duration" name="duration" required>
+                            <option value="5yr">5 yr</option>
+                            <option value="3yr">3 yr</option>
+                            <option value="2yr">2 yr</option>
+                            <option value="1yr">1 yr</option>
+                            <option value="6mo">6 mo</option>
+                            <option value="3mo">3 mo</option>
+                            <option value="1mo">1 mo</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dca_pct">DCA In/Out Percentage:</label>
+                        <select id="dca_pct" name="dca_pct" required>
+                            <option value="100_pct">100%</option>
+                        </select>
+                    </div>
+        
+<!--                     <div class="form-group">
+                        <label for="ticker_2">Compare with (Optional):</label>
+                        <select id="ticker_2" name="ticker_2">
+                            <option value="">None</option>
+                            <option value="BTC-USD">BTC-USD</option>
+                            <option value="ETH-USD">ETH-USD</option>
+                            <option value="BNB-USD">BNB-USD</option>
+                            <option value="SOL-USD">SOL-USD</option>
+                            <option value="XRP-USD">XRP-USD</option>
+                            <option value="ADA-USD">ADA-USD</option>
+                            <option value="LINK-USD">LINK-USD</option>
+                            <option value="DOGE-USD">DOGE-USD</option>
+                        </select>
+                    </div> -->
+        
                     <div class="form-group" style="align-self: flex-end;">
-                        <button type="submit">Run</button>
+                        <button type="submit">Run Backtest</button>
                     </div>
                 </div>
             </form>
         
             <div id="results"></div>
         </section>
+
+        <!-- Custom Modal -->
+        <div id="customModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <div id="modal-icon"></div>
+                <p id="modal-message"></p>
+            </div>
+        </div>
 
         <!-- Backtest Simulation -->
         <section class="results-section">
@@ -1103,62 +1169,6 @@
 <div class="footer">
     <a href="/privacy">Privacy Notice</a>
 </div>
-
-<script>
-document.getElementById('backtest-form2').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const formData = new FormData(this);
-    fetch('/backtest', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        renderResults2(data);
-    })
-    .catch(error => console.error('Error:', error));
-});
-
-function renderResults2({
-    ticker, final_value, final_value_epoch, profit_factor, profit_factor_epoch, sharpe_ratio,
-    equity_curve, epoch_equity_curve, dates,
-    ticker_2, final_value_2, profit_factor_2, sharpe_ratio_2,
-    equity_curve_2, buy_dates, buy_prices, sell_dates, sell_prices
-}) {
-    const resultsDiv = document.getElementById('results');
-
-    let ticker1Stats = `
-        <div>
-            <h3>${ticker}</h3>
-            <p>Final Value EpochSignaler: $${final_value_epoch.toFixed(2)}</p>
-            <p>Final Value Buy&Hold: $${final_value.toFixed(2)}</p>
-            <p>Profit Factor EpochSignaler: ${profit_factor_epoch}</p>
-            <p>Profit Factor Buy&Hold: ${profit_factor}</p>
-        </div>
-    `;
-
-    let ticker2Stats = '';
-    if (ticker_2) {
-        ticker2Stats = `
-            <div>
-                <h3>${ticker_2}</h3>
-                <p>Final Value Buy&Hold: $${final_value_2.toFixed(2)}</p>
-                <p>Profit Factor Buy&Hold: ${profit_factor_2}</p>
-            </div>
-        `;
-    }
-
-    resultsDiv.innerHTML = `
-        <div style="display: grid; grid-template-columns: 1fr ${ticker_2 ? '1fr' : ''}; gap: 20px; align-items: start;">
-            ${ticker1Stats}
-            ${ticker2Stats}
-        </div>
-        <canvas id="equity-chart" width="600" height="400"></canvas>
-    `;
-}
-    
-</script>
 
 <script>
 document.getElementById('backtest-form').addEventListener('submit', function(e) {
