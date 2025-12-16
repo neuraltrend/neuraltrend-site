@@ -427,9 +427,9 @@
                 An AI-based (transformer+LSTM) algorithm for crypto and traditional assets analytics signal. Basic model is based on a forward-looking fixed price movement normalized by volatility. Advanced signals coming soon...(Q4 2025)
             </p>
 
-        <!-- Sinal -->
+        <!-- Signal -->
         <section class="results-section">
-            <form id="backtest-form">
+            <form id="backtest-form2">
                 <h3>Real Time Signal for EpochSignaler (Basic)</h3>
         
                 <div class="form-row">
@@ -614,15 +614,6 @@
         
             <div id="results"></div>
         </section>
-
-        <!-- Custom Modal -->
-        <div id="customModal" class="modal">
-            <div class="modal-content">
-                <span class="close-btn">&times;</span>
-                <div id="modal-icon"></div>
-                <p id="modal-message"></p>
-            </div>
-        </div>
 
         <!-- Backtest Simulation -->
         <section class="results-section">
@@ -1112,6 +1103,62 @@
 <div class="footer">
     <a href="/privacy">Privacy Notice</a>
 </div>
+
+<script>
+document.getElementById('backtest-form2').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    fetch('/backtest', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        renderResults2(data);
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+function renderResults2({
+    ticker, final_value, final_value_epoch, profit_factor, profit_factor_epoch, sharpe_ratio,
+    equity_curve, epoch_equity_curve, dates,
+    ticker_2, final_value_2, profit_factor_2, sharpe_ratio_2,
+    equity_curve_2, buy_dates, buy_prices, sell_dates, sell_prices
+}) {
+    const resultsDiv = document.getElementById('results');
+
+    let ticker1Stats = `
+        <div>
+            <h3>${ticker}</h3>
+            <p>Final Value EpochSignaler: $${final_value_epoch.toFixed(2)}</p>
+            <p>Final Value Buy&Hold: $${final_value.toFixed(2)}</p>
+            <p>Profit Factor EpochSignaler: ${profit_factor_epoch}</p>
+            <p>Profit Factor Buy&Hold: ${profit_factor}</p>
+        </div>
+    `;
+
+    let ticker2Stats = '';
+    if (ticker_2) {
+        ticker2Stats = `
+            <div>
+                <h3>${ticker_2}</h3>
+                <p>Final Value Buy&Hold: $${final_value_2.toFixed(2)}</p>
+                <p>Profit Factor Buy&Hold: ${profit_factor_2}</p>
+            </div>
+        `;
+    }
+
+    resultsDiv.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr ${ticker_2 ? '1fr' : ''}; gap: 20px; align-items: start;">
+            ${ticker1Stats}
+            ${ticker2Stats}
+        </div>
+        <canvas id="equity-chart" width="600" height="400"></canvas>
+    `;
+}
+    
+</script>
 
 <script>
 document.getElementById('backtest-form').addEventListener('submit', function(e) {
