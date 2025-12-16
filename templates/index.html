@@ -1110,7 +1110,7 @@ document.getElementById('signal-form').addEventListener('submit', function(e) {
     e.preventDefault();
 
     const formData = new FormData(this);
-    fetch('/backtest', {
+    fetch('/signal', {
         method: 'POST',
         body: formData
     })
@@ -1136,6 +1136,24 @@ function renderResults_signal({
             <p>Final Value Buy&Hold: $${final_value.toFixed(2)}</p>
             <p>Profit Factor EpochSignaler: ${profit_factor_epoch}</p>
             <p>Profit Factor Buy&Hold: ${profit_factor}</p>
+        </div>
+    `;
+
+    let ticker2Stats = '';
+    if (ticker_2) {
+        ticker2Stats = `
+            <div>
+                <h3>${ticker_2}</h3>
+                <p>Final Value Buy&Hold: $${final_value_2.toFixed(2)}</p>
+                <p>Profit Factor Buy&Hold: ${profit_factor_2}</p>
+            </div>
+        `;
+    }
+
+    resultsDiv.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr ${ticker_2 ? '1fr' : ''}; gap: 20px; align-items: start;">
+            ${ticker1Stats}
+            ${ticker2Stats}
         </div>
     `;
 }    
