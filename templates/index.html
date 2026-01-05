@@ -438,7 +438,7 @@
         <section class="results-section">
             <form id="signal-form" class="trade-form">
                 <h3>Trade Signal for EpochSignaler (Basic)</h3>
-
+        
                 <div class="form-row">
                     <div class="form-group">
                         <label for="ticker">Asset Ticker:</label>
@@ -549,6 +549,7 @@
                             <option value="KARRAT-USD">KARRAT-USD</option>
                             <option value="KATA-USD">KATA-USD</option>
                             <option value="KOMPETE-USD">KOMPETE-USD</option>
+                            <option value="KRL-USD">KRL-USD</option>
                             <option value="LFNTY-USD">LFNTY-USD</option>
                             <option value="LIKE-USD">LIKE-USD</option>
                             <option value="LINK-USD">LINK-USD</option>
@@ -654,6 +655,53 @@
                             <option value="ZRX-USD">ZRX-USD</option>
                         </select>
                     </div>
+        
+                    <div class="form-group">
+                        <label for="cash">Initial Cash:</label>
+                        <input type="number" id="cash" name="cash" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="interval">Interval:</label>
+                        <select id="interval" name="interval" required>
+                            <option value="D">D</option>
+                        </select>
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="start">Start Date:</label>
+                        <input type="date" id="start" name="start" required />
+                    </div>
+        
+<!--                     <div class="form-group">
+                        <label for="end">End Date:</label>
+                        <input type="date" id="end" name="end" required />
+                    </div> -->
+
+                    <div class="form-group">
+                        <label for="duration">Backtest Duration:</label>
+                        <select id="duration" name="duration" required>
+                            <option value="5yr">5 yr</option>
+                            <option value="3yr">3 yr</option>
+                            <option value="2yr">2 yr</option>
+                            <option value="1yr">1 yr</option>
+                            <option value="6mo">6 mo</option>
+                            <option value="3mo">3 mo</option>
+                            <option value="1mo">1 mo</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dca_pct">DCA In/Out Percentage:</label>
+                        <select id="dca_pct" name="dca_pct" required>
+                            <option value="100_pct">100%</option>
+                        </select>
+                    </div>
+        
+                    <div class="form-group" style="align-self: flex-end;">
+                        <button type="submit">Run Backtest</button>
+                    </div>
+                </div>
             </form>
         
             <div id="signals"></div>
