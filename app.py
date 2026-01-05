@@ -220,5 +220,184 @@ def backtest():
 
     return jsonify(results)
 
+@app.route('/signals', methods=['POST'])
+def signals():
+    initial_cash = float(request.form['cash'])
+    ticker = request.form['ticker']
+    start_date = request.form['start']
+    # end_date = request.form['end']
+    duration = request.form["duration"]    # e.g. '1mo','3mo','6mo','1yr'
+    # ticker_2 = request.form['ticker_2']
+    ticker_2=[]
+    # print(ticker_2)
+
+    # Parse dates
+    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+
+    # Compute intended end and cap at today
+    delta = parse_duration(duration)
+    # print(delta)
+    end_date_2 = start_date + delta
+    # print(end_date_2)
+
+    end_for_download=min(end_date_2,datetime.today().date())
+    # print(end_for_download)
+    # print(end_date)
+
+    # yfinance quirk: `end` is exclusive for daily data.
+    # Add +1 day so the last day (end_date) is included.
+    # end_for_download = end_for_download + timedelta(days=1)
+
+    base_symbol = ticker.split('-')[0]  # -> "BTC"
+
+    # df = yf.download(ticker, start=start_date, end=end_for_download, interval='1d')  # FIXED
+    # df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
+    # print(df)
+    
+    # --- Load CSV of signals ---
+    csv_filename = f"epoch_{base_symbol}.csv"
+    csv_path = os.path.join(app.root_path, 'data', csv_filename)
+    signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
+    # print(signals_df)
+    
+    # Filter for the desired period
+    mask = (signals_df['Date'] >= pd.to_datetime(start_date)) & (signals_df['Date'] <= pd.to_datetime(end_date_2))
+    df_filtered = signals_df.loc[mask].copy()
+    # print(df_filtered)
+    
+    # Optional: set Date as index
+    df_filtered.set_index('Date', inplace=True)
+    signals_df=df_filtered
+    
+    # Convert Close to float explicitly
+    signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
+    signals_df = signals_df.dropna()
+    
+    # print(signals_df)
+
+    cash = initial_cash
+    position = 0
+    equity_curve = []
+
+    for date, row in signals_df.iterrows():
+        price = row['Close']
+        signal = row['epoch_signal']
+
+        if signal == 1 and cash > 0:  # Buy
+            position = cash / price
+            cash = 0
+        elif signal == -1 and position > 0:  # Sell
+            cash = position * price
+            position = 0
+        # else hold
+
+        equity = cash + position * price
+        equity_curve.append((date, equity))
+
+    eq_df = pd.DataFrame(equity_curve, columns=['Date', 'Equity']).set_index('Date')
+    # print(eq_df)
+     # --- Extract buy/sell points ---
+    buy_dates = signals_df.index[signals_df['epoch_signal'] == 1]
+    sell_dates = signals_df.index[signals_df['epoch_signal'] == -1]
+    buy_prices = eq_df.loc[buy_dates, 'Equity']
+    sell_prices = eq_df.loc[sell_dates, 'Equity']
+    # print(buy_dates)
+    # print(buy_prices)
+
+    # series = pd.DataFrame()
+    # for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
+    #     df[col] = df[col].astype(float)
+    #     values = df[col].values
+    #     if values.ndim > 1:
+    #         values = values.flatten()
+    #     df[col] = values
+    #     series[col] = pd.Series(values, index=df.index)
+
+    equity_curve = signals_df['Close'].to_numpy().flatten().astype(float).tolist()
+    equity_curve_start=equity_curve[0]
+    equity_curve = np.array(equity_curve)  # convert list to numpy array
+    equity_curve = equity_curve / equity_curve[0] * initial_cash
+    # print(equity_curve)
+    equity_curve = equity_curve.tolist()
+    final_value = float(equity_curve[-1])
+    profit_factor = float(final_value / initial_cash)
+    # print(equity_curve)
+
+    returns = signals_df['Close'].pct_change().dropna()
+    risk_free_rate_annual = 0.01
+    risk_free_rate_daily = (1 + risk_free_rate_annual) ** (1/252) - 1
+    excess_returns = returns - risk_free_rate_daily
+    sharpe_ratio = float(((excess_returns.mean() / excess_returns.std()) * (252 ** 0.5)))
+
+    equity_curve_2=[]
+    if ticker_2:
+        df_2 = yf.download(ticker_2, start=start_date, end=end_date_2, interval='1d')  # FIXED
+        df_2 = df_2[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
+
+        series_2 = pd.DataFrame()
+        for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
+            df_2[col] = df_2[col].astype(float)
+            values_2 = df_2[col].values
+            if values_2.ndim > 1:
+                values_2 = values_2.flatten()
+            df_2[col] = values_2
+            series_2[col] = pd.Series(values_2, index=df_2.index)
+
+        equity_curve_2 = df_2['Close'].to_numpy().flatten().astype(float).tolist()
+        equity_curve_start=equity_curve_2[0]
+        equity_curve_2 = np.array(equity_curve_2)  # convert list to numpy array
+        equity_curve_2 = equity_curve_2 / equity_curve_2[0] * initial_cash
+        equity_curve_2 = equity_curve_2.tolist()
+        final_value_2 = float(equity_curve_2[-1])
+        profit_factor_2 = float(final_value_2 / initial_cash)
+
+        returns_2 = df_2['Close'].pct_change().dropna()
+        excess_returns_2 = returns_2 - risk_free_rate_daily
+        sharpe_ratio_2 = float(((excess_returns_2.mean() / excess_returns_2.std()) * (252 ** 0.5)).iloc[0])
+    
+    dates = signals_df.index.strftime('%Y-%m-%d').tolist()
+    # print(dates, type(dates))
+    # print(eq_df['Equity'].to_numpy().flatten().astype(float).tolist(), type(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()))
+    # print(equity_curve, type(equity_curve))
+    # print(equity_curve_2)
+    # results = {
+    #     'final_value': final_value,
+    #     'profit_factor': profit_factor,
+    #     'sharpe_ratio': sharpe_ratio,
+    #     'equity_curve': equity_curve,
+    #     'equity_curve_2': equity_curve_2,
+    #     'dates': dates,
+    #     'ticker': ticker,
+    #     'ticker_2': ticker_2
+    # }
+    results = {
+        'ticker': ticker,
+        'final_value': final_value,
+        'final_value_epoch': float(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()[-1]),
+        'profit_factor': profit_factor,
+        'profit_factor_epoch': float(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()[-1])/initial_cash,
+        'sharpe_ratio': sharpe_ratio,
+        'equity_curve': equity_curve,
+        'epoch_equity_curve': eq_df['Equity'].to_numpy().flatten().astype(float).tolist(),
+        'dates': dates,
+        'buy_dates': [d.strftime("%Y-%m-%d") for d in buy_dates],
+        'buy_prices': buy_prices.tolist() if isinstance(buy_prices, pd.Series) else buy_prices,
+        'sell_dates': [d.strftime("%Y-%m-%d") for d in sell_dates],
+        'sell_prices': sell_prices.tolist() if isinstance(sell_prices, pd.Series) else sell_prices,
+    }
+
+    if ticker_2 and equity_curve_2:  # or however you check for optional input
+        results.update({
+            'ticker_2': ticker_2,
+            'final_value_2': final_value_2,
+            'profit_factor_2': profit_factor_2,
+            'sharpe_ratio_2': sharpe_ratio_2,
+            'equity_curve_2': equity_curve_2
+        })
+    else:
+        results['equity_curve_2'] = []  # keep chart code safe
+
+    return jsonify(results)
+
 if __name__ == '__main__':
     app.run(debug=True)
