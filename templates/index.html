@@ -1375,6 +1375,141 @@ function renderResults({
 </script>
 
 <script>
+document.getElementById('signal-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    fetch('/backtest', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        renderResults(data);
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+function renderResults({
+    ticker, final_value, final_value_epoch, profit_factor, profit_factor_epoch, sharpe_ratio,
+    equity_curve, epoch_equity_curve, dates,
+    ticker_2, final_value_2, profit_factor_2, sharpe_ratio_2,
+    equity_curve_2, buy_dates, buy_prices, sell_dates, sell_prices
+}) {
+    const resultsDiv = document.getElementById('signals');
+
+    let ticker1Stats = `
+        <div>
+            <h3>${ticker}</h3>
+            <p>Final Value EpochSignaler: $${final_value_epoch.toFixed(2)}</p>
+            <p>Final Value Buy&Hold: $${final_value.toFixed(2)}</p>
+            <p>Profit Factor EpochSignaler: ${profit_factor_epoch}</p>
+            <p>Profit Factor Buy&Hold: ${profit_factor}</p>
+        </div>
+    `;
+
+    let ticker2Stats = '';
+    if (ticker_2) {
+        ticker2Stats = `
+            <div>
+                <h3>${ticker_2}</h3>
+                <p>Final Value Buy&Hold: $${final_value_2.toFixed(2)}</p>
+                <p>Profit Factor Buy&Hold: ${profit_factor_2}</p>
+            </div>
+        `;
+    }
+
+    resultsDiv.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr ${ticker_2 ? '1fr' : ''}; gap: 20px; align-items: start;">
+            ${ticker1Stats}
+            ${ticker2Stats}
+        </div>
+        <canvas id="equity-chart" width="600" height="400"></canvas>
+    `;
+
+    const ctx = document.getElementById('equity-chart').getContext('2d');
+
+    // --- Compute dynamic offset for markers ---
+    const equity_min = Math.min(...epoch_equity_curve);
+    const equity_max = Math.max(...epoch_equity_curve);
+    const offset = (equity_max - equity_min) * 0.04; // 4% of range
+
+    const adjustedBuySignals = dates.map((d, i) => buy_dates.includes(d) ? epoch_equity_curve[i] - offset : null);
+    const adjustedSellSignals = dates.map((d, i) => sell_dates.includes(d) ? epoch_equity_curve[i] + offset : null);
+
+    const datasets = [
+        {
+            label: `${ticker} EpochSignaler Equity Curve`,
+            data: epoch_equity_curve,
+            borderColor: 'blue',
+            pointStyle: 'line',
+            pointRadius: 0,   // <-- remove circle markers
+            fill: false,
+            backgroundColor: 'blue',
+        },
+        {
+            label: `${ticker} Buy&Hold Equity Curve`,
+            data: equity_curve,
+            borderColor: 'purple',
+            pointStyle: 'line',
+            borderDash: [5, 5],
+            pointRadius: 0,   // <-- remove circle markers
+            fill: false,
+            backgroundColor: 'green',
+        },
+        {
+            label: 'Buy Signal',
+            data: adjustedBuySignals,
+            pointStyle: 'triangle',
+            pointRadius: 10,
+            backgroundColor: 'green',
+            showLine: false
+        },
+        {
+            label: 'Sell Signal',
+            data: adjustedSellSignals,
+            pointStyle: 'triangle',
+            rotation: 180,
+            pointRadius: 10,
+            backgroundColor: 'red',
+            showLine: false
+        }
+    ];
+
+    if (equity_curve_2 && equity_curve_2.length > 0) {
+        datasets.push({
+            label: `${ticker_2} Buy&Hold Equity Curve`,
+            data: equity_curve_2,
+            pointStyle: 'line',
+            borderColor: 'darkgray',
+            pointRadius: 0,   // <-- remove circle markers
+            fill: false
+        });
+    }
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: datasets
+        },
+        options: {
+            plugins: {
+                legend: {
+                    labels: { usePointStyle: true }  // match triangle markers
+                }
+            },
+            scales: {
+                x: { display: true, title: { display: true, text: 'Date' } },
+                y: { display: true, title: { display: true, text: 'Equity ($)' } }
+            }
+        }
+    });
+}
+    
+</script>
+
+<script>
 function showModal(message, iconHTML) {
     const modal = document.getElementById("customModal");
     const modalMessage = document.getElementById("modal-message");
