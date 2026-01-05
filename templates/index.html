@@ -1396,7 +1396,7 @@ function renderSignals({
     ticker_2, final_value_2, profit_factor_2, sharpe_ratio_2,
     equity_curve_2, buy_dates, buy_prices, sell_dates, sell_prices
 }) {
-    const resultsDiv = document.getElementById('signals');
+    const signalsDiv = document.getElementById('signals');
 
     let ticker1Stats = `
         <div>
@@ -1419,15 +1419,15 @@ function renderSignals({
         `;
     }
 
-    resultsDiv.innerHTML = `
+    signalsDiv.innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr ${ticker_2 ? '1fr' : ''}; gap: 20px; align-items: start;">
             ${ticker1Stats}
             ${ticker2Stats}
         </div>
-        <canvas id="equity-chart" width="600" height="400"></canvas>
+        <canvas id="equity-chart_2" width="600" height="400"></canvas>
     `;
 
-    const ctx = document.getElementById('equity-chart').getContext('2d');
+    const ctx = document.getElementById('equity-chart_2').getContext('2d');
 
     // --- Compute dynamic offset for markers ---
     const equity_min = Math.min(...epoch_equity_curve);
