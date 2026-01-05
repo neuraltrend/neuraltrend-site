@@ -1385,12 +1385,12 @@ document.getElementById('signal-form').addEventListener('submit', function(e) {
     })
     .then(response => response.json())
     .then(data => {
-        renderResults(data);
+        renderSignals(data);
     })
     .catch(error => console.error('Error:', error));
 });
 
-function renderResults({
+function renderSignals({
     ticker, final_value, final_value_epoch, profit_factor, profit_factor_epoch, sharpe_ratio,
     equity_curve, epoch_equity_curve, dates,
     ticker_2, final_value_2, profit_factor_2, sharpe_ratio_2,
