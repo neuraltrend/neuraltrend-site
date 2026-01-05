@@ -1379,7 +1379,7 @@ document.getElementById('signal-form').addEventListener('submit', function(e) {
     e.preventDefault();
 
     const formData = new FormData(this);
-    fetch('/backtest', {
+    fetch('/signals', {
         method: 'POST',
         body: formData
     })
