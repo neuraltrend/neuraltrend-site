@@ -1485,18 +1485,18 @@ function renderSignals({
     ticker, final_value, final_value_epoch, profit_factor, profit_factor_epoch, sharpe_ratio,
     equity_curve, epoch_equity_curve, dates,
     ticker_2, final_value_2, profit_factor_2, sharpe_ratio_2,
-    equity_curve_2, buy_dates, buy_prices, sell_dates, sell_prices, today_signal
+    equity_curve_2, buy_dates, buy_prices, sell_dates, sell_prices, 
+    today_signal, yesterday_signal,last_week_signal,last_month_signal,
 }) {
     const signalsDiv = document.getElementById('signals');
 
     let ticker1Stats = `
         <div>
             <h3>${ticker}</h3>
-            <p>Final Value EpochSignaler: $${final_value_epoch.toFixed(2)}</p>
-            <p>Final Value Buy&Hold: $${final_value.toFixed(2)}</p>
-            <p>Profit Factor EpochSignaler: ${profit_factor_epoch}</p>
-            <p>Profit Factor Buy&Hold: ${profit_factor}</p>
             <p>Signal: ${today_signal}</p>
+            <p>Signal: ${yesterday_signal}</p>
+            <p>Signal: ${last_week_signal}</p>
+            <p>Signal: ${last_month_signal}</p>
         </div>
     `;
 
