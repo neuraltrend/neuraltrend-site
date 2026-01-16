@@ -385,6 +385,9 @@ def signals():
         'sell_dates': [d.strftime("%Y-%m-%d") for d in sell_dates],
         'sell_prices': sell_prices.tolist() if isinstance(sell_prices, pd.Series) else sell_prices,
         'today_signal': int(signals_df['epoch_signal'].iloc[-1]),
+        'yesterday_signal': int(signals_df['epoch_signal'].iloc[-2]),
+        'last_week_signal': int(signals_df['epoch_signal'].iloc[-8]),
+        'last_month_signal': int(signals_df['epoch_signal'].iloc[-31]),
     }
 
     if ticker_2 and equity_curve_2:  # or however you check for optional input
