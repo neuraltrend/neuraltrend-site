@@ -1498,106 +1498,35 @@ function formatSignal(signal) {
 }
 
 function renderSignals({
-    ticker, today_signal, yesterday_signal,last_week_signal,last_month_signal,
+    ticker, today_signal, yesterday_signal, last_week_signal, last_month_signal,
 }) {
     const signalsDiv = document.getElementById('signals');
 
     let ticker1Stats = `
         <div>
             <h3>${ticker}</h3>
-            <p>Today: ${formatSignal(today_signal)}</p>
-            <p>Yesterday: ${formatSignal(yesterday_signal)}</p>
-            <p>Last Week: ${formatSignal(last_week_signal)}</p>
-            <p>Last Month: ${formatSignal(last_month_signal)}</p>
+
+            <div style="
+                display: grid;
+                grid-template-columns: repeat(4, auto);
+                gap: 20px;
+                align-items: center;
+            ">
+                <span>Today: ${formatSignal(today_signal)}</span>
+                <span>Yesterday: ${formatSignal(yesterday_signal)}</span>
+                <span>Last Week: ${formatSignal(last_week_signal)}</span>
+                <span>Last Month: ${formatSignal(last_month_signal)}</span>
+            </div>
         </div>
     `;
 
     signalsDiv.innerHTML = `
-        <div style="display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start;">
+        <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
             ${ticker1Stats}
         </div>
     `;
-
-    // const ctx = document.getElementById('equity-chart_2').getContext('2d');
-
-    // // --- Compute dynamic offset for markers ---
-    // const equity_min = Math.min(...epoch_equity_curve);
-    // const equity_max = Math.max(...epoch_equity_curve);
-    // const offset = (equity_max - equity_min) * 0.04; // 4% of range
-
-    // const adjustedBuySignals = dates.map((d, i) => buy_dates.includes(d) ? epoch_equity_curve[i] - offset : null);
-    // const adjustedSellSignals = dates.map((d, i) => sell_dates.includes(d) ? epoch_equity_curve[i] + offset : null);
-
-    // const datasets = [
-    //     {
-    //         label: `${ticker} EpochSignaler Equity Curve`,
-    //         data: epoch_equity_curve,
-    //         borderColor: 'blue',
-    //         pointStyle: 'line',
-    //         pointRadius: 0,   // <-- remove circle markers
-    //         fill: false,
-    //         backgroundColor: 'blue',
-    //     },
-    //     {
-    //         label: `${ticker} Buy&Hold Equity Curve`,
-    //         data: equity_curve,
-    //         borderColor: 'purple',
-    //         pointStyle: 'line',
-    //         borderDash: [5, 5],
-    //         pointRadius: 0,   // <-- remove circle markers
-    //         fill: false,
-    //         backgroundColor: 'green',
-    //     },
-    //     {
-    //         label: 'Buy Signal',
-    //         data: adjustedBuySignals,
-    //         pointStyle: 'triangle',
-    //         pointRadius: 10,
-    //         backgroundColor: 'green',
-    //         showLine: false
-    //     },
-    //     {
-    //         label: 'Sell Signal',
-    //         data: adjustedSellSignals,
-    //         pointStyle: 'triangle',
-    //         rotation: 180,
-    //         pointRadius: 10,
-    //         backgroundColor: 'red',
-    //         showLine: false
-    //     }
-    // ];
-
-    // if (equity_curve_2 && equity_curve_2.length > 0) {
-    //     datasets.push({
-    //         label: `${ticker_2} Buy&Hold Equity Curve`,
-    //         data: equity_curve_2,
-    //         pointStyle: 'line',
-    //         borderColor: 'darkgray',
-    //         pointRadius: 0,   // <-- remove circle markers
-    //         fill: false
-    //     });
-    // }
-
-    // new Chart(ctx, {
-    //     type: 'line',
-    //     data: {
-    //         labels: dates,
-    //         datasets: datasets
-    //     },
-    //     options: {
-    //         plugins: {
-    //             legend: {
-    //                 labels: { usePointStyle: true }  // match triangle markers
-    //             }
-    //         },
-    //         scales: {
-    //             x: { display: true, title: { display: true, text: 'Date' } },
-    //             y: { display: true, title: { display: true, text: 'Equity ($)' } }
-    //         }
-    //     }
-    // });
 }
-    
+
 </script>
 
 <script>
