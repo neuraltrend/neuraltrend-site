@@ -356,7 +356,7 @@ def signals():
     #     excess_returns_2 = returns_2 - risk_free_rate_daily
     #     sharpe_ratio_2 = float(((excess_returns_2.mean() / excess_returns_2.std()) * (252 ** 0.5)).iloc[0])
     
-    dates = signals_df.index.strftime('%Y-%m-%d').tolist()
+    # dates = signals_df.index.strftime('%Y-%m-%d').tolist()
     # print(dates, type(dates))
     # print(eq_df['Equity'].to_numpy().flatten().astype(float).tolist(), type(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()))
     # print(equity_curve, type(equity_curve))
