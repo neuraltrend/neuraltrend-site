@@ -1481,6 +1481,22 @@ document.getElementById('signal-form').addEventListener('submit', function(e) {
     .catch(error => console.error('Error:', error));
 });
 
+function formatSignal(signal) {
+    if (signal === 1) {
+        return `<span style="color: green; font-weight: bold;">
+                    ▲ BUY
+                </span>`;
+    } else if (signal === -1) {
+        return `<span style="color: red; font-weight: bold;">
+                    ▼ SELL
+                </span>`;
+    } else {
+        return `<span style="color: gray;">
+                    HOLD
+                </span>`;
+    }
+}
+
 function renderSignals({
     ticker, today_signal, yesterday_signal,last_week_signal,last_month_signal,
 }) {
@@ -1489,10 +1505,10 @@ function renderSignals({
     let ticker1Stats = `
         <div>
             <h3>${ticker}</h3>
-            <p>Today: ${today_signal}</p>
-            <p>Yesterday: ${yesterday_signal}</p>
-            <p>Last Week: ${last_week_signal}</p>
-            <p>Last Month: ${last_month_signal}</p>
+            <p>Today: ${formatSignal(today_signal)}</p>
+            <p>Yesterday: ${formatSignal(yesterday_signal)}</p>
+            <p>Last Week: ${formatSignal(last_week_signal)}</p>
+            <p>Last Month: ${formatSignal(last_month_signal)}</p>
         </div>
     `;
 
