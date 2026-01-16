@@ -656,24 +656,24 @@
                         </select>
                     </div>
         
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="cash">Initial Cash:</label>
                         <input type="number" id="cash" name="cash" required />
-                    </div>
+                    </div> -->
 
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="interval">Interval:</label>
                         <select id="interval" name="interval" required>
                             <option value="D">D</option>
                         </select>
-                    </div>
+                    </div> -->
         
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="start">Start Date:</label>
                         <input type="date" id="start" name="start" required />
-                    </div>
+                    </div> -->
 
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="duration">Backtest Duration:</label>
                         <select id="duration" name="duration" required>
                             <option value="5yr">5 yr</option>
@@ -684,14 +684,14 @@
                             <option value="3mo">3 mo</option>
                             <option value="1mo">1 mo</option>
                         </select>
-                    </div>
+                    </div> -->
 
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="dca_pct">DCA In/Out Percentage:</label>
                         <select id="dca_pct" name="dca_pct" required>
                             <option value="100_pct">100%</option>
                         </select>
-                    </div>
+                    </div> -->
         
                     <div class="form-group" style="align-self: flex-end;">
                         <button type="submit">Run Backtest</button>
@@ -1482,120 +1482,104 @@ document.getElementById('signal-form').addEventListener('submit', function(e) {
 });
 
 function renderSignals({
-    ticker, final_value, final_value_epoch, profit_factor, profit_factor_epoch, sharpe_ratio,
-    equity_curve, epoch_equity_curve, dates,
-    ticker_2, final_value_2, profit_factor_2, sharpe_ratio_2,
-    equity_curve_2, buy_dates, buy_prices, sell_dates, sell_prices, 
-    today_signal, yesterday_signal,last_week_signal,last_month_signal,
+    ticker, today_signal, yesterday_signal,last_week_signal,last_month_signal,
 }) {
     const signalsDiv = document.getElementById('signals');
 
     let ticker1Stats = `
         <div>
             <h3>${ticker}</h3>
-            <p>Signal: ${today_signal}</p>
-            <p>Signal: ${yesterday_signal}</p>
-            <p>Signal: ${last_week_signal}</p>
-            <p>Signal: ${last_month_signal}</p>
+            <p>Today: ${today_signal}</p>
+            <p>Yesterday: ${yesterday_signal}</p>
+            <p>Last Week: ${last_week_signal}</p>
+            <p>Last Month: ${last_month_signal}</p>
         </div>
     `;
-
-    let ticker2Stats = '';
-    if (ticker_2) {
-        ticker2Stats = `
-            <div>
-                <h3>${ticker_2}</h3>
-                <p>Final Value Buy&Hold: $${final_value_2.toFixed(2)}</p>
-                <p>Profit Factor Buy&Hold: ${profit_factor_2}</p>
-            </div>
-        `;
-    }
 
     signalsDiv.innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr ${ticker_2 ? '1fr' : ''}; gap: 20px; align-items: start;">
             ${ticker1Stats}
-            ${ticker2Stats}
         </div>
     `;
 
-    const ctx = document.getElementById('equity-chart_2').getContext('2d');
+    // const ctx = document.getElementById('equity-chart_2').getContext('2d');
 
-    // --- Compute dynamic offset for markers ---
-    const equity_min = Math.min(...epoch_equity_curve);
-    const equity_max = Math.max(...epoch_equity_curve);
-    const offset = (equity_max - equity_min) * 0.04; // 4% of range
+    // // --- Compute dynamic offset for markers ---
+    // const equity_min = Math.min(...epoch_equity_curve);
+    // const equity_max = Math.max(...epoch_equity_curve);
+    // const offset = (equity_max - equity_min) * 0.04; // 4% of range
 
-    const adjustedBuySignals = dates.map((d, i) => buy_dates.includes(d) ? epoch_equity_curve[i] - offset : null);
-    const adjustedSellSignals = dates.map((d, i) => sell_dates.includes(d) ? epoch_equity_curve[i] + offset : null);
+    // const adjustedBuySignals = dates.map((d, i) => buy_dates.includes(d) ? epoch_equity_curve[i] - offset : null);
+    // const adjustedSellSignals = dates.map((d, i) => sell_dates.includes(d) ? epoch_equity_curve[i] + offset : null);
 
-    const datasets = [
-        {
-            label: `${ticker} EpochSignaler Equity Curve`,
-            data: epoch_equity_curve,
-            borderColor: 'blue',
-            pointStyle: 'line',
-            pointRadius: 0,   // <-- remove circle markers
-            fill: false,
-            backgroundColor: 'blue',
-        },
-        {
-            label: `${ticker} Buy&Hold Equity Curve`,
-            data: equity_curve,
-            borderColor: 'purple',
-            pointStyle: 'line',
-            borderDash: [5, 5],
-            pointRadius: 0,   // <-- remove circle markers
-            fill: false,
-            backgroundColor: 'green',
-        },
-        {
-            label: 'Buy Signal',
-            data: adjustedBuySignals,
-            pointStyle: 'triangle',
-            pointRadius: 10,
-            backgroundColor: 'green',
-            showLine: false
-        },
-        {
-            label: 'Sell Signal',
-            data: adjustedSellSignals,
-            pointStyle: 'triangle',
-            rotation: 180,
-            pointRadius: 10,
-            backgroundColor: 'red',
-            showLine: false
-        }
-    ];
+    // const datasets = [
+    //     {
+    //         label: `${ticker} EpochSignaler Equity Curve`,
+    //         data: epoch_equity_curve,
+    //         borderColor: 'blue',
+    //         pointStyle: 'line',
+    //         pointRadius: 0,   // <-- remove circle markers
+    //         fill: false,
+    //         backgroundColor: 'blue',
+    //     },
+    //     {
+    //         label: `${ticker} Buy&Hold Equity Curve`,
+    //         data: equity_curve,
+    //         borderColor: 'purple',
+    //         pointStyle: 'line',
+    //         borderDash: [5, 5],
+    //         pointRadius: 0,   // <-- remove circle markers
+    //         fill: false,
+    //         backgroundColor: 'green',
+    //     },
+    //     {
+    //         label: 'Buy Signal',
+    //         data: adjustedBuySignals,
+    //         pointStyle: 'triangle',
+    //         pointRadius: 10,
+    //         backgroundColor: 'green',
+    //         showLine: false
+    //     },
+    //     {
+    //         label: 'Sell Signal',
+    //         data: adjustedSellSignals,
+    //         pointStyle: 'triangle',
+    //         rotation: 180,
+    //         pointRadius: 10,
+    //         backgroundColor: 'red',
+    //         showLine: false
+    //     }
+    // ];
 
-    if (equity_curve_2 && equity_curve_2.length > 0) {
-        datasets.push({
-            label: `${ticker_2} Buy&Hold Equity Curve`,
-            data: equity_curve_2,
-            pointStyle: 'line',
-            borderColor: 'darkgray',
-            pointRadius: 0,   // <-- remove circle markers
-            fill: false
-        });
-    }
+    // if (equity_curve_2 && equity_curve_2.length > 0) {
+    //     datasets.push({
+    //         label: `${ticker_2} Buy&Hold Equity Curve`,
+    //         data: equity_curve_2,
+    //         pointStyle: 'line',
+    //         borderColor: 'darkgray',
+    //         pointRadius: 0,   // <-- remove circle markers
+    //         fill: false
+    //     });
+    // }
 
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: dates,
-            datasets: datasets
-        },
-        options: {
-            plugins: {
-                legend: {
-                    labels: { usePointStyle: true }  // match triangle markers
-                }
-            },
-            scales: {
-                x: { display: true, title: { display: true, text: 'Date' } },
-                y: { display: true, title: { display: true, text: 'Equity ($)' } }
-            }
-        }
-    });
+    // new Chart(ctx, {
+    //     type: 'line',
+    //     data: {
+    //         labels: dates,
+    //         datasets: datasets
+    //     },
+    //     options: {
+    //         plugins: {
+    //             legend: {
+    //                 labels: { usePointStyle: true }  // match triangle markers
+    //             }
+    //         },
+    //         scales: {
+    //             x: { display: true, title: { display: true, text: 'Date' } },
+    //             y: { display: true, title: { display: true, text: 'Equity ($)' } }
+    //         }
+    //     }
+    // });
 }
     
 </script>
