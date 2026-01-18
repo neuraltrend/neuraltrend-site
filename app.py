@@ -19,6 +19,29 @@ def parse_duration(duration: str):
         return timedelta(days=int(s[:-1]))
     raise ValueError(f"Unsupported duration: {duration}")
 
+def compute_signals_for_ticker(ticker):
+    delta = parse_duration('3mo')
+    start_date = datetime.today().date() - delta
+
+    base_symbol = ticker.split('-')[0]
+    csv_filename = f"epoch_{base_symbol}.csv"
+    csv_path = os.path.join(app.root_path, 'data', csv_filename)
+
+    signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
+
+    signals_df = signals_df[signals_df['Date'] >= pd.to_datetime(start_date)]
+    signals_df.set_index('Date', inplace=True)
+
+    signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
+    signals_df = signals_df.dropna()
+
+    return {
+        'today': int(signals_df['epoch_signal'].iloc[-1]),
+        'yesterday': int(signals_df['epoch_signal'].iloc[-2]),
+        'last_week': int(signals_df['epoch_signal'].iloc[-8]),
+        'last_month': int(signals_df['epoch_signal'].iloc[-31]),
+    }
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -220,67 +243,75 @@ def backtest():
 
     return jsonify(results)
 
-@app.route('/signals/summary')
-def compute_signals_for_ticker(ticker):
-    delta = parse_duration('3mo')
-    start_date = datetime.today().date() - delta
-
-    base_symbol = ticker.split('-')[0]
-    csv_filename = f"epoch_{base_symbol}.csv"
-    csv_path = os.path.join(app.root_path, 'data', csv_filename)
-
-    signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
-
-    signals_df = signals_df[signals_df['Date'] >= pd.to_datetime(start_date)]
-    signals_df.set_index('Date', inplace=True)
-
-    signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
-    signals_df = signals_df.dropna()
-
-    return {
-        'today': int(signals_df['epoch_signal'].iloc[-1]),
-        'yesterday': int(signals_df['epoch_signal'].iloc[-2]),
-        'week': int(signals_df['epoch_signal'].iloc[-8]),
-        'month': int(signals_df['epoch_signal'].iloc[-31]),
-    }
-
 @app.route('/signals', methods=['POST'])
 def signals():
     ticker = request.form['ticker']
+    sigs = compute_signals_for_ticker(ticker)
 
-    # Compute intended end and cap at today
-    delta = parse_duration('3mo')
-    start_date = datetime.today().date() - delta
-    end_for_download=datetime.today().date()
-
-    base_symbol = ticker.split('-')[0]  # -> "BTC"
-    
-    # --- Load CSV of signals ---
-    csv_filename = f"epoch_{base_symbol}.csv"
-    csv_path = os.path.join(app.root_path, 'data', csv_filename)
-    signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
-    
-    # Filter for the desired period
-    mask = (signals_df['Date'] >= pd.to_datetime(start_date))
-    df_filtered = signals_df.loc[mask].copy()
-    
-    # Optional: set Date as index
-    df_filtered.set_index('Date', inplace=True)
-    signals_df=df_filtered
-    
-    # Convert Close to float explicitly
-    signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
-    signals_df = signals_df.dropna()  
-
-    results = {
+    return jsonify({
         'ticker': ticker,
-        'today_signal': int(signals_df['epoch_signal'].iloc[-1]),
-        'yesterday_signal': int(signals_df['epoch_signal'].iloc[-2]),
-        'last_week_signal': int(signals_df['epoch_signal'].iloc[-8]),
-        'last_month_signal': int(signals_df['epoch_signal'].iloc[-31]),
-    }
+        'today_signal': sigs['today'],
+        'yesterday_signal': sigs['yesterday'],
+        'last_week_signal': sigs['week'],
+        'last_month_signal': sigs['month'],
+    })
+
+@app.route('/signals/summary', methods=['GET'])
+def signals_summary():
+    tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD']
+
+    results = []
+    for t in tickers:
+        try:
+            sigs = compute_signals_for_ticker(t)
+            results.append({
+                'ticker': t,
+                'today': sigs['today'],
+                'yesterday': sigs['yesterday'],
+                'week': sigs['week'],
+            })
+        except Exception as e:
+            print(f"Skipping {t}: {e}")
 
     return jsonify(results)
+
+# @app.route('/signals', methods=['POST'])
+# def signals():
+#     ticker = request.form['ticker']
+
+#     # Compute intended end and cap at today
+#     delta = parse_duration('3mo')
+#     start_date = datetime.today().date() - delta
+#     end_for_download=datetime.today().date()
+
+#     base_symbol = ticker.split('-')[0]  # -> "BTC"
+    
+#     # --- Load CSV of signals ---
+#     csv_filename = f"epoch_{base_symbol}.csv"
+#     csv_path = os.path.join(app.root_path, 'data', csv_filename)
+#     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
+    
+#     # Filter for the desired period
+#     mask = (signals_df['Date'] >= pd.to_datetime(start_date))
+#     df_filtered = signals_df.loc[mask].copy()
+    
+#     # Optional: set Date as index
+#     df_filtered.set_index('Date', inplace=True)
+#     signals_df=df_filtered
+    
+#     # Convert Close to float explicitly
+#     signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
+#     signals_df = signals_df.dropna()  
+
+#     results = {
+#         'ticker': ticker,
+#         'today_signal': int(signals_df['epoch_signal'].iloc[-1]),
+#         'yesterday_signal': int(signals_df['epoch_signal'].iloc[-2]),
+#         'last_week_signal': int(signals_df['epoch_signal'].iloc[-8]),
+#         'last_month_signal': int(signals_df['epoch_signal'].iloc[-31]),
+#     }
+
+#     return jsonify(results)
 
 if __name__ == '__main__':
     app.run(debug=True)
