@@ -258,7 +258,9 @@ def signals():
 
 @app.route('/signals/summary', methods=['GET'])
 def signals_summary():
-    tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD']
+    tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', "DOGE-USD", "ADA-USD", "1INCH-USD", "3ULL-USD", "AAVE-USD", "ACE-USD",
+               "ACH-USD", "AERO-USD", "AEVO-USD", "AGI-USD", "AIOZ-USD", "AIT-USD", "AITECH-USD", "AIXBT-USD", "AKT-USD", "ALEPH-USD",
+               "ALGO-USD", "ALI-USD", "ALPH-USD", "ALT-USD", "ALU-USD", "ALVA-USD"]
 
     results = []
     for t in tickers:
