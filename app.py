@@ -220,6 +220,19 @@ def backtest():
 
     return jsonify(results)
 
+@app.route('/signals/summary')
+def signals_summary():
+    results = []
+    for ticker in tickers:
+        df = load_signals(ticker)
+        results.append({
+            "ticker": ticker,
+            "today": int(df['epoch_signal'].iloc[-1]),
+            "yesterday": int(df['epoch_signal'].iloc[-2]),
+            "week": int(df['epoch_signal'].iloc[-7]),
+        })
+    return jsonify(results)
+
 @app.route('/signals', methods=['POST'])
 def signals():
     # initial_cash = float(request.form['cash'])
