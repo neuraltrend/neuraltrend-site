@@ -221,42 +221,28 @@ def backtest():
     return jsonify(results)
 
 @app.route('/signals/summary')
-def signals_summary():
-    ticker = request.form['ticker']
-
-    # Compute intended end and cap at today
+def compute_signals_for_ticker(ticker):
     delta = parse_duration('3mo')
     start_date = datetime.today().date() - delta
-    end_for_download=datetime.today().date()
 
-    base_symbol = ticker.split('-')[0]  # -> "BTC"
-    
-    # --- Load CSV of signals ---
+    base_symbol = ticker.split('-')[0]
     csv_filename = f"epoch_{base_symbol}.csv"
     csv_path = os.path.join(app.root_path, 'data', csv_filename)
+
     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
-    
-    # Filter for the desired period
-    mask = (signals_df['Date'] >= pd.to_datetime(start_date))
-    df_filtered = signals_df.loc[mask].copy()
-    
-    # Optional: set Date as index
-    df_filtered.set_index('Date', inplace=True)
-    signals_df=df_filtered
-    
-    # Convert Close to float explicitly
+
+    signals_df = signals_df[signals_df['Date'] >= pd.to_datetime(start_date)]
+    signals_df.set_index('Date', inplace=True)
+
     signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
-    signals_df = signals_df.dropna()  
-    
-    results = []
-    results.append({
-        'ticker': ticker,
+    signals_df = signals_df.dropna()
+
+    return {
         'today': int(signals_df['epoch_signal'].iloc[-1]),
         'yesterday': int(signals_df['epoch_signal'].iloc[-2]),
         'week': int(signals_df['epoch_signal'].iloc[-8]),
         'month': int(signals_df['epoch_signal'].iloc[-31]),
-    })
-    return jsonify(results)
+    }
 
 @app.route('/signals', methods=['POST'])
 def signals():
