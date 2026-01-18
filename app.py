@@ -252,8 +252,8 @@ def signals():
         'ticker': ticker,
         'today_signal': sigs['today'],
         'yesterday_signal': sigs['yesterday'],
-        'last_week_signal': sigs['week'],
-        'last_month_signal': sigs['month'],
+        'last_week_signal': sigs['last_week'],
+        'last_month_signal': sigs['last_month'],
     })
 
 @app.route('/signals/summary', methods=['GET'])
@@ -266,9 +266,10 @@ def signals_summary():
             sigs = compute_signals_for_ticker(t)
             results.append({
                 'ticker': t,
-                'today': sigs['today'],
-                'yesterday': sigs['yesterday'],
-                'week': sigs['week'],
+                'today_signal': sigs['today'],
+                'yesterday_signal': sigs['yesterday'],
+                'last_week_signal': sigs['last_week'],
+                'last_month_signal': sigs['last_month'],
             })
         except Exception as e:
             print(f"Skipping {t}: {e}")
