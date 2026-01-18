@@ -1524,123 +1524,8 @@ function renderResults({
 }
     
 </script>
-
-<script>
-/* ===============================
-   1. HELPERS
-================================ */
-
-/* ---------- signal formatting ---------- */
-function formatSignal(signal) {
-    if (signal === 1) {
-        return `<span style="color: green; font-weight: bold;">
-                    ▲ BUY
-                </span>`;
-    } else if (signal === -1) {
-        return `<span style="color: red; font-weight: bold;">
-                    ▼ SELL
-                </span>`;
-    } else {
-        return `<span style="color: gray;">
-                    HOLD
-                </span>`;
-    }
-}
-
-/* ===============================
-   2. QUICK SIGNAL BOARD (AUTO LOAD)
-================================ */
-
-fetch('/signals/summary')
-    .then(r => r.json())
-    .then(data => {
-        const board = document.getElementById('signal-board');
-
-        board.innerHTML = data.map(item => `
-            <div
-                class="signal-row"
-                onclick="loadTicker('${item.ticker}')"
-                style="
-                    display:flex;
-                    gap:15px;
-                    cursor:pointer;
-                    padding:6px;
-                    border-bottom: 1px solid #eee;
-                "
-            >
-                <strong>${item.ticker}</strong>
-                ${formatSignal(item.today)}
-                <span style="font-size:12px;">Y: ${formatSignal(item.yesterday)}</span>
-                <span style="font-size:12px;">W: ${formatSignal(item.week)}</span>
-            </div>
-        `).join('');
-    })
-    .catch(err => console.error('Signal board error:', err));
-
-/* ===============================
-   3. LOAD TICKER FROM BOARD CLICK
-================================ */
-
-function loadTicker(ticker) {
-    const select = document.getElementById('ticker');
-    select.value = ticker;
-
-    const formData = new FormData(document.getElementById('signal-form'));
-
-    fetch('/signals', {
-        method: 'POST',
-        body: formData
-    })
-    .then(r => r.json())
-    .then(renderSignals);
-}
-
-/* ===============================
-   4. EXISTING FORM SUBMIT (STILL WORKS)
-================================ */
-
-document.getElementById('signal-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const formData = new FormData(this);
-
-    fetch('/signals', {
-        method: 'POST',
-        body: formData
-    })
-    .then(r => r.json())
-    .then(renderSignals);
-});
-
-/* ===============================
-   5. RENDER DETAILED SIGNALS
-================================ */
-
-function renderSignals({
-    ticker, today_signal, yesterday_signal, last_week_signal, last_month_signal,
-}) {
-    const signalsDiv = document.getElementById('signals');
-
-    signalsDiv.innerHTML = `
-        <div>
-            <h3>${ticker}</h3>
-            <div style="
-                display: grid;
-                grid-template-columns: repeat(4, auto);
-                gap: 20px;
-                align-items: center;
-            ">
-                <span>Today: ${formatSignal(today_signal)}</span>
-                <span>Yesterday: ${formatSignal(yesterday_signal)}</span>
-                <span>Last Week: ${formatSignal(last_week_signal)}</span>
-                <span>Last Month: ${formatSignal(last_month_signal)}</span>
-            </div>
-        </div>
-    `;
-}
-</script>
     
-<!-- <script>
+<script>
 /* ---------- shared submit logic ---------- */
 function submitSignalForm(form) {
     const formData = new FormData(form);
@@ -1724,7 +1609,7 @@ function renderSignals({
         </div>
     `;
 }
-</script> -->
+</script>
 
 
 <script>
