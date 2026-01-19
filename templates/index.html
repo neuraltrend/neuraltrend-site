@@ -1286,11 +1286,17 @@ function formatSignal(signal) {
    2. QUICK SIGNAL BOARD (AUTO LOAD)
 ================================ */
 
+const board = document.getElementById('signal-board');
+
+board.innerHTML = `
+    <div style="text-align:center; color:#888; padding:20px;">
+        Loading signals…
+    </div>
+`;
+
 fetch('/signals/summary')
     .then(r => r.json())
     .then(data => {
-        const board = document.getElementById('signal-board');
-
         board.innerHTML = data.map(item => `
             <div
                 onclick="loadTicker('${item.ticker}')"
@@ -1312,7 +1318,38 @@ fetch('/signals/summary')
             </div>
         `).join('');
     })
-    .catch(err => console.error('Signal board error:', err));
+    .catch(err => {
+        board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
+        console.error(err);
+    });
+
+// fetch('/signals/summary')
+//     .then(r => r.json())
+//     .then(data => {
+//         const board = document.getElementById('signal-board');
+
+//         board.innerHTML = data.map(item => `
+//             <div
+//                 onclick="loadTicker('${item.ticker}')"
+//                 style="
+//                     display: grid;
+//                     grid-template-columns: 150px 120px 90px 90px 90px;
+//                     align-items: center;
+//                     padding: 6px 10px;
+//                     border-bottom: 1px solid #eee;
+//                     cursor: pointer;
+//                     white-space: nowrap;
+//                 "
+//             >
+//                 <strong>${item.ticker}</strong>
+//                 ${formatSignal(item.today_signal)}
+//                 ${formatSignal(item.yesterday_signal)}
+//                 ${formatSignal(item.last_week_signal)}
+//                 ${formatSignal(item.last_month_signal)}
+//             </div>
+//         `).join('');
+//     })
+//     .catch(err => console.error('Signal board error:', err));
 
 /* ===============================
    3. LOAD TICKER FROM BOARD CLICK
