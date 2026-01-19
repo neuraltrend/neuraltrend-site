@@ -443,44 +443,45 @@
         <section class="results-section">
 
             <!-- QUICK SIGNAL BOARD -->
-            <div>
-                <h3>Quick EpochSignaler (Basic) Signal Overview</h3>
+            <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+                <div style="width: 650px;"> <!-- Adjust width as needed -->
+                    <h3 style="text-align: center;">EpochSignaler (Basic) Signal Overview</h3>
             
-                <div style="
-                    border: 1px solid #ddd;
-                    border-radius: 6px;
-                    margin-bottom: 20px;
-                ">
-            
-                    <!-- HEADER (sticky, column-aligned) -->
                     <div style="
-                        display: grid;
-                        grid-template-columns: 180px 120px 90px 90px 90px;
-                        font-weight: bold;
-                        font-size: 13px;
-                        padding: 8px 10px;
-                        border-bottom: 2px solid #ccc;
-                        background: #fafafa;
-                        white-space: nowrap;
+                        border: 1px solid #ddd;
+                        border-radius: 6px;
                     ">
-                        <span>Ticker</span>
-                        <span>Today</span>
-                        <span>Yesterday</span>
-                        <span>Last Week</span>
-                        <span>Last Month</span>
-                    </div>
             
-                    <!-- SCROLLABLE BODY -->
-                    <div
-                        id="signal-board"
-                        style="
-                            max-height: 280px;
-                            overflow-y: auto;
-                        "
-                    >
-                        <!-- rows injected by JS -->
-                    </div>
+                        <!-- HEADER (sticky, column-aligned) -->
+                        <div style="
+                            display: grid;
+                            grid-template-columns: 180px 120px 90px 90px 90px;
+                            font-weight: bold;
+                            font-size: 13px;
+                            padding: 8px 10px;
+                            border-bottom: 2px solid #ccc;
+                            background: #fafafa;
+                            white-space: nowrap;
+                        ">
+                            <span>Ticker</span>
+                            <span>Today</span>
+                            <span>Yesterday</span>
+                            <span>Last Week</span>
+                            <span>Last Month</span>
+                        </div>
             
+                        <!-- SCROLLABLE BODY -->
+                        <div
+                            id="signal-board"
+                            style="
+                                max-height: 280px;
+                                overflow-y: auto;
+                            "
+                        >
+                            <!-- rows injected by JS -->
+                        </div>
+            
+                    </div>
                 </div>
             </div>
             <!-- QUICK SIGNAL BOARD END -->
