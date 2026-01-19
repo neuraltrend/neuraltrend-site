@@ -443,7 +443,7 @@
         <section class="results-section">
 
             <!-- QUICK SIGNAL BOARD -->
-            <div>
+            <!-- <div>
                 <h3>Quick Signal Overview</h3>
                 <div id="signal-board" style="
                     max-height: 280px;
@@ -452,10 +452,54 @@
                     border-radius: 6px;
                     padding: 10px;
                     margin-bottom: 20px;
-                ">
+                "> -->
                     <!-- rows injected by JS -->
+                <!-- </div>
+            </div> -->
+
+            <!-- QUICK SIGNAL BOARD -->
+            <div>
+                <h3>Quick Signal Overview</h3>
+            
+                <div style="
+                    border: 1px solid #ddd;
+                    border-radius: 6px;
+                    margin-bottom: 20px;
+                ">
+            
+                    <!-- HEADER (sticky, column-aligned) -->
+                    <div style="
+                        display: grid;
+                        grid-template-columns: 110px 120px 90px 90px 90px;
+                        font-weight: bold;
+                        font-size: 13px;
+                        padding: 8px 10px;
+                        border-bottom: 2px solid #ccc;
+                        background: #fafafa;
+                        white-space: nowrap;
+                    ">
+                        <span>Ticker</span>
+                        <span>Today</span>
+                        <span>Y</span>
+                        <span>W</span>
+                        <span>M</span>
+                    </div>
+            
+                    <!-- SCROLLABLE BODY -->
+                    <div
+                        id="signal-board"
+                        style="
+                            max-height: 280px;
+                            overflow-y: auto;
+                        "
+                    >
+                        <!-- rows injected by JS -->
+                    </div>
+            
                 </div>
             </div>
+            <!-- QUICK SIGNAL BOARD -->
+
             
             <form id="signal-form" class="trade-form">
                 <h3>EpochSignaler (Basic) Signal</h3>
