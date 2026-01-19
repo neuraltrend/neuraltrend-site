@@ -1311,38 +1311,6 @@ fetch('/signals/summary')
                 ${formatSignal(item.last_month_signal)}
             </div>
         `).join('');
-
-
-        // board.innerHTML = data.map(item => `
-        //     <div
-        //         class="signal-row"
-        //         onclick="loadTicker('${item.ticker}')"
-        //         style="
-        //             display:flex;
-        //             gap:15px;
-        //             cursor:pointer;
-        //             padding:6px;
-        //             border-bottom: 1px solid #eee;
-        //             align-items: center;
-        //         "
-        //     >
-        //         <strong>${item.ticker}</strong>
-
-        //         ${formatSignal(item.today_signal)}
-
-        //         <span style="font-size:12px;">
-        //             Y: ${formatSignal(item.yesterday_signal)}
-        //         </span>
-
-        //         <span style="font-size:12px;">
-        //             W: ${formatSignal(item.last_week_signal)}
-        //         </span>
-
-        //         <span style="font-size:12px;">
-        //             M: ${formatSignal(item.last_month_signal)}
-        //         </span>
-        //     </div>
-        // `).join('');
     })
     .catch(err => console.error('Signal board error:', err));
 
