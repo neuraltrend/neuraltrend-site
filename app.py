@@ -8,8 +8,6 @@ import os
 import time
 from functools import lru_cache
 
-DATA_DIR = os.path.join(app.root_path, 'data')
-
 def get_csv_version():
     """
     Returns a version number that changes whenever any CSV changes.
@@ -61,6 +59,8 @@ def compute_signals_for_ticker(ticker):
     }
 
 app = Flask(__name__)
+
+DATA_DIR = os.path.join(app.root_path, 'data')
 
 @app.route('/')
 def index():
