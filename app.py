@@ -260,7 +260,36 @@ def signals():
 def signals_summary():
     tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', "DOGE-USD", "ADA-USD", "1INCH-USD", "3ULL-USD", "AAVE-USD", "ACE-USD",
                "ACH-USD", "AERO-USD", "AEVO-USD", "AGI-USD", "AIOZ-USD", "AIT-USD", "AITECH-USD", "AIXBT-USD", "AKT-USD", "ALEPH-USD",
-               "ALGO-USD", "ALI-USD", "ALPH-USD", "ALT-USD", "ALU-USD", "ALVA-USD"]
+               "ALGO-USD", "ALI-USD", "ALPH-USD", "ALT-USD", "ALU-USD", "ALVA-USD", "AMP-USD", "ANKR-USD", "ANON-USD", "ANYONE-USD",
+               "APU-USD", "AR-USD", "ARB-USD", "ARC-USD", "ATLAS-USD", "ATOM-USD", "AURY-USD", "AUTOS-USD", "AVAX-USD", "AXL-USD", 
+               "AXS-USD", "BAG-USD", "BAI-USD", "BAL-USD", "BAND-USD", "BANANA-USD", "BASEDAI-USD", "BAZED-USD", "BCB-USD", "BCUBE-USD",
+               "BCUT-USD", "BEAM-USD", "BIGTIME-USD", "BLUR-USD", "BNT-USD", "BONK-USD", "BRETT-USD", "BXBT-USD", "BYTES-USD", 
+               "CELO-USD", "CERE-USD", "CETUS-USD", "CFG-USD", "CGPT-USD", "CHAPZ-USD", "CHAT-USD", "CHEX-USD", "CHZ-USD", "COMAI-USD", 
+               "COMP-USD", "COTI-USD", "CPOOL-USD", "CREDI-USD", "CREO-USD", "CROWN-USD", "CRU-USD", "CRV-USD", "CTC-USD", "CVC-USD",
+               "DARK-USD", "DCK-USD", "DEVVE-USD", "DIMO-USD", "DIO-USD", "DOME-USD", "DOMI-USD", "DOT-USD", "DRIFT-USD", "DSYNC-USD",
+               "DYDX-USD", "DYM-USD", "EDU-USD", "ENA-USD", "ENJ-USD", "ENQAI-USD", "F3-USD", "FAR-USD", "FET-USD", "FIDA-USD", 
+               "FIL-USD", "FLIP-USD", "FLOW-USD", "FLR-USD", "FLUX-USD", "FOXY-USD", "FUELX-USD", "FYN-USD", "GEAR-USD", "GFAL-USD",
+               "GHX-USD", "GLQ-USD", "GMEE-USD", "GMRX-USD", "GMT-USD", "GMX-USD", "GODS-USD", "GPU-USD", "GRIFFAIN-USD", "GRT-USD",
+               "GSWIFT-USD", "GTAI-USD", "GTC-USD", "HASHAI-USD", "HBAR-USD", "HEART-USD", "HELLO-USD", "HNT-USD", "HONEY-USD",
+               "HXD-USD", "HYPC-USD", "IAG-USD", "ICNX-USD", "ICP-USD", "ILV-USD", "IMX-USD", "INJ-USD", "INSP-USD", "IOTX-USD",
+               "IVPAY-USD", "JASMY-USD", "JOE-USD", "JTO-USD", "JUP-USD", "KARATE-USD", "KARRAT-USD", "KAS-USD", "KATA-USD", 
+               "KOMPETE-USD", "KRL-USD", "LAI-USD", "LFNTY-USD", "LIKE-USD", "LINK-USD", "LMWR-USD", "LPT-USD", "LRC-USD", "LTC-USD",
+               "MAGIC-USD", "MASK-USD", "MAVIA-USD", "MBS-USD", "METIS-USD", "MEW-USD", "MINA-USD", "ML-USD", "MLN-USD", "MNDE-USD",
+               "MNT-USD", "MOODENG-USD", "MOZ-USD", "MPLX-USD", "MUBI-USD", "MXM-USD", "MYRIA-USD", "MYRO-USD", "MZERO-USD", "NAKA-USD", 
+               "NEAR-USD", "NEON-USD", "NEURAL-USD", "NMT-USD", "NOS-USD", "NTRN-USD", "NU-USD", "NXRA-USD", "OCT-USD", "OGN-USD", 
+               "OLAS-USD", "OMG-USD", "ONDO-USD", "OP-USD", "ORAI-USD", "ORCA-USD", "ORDI-USD", "OTK-USD", "OXT-USD", "PAAL-USD", 
+               "PAID-USD", "PANDORA-USD", "PDA-USD", "PENDLE-USD", "PENG-USD", "PENGU-USD", "PEPE-USD", "PERP-USD", "PHA-USD", 
+               "PIN-USD", "PIXEL-USD", "POL-USD", "POLS-USD", "POLYX-USD", "PORTAL-USD", "PRIME-USD", "PROPC-USD", "PYR-USD", 
+               "PYTH-USD", "QANX-USD", "QI-USD", "QNT-USD", "RAY-USD", "RARE-USD", "RARI-USD", "RDT-USD", "REN-USD", "RENDER-USD", 
+               "REQ-USD", "RIO-USD", "RLB-USD", "RMRK-USD", "RON-USD", "ROOT-USD", "RSC-USD", "RSR-USD", "RSS3-USD", "RST-USD",
+               "RSTK-USD", "RUNE-USD", "SAFE-USD", "SC-USD", "SCAR-USD", "SEI-USD", "SENATE-USD", "SERSH-USD", "SHDW-USD", "SHIB-USD", 
+               "SHIDO-USD", "SHRAP-USD", "SIDUS-USD", "SIPHER-USD", "SKL-USD", "SNS-USD", "SPEC-USD", "SPELL-USD", "SRM-USD", "SSV-USD", 
+               "STEP-USD", "STG-USD", "STORJ-USD", "STRK-USD", "SUI-USD", "SUNDOG-USD", "SUPER-USD", "SYNT-USD", "TAI-USD", "TAO-USD", 
+               "TET-USD", "TFUEL-USD", "THETA-USD", "TLOS-USD", "TON-USD", "TRAC-USD", "TRIAS-USD", "TRU-USD", "TURBO-USD", "UNI-USD", 
+               "UNIBOT-USD", "UOS-USD", "VAI-USD", "VET-USD", "VIA-USD", "VIRTUAL-USD", "VPP-USD", "VR-USD", "VRA-USD", "WAGMIGAMES-USD",
+               "WAXP-USD", "WELT-USD", "WHALES-USD", "WIF-USD", "WIFI-USD", "WILD-USD", "WINR-USD", "WMT-USD", "XAI-USD", "XCAD-USD",
+               "XLM-USD", "XTZ-USD", "XYO-USD", "YGG-USD", "ZBCN-USD", "ZEN-USD", "ZEREBRO-USD", "ZETA-USD", "ZIG-USD", "ZKJ-USD",
+               "ZRX-USD"]
 
     results = []
     for t in tickers:
