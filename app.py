@@ -8,6 +8,23 @@ import os
 import time
 from functools import lru_cache
 
+def parse_duration(duration: str):
+    """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
+    s = duration.strip().lower()
+    if s.endswith("mo"):
+        return relativedelta(months=int(s[:-2]))
+    if s.endswith("yr") or s.endswith("y"):
+        return relativedelta(years=int(s.rstrip('yr').rstrip('y')))
+    if s.endswith("w"):
+        return timedelta(weeks=int(s[:-1]))
+    if s.endswith("d"):
+        return timedelta(days=int(s[:-1]))
+    raise ValueError(f"Unsupported duration: {duration}")
+
+app = Flask(__name__)
+
+DATA_DIR = os.path.join(app.root_path, 'data')
+
 def get_csv_version():
     """
     Returns a version number that changes whenever any CSV changes.
@@ -21,19 +38,6 @@ def get_csv_version():
 
     # If no CSVs exist, still return something
     return max(mtimes) if mtimes else 0
-
-def parse_duration(duration: str):
-    """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
-    s = duration.strip().lower()
-    if s.endswith("mo"):
-        return relativedelta(months=int(s[:-2]))
-    if s.endswith("yr") or s.endswith("y"):
-        return relativedelta(years=int(s.rstrip('yr').rstrip('y')))
-    if s.endswith("w"):
-        return timedelta(weeks=int(s[:-1]))
-    if s.endswith("d"):
-        return timedelta(days=int(s[:-1]))
-    raise ValueError(f"Unsupported duration: {duration}")
 
 def compute_signals_for_ticker(ticker):
     delta = parse_duration('3mo')
@@ -57,10 +61,6 @@ def compute_signals_for_ticker(ticker):
         'last_week': int(signals_df['epoch_signal'].iloc[-8]),
         'last_month': int(signals_df['epoch_signal'].iloc[-31]),
     }
-
-app = Flask(__name__)
-
-DATA_DIR = os.path.join(app.root_path, 'data')
 
 @app.route('/')
 def index():
