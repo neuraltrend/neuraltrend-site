@@ -446,12 +446,16 @@
             <div>
                 <h3>Quick Signal Overview</h3>
                 <div id="signal-board" style="
-                    max-height: 280px;
-                    overflow-y: auto;
-                    border: 1px solid #ddd;
-                    border-radius: 6px;
-                    padding: 10px;
-                    margin-bottom: 20px;
+                    display:grid;
+                    grid-template-columns: 90px 90px 90px 90px 90px;
+                    font-weight: bold;
+                    font-size: 13px;
+                    padding: 6px;
+                    border-bottom: 2px solid #ccc;
+                    position: sticky;
+                    top: 0;
+                    background: white;
+                    z-index: 1;
                 ">
                     <!-- rows injected by JS -->
                 </div>
@@ -1565,7 +1569,7 @@ fetch('/signals/summary')
     .then(data => {
         const board = document.getElementById('signal-board');
 
-        board.innerHTML = data.map(item => `
+        board.innerHTML += data.map(item => `
             <div
                 class="signal-row"
                 onclick="loadTicker('${item.ticker}')"
