@@ -8,6 +8,11 @@ import os
 import time
 from functools import lru_cache
 
+app = Flask(__name__)
+
+DATA_DIR = os.path.join(app.root_path, 'data')
+CSV_PATH = "epoch_index-USD.csv"
+
 def parse_duration(duration: str):
     """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
     s = duration.strip().lower()
@@ -20,10 +25,6 @@ def parse_duration(duration: str):
     if s.endswith("d"):
         return timedelta(days=int(s[:-1]))
     raise ValueError(f"Unsupported duration: {duration}")
-
-app = Flask(__name__)
-
-DATA_DIR = os.path.join(app.root_path, 'data')
 
 def get_csv_version():
     """
@@ -61,6 +62,16 @@ def compute_signals_for_ticker(ticker):
         'last_week': int(signals_df['epoch_signal'].iloc[-8]),
         'last_month': int(signals_df['epoch_signal'].iloc[-31]),
     }
+
+@app.route("/data")
+def data():
+    df = pd.read_csv(CSV_PATH)
+    df["Date"] = pd.to_datetime(df["Date"])
+
+    return jsonify({
+        "dates": df["Date"].dt.strftime("%Y-%m-%d").tolist(),
+        "index": df["Index"].tolist()
+    })
 
 @app.route('/')
 def index():
