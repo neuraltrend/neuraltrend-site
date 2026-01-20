@@ -11,7 +11,8 @@ from functools import lru_cache
 app = Flask(__name__)
 
 DATA_DIR = os.path.join(app.root_path, 'data')
-CSV_PATH = "epoch_index-USD.csv"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CSV_PATH = os.path.join(BASE_DIR, "data", "epoch_index-USD.csv")
 
 def parse_duration(duration: str):
     """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
