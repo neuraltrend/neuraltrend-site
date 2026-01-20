@@ -4,9 +4,16 @@
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>NeuralTrend</title>
+    
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Plotly CDN (include once per page, ideally in <head>) -->
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    
     <style>
         :root {
             --nav-height: 110px; /* adjust if needed */
@@ -1064,6 +1071,30 @@
         
         <div style="height: 20px;"></div>
 
+        <!-- AltIndexer -->
+        <div>
+            <h3>AltIndexer</h3>
+            <p>
+                AltIndexer is an AI-based model for Altcoin-season prediction. Unlike traditional Alt-Index which is based on past 90-days performance of altcoins, 
+                AltIndexer is a forward-looking index based on number of altcoins that are currently in either buy or sell zone, calculated in real-time (daily).
+            </p>
+        
+            <!-- EpochForecaster Interactive Chart -->
+            <div style="text-align: center; margin-top: 30px;">
+                <div
+                    id="epoch-index-chart"
+                    style="
+                        width: 100%;
+                        max-width: 900px;
+                        height: 450px;
+                        margin: 0 auto;
+                    "
+                ></div>
+            </div>
+        </div>
+
+        <div style="height: 20px;"></div>
+
         <!-- EpochForecaster -->
         <div>
             <h3>EpochForecaster</h3>
@@ -1589,6 +1620,55 @@ document.addEventListener("DOMContentLoaded", function() {
     startInput.setAttribute("max", maxDate);
 });
     
+</script>
+
+<script>
+fetch("/data")
+    .then(response => response.json())
+    .then(data => {
+
+        const trace = {
+            x: data.dates,
+            y: data.index,
+            type: "scatter",
+            mode: "lines",
+            name: "Index",
+            line: { width: 2 }
+        };
+
+        const layout = {
+            title: {
+                text: "Epoch Index",
+                x: 0.5
+            },
+            xaxis: {
+                title: "Date",
+                rangeselector: {
+                    buttons: [
+                        {count: 7, label: "1W", step: "day", stepmode: "backward"},
+                        {count: 1, label: "1M", step: "month", stepmode: "backward"},
+                        {count: 3, label: "3M", step: "month", stepmode: "backward"},
+                        {count: 6, label: "6M", step: "month", stepmode: "backward"},
+                        {count: 1, label: "1Y", step: "year", stepmode: "backward"},
+                        {step: "all", label: "ALL"}
+                    ]
+                },
+                type: "date"
+            },
+            yaxis: {
+                title: "Index",
+                zeroline: true
+            },
+            template: "plotly_dark",
+            hovermode: "x unified",
+            margin: { t: 60, l: 50, r: 30, b: 50 }
+        };
+
+        Plotly.newPlot("epoch-index-chart", [trace], layout, {
+            responsive: true,
+            displaylogo: false
+        });
+    });
 </script>
 
 <!-- 100% privacy-first analytics -->
