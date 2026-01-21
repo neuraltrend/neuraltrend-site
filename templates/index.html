@@ -1665,62 +1665,6 @@ fetch("/data")
                 title: "Index",
                 zeroline: true
             },
-            shapes: [
-                // Upper half (Buy Zone)
-                {
-                    type: "rect",
-                    xref: "paper",
-                    yref: "y",
-                    x0: 0,
-                    x1: 1,
-                    y0: 0,
-                    y1: 1,
-                    fillcolor: "rgba(34, 197, 94, 0.12)",  // light green
-                    line: { width: 0 },
-                    layer: "below"
-                },
-            
-                // Lower half (Sell Zone)
-                {
-                    type: "rect",
-                    xref: "paper",
-                    yref: "y",
-                    x0: 0,
-                    x1: 1,
-                    y0: -1,
-                    y1: 0,
-                    fillcolor: "rgba(239, 68, 68, 0.12)",  // light red
-                    line: { width: 0 },
-                    layer: "below"
-                }
-            ],
-        
-            annotations: [
-                {
-                    xref: "paper",
-                    yref: "y",
-                    x: 0.5,
-                    y: 0.5,
-                    text: "Buy Zone",
-                    showarrow: false,
-                    font: {
-                        size: 24,
-                        color: "rgba(200, 200, 200, 0.6)"
-                    }
-                },
-                {
-                    xref: "paper",
-                    yref: "y",
-                    x: 0.5,
-                    y: -0.5,
-                    text: "Sell Zone",
-                    showarrow: false,
-                    font: {
-                        size: 24,
-                        color: "rgba(200, 200, 200, 0.6)"
-                    }
-                }
-            ]
 
             template: "plotly_dark",
             hovermode: "x unified",
