@@ -7,12 +7,29 @@ import numpy as np
 import os
 import time
 from functools import lru_cache
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
+from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
+
+app.config['SECRET_KEY'] = 'CHANGE_ME'  # move to Render env later
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
+
+login_manager = LoginManager(app)
 
 DATA_DIR = os.path.join(app.root_path, 'data')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CSV_PATH = os.path.join(BASE_DIR, "data", "epoch_index-USD.csv")
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(40), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
 
 def parse_duration(duration: str):
     """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
