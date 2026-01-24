@@ -30,74 +30,63 @@
             font-size: 18px;
         }
 
-        /* Navbar container */
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #1a7d9c;
-            padding: 10px 30px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: var(--nav-height);
-            z-index: 1000;
-        }
-
-        /* Logo styling */
-        .navbar .logo img {
-            height: 100px;
-        }
-
-        /* Links container */
-        .navbar .nav-links {
-            display: flex;
-        }
-
-        /* Links styling */
-        .navbar .nav-links a {
+        /* Auth area in navbar */
+        .navbar .nav-links #authArea {
             color: white;
-            text-decoration: none;
             padding: 10px 15px;
             margin-left: 5px;
             font-size: 16px;
             border-radius: 5px;
             transition: background-color 0.3s ease;
         }
-
-        /* Hover effect */
-        .navbar .nav-links a:hover {
+        
+        .navbar .nav-links #authArea:hover {
             background-color: #575757;
         }
-
-        .nav-auth {
-            margin-left: auto;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .user-menu {
+        
+        /* Dropdown menu for logged-in user */
+        .navbar .nav-links .user-menu {
             position: relative;
+            display: inline-block;
+        }
+        
+        .navbar .nav-links .user-menu span {
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
             cursor: pointer;
         }
         
-        .dropdown {
+        .navbar .nav-links .user-menu span:hover {
+            background-color: #575757;
+        }
+        
+        /* Dropdown content */
+        .navbar .nav-links .user-menu .dropdown {
+            display: none;
             position: absolute;
+            top: 100%;
             right: 0;
-            top: 130%;
-            background: #111;
-            border: 1px solid #333;
-            border-radius: 6px;
+            background-color: #1a7d9c;
             min-width: 120px;
+            border-radius: 5px;
+            z-index: 1001;
+            text-align: left;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
         }
         
-        .dropdown div {
-            padding: 10px;
+        .navbar .nav-links .user-menu .dropdown.show {
+            display: block;
         }
         
-        .dropdown div:hover {
-            background: #222;
+        .navbar .nav-links .user-menu .dropdown div {
+            padding: 10px 15px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .navbar .nav-links .user-menu .dropdown div:hover {
+            background-color: #575757;
         }
 
         /* Main content pushed down below navbar */
@@ -454,12 +443,10 @@
         <a href="/market">Market Insight</a>
         <a href="/knowledge">Knowledge Hub</a>
         <a href="mailto:contact@neuraltrend.org">Contact</a>
-    </div>
 
-    <!-- AUTH AREA -->
-    <div class="nav-auth" id="authArea">
-        <span class="login-btn" onclick="openAuthModal()">Log In</span>
-    </div>  
+        <!-- Add auth area here -->
+        <span id="authArea" style="cursor:pointer;" onclick="openAuthModal()">Log In</span>
+    </div>
 </div>
 
 <main>
@@ -1786,8 +1773,18 @@ const authArea = document.getElementById("authArea");
 let mode = "login";
 
 function openAuthModal() {
-    authModal.classList.remove("hidden");
+    const modal = document.getElementById("authModal");
+    modal.style.display = "block";
+    setTimeout(() => modal.classList.add("show"), 10);
 }
+
+function closeAuthModal() {
+    const modal = document.getElementById("authModal");
+    modal.classList.remove("show");
+    setTimeout(() => modal.style.display = "none", 400);
+}
+
+closeAuthModal();
 
 function toggleMode() {
     mode = mode === "login" ? "signup" : "login";
@@ -1814,18 +1811,17 @@ async function submitAuth() {
 }
 
 function updateNavbar(username) {
-    authArea.innerHTML = `
-        <div class="user-menu">
-            <span onclick="toggleDropdown()">${username} ▾</span>
-            <div id="userDropdown" class="dropdown hidden">
-                <div onclick="logout()">Log out</div>
-            </div>
+    document.getElementById("authArea").outerHTML = `
+      <div class="user-menu">
+        <span onclick="toggleDropdown()">${username} ▾</span>
+        <div id="userDropdown" class="dropdown">
+          <div onclick="logout()">Log out</div>
         </div>
-    `;
+      </div>`;
 }
 
 function toggleDropdown() {
-    userDropdown.classList.toggle("hidden");
+    document.getElementById("userDropdown").classList.toggle("show");
 }
 
 async function logout() {
@@ -1843,19 +1839,27 @@ document.addEventListener("click", e => {
 fetch("/api/me")
   .then(r => r.json())
   .then(d => d.username && updateNavbar(d.username));
+
+window.onclick = function(event) {
+    const modal = document.getElementById("authModal");
+    if (event.target === modal) {
+        closeAuthModal();
+    }
+}
+
 </script>
 
-<div id="authModal" class="modal hidden">
-  <div class="modal-box">
+<div id="authModal" class="modal">
+  <div class="modal-content">
     <h3 id="authTitle">Log In</h3>
 
     <input id="username" placeholder="Username">
-    <input id="password" type="password" placeholder="Password">
+    <input id="password" type="password">
 
     <button onclick="submitAuth()">Continue</button>
 
     <p class="switch">
-      <span id="toggleText">No account?</span>
+      <span>No account?</span>
       <a onclick="toggleMode()">Sign up</a>
     </p>
   </div>
