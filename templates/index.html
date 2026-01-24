@@ -77,6 +77,29 @@
             font-weight: 600;
         }
 
+        .user-menu {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .dropdown {
+            position: absolute;
+            right: 0;
+            top: 130%;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 6px;
+            min-width: 120px;
+        }
+        
+        .dropdown div {
+            padding: 10px;
+        }
+        
+        .dropdown div:hover {
+            background: #222;
+        }
+
         /* Main content pushed down below navbar */
         main {
             padding-top: calc(var(--nav-height) + 20px);
@@ -1750,6 +1773,85 @@ fetch("/data")
         });
     });
 </script>
+
+<script>
+let mode = "login";
+
+function openAuthModal() {
+    authModal.classList.remove("hidden");
+}
+
+function toggleMode() {
+    mode = mode === "login" ? "signup" : "login";
+    authTitle.innerText = mode === "login" ? "Log In" : "Sign Up";
+}
+
+async function submitAuth() {
+    const res = await fetch(`/api/${mode}`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            username: username.value,
+            password: password.value
+        })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+        updateNavbar(data.username);
+        authModal.classList.add("hidden");
+    } else {
+        alert(data.error);
+    }
+}
+
+function updateNavbar(username) {
+    authArea.innerHTML = `
+        <div class="user-menu">
+            <span onclick="toggleDropdown()">${username} ▾</span>
+            <div id="userDropdown" class="dropdown hidden">
+                <div onclick="logout()">Log out</div>
+            </div>
+        </div>
+    `;
+}
+
+function toggleDropdown() {
+    userDropdown.classList.toggle("hidden");
+}
+
+async function logout() {
+    await fetch("/api/logout", { method: "POST" });
+    authArea.innerHTML = `<span onclick="openAuthModal()">Log In</span>`;
+}
+
+document.addEventListener("click", e => {
+    const menu = document.querySelector(".user-menu");
+    if (menu && !menu.contains(e.target)) {
+        userDropdown?.classList.add("hidden");
+    }
+});
+
+fetch("/api/me")
+  .then(r => r.json())
+  .then(d => d.username && updateNavbar(d.username));
+</script>
+
+<div id="authModal" class="modal hidden">
+  <div class="modal-box">
+    <h3 id="authTitle">Log In</h3>
+
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+
+    <button onclick="submitAuth()">Continue</button>
+
+    <p class="switch">
+      <span id="toggleText">No account?</span>
+      <a onclick="toggleMode()">Sign up</a>
+    </p>
+  </div>
+</div>
 
 <!-- 100% privacy-first analytics -->
 <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
