@@ -36,6 +36,46 @@ class User(UserMixin, db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+@app.route('/api/signup', methods=['POST'])
+def signup():
+    data = request.json
+    username = data['username']
+    password = data['password']
+
+    if User.query.filter_by(username=username).first():
+        return jsonify({'error': 'Username exists'}), 400
+
+    hashed = bcrypt.generate_password_hash(password).decode()
+    user = User(username=username, password_hash=hashed)
+
+    db.session.add(user)
+    db.session.commit()
+    login_user(user)
+
+    return jsonify({'username': user.username})
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.json
+    user = User.query.filter_by(username=data['username']).first()
+
+    if not user or not bcrypt.check_password_hash(user.password_hash, data['password']):
+        return jsonify({'error': 'Invalid credentials'}), 401
+
+    login_user(user)
+    return jsonify({'username': user.username})
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    logout_user()
+    return jsonify({'ok': True})
+
+@app.route('/api/me')
+def me():
+    if current_user.is_authenticated:
+        return jsonify({'username': current_user.username})
+    return jsonify({'username': None})
+
 def parse_duration(duration: str):
     """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
     s = duration.strip().lower()
