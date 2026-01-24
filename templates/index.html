@@ -71,6 +71,12 @@
             background-color: #575757;
         }
 
+        .nav-auth {
+            margin-left: auto;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
         /* Main content pushed down below navbar */
         main {
             padding-top: calc(var(--nav-height) + 20px);
@@ -426,6 +432,11 @@
         <a href="/knowledge">Knowledge Hub</a>
         <a href="mailto:contact@neuraltrend.org">Contact</a>
     </div>
+
+    <!-- AUTH AREA -->
+    <div class="nav-auth" id="authArea">
+        <span class="login-btn" onclick="openAuthModal()">Log In</span>
+    </div>  
 </div>
 
 <main>
