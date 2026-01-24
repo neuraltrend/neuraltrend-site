@@ -30,63 +30,74 @@
             font-size: 18px;
         }
 
-        /* Auth area in navbar */
-        .navbar .nav-links #authArea {
+        /* Navbar container */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1a7d9c;
+            padding: 10px 30px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            z-index: 1000;
+        }
+
+        /* Logo styling */
+        .navbar .logo img {
+            height: 100px;
+        }
+
+        /* Links container */
+        .navbar .nav-links {
+            display: flex;
+        }
+
+        /* Links styling */
+        .navbar .nav-links a {
             color: white;
+            text-decoration: none;
             padding: 10px 15px;
             margin-left: 5px;
             font-size: 16px;
             border-radius: 5px;
             transition: background-color 0.3s ease;
         }
-        
-        .navbar .nav-links #authArea:hover {
+
+        /* Hover effect */
+        .navbar .nav-links a:hover {
             background-color: #575757;
         }
-        
-        /* Dropdown menu for logged-in user */
-        .navbar .nav-links .user-menu {
+
+        .nav-auth {
+            margin-left: auto;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .user-menu {
             position: relative;
-            display: inline-block;
-        }
-        
-        .navbar .nav-links .user-menu span {
-            color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
             cursor: pointer;
         }
         
-        .navbar .nav-links .user-menu span:hover {
-            background-color: #575757;
-        }
-        
-        /* Dropdown content */
-        .navbar .nav-links .user-menu .dropdown {
-            display: none;
+        .dropdown {
             position: absolute;
-            top: 100%;
             right: 0;
-            background-color: #1a7d9c;
+            top: 130%;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 6px;
             min-width: 120px;
-            border-radius: 5px;
-            z-index: 1001;
-            text-align: left;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
         }
         
-        .navbar .nav-links .user-menu .dropdown.show {
-            display: block;
+        .dropdown div {
+            padding: 10px;
         }
         
-        .navbar .nav-links .user-menu .dropdown div {
-            padding: 10px 15px;
-            color: white;
-            cursor: pointer;
-        }
-        
-        .navbar .nav-links .user-menu .dropdown div:hover {
-            background-color: #575757;
+        .dropdown div:hover {
+            background: #222;
         }
 
         /* Main content pushed down below navbar */
@@ -443,9 +454,6 @@
         <a href="/market">Market Insight</a>
         <a href="/knowledge">Knowledge Hub</a>
         <a href="mailto:contact@neuraltrend.org">Contact</a>
-
-        <!-- Add auth area here -->
-        <span id="authArea" style="cursor:pointer;" onclick="openAuthModal()">Log In</span>
     </div>
 </div>
 
