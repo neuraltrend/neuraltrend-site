@@ -1825,6 +1825,14 @@ async function logout() {
     authArea.innerHTML = `<span onclick="openAuthModal()">Log In</span>`;
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+    window.authModal = document.getElementById("authModal");
+    window.authTitle = document.getElementById("authTitle");
+    window.username = document.getElementById("username");
+    window.password = document.getElementById("password");
+    window.authArea = document.getElementById("authArea");
+});
+
 document.addEventListener("click", e => {
     const menu = document.querySelector(".user-menu");
     if (menu && !menu.contains(e.target)) {
