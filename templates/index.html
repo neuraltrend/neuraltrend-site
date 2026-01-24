@@ -1775,6 +1775,14 @@ fetch("/data")
 </script>
 
 <script>
+const authModal = document.getElementById("authModal");
+const authTitle = document.getElementById("authTitle");
+const username = document.getElementById("username");
+const password = document.getElementById("password");
+const authArea = document.getElementById("authArea");
+</script>
+
+<script>
 let mode = "login";
 
 function openAuthModal() {
@@ -1824,14 +1832,6 @@ async function logout() {
     await fetch("/api/logout", { method: "POST" });
     authArea.innerHTML = `<span onclick="openAuthModal()">Log In</span>`;
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-    window.authModal = document.getElementById("authModal");
-    window.authTitle = document.getElementById("authTitle");
-    window.username = document.getElementById("username");
-    window.password = document.getElementById("password");
-    window.authArea = document.getElementById("authArea");
-});
 
 document.addEventListener("click", e => {
     const menu = document.querySelector(".user-menu");
