@@ -13,7 +13,11 @@ from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'CHANGE_ME'  # move to Render env later
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = True
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
