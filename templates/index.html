@@ -71,10 +71,23 @@
             background-color: #575757;
         }
 
+        /* Auth area (Login / Username) */
         .nav-auth {
-            margin-left: auto;
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-auth #authArea {
+            color: white;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 5px;
             cursor: pointer;
-            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+        
+        .nav-auth #authArea:hover {
+            background-color: #575757;
         }
 
         .user-menu {
@@ -441,7 +454,7 @@
 <body>
 
 <!-- Navigation bar -->
-<div class="navbar">
+<!-- <div class="navbar">
     <div class="logo">
         <a href="https://neuraltrend.org">
             <img src="{{ url_for('static', filename='logo.png') }}" alt="My Logo">
@@ -454,6 +467,29 @@
         <a href="/market">Market Insight</a>
         <a href="/knowledge">Knowledge Hub</a>
         <a href="mailto:contact@neuraltrend.org">Contact</a>
+    </div>
+</div> -->
+
+<!-- Navigation bar -->
+<div class="navbar">
+    <div class="logo">
+        <a href="https://neuraltrend.org">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="My Logo">
+        </a>
+    </div>
+
+    <!-- LEFT: nav links -->
+    <div class="nav-links">
+        <a href="https://neuraltrend.org">Home</a>
+        <a href="https://github.com/neuraltrend/">Sample Algorithms</a>
+        <a href="/market">Market Insight</a>
+        <a href="/knowledge">Knowledge Hub</a>
+        <a href="mailto:contact@neuraltrend.org">Contact</a>
+    </div>
+
+    <!-- RIGHT: auth -->
+    <div class="nav-auth">
+        <span id="authArea">Log In</span>
     </div>
 </div>
 
