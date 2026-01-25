@@ -9,76 +9,18 @@ import time
 from functools import lru_cache
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
-from flask_bcrypt import Bcrypt
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_SECURE'] = True
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["SECRET_KEY"] = "dev-secret"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
 
 db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
-
-login_manager = LoginManager()
-login_manager.init_app(app)
+login_manager = LoginManager(app)
 
 DATA_DIR = os.path.join(app.root_path, 'data')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CSV_PATH = os.path.join(BASE_DIR, "data", "epoch_index-USD.csv")
-
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(40), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-@app.route('/api/signup', methods=['POST'])
-def signup():
-    data = request.json
-    username = data['username']
-    password = data['password']
-
-    if User.query.filter_by(username=username).first():
-        return jsonify({'error': 'Username exists'}), 400
-
-    hashed = bcrypt.generate_password_hash(password).decode()
-    user = User(username=username, password_hash=hashed)
-
-    db.session.add(user)
-    db.session.commit()
-    login_user(user)
-
-    return jsonify({'username': user.username})
-
-@app.route('/api/login', methods=['POST'])
-def login():
-    data = request.json
-    user = User.query.filter_by(username=data['username']).first()
-
-    if not user or not bcrypt.check_password_hash(user.password_hash, data['password']):
-        return jsonify({'error': 'Invalid credentials'}), 401
-
-    login_user(user)
-    return jsonify({'username': user.username})
-
-@app.route('/api/logout', methods=['POST'])
-def logout():
-    logout_user()
-    return jsonify({'ok': True})
-
-@app.route('/api/me')
-def me():
-    if current_user.is_authenticated:
-        return jsonify({'username': current_user.username})
-    return jsonify({'username': None})
 
 def parse_duration(duration: str):
     """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
@@ -130,6 +72,56 @@ def compute_signals_for_ticker(ticker):
         'last_month': int(signals_df['epoch_signal'].iloc[-31]),
     }
 
+# --------------------
+# User model
+# --------------------
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# --------------------
+# Routes
+# --------------------
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route("/signup", methods=["POST"])
+def signup():
+    data = request.json
+    if User.query.filter_by(username=data["username"]).first():
+        return jsonify({"error": "User exists"}), 400
+
+    user = User(
+        username=data["username"],
+        password=generate_password_hash(data["password"])
+    )
+    db.session.add(user)
+    db.session.commit()
+    login_user(user)
+    return jsonify({"username": user.username})
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    user = User.query.filter_by(username=data["username"]).first()
+
+    if not user or not check_password_hash(user.password, data["password"]):
+        return jsonify({"error": "Invalid credentials"}), 401
+
+    login_user(user)
+    return jsonify({"username": user.username})
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    logout_user()
+    return jsonify({"ok": True})
+
 @app.route("/data")
 def data():
     df = pd.read_csv(CSV_PATH)
@@ -139,10 +131,6 @@ def data():
         "dates": df["Date"].dt.strftime("%Y-%m-%d").tolist(),
         "index": df["Index"].tolist()
     })
-
-@app.route('/')
-def index():
-    return render_template('index.html')
 
 @app.route('/privacy')
 def privacy():
