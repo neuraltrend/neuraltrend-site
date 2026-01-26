@@ -70,7 +70,7 @@
         .navbar .nav-links a:hover {
             background-color: #575757;
         }
-
+      
         /* Auth area (Login / Username) */
         .nav-auth {
             display: flex;
@@ -1232,6 +1232,23 @@
     <a href="/privacy">Privacy Notice</a>
 </div>
 
+<!-- AUTH MODAL (reuses existing modal CSS) -->
+<div id="authModal" class="modal">
+    <div class="modal-content">
+        <h3 id="authTitle">Log In</h3>
+
+        <input id="auth-username" placeholder="Username">
+        <input id="auth-password" type="password" placeholder="Password">
+
+        <button onclick="submitAuth()">Continue</button>
+
+        <p style="margin-top:10px;">
+            <span id="authToggleText">No account?</span>
+            <a style="cursor:pointer;" onclick="toggleAuthMode()">Sign up</a>
+        </p>
+    </div>
+</div>
+
 <script>
 document.getElementById('backtest-form').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -1686,6 +1703,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Apply restriction
     startInput.setAttribute("max", maxDate);
+    setLoggedOut();
 });
     
 </script>
@@ -1803,6 +1821,76 @@ fetch("/data")
             displaylogo: false
         });
     });
+</script>
+
+<script>
+let authMode = "login";
+
+/* Open auth modal */
+function openAuth() {
+    const modal = document.getElementById("authModal");
+    modal.style.display = "block";
+    requestAnimationFrame(() => modal.classList.add("show"));
+}
+
+/* Close auth modal */
+function closeAuth() {
+    const modal = document.getElementById("authModal");
+    modal.classList.remove("show");
+    setTimeout(() => modal.style.display = "none", 400);
+}
+
+/* Toggle login/signup */
+function toggleAuthMode() {
+    authMode = authMode === "login" ? "signup" : "login";
+    document.getElementById("authTitle").innerText =
+        authMode === "login" ? "Log In" : "Sign Up";
+}
+
+/* Submit login/signup */
+function submitAuth() {
+    fetch("/" + authMode, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            username: document.getElementById("auth-username").value,
+            password: document.getElementById("auth-password").value
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.username) {
+            setLoggedIn(data.username);
+            closeAuth();
+            showModal("✅ Logged in successfully!", "✔️");
+        } else {
+            showModal("❌ " + data.error, "❌");
+        }
+    });
+}
+
+/* Navbar swap */
+function setLoggedIn(username) {
+    const el = document.getElementById("authArea");
+    el.innerHTML = `${username} | <span style="cursor:pointer;">Logout</span>`;
+    el.onclick = null;
+    el.querySelector("span").onclick = logout;
+}
+
+/* Logout */
+function logout() {
+    fetch("/logout", { method: "POST" })
+        .then(() => {
+            setLoggedOut();
+            showModal("👋 Logged out", "ℹ️");
+        });
+}
+
+function setLoggedOut() {
+    const el = document.getElementById("authArea");
+    el.textContent = "Log In";
+    el.onclick = openAuth;
+}
 </script>
 
 <!-- 100% privacy-first analytics -->
