@@ -1898,6 +1898,15 @@ function setLoggedOut() {
 document.addEventListener("DOMContentLoaded", function () {
     setLoggedOut();
 });
+
+/* Close auth modal when clicking outside */
+window.addEventListener("click", function (event) {
+    const modal = document.getElementById("authModal");
+    if (event.target === modal) {
+        closeAuth();
+    }
+});
+    
 </script>
 
 <!-- 100% privacy-first analytics -->
