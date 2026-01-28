@@ -1827,6 +1827,34 @@ fetch("/data")
 <script>
 let authMode = "login";
 
+/* Navbar swap */
+function setLoggedIn(username) {
+    const el = document.getElementById("authArea");
+    el.innerHTML = `${username} | <span style="cursor:pointer;">Logout</span>`;
+    el.onclick = null;
+    el.querySelector("span").onclick = logout;
+}
+
+/* Logged-out state */
+function setLoggedOut() {
+    const el = document.getElementById("authArea");
+    el.textContent = "Log In";
+    el.onclick = openAuth;
+}
+
+    /* Restore session */
+function restoreAuthState() {
+    fetch("/me")
+        .then(r => r.json())
+        .then(data => {
+            if (data.username) {
+                setLoggedIn(data.username);
+            } else {
+                setLoggedOut();
+            }
+        });
+}
+
 /* Open auth modal */
 function openAuth() {
     const modal = document.getElementById("authModal");
@@ -1870,14 +1898,6 @@ function submitAuth() {
     });
 }
 
-/* Navbar swap */
-function setLoggedIn(username) {
-    const el = document.getElementById("authArea");
-    el.innerHTML = `${username} | <span style="cursor:pointer;">Logout</span>`;
-    el.onclick = null;
-    el.querySelector("span").onclick = logout;
-}
-
 /* Logout */
 function logout() {
     fetch("/logout", { method: "POST" })
@@ -1887,16 +1907,13 @@ function logout() {
         });
 }
 
-/* Logged-out state */
-function setLoggedOut() {
-    const el = document.getElementById("authArea");
-    el.textContent = "Log In";
-    el.onclick = openAuth;
-}
-
 /* ⭐ THIS WAS MISSING ⭐ */
+// document.addEventListener("DOMContentLoaded", function () {
+//     setLoggedOut();
+// });
+
 document.addEventListener("DOMContentLoaded", function () {
-    setLoggedOut();
+    restoreAuthState();
 });
 
 /* Close auth modal when clicking outside */
