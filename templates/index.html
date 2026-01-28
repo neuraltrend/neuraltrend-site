@@ -1887,11 +1887,17 @@ function logout() {
         });
 }
 
+/* Logged-out state */
 function setLoggedOut() {
     const el = document.getElementById("authArea");
     el.textContent = "Log In";
     el.onclick = openAuth;
 }
+
+/* ⭐ THIS WAS MISSING ⭐ */
+document.addEventListener("DOMContentLoaded", function () {
+    setLoggedOut();
+});
 </script>
 
 <!-- 100% privacy-first analytics -->
