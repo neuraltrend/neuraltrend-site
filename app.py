@@ -10,12 +10,14 @@ from functools import lru_cache
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "dev-secret"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
 
 db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 
 DATA_DIR = os.path.join(app.root_path, 'data')
@@ -75,10 +77,16 @@ def compute_signals_for_ticker(ticker):
 # --------------------
 # User model
 # --------------------
+
+# class User(UserMixin, db.Model):
+    # id = db.Column(db.Integer, primary_key=True)
+    # username = db.Column(db.String(80), unique=True, nullable=False)
+    # password = db.Column(db.String(200), nullable=False)
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -91,36 +99,75 @@ def load_user(user_id):
 def index():
     return render_template("index.html")
 
+# @app.route("/signup", methods=["POST"])
+# def signup():
+#     data = request.json
+#     if User.query.filter_by(username=data["username"]).first():
+#         return jsonify({"error": "User exists"}), 400
+
+#     user = User(
+#         username=data["username"],
+#         password=generate_password_hash(data["password"])
+#     )
+#     db.session.add(user)
+#     db.session.commit()
+#     login_user(user)
+#     return jsonify({"username": user.username})
+
 @app.route("/signup", methods=["POST"])
 def signup():
-    data = request.json
+    data = request.get_json()
+
     if User.query.filter_by(username=data["username"]).first():
-        return jsonify({"error": "User exists"}), 400
+        return jsonify(error="Username already exists"), 400
 
     user = User(
         username=data["username"],
-        password=generate_password_hash(data["password"])
+        password_hash=bcrypt.generate_password_hash(data["password"]).decode("utf-8")
     )
     db.session.add(user)
     db.session.commit()
+
     login_user(user)
-    return jsonify({"username": user.username})
+    return jsonify(username=user.username)
+
+# @app.route("/login", methods=["POST"])
+# def login():
+#     data = request.json
+#     user = User.query.filter_by(username=data["username"]).first()
+
+#     if not user or not check_password_hash(user.password, data["password"]):
+#         return jsonify({"error": "Invalid credentials"}), 401
+
+#     login_user(user)
+#     return jsonify({"username": user.username})
 
 @app.route("/login", methods=["POST"])
 def login():
-    data = request.json
+    data = request.get_json()
     user = User.query.filter_by(username=data["username"]).first()
 
-    if not user or not check_password_hash(user.password, data["password"]):
-        return jsonify({"error": "Invalid credentials"}), 401
+    if user and bcrypt.check_password_hash(user.password_hash, data["password"]):
+        login_user(user)
+        return jsonify(username=user.username)
 
-    login_user(user)
-    return jsonify({"username": user.username})
+    return jsonify(error="Invalid credentials"), 401
+
+# @app.route("/logout", methods=["POST"])
+# def logout():
+#     logout_user()
+#     return jsonify({"ok": True})
 
 @app.route("/logout", methods=["POST"])
 def logout():
     logout_user()
-    return jsonify({"ok": True})
+    return "", 204
+
+@app.route("/me")
+def me():
+    if current_user.is_authenticated:
+        return jsonify(username=current_user.username)
+    return jsonify(user=None)
 
 @app.route("/data")
 def data():
