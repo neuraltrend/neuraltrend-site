@@ -13,7 +13,15 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "dev-secret"
+
+# 🔐 REQUIRED FOR SESSIONS
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-fallback")
+
+# 🔒 Cookie security (recommended)
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+# app.config["SECRET_KEY"] = "dev-secret"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
 
 db = SQLAlchemy(app)
