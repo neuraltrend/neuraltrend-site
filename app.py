@@ -169,24 +169,42 @@ def check_user(username, password):
 # -----------------------------
 # Routes
 # -----------------------------
+
+# @app.route("/signup", methods=["POST"])
+# def signup():
+#     data = request.get_json()
+#     username = data.get("username")
+#     password = data.get("password")
+#     if not username or not password:
+#         return jsonify({"error": "Missing username or password"}), 400
+
+#     with open(USERS_FILE) as f:
+#         users = json.load(f)
+#     if username in users:
+#         return jsonify({"error": "Username already exists"}), 400
+
+#     password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+#     save_user(username, password_hash)
+#     user = User(username)
+#     login_user(user)
+#     return jsonify({"username": username})
+
 @app.route("/signup", methods=["POST"])
 def signup():
     data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
-    if not username or not password:
-        return jsonify({"error": "Missing username or password"}), 400
+    username = data["username"]
+    password = data["password"]
 
-    with open(USERS_FILE) as f:
-        users = json.load(f)
+    users = load_users()
     if username in users:
-        return jsonify({"error": "Username already exists"}), 400
+        return jsonify(error="User already exists"), 400
 
-    password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
-    save_user(username, password_hash)
-    user = User(username)
-    login_user(user)
-    return jsonify({"username": username})
+    users[username] = hash_password(password)
+    save_users(users)
+
+    session["user"] = username
+
+    return jsonify(username=username)  # ✅ IMPORTANT
 
 # @app.route("/signup", methods=["POST"])
 # def signup():
