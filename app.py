@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_from_directory, session
 from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta  # pip install python-dateutil
 import yfinance as yf
@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import os
 import time
+import json
+# import hashlib
 from functools import lru_cache
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
@@ -103,6 +105,7 @@ def compute_signals_for_ticker(ticker):
 
 # Ensure folder/file exist
 os.makedirs(DATA_DIR, exist_ok=True)
+
 if not os.path.exists(USERS_FILE):
     with open(USERS_FILE, "w") as f:
         json.dump({}, f)
@@ -110,6 +113,7 @@ if not os.path.exists(USERS_FILE):
 # -----------------------------
 # User class for Flask-Login
 # -----------------------------
+
 class User(UserMixin):
     def __init__(self, username):
         self.id = username
@@ -119,8 +123,10 @@ class User(UserMixin):
 def load_user(username):
     with open(USERS_FILE) as f:
         users = json.load(f)
+
     if username in users:
         return User(username)
+
     return None
 
 # @login_manager.user_loader
@@ -137,19 +143,52 @@ def index():
 # -----------------------------
 # Helper functions
 # -----------------------------
-def save_user(username, password_hash):
+
+def load_users():
     with open(USERS_FILE) as f:
-        users = json.load(f)
+        return json.load(f)
+        
+def save_user(username, password_hash):
+    users = load_users()
     users[username] = password_hash
+
     with open(USERS_FILE, "w") as f:
         json.dump(users, f)
 
 def check_user(username, password):
-    with open(USERS_FILE) as f:
-        users = json.load(f)
-    if username in users and bcrypt.check_password_hash(users[username], password):
-        return True
-    return False
+    users = load_users()
+
+    if username not in users:
+        return False
+
+    return bcrypt.check_password_hash(users[username], password)
+
+# def check_user(username, password):
+#     with open(USERS_FILE) as f:
+#         users = json.load(f)
+#     if username in users and bcrypt.check_password_hash(users[username], password):
+#         return True
+#     return False
+
+# USERS_FILE = "users.json"
+
+# def load_users():
+#     if not os.path.exists(USERS_FILE):
+#         return {}
+#     with open(USERS_FILE, "r") as f:
+#         return json.load(f)
+
+# def save_users(users):
+#     with open(USERS_FILE, "w") as f:
+#         json.dump(users, f)
+
+# def hash_password(password):
+#     return hashlib.sha256(password.encode()).hexdigest()
+
+# def check_user(username, password):
+#     users = load_users()
+#     return username in users and users[username] == hash_password(password)
+
 
 # @app.route("/signup", methods=["POST"])
 # def signup():
@@ -192,19 +231,23 @@ def check_user(username, password):
 @app.route("/signup", methods=["POST"])
 def signup():
     data = request.get_json()
-    username = data["username"]
-    password = data["password"]
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return jsonify(error="Missing username or password"), 400
 
     users = load_users()
     if username in users:
-        return jsonify(error="User already exists"), 400
+        return jsonify(error="Username already exists"), 400
 
-    users[username] = hash_password(password)
-    save_users(users)
+    password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+    save_user(username, password_hash)
 
-    session["user"] = username
+    user = User(username)
+    login_user(user)
 
-    return jsonify(username=username)  # ✅ IMPORTANT
+    return jsonify(username=username)
 
 # @app.route("/signup", methods=["POST"])
 # def signup():
@@ -250,11 +293,14 @@ def login():
     data = request.get_json()
     username = data.get("username")
     password = data.get("password")
+
     if check_user(username, password):
         user = User(username)
         login_user(user)
-        return jsonify({"username": username})
-    return jsonify({"error": "Invalid username or password"}), 401
+        return jsonify(username=username)
+
+    return jsonify(error="Invalid username or password"), 401
+
 
 # @app.route("/logout", methods=["POST"])
 # def logout():
@@ -269,7 +315,7 @@ def login():
 @app.route("/logout", methods=["POST"])
 def logout():
     logout_user()
-    return jsonify({"success": True})
+    return jsonify(success=True)
 
 # @app.route("/me")
 # def me():
