@@ -7,7 +7,6 @@ import numpy as np
 import os
 import time
 import json
-# import hashlib
 from functools import lru_cache
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
@@ -24,12 +23,6 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 # DATABASE
-# app.config["SECRET_KEY"] = "dev-secret"
-# app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
-# app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"]
-# app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-# db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 
@@ -92,16 +85,6 @@ def compute_signals_for_ticker(ticker):
 # --------------------
 # User model
 # --------------------
-
-# class User(UserMixin, db.Model):
-    # id = db.Column(db.Integer, primary_key=True)
-    # username = db.Column(db.String(80), unique=True, nullable=False)
-    # password = db.Column(db.String(200), nullable=False)
-
-# class User(UserMixin, db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     username = db.Column(db.String(80), unique=True, nullable=False)
-#     password_hash = db.Column(db.String(128), nullable=False)
 
 # Ensure folder/file exist
 os.makedirs(DATA_DIR, exist_ok=True)
