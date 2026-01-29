@@ -454,23 +454,6 @@
 <body>
 
 <!-- Navigation bar -->
-<!-- <div class="navbar">
-    <div class="logo">
-        <a href="https://neuraltrend.org">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="My Logo">
-        </a>
-    </div>
-
-    <div class="nav-links">
-        <a href="https://neuraltrend.org">Home</a>
-        <a href="https://github.com/neuraltrend/">Sample Algorithms</a>
-        <a href="/market">Market Insight</a>
-        <a href="/knowledge">Knowledge Hub</a>
-        <a href="mailto:contact@neuraltrend.org">Contact</a>
-    </div>
-</div> -->
-
-<!-- Navigation bar -->
 <div class="navbar">
     <div class="logo">
         <a href="https://neuraltrend.org">
@@ -560,26 +543,6 @@
                 </div>
             </div>
             <!-- QUICK SIGNAL BOARD END -->
-
-            
-            <!-- <form id="signal-form" class="trade-form">
-                <h3>EpochSignaler (Basic) Signal</h3>
-        
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="ticker">Asset Ticker:</label>
-                        <select id="ticker" name="ticker" required>
-                            <option value="BTC-USD">BTC-USD</option>
-                            <option value="ETH-USD">ETH-USD</option>
-                            <option value="SOL-USD">SOL-USD</option>
-                        </select>
-                    </div>
-        
-                    <div class="form-group" style="align-self: flex-end;">
-                        <button type="submit">Run</button>
-                    </div>
-                </div>
-            </form> -->
         
             <div id="signals"></div>
         </section>
@@ -920,7 +883,7 @@
                         <input type="date" id="start" name="start" required />
                     </div>
         
-<!--                     <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="end">End Date:</label>
                         <input type="date" id="end" name="end" required />
                     </div> -->
@@ -945,7 +908,7 @@
                         </select>
                     </div>
         
-<!--                     <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="ticker_2">Compare with (Optional):</label>
                         <select id="ticker_2" name="ticker_2">
                             <option value="">None</option>
@@ -1440,34 +1403,6 @@ fetch('/signals/summary')
         board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
         console.error(err);
     });
-
-// fetch('/signals/summary')
-//     .then(r => r.json())
-//     .then(data => {
-//         const board = document.getElementById('signal-board');
-
-//         board.innerHTML = data.map(item => `
-//             <div
-//                 onclick="loadTicker('${item.ticker}')"
-//                 style="
-//                     display: grid;
-//                     grid-template-columns: 180px 120px 90px 90px 90px;
-//                     align-items: center;
-//                     padding: 6px 10px;
-//                     border-bottom: 1px solid #eee;
-//                     cursor: pointer;
-//                     white-space: nowrap;
-//                 "
-//             >
-//                 <strong>${item.ticker}</strong>
-//                 ${formatSignal(item.today_signal)}
-//                 ${formatSignal(item.yesterday_signal)}
-//                 ${formatSignal(item.last_week_signal)}
-//                 ${formatSignal(item.last_month_signal)}
-//             </div>
-//         `).join('');
-//     })
-//     .catch(err => console.error('Signal board error:', err));
 
 /* ===============================
    3. LOAD TICKER FROM BOARD CLICK
