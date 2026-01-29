@@ -1536,92 +1536,6 @@ function renderSignals({
     `;
 }
 </script>
-    
-<!-- <script>
-/* ---------- shared submit logic ---------- */
-function submitSignalForm(form) {
-    const formData = new FormData(form);
-
-    fetch('/signals', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        renderSignals(data);
-    })
-    .catch(error => console.error('Error:', error));
-}
-
-/* ---------- submit button (kept) ---------- */
-const signalForm = document.getElementById('signal-form');
-
-signalForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    submitSignalForm(this);
-});
-
-/* ---------- auto-run on dropdown change ---------- */
-/* assumes ONE select inside the form (ticker selector) */
-const tickerSelect = signalForm.querySelector('select');
-
-tickerSelect.addEventListener('change', function () {
-    if (!this.value) return;   // ignore empty option
-    submitSignalForm(signalForm);
-});
-
-/* ---------- signal formatting ---------- */
-function formatSignal(signal) {
-    if (signal === 1) {
-        return `<span style="color: green; font-weight: bold;">
-                    ▲ BUY
-                </span>`;
-    } else if (signal === -1) {
-        return `<span style="color: red; font-weight: bold;">
-                    ▼ SELL
-                </span>`;
-    } else {
-        return `<span style="color: gray;">
-                    HOLD
-                </span>`;
-    }
-}
-
-/* ---------- rendering ---------- */
-function renderSignals({
-    ticker,
-    today_signal,
-    yesterday_signal,
-    last_week_signal,
-    last_month_signal,
-}) {
-    const signalsDiv = document.getElementById('signals');
-
-    let ticker1Stats = `
-        <div>
-            <h3>${ticker}</h3>
-
-            <div style="
-                display: grid;
-                grid-template-columns: repeat(4, auto);
-                gap: 20px;
-                align-items: center;
-            ">
-                <span>Today: ${formatSignal(today_signal)}</span>
-                <span>Yesterday: ${formatSignal(yesterday_signal)}</span>
-                <span>Last Week: ${formatSignal(last_week_signal)}</span>
-                <span>Last Month: ${formatSignal(last_month_signal)}</span>
-            </div>
-        </div>
-    `;
-
-    signalsDiv.innerHTML = `
-        <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
-            ${ticker1Stats}
-        </div>
-    `;
-}
-</script> -->
 
 <script>
 function showModal(message, iconHTML) {
@@ -1906,11 +1820,6 @@ function logout() {
             showModal("👋 Logged out", "ℹ️");
         });
 }
-
-/* ⭐ THIS WAS MISSING ⭐ */
-// document.addEventListener("DOMContentLoaded", function () {
-//     setLoggedOut();
-// });
 
 document.addEventListener("DOMContentLoaded", function () {
     restoreAuthState();
