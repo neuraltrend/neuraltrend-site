@@ -112,10 +112,6 @@ def load_user(username):
 
     return None
 
-# @login_manager.user_loader
-# def load_user(user_id):
-#     return User.query.get(int(user_id))
-
 # --------------------
 # Routes
 # --------------------
@@ -146,70 +142,9 @@ def check_user(username, password):
 
     return bcrypt.check_password_hash(users[username], password)
 
-# def check_user(username, password):
-#     with open(USERS_FILE) as f:
-#         users = json.load(f)
-#     if username in users and bcrypt.check_password_hash(users[username], password):
-#         return True
-#     return False
-
-# USERS_FILE = "users.json"
-
-# def load_users():
-#     if not os.path.exists(USERS_FILE):
-#         return {}
-#     with open(USERS_FILE, "r") as f:
-#         return json.load(f)
-
-# def save_users(users):
-#     with open(USERS_FILE, "w") as f:
-#         json.dump(users, f)
-
-# def hash_password(password):
-#     return hashlib.sha256(password.encode()).hexdigest()
-
-# def check_user(username, password):
-#     users = load_users()
-#     return username in users and users[username] == hash_password(password)
-
-
-# @app.route("/signup", methods=["POST"])
-# def signup():
-#     data = request.json
-#     if User.query.filter_by(username=data["username"]).first():
-#         return jsonify({"error": "User exists"}), 400
-
-#     user = User(
-#         username=data["username"],
-#         password=generate_password_hash(data["password"])
-#     )
-#     db.session.add(user)
-#     db.session.commit()
-#     login_user(user)
-#     return jsonify({"username": user.username})
-
 # -----------------------------
 # Routes
 # -----------------------------
-
-# @app.route("/signup", methods=["POST"])
-# def signup():
-#     data = request.get_json()
-#     username = data.get("username")
-#     password = data.get("password")
-#     if not username or not password:
-#         return jsonify({"error": "Missing username or password"}), 400
-
-#     with open(USERS_FILE) as f:
-#         users = json.load(f)
-#     if username in users:
-#         return jsonify({"error": "Username already exists"}), 400
-
-#     password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
-#     save_user(username, password_hash)
-#     user = User(username)
-#     login_user(user)
-#     return jsonify({"username": username})
 
 @app.route("/signup", methods=["POST"])
 def signup():
@@ -232,45 +167,6 @@ def signup():
 
     return jsonify(username=username)
 
-# @app.route("/signup", methods=["POST"])
-# def signup():
-#     data = request.get_json()
-
-#     if User.query.filter_by(username=data["username"]).first():
-#         return jsonify(error="Username already exists"), 400
-
-#     user = User(
-#         username=data["username"],
-#         password_hash=bcrypt.generate_password_hash(data["password"]).decode("utf-8")
-#     )
-#     db.session.add(user)
-#     db.session.commit()
-
-#     login_user(user)
-#     return jsonify(username=user.username)
-
-# @app.route("/login", methods=["POST"])
-# def login():
-#     data = request.json
-#     user = User.query.filter_by(username=data["username"]).first()
-
-#     if not user or not check_password_hash(user.password, data["password"]):
-#         return jsonify({"error": "Invalid credentials"}), 401
-
-#     login_user(user)
-#     return jsonify({"username": user.username})
-
-# @app.route("/login", methods=["POST"])
-# def login():
-#     data = request.get_json()
-#     user = User.query.filter_by(username=data["username"]).first()
-
-#     if user and bcrypt.check_password_hash(user.password_hash, data["password"]):
-#         login_user(user)
-#         return jsonify(username=user.username)
-
-#     return jsonify(error="Invalid credentials"), 401
-
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
@@ -284,27 +180,10 @@ def login():
 
     return jsonify(error="Invalid username or password"), 401
 
-
-# @app.route("/logout", methods=["POST"])
-# def logout():
-#     logout_user()
-#     return jsonify({"ok": True})
-
-# @app.route("/logout", methods=["POST"])
-# def logout():
-#     logout_user()
-#     return "", 204
-
 @app.route("/logout", methods=["POST"])
 def logout():
     logout_user()
     return jsonify(success=True)
-
-# @app.route("/me")
-# def me():
-#     if current_user.is_authenticated:
-#         return jsonify(username=current_user.username)
-#     return jsonify(user=None)
 
 @app.route("/me")
 def me():
@@ -343,45 +222,28 @@ def backtest():
     initial_cash = float(request.form['cash'])
     ticker = request.form['ticker']
     start_date = request.form['start']
-    # end_date = request.form['end']
     duration = request.form["duration"]    # e.g. '1mo','3mo','6mo','1yr'
-    # ticker_2 = request.form['ticker_2']
     ticker_2=[]
-    # print(ticker_2)
 
     # Parse dates
     start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
 
     # Compute intended end and cap at today
     delta = parse_duration(duration)
-    # print(delta)
     end_date_2 = start_date + delta
-    # print(end_date_2)
 
     end_for_download=min(end_date_2,datetime.today().date())
-    # print(end_for_download)
-    # print(end_date)
-
-    # yfinance quirk: `end` is exclusive for daily data.
-    # Add +1 day so the last day (end_date) is included.
-    # end_for_download = end_for_download + timedelta(days=1)
 
     base_symbol = ticker.split('-')[0]  # -> "BTC"
-
-    # df = yf.download(ticker, start=start_date, end=end_for_download, interval='1d')  # FIXED
-    # df = df[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
-    # print(df)
     
     # --- Load CSV of signals ---
     csv_filename = f"epoch_{base_symbol}.csv"
     csv_path = os.path.join(app.root_path, 'data', csv_filename)
     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
-    # print(signals_df)
     
     # Filter for the desired period
     mask = (signals_df['Date'] >= pd.to_datetime(start_date)) & (signals_df['Date'] <= pd.to_datetime(end_date_2))
     df_filtered = signals_df.loc[mask].copy()
-    # print(df_filtered)
     
     # Optional: set Date as index
     df_filtered.set_index('Date', inplace=True)
@@ -390,8 +252,6 @@ def backtest():
     # Convert Close to float explicitly
     signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
     signals_df = signals_df.dropna()
-    
-    # print(signals_df)
 
     cash = initial_cash
     position = 0
@@ -407,29 +267,17 @@ def backtest():
         elif signal == -1 and position > 0:  # Sell
             cash = position * price
             position = 0
-        # else hold
 
         equity = cash + position * price
         equity_curve.append((date, equity))
 
     eq_df = pd.DataFrame(equity_curve, columns=['Date', 'Equity']).set_index('Date')
-    # print(eq_df)
+
      # --- Extract buy/sell points ---
     buy_dates = signals_df.index[signals_df['epoch_signal'] == 1]
     sell_dates = signals_df.index[signals_df['epoch_signal'] == -1]
     buy_prices = eq_df.loc[buy_dates, 'Equity']
     sell_prices = eq_df.loc[sell_dates, 'Equity']
-    # print(buy_dates)
-    # print(buy_prices)
-
-    # series = pd.DataFrame()
-    # for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
-    #     df[col] = df[col].astype(float)
-    #     values = df[col].values
-    #     if values.ndim > 1:
-    #         values = values.flatten()
-    #     df[col] = values
-    #     series[col] = pd.Series(values, index=df.index)
 
     equity_curve = signals_df['Close'].to_numpy().flatten().astype(float).tolist()
     equity_curve_start=equity_curve[0]
@@ -474,20 +322,7 @@ def backtest():
         sharpe_ratio_2 = float(((excess_returns_2.mean() / excess_returns_2.std()) * (252 ** 0.5)).iloc[0])
     
     dates = signals_df.index.strftime('%Y-%m-%d').tolist()
-    # print(dates, type(dates))
-    # print(eq_df['Equity'].to_numpy().flatten().astype(float).tolist(), type(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()))
-    # print(equity_curve, type(equity_curve))
-    # print(equity_curve_2)
-    # results = {
-    #     'final_value': final_value,
-    #     'profit_factor': profit_factor,
-    #     'sharpe_ratio': sharpe_ratio,
-    #     'equity_curve': equity_curve,
-    #     'equity_curve_2': equity_curve_2,
-    #     'dates': dates,
-    #     'ticker': ticker,
-    #     'ticker_2': ticker_2
-    # }
+
     results = {
         'ticker': ticker,
         'final_value': final_value,
@@ -587,9 +422,6 @@ def signals_summary():
     csv_version = get_csv_version()  # Step 2 helper
     results = compute_signals_summary_cached(csv_version)
     return jsonify(results)
-
-# with app.app_context():
-#     db.create_all()
 
 if __name__ == '__main__':
     app.run(debug=True)
