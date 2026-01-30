@@ -1202,7 +1202,8 @@
         <h3 id="authTitle">Log In</h3>
 
         <!-- <input id="auth-username" placeholder="Username"> -->
-        <input id="auth-username" placeholder="Email" type="email" required>
+        <!-- <input id="auth-username" placeholder="Email" type="email" required> -->
+        <input id="auth-username" type="email" placeholder="Email" required>
         <input id="auth-password" type="password" placeholder="Password">
 
         <button onclick="submitAuth(event)">Continue</button>
@@ -1748,8 +1749,8 @@ function toggleAuthMode() {
 //     });
 // }
 
-function submitAuth(event) {
-    event.preventDefault();   // 🔥 THIS IS THE KEY LINE
+function submitAuth() {
+    // event.preventDefault();   // 🔥 THIS IS THE KEY LINE
 
     const password = document.getElementById("auth-password").value;
 
@@ -1777,15 +1778,7 @@ function submitAuth(event) {
                 data?.error?.msg ||
                 data?.error?.message ||
                 "Authentication failed";
-            
             showModal("❌ " + msg, "❌");
-
-            // const msg =
-            //     data.error?.msg ||
-            //     data.error?.message ||
-            //     "Authentication failed";
-            
-            // showModal("❌ " + msg, "❌");
         }
     });
 }
