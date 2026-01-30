@@ -214,17 +214,13 @@ def signup():
         "password": data["password"]
     })
 
-    if r.status_code != 200:
+    if r.status_code not in (200, 201):
         return jsonify({"error": r.json()}), 400
 
     auth = r.json()
-
-    # Store Supabase session token
     session["access_token"] = auth["access_token"]
 
-    return jsonify({
-        "username": auth["user"]["email"]
-    })
+    return jsonify(username=auth["user"]["email"])
 
 
 # @app.route("/login", methods=["POST"])
@@ -271,13 +267,10 @@ def login():
         return jsonify({"error": "Invalid credentials"}), 401
 
     auth = r.json()
-
-    # Store Supabase JWT only
     session["access_token"] = auth["access_token"]
 
-    return jsonify({
-        "username": auth["user"]["email"]
-    })
+    return jsonify(username=auth["user"]["email"])
+
 
 
 # @app.route("/logout", methods=["POST"])
@@ -288,8 +281,8 @@ def login():
 @app.route("/logout", methods=["POST"])
 def logout():
     session.pop("access_token", None)
-    # logout_user()
-    return jsonify({"success": True})
+    return jsonify(success=True)
+
 
 # @app.route("/me")
 # def me():
@@ -305,12 +298,12 @@ def logout():
 
 @app.route("/me")
 def me():
-    token = request.cookies.get("sb-access-token")
+    token = session.get("access_token")
     if not token:
         return jsonify(username=None)
 
     headers = {
-        "apikey": SUPABASE_ANON_KEY,
+        "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {token}"
     }
 
