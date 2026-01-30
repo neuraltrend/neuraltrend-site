@@ -9,7 +9,7 @@ import time
 import json
 from functools import lru_cache
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
+# from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 # from flask_bcrypt import Bcrypt
 
@@ -24,7 +24,7 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 # DATABASE
 # bcrypt = Bcrypt(app)
-login_manager = LoginManager(app)
+# login_manager = LoginManager(app)
 
 # Data path
 DATA_DIR = os.path.join(app.root_path, 'data')
@@ -115,10 +115,10 @@ os.makedirs(DATA_DIR, exist_ok=True)
 #         self.id = username
 #         self.username = username
 
-class User(UserMixin):
-    def __init__(self, user_id, email):
-        self.id = user_id
-        self.email = email
+# class User(UserMixin):
+#     def __init__(self, user_id, email):
+#         self.id = user_id
+#         self.email = email
 
 # @login_manager.user_loader
 # def load_user(username):
@@ -185,6 +185,24 @@ def index():
 
 #     return jsonify(username=username)
 
+# @app.route("/signup", methods=["POST"])
+# def signup():
+#     data = request.get_json()
+
+#     r = supabase_auth("signup", {
+#         "email": data["username"],
+#         "password": data["password"]
+#     })
+
+#     if r.status_code != 200:
+#         return jsonify({"error": r.json()}), 400
+
+#     user = r.json()["user"]
+#     session["access_token"] = r.json()["access_token"]
+
+#     login_user(User(user["id"], user["email"]))
+#     return jsonify({"username": user["email"]})
+
 @app.route("/signup", methods=["POST"])
 def signup():
     data = request.get_json()
@@ -197,11 +215,15 @@ def signup():
     if r.status_code != 200:
         return jsonify({"error": r.json()}), 400
 
-    user = r.json()["user"]
-    session["access_token"] = r.json()["access_token"]
+    auth = r.json()
 
-    login_user(User(user["id"], user["email"]))
-    return jsonify({"username": user["email"]})
+    # Store Supabase session token
+    session["access_token"] = auth["access_token"]
+
+    return jsonify({
+        "username": auth["user"]["email"]
+    })
+
 
 # @app.route("/login", methods=["POST"])
 # def login():
@@ -216,6 +238,24 @@ def signup():
 
 #     return jsonify(error="Invalid username or password"), 401
 
+# @app.route("/login", methods=["POST"])
+# def login():
+#     data = request.get_json()
+
+#     r = supabase_auth("token?grant_type=password", {
+#         "email": data["username"],
+#         "password": data["password"]
+#     })
+
+#     if r.status_code != 200:
+#         return jsonify({"error": "Invalid credentials"}), 401
+
+#     user = r.json()["user"]
+#     session["access_token"] = r.json()["access_token"]
+
+#     login_user(User(user["id"], user["email"]))
+#     return jsonify({"username": user["email"]})
+
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
@@ -228,11 +268,15 @@ def login():
     if r.status_code != 200:
         return jsonify({"error": "Invalid credentials"}), 401
 
-    user = r.json()["user"]
-    session["access_token"] = r.json()["access_token"]
+    auth = r.json()
 
-    login_user(User(user["id"], user["email"]))
-    return jsonify({"username": user["email"]})
+    # Store Supabase JWT only
+    session["access_token"] = auth["access_token"]
+
+    return jsonify({
+        "username": auth["user"]["email"]
+    })
+
 
 # @app.route("/logout", methods=["POST"])
 # def logout():
@@ -242,7 +286,7 @@ def login():
 @app.route("/logout", methods=["POST"])
 def logout():
     session.pop("access_token", None)
-    logout_user()
+    # logout_user()
     return jsonify({"success": True})
 
 # @app.route("/me")
@@ -251,10 +295,32 @@ def logout():
 #         return jsonify(username=current_user.username)
 #     return jsonify(username=None)
 
+# @app.route("/me")
+# def me():
+#     if current_user.is_authenticated:
+#         return jsonify(username=current_user.email)
+#     return jsonify(username=None)
+
 @app.route("/me")
 def me():
-    if current_user.is_authenticated:
-        return jsonify(username=current_user.email)
+    token = request.cookies.get("sb-access-token")
+    if not token:
+        return jsonify(username=None)
+
+    headers = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": f"Bearer {token}"
+    }
+
+    r = requests.get(
+        f"{SUPABASE_URL}/auth/v1/user",
+        headers=headers
+    )
+
+    if r.status_code == 200:
+        user = r.json()
+        return jsonify(username=user["email"])
+
     return jsonify(username=None)
 
 @app.route("/data")
