@@ -12,6 +12,8 @@ from flask_sqlalchemy import SQLAlchemy
 # from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 # from flask_bcrypt import Bcrypt
+import requests
+
 
 app = Flask(__name__)
 
