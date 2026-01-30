@@ -1204,7 +1204,7 @@
         <input id="auth-username" placeholder="Username">
         <input id="auth-password" type="password" placeholder="Password">
 
-        <button onclick="submitAuth()">Continue</button>
+        <button onclick="submitAuth(event)">Continue</button>
 
         <p style="margin-top:10px;">
             <span id="authToggleText">No account?</span>
@@ -1726,7 +1726,30 @@ function toggleAuthMode() {
 }
 
 /* Submit login/signup */
-function submitAuth() {
+// function submitAuth() {
+//     fetch("/" + authMode, {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({
+//             username: document.getElementById("auth-username").value,
+//             password: document.getElementById("auth-password").value
+//         })
+//     })
+//     .then(r => r.json())
+//     .then(data => {
+//         if (data.username) {
+//             setLoggedIn(data.username);
+//             closeAuth();
+//             showModal("✅ Logged in successfully!", "✔️");
+//         } else {
+//             showModal("❌ " + data.error, "❌");
+//         }
+//     });
+// }
+
+function submitAuth(event) {
+    event.preventDefault();   // 🔥 THIS IS THE KEY LINE
+
     fetch("/" + authMode, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
