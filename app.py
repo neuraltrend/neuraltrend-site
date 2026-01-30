@@ -19,23 +19,20 @@ app = Flask(__name__)
 
 # 🔐 REQUIRED FOR SESSIONS
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-fallback")
+SUPABASE_URL = os.environ["SUPABASE_URL"]
+SUPABASE_KEY = os.environ["SUPABASE_ANON_KEY"]
 
 # 🔒 Cookie security (recommended)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
-# DATABASE
-# bcrypt = Bcrypt(app)
-# login_manager = LoginManager(app)
-
 # Data path
 DATA_DIR = os.path.join(app.root_path, 'data')
-# USERS_FILE = os.path.join(DATA_DIR, "users.json")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CSV_PATH = os.path.join(BASE_DIR, "data", "epoch_index-USD.csv")
 
-SUPABASE_URL = os.environ["SUPABASE_URL"]
-SUPABASE_KEY = os.environ["SUPABASE_ANON_KEY"]
+# Ensure folder/file exist
+os.makedirs(DATA_DIR, exist_ok=True)
 
 def supabase_auth(endpoint, payload):
     return requests.post(
@@ -98,112 +95,12 @@ def compute_signals_for_ticker(ticker):
     }
 
 # --------------------
-# User model
-# --------------------
-
-# Ensure folder/file exist
-os.makedirs(DATA_DIR, exist_ok=True)
-
-# if not os.path.exists(USERS_FILE):
-#     with open(USERS_FILE, "w") as f:
-#         json.dump({}, f)
-
-# -----------------------------
-# User class for Flask-Login
-# -----------------------------
-
-# class User(UserMixin):
-#     def __init__(self, username):
-#         self.id = username
-#         self.username = username
-
-# class User(UserMixin):
-#     def __init__(self, user_id, email):
-#         self.id = user_id
-#         self.email = email
-
-# @login_manager.user_loader
-# def load_user(username):
-#     with open(USERS_FILE) as f:
-#         users = json.load(f)
-
-#     if username in users:
-#         return User(username)
-
-#     return None
-
-# --------------------
 # Routes
 # --------------------
+
 @app.route("/")
 def index():
     return render_template("index.html")
-
-# -----------------------------
-# Helper functions
-# -----------------------------
-
-# def load_users():
-#     with open(USERS_FILE) as f:
-#         return json.load(f)
-        
-# def save_user(username, password_hash):
-#     users = load_users()
-#     users[username] = password_hash
-
-#     with open(USERS_FILE, "w") as f:
-#         json.dump(users, f)
-
-# def check_user(username, password):
-#     users = load_users()
-
-#     if username not in users:
-#         return False
-
-#     return bcrypt.check_password_hash(users[username], password)
-
-# -----------------------------
-# Routes
-# -----------------------------
-
-# @app.route("/signup", methods=["POST"])
-# def signup():
-#     data = request.get_json()
-#     username = data.get("username")
-#     password = data.get("password")
-
-#     if not username or not password:
-#         return jsonify(error="Missing username or password"), 400
-
-#     users = load_users()
-#     if username in users:
-#         return jsonify(error="Username already exists"), 400
-
-#     password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
-#     save_user(username, password_hash)
-
-#     user = User(username)
-#     login_user(user)
-
-#     return jsonify(username=username)
-
-# @app.route("/signup", methods=["POST"])
-# def signup():
-#     data = request.get_json()
-
-#     r = supabase_auth("signup", {
-#         "email": data["username"],
-#         "password": data["password"]
-#     })
-
-#     if r.status_code != 200:
-#         return jsonify({"error": r.json()}), 400
-
-#     user = r.json()["user"]
-#     session["access_token"] = r.json()["access_token"]
-
-#     login_user(User(user["id"], user["email"]))
-#     return jsonify({"username": user["email"]})
 
 @app.route("/signup", methods=["POST"])
 def signup():
@@ -222,38 +119,6 @@ def signup():
 
     return jsonify(username=auth["user"]["email"])
 
-
-# @app.route("/login", methods=["POST"])
-# def login():
-#     data = request.get_json()
-#     username = data.get("username")
-#     password = data.get("password")
-
-#     if check_user(username, password):
-#         user = User(username)
-#         login_user(user)
-#         return jsonify(username=username)
-
-#     return jsonify(error="Invalid username or password"), 401
-
-# @app.route("/login", methods=["POST"])
-# def login():
-#     data = request.get_json()
-
-#     r = supabase_auth("token?grant_type=password", {
-#         "email": data["username"],
-#         "password": data["password"]
-#     })
-
-#     if r.status_code != 200:
-#         return jsonify({"error": "Invalid credentials"}), 401
-
-#     user = r.json()["user"]
-#     session["access_token"] = r.json()["access_token"]
-
-#     login_user(User(user["id"], user["email"]))
-#     return jsonify({"username": user["email"]})
-
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
@@ -271,30 +136,10 @@ def login():
 
     return jsonify(username=auth["user"]["email"])
 
-
-
-# @app.route("/logout", methods=["POST"])
-# def logout():
-#     logout_user()
-#     return jsonify(success=True)
-
 @app.route("/logout", methods=["POST"])
 def logout():
     session.pop("access_token", None)
     return jsonify(success=True)
-
-
-# @app.route("/me")
-# def me():
-#     if current_user.is_authenticated:
-#         return jsonify(username=current_user.username)
-#     return jsonify(username=None)
-
-# @app.route("/me")
-# def me():
-#     if current_user.is_authenticated:
-#         return jsonify(username=current_user.email)
-#     return jsonify(username=None)
 
 @app.route("/me")
 def me():
@@ -410,11 +255,9 @@ def backtest():
     equity_curve_start=equity_curve[0]
     equity_curve = np.array(equity_curve)  # convert list to numpy array
     equity_curve = equity_curve / equity_curve[0] * initial_cash
-    # print(equity_curve)
     equity_curve = equity_curve.tolist()
     final_value = float(equity_curve[-1])
     profit_factor = float(final_value / initial_cash)
-    # print(equity_curve)
 
     returns = signals_df['Close'].pct_change().dropna()
     risk_free_rate_annual = 0.01
