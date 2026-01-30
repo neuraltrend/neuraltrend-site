@@ -1693,7 +1693,7 @@ function setLoggedOut() {
     el.onclick = openAuth;
 }
 
-    /* Restore session */
+/* Restore session */
 function restoreAuthState() {
     fetch("/me")
         .then(r => r.json())
@@ -1726,28 +1726,6 @@ function toggleAuthMode() {
     document.getElementById("authTitle").innerText =
         authMode === "login" ? "Log In" : "Sign Up";
 }
-
-/* Submit login/signup */
-// function submitAuth() {
-//     fetch("/" + authMode, {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({
-//             username: document.getElementById("auth-username").value,
-//             password: document.getElementById("auth-password").value
-//         })
-//     })
-//     .then(r => r.json())
-//     .then(data => {
-//         if (data.username) {
-//             setLoggedIn(data.username);
-//             closeAuth();
-//             showModal("✅ Logged in successfully!", "✔️");
-//         } else {
-//             showModal("❌ " + data.error, "❌");
-//         }
-//     });
-// }
 
 function submitAuth(event) {
     event.preventDefault();  // prevent form reload
