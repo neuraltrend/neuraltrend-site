@@ -298,13 +298,13 @@ def logout():
 
 @app.route("/me")
 def me():
-    token = session.get("access_token")
-    if not token:
+    access_token = session.get("access_token")
+    if not access_token:
         return jsonify(username=None)
 
     headers = {
         "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {token}"
+        "Authorization": f"Bearer {access_token}"
     }
 
     r = requests.get(
