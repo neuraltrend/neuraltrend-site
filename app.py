@@ -11,7 +11,7 @@ from functools import lru_cache
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_bcrypt import Bcrypt
+# from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
 
@@ -23,14 +23,27 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 # DATABASE
-bcrypt = Bcrypt(app)
+# bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 
 # Data path
 DATA_DIR = os.path.join(app.root_path, 'data')
-USERS_FILE = os.path.join(DATA_DIR, "users.json")
+# USERS_FILE = os.path.join(DATA_DIR, "users.json")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CSV_PATH = os.path.join(BASE_DIR, "data", "epoch_index-USD.csv")
+
+SUPABASE_URL = os.environ["SUPABASE_URL"]
+SUPABASE_KEY = os.environ["SUPABASE_ANON_KEY"]
+
+def supabase_auth(endpoint, payload):
+    return requests.post(
+        f"{SUPABASE_URL}/auth/v1/{endpoint}",
+        headers={
+            "apikey": SUPABASE_KEY,
+            "Content-Type": "application/json"
+        },
+        json=payload
+    )
 
 def parse_duration(duration: str):
     """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
@@ -89,28 +102,33 @@ def compute_signals_for_ticker(ticker):
 # Ensure folder/file exist
 os.makedirs(DATA_DIR, exist_ok=True)
 
-if not os.path.exists(USERS_FILE):
-    with open(USERS_FILE, "w") as f:
-        json.dump({}, f)
+# if not os.path.exists(USERS_FILE):
+#     with open(USERS_FILE, "w") as f:
+#         json.dump({}, f)
 
 # -----------------------------
 # User class for Flask-Login
 # -----------------------------
 
+# class User(UserMixin):
+#     def __init__(self, username):
+#         self.id = username
+#         self.username = username
+
 class User(UserMixin):
-    def __init__(self, username):
-        self.id = username
-        self.username = username
+    def __init__(self, user_id, email):
+        self.id = user_id
+        self.email = email
 
-@login_manager.user_loader
-def load_user(username):
-    with open(USERS_FILE) as f:
-        users = json.load(f)
+# @login_manager.user_loader
+# def load_user(username):
+#     with open(USERS_FILE) as f:
+#         users = json.load(f)
 
-    if username in users:
-        return User(username)
+#     if username in users:
+#         return User(username)
 
-    return None
+#     return None
 
 # --------------------
 # Routes
@@ -123,72 +141,120 @@ def index():
 # Helper functions
 # -----------------------------
 
-def load_users():
-    with open(USERS_FILE) as f:
-        return json.load(f)
+# def load_users():
+#     with open(USERS_FILE) as f:
+#         return json.load(f)
         
-def save_user(username, password_hash):
-    users = load_users()
-    users[username] = password_hash
+# def save_user(username, password_hash):
+#     users = load_users()
+#     users[username] = password_hash
 
-    with open(USERS_FILE, "w") as f:
-        json.dump(users, f)
+#     with open(USERS_FILE, "w") as f:
+#         json.dump(users, f)
 
-def check_user(username, password):
-    users = load_users()
+# def check_user(username, password):
+#     users = load_users()
 
-    if username not in users:
-        return False
+#     if username not in users:
+#         return False
 
-    return bcrypt.check_password_hash(users[username], password)
+#     return bcrypt.check_password_hash(users[username], password)
 
 # -----------------------------
 # Routes
 # -----------------------------
 
+# @app.route("/signup", methods=["POST"])
+# def signup():
+#     data = request.get_json()
+#     username = data.get("username")
+#     password = data.get("password")
+
+#     if not username or not password:
+#         return jsonify(error="Missing username or password"), 400
+
+#     users = load_users()
+#     if username in users:
+#         return jsonify(error="Username already exists"), 400
+
+#     password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+#     save_user(username, password_hash)
+
+#     user = User(username)
+#     login_user(user)
+
+#     return jsonify(username=username)
+
 @app.route("/signup", methods=["POST"])
 def signup():
     data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
 
-    if not username or not password:
-        return jsonify(error="Missing username or password"), 400
+    r = supabase_auth("signup", {
+        "email": data["username"],
+        "password": data["password"]
+    })
 
-    users = load_users()
-    if username in users:
-        return jsonify(error="Username already exists"), 400
+    if r.status_code != 200:
+        return jsonify({"error": r.json()}), 400
 
-    password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
-    save_user(username, password_hash)
+    user = r.json()["user"]
+    session["access_token"] = r.json()["access_token"]
 
-    user = User(username)
-    login_user(user)
+    login_user(User(user["id"], user["email"]))
+    return jsonify({"username": user["email"]})
 
-    return jsonify(username=username)
+# @app.route("/login", methods=["POST"])
+# def login():
+#     data = request.get_json()
+#     username = data.get("username")
+#     password = data.get("password")
+
+#     if check_user(username, password):
+#         user = User(username)
+#         login_user(user)
+#         return jsonify(username=username)
+
+#     return jsonify(error="Invalid username or password"), 401
 
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
 
-    if check_user(username, password):
-        user = User(username)
-        login_user(user)
-        return jsonify(username=username)
+    r = supabase_auth("token?grant_type=password", {
+        "email": data["username"],
+        "password": data["password"]
+    })
 
-    return jsonify(error="Invalid username or password"), 401
+    if r.status_code != 200:
+        return jsonify({"error": "Invalid credentials"}), 401
+
+    user = r.json()["user"]
+    session["access_token"] = r.json()["access_token"]
+
+    login_user(User(user["id"], user["email"]))
+    return jsonify({"username": user["email"]})
+
+# @app.route("/logout", methods=["POST"])
+# def logout():
+#     logout_user()
+#     return jsonify(success=True)
 
 @app.route("/logout", methods=["POST"])
 def logout():
+    session.pop("access_token", None)
     logout_user()
-    return jsonify(success=True)
+    return jsonify({"success": True})
+
+# @app.route("/me")
+# def me():
+#     if current_user.is_authenticated:
+#         return jsonify(username=current_user.username)
+#     return jsonify(username=None)
 
 @app.route("/me")
 def me():
     if current_user.is_authenticated:
-        return jsonify(username=current_user.username)
+        return jsonify(username=current_user.email)
     return jsonify(username=None)
 
 @app.route("/data")
