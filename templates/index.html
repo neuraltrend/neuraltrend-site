@@ -1750,6 +1750,13 @@ function toggleAuthMode() {
 function submitAuth(event) {
     event.preventDefault();   // 🔥 THIS IS THE KEY LINE
 
+    const password = document.getElementById("auth-password").value;
+
+    if (authMode === "signup" && password.length < 6) {
+        showModal("❌ Password must be at least 6 characters", "❌");
+        return;
+    }
+
     fetch("/" + authMode, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1765,7 +1772,12 @@ function submitAuth(event) {
             closeAuth();
             showModal("✅ Logged in successfully!", "✔️");
         } else {
-            showModal("❌ " + data.error, "❌");
+            const msg =
+                data.error?.msg ||
+                data.error?.message ||
+                "Authentication failed";
+            
+            showModal("❌ " + msg, "❌");
         }
     });
 }
