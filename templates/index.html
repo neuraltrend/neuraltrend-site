@@ -1201,7 +1201,8 @@
     <div class="modal-content">
         <h3 id="authTitle">Log In</h3>
 
-        <input id="auth-username" placeholder="Username">
+        <!-- <input id="auth-username" placeholder="Username"> -->
+        <input id="auth-username" placeholder="Email" type="email" required>
         <input id="auth-password" type="password" placeholder="Password">
 
         <button onclick="submitAuth(event)">Continue</button>
@@ -1773,11 +1774,18 @@ function submitAuth(event) {
             showModal("✅ Logged in successfully!", "✔️");
         } else {
             const msg =
-                data.error?.msg ||
-                data.error?.message ||
+                data?.error?.msg ||
+                data?.error?.message ||
                 "Authentication failed";
             
             showModal("❌ " + msg, "❌");
+
+            // const msg =
+            //     data.error?.msg ||
+            //     data.error?.message ||
+            //     "Authentication failed";
+            
+            // showModal("❌ " + msg, "❌");
         }
     });
 }
