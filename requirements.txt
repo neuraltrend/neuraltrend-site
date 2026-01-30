@@ -6,5 +6,5 @@ Flask-Login
 Flask-Bcrypt
 Flask-SQLAlchemy
 psycopg2-binary
-requests
+requests>=2.31.0
 
