@@ -472,7 +472,8 @@
 
     <!-- RIGHT: auth -->
     <div class="nav-auth">
-        <span id="authArea">Log In</span>
+        <!-- <span id="authArea">Log In</span> -->
+        <span id="authArea" onclick="openAuth('login')">Log In</span>
     </div>
 </div>
 
@@ -1210,7 +1211,8 @@
 
         <p style="margin-top:10px;">
             <span id="authToggleText">No account?</span>
-            <a style="cursor:pointer;" onclick="toggleAuthMode()">Sign up</a>
+            <!-- <a style="cursor:pointer;" onclick="toggleAuthMode()">Sign up</a> -->
+            <a style="cursor:pointer;" onclick="openAuth('signup')">Sign up</a>
         </p>
     </div>
 </div>
@@ -1706,8 +1708,20 @@ function restoreAuthState() {
         });
 }
 
+// /* Open auth modal */
+// function openAuth() {
+//     const modal = document.getElementById("authModal");
+//     modal.style.display = "block";
+//     requestAnimationFrame(() => modal.classList.add("show"));
+// }
+
 /* Open auth modal */
-function openAuth() {
+function openAuth(mode = "login") {
+    authMode = mode;
+
+    document.getElementById("authTitle").innerText =
+        mode === "login" ? "Log In" : "Sign Up";
+
     const modal = document.getElementById("authModal");
     modal.style.display = "block";
     requestAnimationFrame(() => modal.classList.add("show"));
@@ -1761,6 +1775,7 @@ function submitAuth(event) {
             showModal("❌ " + msg, "❌");
         }
     });
+    console.log("MODE:", authMode);
 }
 
 /* Logout */
