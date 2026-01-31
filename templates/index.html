@@ -1833,6 +1833,45 @@ function toggleAuthMode() {
 //     location.reload();
 // }
 
+// async function submitAuth(e) {
+//     e.preventDefault();
+
+//     const email = document.getElementById("auth-username").value.trim();
+//     const password = document.getElementById("auth-password").value;
+
+//     clearAuthError();
+
+//     const res = await fetch(authMode === "signup" ? "/signup" : "/login", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({
+//             username: email,
+//             password: password
+//         })
+//     });
+
+//     const data = await res.json();
+
+//     if (!res.ok) {
+//         showAuthError(
+//             data.msg ||
+//             data.error_description ||
+//             data.error ||
+//             "Authentication failed"
+//         );
+//         return;
+//     }
+
+//     // ✅ Close modal first
+//     closeAuthModal();
+
+//     // ✅ Update navbar immediately
+//     setLoggedIn(data.username);
+
+//     // Optional: show success message
+//     showModal("✅ Logged in successfully!", "✔️");
+// }
+
 async function submitAuth(e) {
     e.preventDefault();
 
@@ -1841,34 +1880,34 @@ async function submitAuth(e) {
 
     clearAuthError();
 
+    // Validate password length on signup
+    if (authMode === "signup" && password.length < 6) {
+        showAuthError("❌ Password must be at least 6 characters");
+        return;
+    }
+
     const res = await fetch(authMode === "signup" ? "/signup" : "/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            username: email,
-            password: password
-        })
+        body: JSON.stringify({ username: email, password })
     });
 
     const data = await res.json();
 
     if (!res.ok) {
         showAuthError(
-            data.msg ||
-            data.error_description ||
-            data.error ||
-            "Authentication failed"
+            data.msg || data.error_description || data.error || "Authentication failed"
         );
         return;
     }
 
-    // ✅ Close modal first
-    closeAuthModal();
+    // ✅ Close auth modal
+    closeAuth();
 
-    // ✅ Update navbar immediately
-    setLoggedIn(data.username);
+    // ✅ Restore navbar state
+    restoreAuthState();
 
-    // Optional: show success message
+    // ✅ Optional success message
     showModal("✅ Logged in successfully!", "✔️");
 }
 
