@@ -9,9 +9,7 @@ import time
 import json
 from functools import lru_cache
 from flask_sqlalchemy import SQLAlchemy
-# from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-# from flask_bcrypt import Bcrypt
 import requests
 
 
@@ -102,23 +100,6 @@ def compute_signals_for_ticker(ticker):
 def index():
     return render_template("index.html")
 
-# @app.route("/signup", methods=["POST"])
-# def signup():
-#     data = request.get_json()
-
-#     r = supabase_auth("signup", {
-#         "email": data["username"],
-#         "password": data["password"]
-#     })
-
-#     if r.status_code not in (200, 201):
-#         return jsonify({"error": r.json()}), 400
-
-#     auth = r.json()
-#     session["access_token"] = auth["access_token"]
-
-#     return jsonify(username=auth["user"]["email"])
-
 @app.route("/signup", methods=["POST"])
 def signup():
     data = request.get_json()
@@ -136,23 +117,6 @@ def signup():
     session["access_token"] = auth["access_token"]
 
     return jsonify(username=auth["user"]["email"])
-
-# @app.route("/login", methods=["POST"])
-# def login():
-#     data = request.get_json()
-
-#     r = supabase_auth("token?grant_type=password", {
-#         "email": data["username"],
-#         "password": data["password"]
-#     })
-
-#     if r.status_code != 200:
-#         return jsonify({"error": "Invalid credentials"}), 401
-
-#     auth = r.json()
-#     session["access_token"] = auth["access_token"]
-
-#     return jsonify(username=auth["user"]["email"])
 
 @app.route("/login", methods=["POST"])
 def login():
