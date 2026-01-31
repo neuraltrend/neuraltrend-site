@@ -1197,16 +1197,33 @@
 </div>
 
 <!-- AUTH MODAL (reuses existing modal CSS) -->
-<div id="authModal" class="modal">
+<!-- <div id="authModal" class="modal">
     <div class="modal-content">
         <h3 id="authTitle">Log In</h3>
 
-        <!-- <input id="auth-username" placeholder="Username"> -->
-        <!-- <input id="auth-username" placeholder="Email" type="email" required> -->
         <input id="auth-username" type="email" placeholder="Email" required>
         <input id="auth-password" type="password" placeholder="Password">
 
         <button onclick="submitAuth(event)">Continue</button>
+
+        <p style="margin-top:10px;">
+            <span id="authToggleText">No account?</span>
+            <a style="cursor:pointer;" onclick="toggleAuthMode()">Sign up</a>
+        </p>
+    </div>
+</div> -->
+
+<!-- AUTH MODAL -->
+<div id="authModal" class="modal">
+    <div class="modal-content">
+        <h3 id="authTitle">Log In</h3>
+
+        <form id="authForm" onsubmit="submitAuth(event)">
+            <input id="auth-username" type="email" placeholder="Email" required>
+            <input id="auth-password" type="password" placeholder="Password" required>
+
+            <button type="submit">Continue</button>
+        </form>
 
         <p style="margin-top:10px;">
             <span id="authToggleText">No account?</span>
