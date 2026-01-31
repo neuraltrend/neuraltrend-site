@@ -137,6 +137,23 @@ def signup():
 
     return jsonify(username=auth["user"]["email"])
 
+# @app.route("/login", methods=["POST"])
+# def login():
+#     data = request.get_json()
+
+#     r = supabase_auth("token?grant_type=password", {
+#         "email": data["username"],
+#         "password": data["password"]
+#     })
+
+#     if r.status_code != 200:
+#         return jsonify({"error": "Invalid credentials"}), 401
+
+#     auth = r.json()
+#     session["access_token"] = auth["access_token"]
+
+#     return jsonify(username=auth["user"]["email"])
+
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
@@ -146,8 +163,9 @@ def login():
         "password": data["password"]
     })
 
-    if r.status_code != 200:
-        return jsonify({"error": "Invalid credentials"}), 401
+    if not r.ok:
+        # 🔥 DO NOT overwrite Supabase errors
+        return jsonify(r.json()), r.status_code
 
     auth = r.json()
     session["access_token"] = auth["access_token"]
