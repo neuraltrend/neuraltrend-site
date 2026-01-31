@@ -1800,6 +1800,39 @@ function toggleAuthMode() {
 //     console.log("MODE:", authMode);
 // }
 
+// async function submitAuth(e) {
+//     e.preventDefault();
+
+//     const email = document.getElementById("auth-username").value.trim();
+//     const password = document.getElementById("auth-password").value;
+
+//     clearAuthError();
+
+//     const res = await fetch(authMode === "signup" ? "/signup" : "/login", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({
+//             username: email,
+//             password: password
+//         })
+//     });
+
+//     const data = await res.json();
+
+//     if (!res.ok) {
+//         showAuthError(
+//             data.msg ||
+//             data.error_description ||
+//             data.error ||
+//             "Authentication failed"
+//         );
+//         return;
+//     }
+
+//     closeAuthModal();
+//     location.reload();
+// }
+
 async function submitAuth(e) {
     e.preventDefault();
 
@@ -1829,8 +1862,14 @@ async function submitAuth(e) {
         return;
     }
 
+    // ✅ Close modal first
     closeAuthModal();
-    location.reload();
+
+    // ✅ Update navbar immediately
+    setLoggedIn(data.username);
+
+    // Optional: show success message
+    showModal("✅ Logged in successfully!", "✔️");
 }
 
 function showAuthError(msg) {
