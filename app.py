@@ -102,6 +102,23 @@ def compute_signals_for_ticker(ticker):
 def index():
     return render_template("index.html")
 
+# @app.route("/signup", methods=["POST"])
+# def signup():
+#     data = request.get_json()
+
+#     r = supabase_auth("signup", {
+#         "email": data["username"],
+#         "password": data["password"]
+#     })
+
+#     if r.status_code not in (200, 201):
+#         return jsonify({"error": r.json()}), 400
+
+#     auth = r.json()
+#     session["access_token"] = auth["access_token"]
+
+#     return jsonify(username=auth["user"]["email"])
+
 @app.route("/signup", methods=["POST"])
 def signup():
     data = request.get_json()
@@ -111,8 +128,9 @@ def signup():
         "password": data["password"]
     })
 
-    if r.status_code not in (200, 201):
-        return jsonify({"error": r.json()}), 400
+    if not r.ok:
+        # 🔥 Pass Supabase error THROUGH, unchanged
+        return jsonify(r.json()), r.status_code
 
     auth = r.json()
     session["access_token"] = auth["access_token"]
