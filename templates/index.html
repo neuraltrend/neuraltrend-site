@@ -1745,80 +1745,73 @@ function toggleAuthMode() {
 }
 
 // function submitAuth(event) {
-//     event.preventDefault();  // prevent form reload
-
-//     const username = document.getElementById("auth-username").value;
-//     const password = document.getElementById("auth-password").value;
-
-//     // Client-side password length check
-//     if (authMode === "signup" && password.length < 6) {
-//         showModal("❌ Password must be at least 6 characters", "❌");
-//         return;
-//     }
+//     event.preventDefault();
 
 //     fetch("/" + authMode, {
 //         method: "POST",
 //         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ username, password })
+//         body: JSON.stringify({
+//             username: document.getElementById("auth-username").value,
+//             password: document.getElementById("auth-password").value
+//         })
 //     })
-//     .then(async r => {
-//         const data = await r.json(); // parse JSON
-//         if (r.ok) {
-//             // Success: show navbar, close modal
-//             setLoggedIn(data.username);
-//             closeAuth();
-//             showModal("✅ Logged in successfully!", "✔️");
-//         } else {
-//             // Error: show modal
-//             let msg = "Authentication failed";
+//     .then(async (r) => {
+//         const data = await r.json();
 
-//             // Handle Supabase nested error
-//             if (data?.error?.msg) msg = data.error.msg;
-//             else if (data?.error?.message) msg = data.error.message;
-//             else if (typeof data?.error === "string") msg = data.error;
-//             else if (data?.error?.error_code) msg = data.error.error_code;
-
-//             showModal("❌ " + msg, "❌");
+//         if (!r.ok) {
+//             const msg =
+//                 data?.msg ||
+//                 data?.error?.msg ||
+//                 data?.error?.message ||
+//                 "Authentication failed";
+//             throw new Error(msg);
 //         }
+
+//         return data;
+//     })
+//     .then(data => {
+//         setLoggedIn(data.username);
+//         closeAuth();
+//         showModal("✅ Logged in successfully!", "✔️");
 //     })
 //     .catch(err => {
-//         showModal("❌ Network or server error", "❌");
-//         console.error(err);
+//         showModal("❌ " + err.message, "❌");
 //     });
 // }
 
 function submitAuth(event) {
     event.preventDefault();
 
+    const password = document.getElementById("auth-password").value;
+
+    if (authMode === "signup" && password.length < 6) {
+        showModal("❌ Password must be at least 6 characters", "❌");
+        return;
+    }
+
     fetch("/" + authMode, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             username: document.getElementById("auth-username").value,
-            password: document.getElementById("auth-password").value
+            password
         })
     })
-    .then(async (r) => {
-        const data = await r.json();
-
-        if (!r.ok) {
+    .then(r => r.json())
+    .then(data => {
+        if (data.username) {
+            setLoggedIn(data.username);
+            closeAuth();
+            showModal("✅ Logged in successfully!", "✔️");
+        } else {
             const msg =
                 data?.msg ||
                 data?.error?.msg ||
                 data?.error?.message ||
                 "Authentication failed";
-            throw new Error(msg);
-        }
 
-        return data;
-    })
-    .then(data => {
-        setLoggedIn(data.username);
-        closeAuth();
-        showModal("✅ Logged in successfully!", "✔️");
-    })
-    .catch(err => {
-        showModal("❌ " + err.message, "❌");
+            showModal("❌ " + msg, "❌");
+        }
     });
 }
 
