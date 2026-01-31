@@ -1198,26 +1198,6 @@
 </div>
 
 <!-- AUTH MODAL -->
-<!-- <div id="authModal" class="modal">
-    <div class="modal-content">
-        <h3 id="authTitle">Log In</h3>
-
-        <form id="authForm" onsubmit="submitAuth(event)">
-            <input id="auth-username" type="email" placeholder="Email" required>
-            <input id="auth-password" type="password" placeholder="Password" required>
-
-            <button type="submit">Continue</button>
-        </form>
-
-        <p style="margin-top:10px;">
-            <span id="authToggleText">No account?</span>
-            <!-- <a style="cursor:pointer;" onclick="toggleAuthMode()">Sign up</a> -->
-            <a style="cursor:pointer;" onclick="openAuth('signup')">Sign up</a>
-        </p>
-    </div>
-</div> -->
-
-<!-- AUTH MODAL -->
 <div id="authModal" class="modal">
     <div class="modal-content">
         <h3 id="authTitle">Log In</h3>
@@ -1730,13 +1710,6 @@ function restoreAuthState() {
         });
 }
 
-// /* Open auth modal */
-// function openAuth() {
-//     const modal = document.getElementById("authModal");
-//     modal.style.display = "block";
-//     requestAnimationFrame(() => modal.classList.add("show"));
-// }
-
 /* Open auth modal */
 function openAuth(mode = "login") {
     authMode = mode;
@@ -1762,115 +1735,6 @@ function toggleAuthMode() {
     document.getElementById("authTitle").innerText =
         authMode === "login" ? "Log In" : "Sign Up";
 }
-
-// function submitAuth(event) {
-//     event.preventDefault();
-
-//     const password = document.getElementById("auth-password").value;
-
-//     if (authMode === "signup" && password.length < 6) {
-//         showModal("❌ Password must be at least 6 characters", "❌");
-//         return;
-//     }
-
-//     fetch("/" + authMode, {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({
-//             username: document.getElementById("auth-username").value,
-//             password
-//         })
-//     })
-//     .then(r => r.json())
-//     .then(data => {
-//         if (data.username) {
-//             setLoggedIn(data.username);
-//             closeAuth();
-//             showModal("✅ Logged in successfully!", "✔️");
-//         } else {
-//             const msg =
-//                 data?.msg ||
-//                 data?.error?.msg ||
-//                 data?.error?.message ||
-//                 "Authentication failed";
-
-//             showModal("❌ " + msg, "❌");
-//         }
-//     });
-//     console.log("MODE:", authMode);
-// }
-
-// async function submitAuth(e) {
-//     e.preventDefault();
-
-//     const email = document.getElementById("auth-username").value.trim();
-//     const password = document.getElementById("auth-password").value;
-
-//     clearAuthError();
-
-//     const res = await fetch(authMode === "signup" ? "/signup" : "/login", {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({
-//             username: email,
-//             password: password
-//         })
-//     });
-
-//     const data = await res.json();
-
-//     if (!res.ok) {
-//         showAuthError(
-//             data.msg ||
-//             data.error_description ||
-//             data.error ||
-//             "Authentication failed"
-//         );
-//         return;
-//     }
-
-//     closeAuthModal();
-//     location.reload();
-// }
-
-// async function submitAuth(e) {
-//     e.preventDefault();
-
-//     const email = document.getElementById("auth-username").value.trim();
-//     const password = document.getElementById("auth-password").value;
-
-//     clearAuthError();
-
-//     const res = await fetch(authMode === "signup" ? "/signup" : "/login", {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({
-//             username: email,
-//             password: password
-//         })
-//     });
-
-//     const data = await res.json();
-
-//     if (!res.ok) {
-//         showAuthError(
-//             data.msg ||
-//             data.error_description ||
-//             data.error ||
-//             "Authentication failed"
-//         );
-//         return;
-//     }
-
-//     // ✅ Close modal first
-//     closeAuthModal();
-
-//     // ✅ Update navbar immediately
-//     setLoggedIn(data.username);
-
-//     // Optional: show success message
-//     showModal("✅ Logged in successfully!", "✔️");
-// }
 
 async function submitAuth(e) {
     e.preventDefault();
