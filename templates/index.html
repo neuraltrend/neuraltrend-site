@@ -1785,11 +1785,10 @@ function submitAuth(event) {
         const data = await r.json();
 
         if (!r.ok) {
-            // 🔥 THIS is what was missing
             const msg =
+                data?.msg ||
                 data?.error?.msg ||
                 data?.error?.message ||
-                JSON.stringify(data) ||
                 "Authentication failed";
             throw new Error(msg);
         }
