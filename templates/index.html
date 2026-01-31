@@ -1198,7 +1198,7 @@
 </div>
 
 <!-- AUTH MODAL -->
-<div id="authModal" class="modal">
+<!-- <div id="authModal" class="modal">
     <div class="modal-content">
         <h3 id="authTitle">Log In</h3>
 
@@ -1213,6 +1213,28 @@
             <span id="authToggleText">No account?</span>
             <!-- <a style="cursor:pointer;" onclick="toggleAuthMode()">Sign up</a> -->
             <a style="cursor:pointer;" onclick="openAuth('signup')">Sign up</a>
+        </p>
+    </div>
+</div> -->
+
+<!-- AUTH MODAL -->
+<div id="authModal" class="modal">
+    <div class="modal-content">
+        <h3 id="authTitle">Log In</h3>
+
+        <input id="auth-username" type="email" placeholder="Email" required>
+        <input id="auth-password" type="password" placeholder="Password">
+
+        <!-- 🔥 ERROR MESSAGE GOES HERE -->
+        <p id="authError"
+           style="color:red; display:none; margin-top:10px; font-size:0.9em;">
+        </p>
+
+        <button onclick="submitAuth(event)">Continue</button>
+
+        <p style="margin-top:10px;">
+            <span id="authToggleText">No account?</span>
+            <a style="cursor:pointer;" onclick="toggleAuthMode()">Sign up</a>
         </p>
     </div>
 </div>
@@ -1741,41 +1763,86 @@ function toggleAuthMode() {
         authMode === "login" ? "Log In" : "Sign Up";
 }
 
-function submitAuth(event) {
-    event.preventDefault();
+// function submitAuth(event) {
+//     event.preventDefault();
 
+//     const password = document.getElementById("auth-password").value;
+
+//     if (authMode === "signup" && password.length < 6) {
+//         showModal("❌ Password must be at least 6 characters", "❌");
+//         return;
+//     }
+
+//     fetch("/" + authMode, {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({
+//             username: document.getElementById("auth-username").value,
+//             password
+//         })
+//     })
+//     .then(r => r.json())
+//     .then(data => {
+//         if (data.username) {
+//             setLoggedIn(data.username);
+//             closeAuth();
+//             showModal("✅ Logged in successfully!", "✔️");
+//         } else {
+//             const msg =
+//                 data?.msg ||
+//                 data?.error?.msg ||
+//                 data?.error?.message ||
+//                 "Authentication failed";
+
+//             showModal("❌ " + msg, "❌");
+//         }
+//     });
+//     console.log("MODE:", authMode);
+// }
+
+async function submitAuth(e) {
+    e.preventDefault();
+
+    const email = document.getElementById("auth-username").value.trim();
     const password = document.getElementById("auth-password").value;
 
-    if (authMode === "signup" && password.length < 6) {
-        showModal("❌ Password must be at least 6 characters", "❌");
-        return;
-    }
+    clearAuthError();
 
-    fetch("/" + authMode, {
+    const res = await fetch(authMode === "signup" ? "/signup" : "/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            username: document.getElementById("auth-username").value,
-            password
+            username: email,
+            password: password
         })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.username) {
-            setLoggedIn(data.username);
-            closeAuth();
-            showModal("✅ Logged in successfully!", "✔️");
-        } else {
-            const msg =
-                data?.msg ||
-                data?.error?.msg ||
-                data?.error?.message ||
-                "Authentication failed";
-
-            showModal("❌ " + msg, "❌");
-        }
     });
-    console.log("MODE:", authMode);
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        showAuthError(
+            data.msg ||
+            data.error_description ||
+            data.error ||
+            "Authentication failed"
+        );
+        return;
+    }
+
+    closeAuthModal();
+    location.reload();
+}
+
+function showAuthError(msg) {
+    const el = document.getElementById("authError");
+    el.innerText = msg;
+    el.style.display = "block";
+}
+
+function clearAuthError() {
+    const el = document.getElementById("authError");
+    el.innerText = "";
+    el.style.display = "none";
 }
 
 /* Logout */
