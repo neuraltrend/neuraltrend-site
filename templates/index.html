@@ -1710,12 +1710,32 @@ function restoreAuthState() {
         });
 }
 
-/* Open auth modal */
-function openAuth(mode = "login") {
-    authMode = mode;
-
+function syncAuthUI() {
     document.getElementById("authTitle").innerText =
-        mode === "login" ? "Log In" : "Sign Up";
+        authMode === "login" ? "Log In" : "Sign Up";
+
+    document.getElementById("authToggleText").innerText =
+        authMode === "login" ? "No account?" : "Already have an account?";
+
+    document.querySelector("#authModal a").innerText =
+        authMode === "login" ? "Sign up" : "Log in";
+}
+
+/* Open auth modal */
+// function openAuth(mode = "login") {
+//     authMode = mode;
+
+//     document.getElementById("authTitle").innerText =
+//         mode === "login" ? "Log In" : "Sign Up";
+
+//     const modal = document.getElementById("authModal");
+//     modal.style.display = "block";
+//     requestAnimationFrame(() => modal.classList.add("show"));
+// }
+
+function openAuth() {
+    authMode = "login";   // ✅ always start in login mode
+    syncAuthUI();         // ✅ update title + text
 
     const modal = document.getElementById("authModal");
     modal.style.display = "block";
@@ -1730,10 +1750,15 @@ function closeAuth() {
 }
 
 /* Toggle login/signup */
+// function toggleAuthMode() {
+//     authMode = authMode === "login" ? "signup" : "login";
+//     document.getElementById("authTitle").innerText =
+//         authMode === "login" ? "Log In" : "Sign Up";
+// }
+
 function toggleAuthMode() {
     authMode = authMode === "login" ? "signup" : "login";
-    document.getElementById("authTitle").innerText =
-        authMode === "login" ? "Log In" : "Sign Up";
+    syncAuthUI();
 }
 
 async function submitAuth(e) {
