@@ -1721,18 +1721,6 @@ function syncAuthUI() {
         authMode === "login" ? "Sign up" : "Log in";
 }
 
-/* Open auth modal */
-// function openAuth(mode = "login") {
-//     authMode = mode;
-
-//     document.getElementById("authTitle").innerText =
-//         mode === "login" ? "Log In" : "Sign Up";
-
-//     const modal = document.getElementById("authModal");
-//     modal.style.display = "block";
-//     requestAnimationFrame(() => modal.classList.add("show"));
-// }
-
 function openAuth() {
     authMode = "login";   // ✅ always start in login mode
     syncAuthUI();         // ✅ update title + text
@@ -1748,13 +1736,6 @@ function closeAuth() {
     modal.classList.remove("show");
     setTimeout(() => modal.style.display = "none", 400);
 }
-
-/* Toggle login/signup */
-// function toggleAuthMode() {
-//     authMode = authMode === "login" ? "signup" : "login";
-//     document.getElementById("authTitle").innerText =
-//         authMode === "login" ? "Log In" : "Sign Up";
-// }
 
 function toggleAuthMode() {
     authMode = authMode === "login" ? "signup" : "login";
