@@ -514,7 +514,7 @@
                         <!-- HEADER (sticky, column-aligned) -->
                         <div style="
                             display: grid;
-                            grid-template-columns: 180px 120px 90px 90px 90px;
+                            grid-template-columns: 180px 120px 90px 90px 90px 90px 90px;
                             font-weight: bold;
                             font-size: 13px;
                             padding: 8px 10px;
@@ -527,6 +527,8 @@
                             <span>Yesterday</span>
                             <span>Last Week</span>
                             <span>Last Month</span>
+                            <span>Buy&Hold Annual Return</span>
+                            <span>EpochSignaler Annual Return</span>
                         </div>
             
                         <!-- SCROLLABLE BODY -->
@@ -1369,6 +1371,11 @@ function formatSignal(signal) {
     }
 }
 
+function formatPercent(value) {
+    if (value === null || value === undefined) return "-";
+    return (value * 100).toFixed(1) + "%";
+}
+
 /* ===============================
    2. QUICK SIGNAL BOARD (AUTO LOAD)
 ================================ */
@@ -1389,7 +1396,7 @@ fetch('/signals/summary')
                 onclick="loadTicker('${item.ticker}')"
                 style="
                     display: grid;
-                    grid-template-columns: 180px 120px 90px 90px 90px;
+                    grid-template-columns: 180px 120px 90px 90px 90px 90px 90px;
                     align-items: center;
                     padding: 6px 10px;
                     border-bottom: 1px solid #eee;
@@ -1402,6 +1409,8 @@ fetch('/signals/summary')
                 ${formatSignal(item.yesterday_signal)}
                 ${formatSignal(item.last_week_signal)}
                 ${formatSignal(item.last_month_signal)}
+                ${formatPercent(item.buy_hold_annual_return)}
+                ${formatPercent(item.strategy_annual_return)}
             </div>
         `).join('');
     })
