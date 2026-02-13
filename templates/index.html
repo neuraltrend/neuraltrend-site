@@ -533,12 +533,13 @@
                             <span>EpochSignaler Annual Return</span>
                         </div>
             
-                        <!-- SCROLLABLE BODY -->
+                        <!-- ROWS -->
                         <div
                             id="signal-board"
                             style="
                                 max-height: 280px;
-                                overflow-y: scroll;
+                                overflow-y: auto;
+                                width: 100%;
                             "
                         >
                             <!-- rows injected by JS -->
@@ -1398,7 +1399,7 @@ fetch('/signals/summary')
                 onclick="loadTicker('${item.ticker}')"
                 style="
                     display: grid;
-                    grid-template-columns: 180px 120px 90px 90px 90px 200px 200px;
+                    grid-template-columns: 180px 120px 90px 90px 90px 230px 230px;
                     align-items: center;
                     padding: 6px 10px;
                     border-bottom: 1px solid #eee;
