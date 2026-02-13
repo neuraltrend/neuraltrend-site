@@ -1403,18 +1403,17 @@ fetch('/signals/summary')
                     padding: 6px 10px;
                     border-bottom: 1px solid #eee;
                     cursor: pointer;
-                    white-space: nowrap;
                     box-sizing: border-box;
                     width: 100%;
                 "
             >
-                <strong>${item.ticker}</strong>
-                ${formatSignal(item.today_signal)}
-                ${formatSignal(item.yesterday_signal)}
-                ${formatSignal(item.last_week_signal)}
-                ${formatSignal(item.last_month_signal)}
-                ${formatPercent(item.buy_hold_annual_return)}
-                ${formatPercent(item.strategy_annual_return)}
+                <div style="overflow: hidden; text-overflow: ellipsis;">${item.ticker}</div>
+                <div style="text-align:center;">${formatSignal(item.today_signal)}</div>
+                <div style="text-align:center;">${formatSignal(item.yesterday_signal)}</div>
+                <div style="text-align:center;">${formatSignal(item.last_week_signal)}</div>
+                <div style="text-align:center;">${formatSignal(item.last_month_signal)}</div>
+                <div style="text-align:right;">${formatPercent(item.buy_hold_annual_return)}</div>
+                <div style="text-align:right;">${formatPercent(item.strategy_annual_return)}</div>
             </div>
         `).join('');
     })
