@@ -511,7 +511,7 @@
                         border-radius: 6px;
                     ">
             
-                        <!-- HEADER (sticky, column-aligned) -->
+                        <!-- HEADER -->
                         <div style="
                              display: grid;
                              grid-template-columns: 180px 120px 90px 90px 90px 230px 230px;
@@ -524,16 +524,16 @@
                              box-sizing: border-box;
                              width: 100%;
                         ">
-                            <span>Ticker</span>
-                            <span>Today</span>
-                            <span>Yesterday</span>
-                            <span>Last Week</span>
-                            <span>Last Month</span>
-                            <span>Buy&Hold Annual Return</span>
-                            <span>EpochSignaler Annual Return</span>
+                            <div>Ticker</div>
+                            <div style="text-align:center;">Today</div>
+                            <div style="text-align:center;">Yesterday</div>
+                            <div style="text-align:center;">Last Week</div>
+                            <div style="text-align:center;">Last Month</div>
+                            <div style="text-align:right;">Buy&Hold Annual Return</div>
+                            <div style="text-align:right;">EpochSignaler Annual Return</div>
                         </div>
-            
-                        <!-- ROWS -->
+                        
+                        <!-- BODY -->
                         <div
                             id="signal-board"
                             style="
@@ -1481,15 +1481,16 @@ function renderSignals({
                 display: grid;
                 grid-template-columns: 180px 120px 90px 90px 90px 230px 230px;
                 align-items: center;
-                gap: 10px;
+                box-sizing: border-box;
+                width: 100%;
             ">
-                <span><strong>${ticker}</strong></span>
-                <span>Today: ${formatSignal(today_signal)}</span>
-                <span>Yesterday: ${formatSignal(yesterday_signal)}</span>
-                <span>Last Week: ${formatSignal(last_week_signal)}</span>
-                <span>Last Month: ${formatSignal(last_month_signal)}</span>
-                <span>Buy&Hold Annual Return: ${formatPercent(buy_hold_annual_return)}</span>
-                <span>EpochSignaler Annual Return: ${formatPercent(strategy_annual_return)}</span>
+                <div><strong>${ticker}</strong></div>
+                <div style="text-align:center;">Today: ${formatSignal(today_signal)}</div>
+                <div style="text-align:center;">Yesterday: ${formatSignal(yesterday_signal)}</div>
+                <div style="text-align:center;">Last Week: ${formatSignal(last_week_signal)}</div>
+                <div style="text-align:center;">Last Month: ${formatSignal(last_month_signal)}</div>
+                <div style="text-align:right;">Buy&Hold Annual Return: ${formatPercent(buy_hold_annual_return)}</div>
+                <div style="text-align:right;">EpochSignaler Annual Return: ${formatPercent(strategy_annual_return)}</div>
             </div>
         </div>
     `;
