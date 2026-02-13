@@ -70,6 +70,10 @@ def get_csv_version():
     return max(mtimes) if mtimes else 0
 
 def compute_signals_for_ticker(ticker):
+
+    periods_per_year = 360
+    transaction_cost = 0.01  # 1% per transaction (per side)
+    
     delta = parse_duration('3mo')
     start_date = datetime.today().date() - delta
 
@@ -78,12 +82,67 @@ def compute_signals_for_ticker(ticker):
     csv_path = os.path.join(app.root_path, 'data', csv_filename)
 
     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
-
     signals_df = signals_df[signals_df['Date'] >= pd.to_datetime(start_date)]
     signals_df.set_index('Date', inplace=True)
 
     signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
     signals_df = signals_df.dropna()
+
+    # ---------------------------------------
+    # BUY & HOLD RETURNS
+    # ---------------------------------------
+    signals_df['bh_returns'] = signals_df['Close'].pct_change()
+    signals_df = signals_df.dropna()
+
+    # ---------------------------------------
+    # STRATEGY POSITION (no lookahead bias)
+    # ---------------------------------------
+    signals_df['position'] = (
+        signals_df['epoch_signal']
+        .replace(0, np.nan)
+        .ffill()
+        .fillna(0)
+    )
+
+    # ---------------------------------------
+    # BUILD STRATEGY EQUITY CURVE
+    # ---------------------------------------
+    equity = 1.0
+    equity_curve = []
+    prev_position = 0
+
+    for idx, row in signals_df.iterrows():
+        current_position = row['position']
+        daily_return = row['bh_returns']
+
+        # If position changes → apply transaction cost
+        if current_position != prev_position:
+            equity *= (1 - transaction_cost)
+
+        # Apply market return
+        equity *= (1 + current_position * daily_return)
+
+        equity_curve.append(equity)
+        prev_position = current_position
+
+    signals_df['strategy_equity'] = equity_curve
+
+    # CAGR FUNCTION
+    # ---------------------------------------
+    def compute_cagr_from_equity(equity_series):
+        total_periods = len(equity_series)
+        if total_periods == 0:
+            return None
+        return equity_series.iloc[-1] ** (periods_per_year / total_periods) - 1
+
+    # Buy & Hold equity
+    signals_df['bh_equity'] = (1 + signals_df['bh_returns']).cumprod()
+
+    bh_cagr = compute_cagr_from_equity(signals_df['bh_equity'])
+    strategy_cagr = compute_cagr_from_equity(signals_df['strategy_equity'])
+
+    print('buy_hold_annual_return: ', bh_cagr)
+    print('strategy_annual_return: ', strategy_cagr)
 
     return {
         'today': int(signals_df['epoch_signal'].iloc[-1]),
