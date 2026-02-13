@@ -74,7 +74,7 @@ def compute_signals_for_ticker(ticker):
     periods_per_year = 360
     transaction_cost = 0.01  # 1% per transaction (per side)
     
-    delta = parse_duration('9mo')
+    delta = parse_duration('6mo')
     start_date = datetime.today().date() - delta
 
     base_symbol = ticker.split('-')[0]
