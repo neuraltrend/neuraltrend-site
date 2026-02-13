@@ -141,9 +141,9 @@ def compute_signals_for_ticker(ticker):
         'today': int(signals_df['epoch_signal'].iloc[-1]),
         'yesterday': int(signals_df['epoch_signal'].iloc[-2]),
         'last_week': int(signals_df['epoch_signal'].iloc[-8]),
-        'last_month': int(signals_df['epoch_signal'].iloc[-31])
-        # 'buy_hold_annual_return': bh_cagr,
-        # 'strategy_annual_return': strategy_cagr
+        'last_month': int(signals_df['epoch_signal'].iloc[-31]),
+        'buy_hold_annual_return': bh_cagr,
+        'strategy_annual_return': strategy_cagr
     }
 
     # Cache result
@@ -474,6 +474,8 @@ def signals():
         'yesterday_signal': sigs['yesterday'],
         'last_week_signal': sigs['last_week'],
         'last_month_signal': sigs['last_month'],
+        'buy_hold_annual_return': sigs['buy_hold_annual_return'],
+        'strategy_annual_return': sigs['strategy_annual_return'],
     })
 
 # Cached version that invalidates when CSV files change
@@ -522,6 +524,8 @@ def compute_signals_summary_cached(csv_version):
                 'yesterday_signal': sigs['yesterday'],
                 'last_week_signal': sigs['last_week'],
                 'last_month_signal': sigs['last_month'],
+                'buy_hold_annual_return': sigs['buy_hold_annual_return'],
+                'strategy_annual_return': sigs['strategy_annual_return'],
             })
         except Exception as e:
             print(f"Skipping {t}: {e}")
