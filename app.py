@@ -122,11 +122,24 @@ def compute_signals_for_ticker(ticker):
     # -------------------------------
     # CAGR Function
     # -------------------------------
+    # def compute_cagr(equity_series):
+    #     total_periods = len(equity_series)
+    #     if total_periods == 0:
+    #         return None
+    #     return equity_series.iloc[-1] ** (periods_per_year / total_periods) - 1
+
     def compute_cagr(equity_series):
         total_periods = len(equity_series)
         if total_periods == 0:
             return None
-        return equity_series.iloc[-1] ** (periods_per_year / total_periods) - 1
+    
+        final_value = equity_series.iloc[-1]
+    
+        # Prevent invalid power operations
+        if final_value is None or np.isnan(final_value) or final_value <= 0:
+            return None
+    
+        return final_value ** (periods_per_year / total_periods) - 1
 
     bh_cagr = compute_cagr(signals_df['bh_equity'])
     strategy_cagr = compute_cagr(signals_df['strategy_equity'])
