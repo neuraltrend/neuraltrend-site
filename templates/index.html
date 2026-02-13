@@ -513,15 +513,16 @@
             
                         <!-- HEADER (sticky, column-aligned) -->
                         <div style="
-                            display: grid;
-                            grid-template-columns: 180px 120px 90px 90px 90px 180px 180px;
-                            /* grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr 1.3fr 1.3fr; */
-                            font-weight: bold;
-                            font-size: 13px;
-                            padding: 8px 10px;
-                            border-bottom: 2px solid #ccc;
-                            background: #fafafa;
-                            white-space: nowrap;
+                             display: grid;
+                             grid-template-columns: 180px 120px 90px 90px 90px 180px 180px;
+                             font-weight: bold;
+                             font-size: 13px;
+                             padding: 8px 10px;
+                             border-bottom: 2px solid #ccc;
+                             background: #fafafa;
+                             white-space: nowrap;
+                             box-sizing: border-box;
+                             width: 100%;
                         ">
                             <span>Ticker</span>
                             <span>Today</span>
@@ -1403,6 +1404,8 @@ fetch('/signals/summary')
                     border-bottom: 1px solid #eee;
                     cursor: pointer;
                     white-space: nowrap;
+                    box-sizing: border-box;
+                    width: 100%;
                 "
             >
                 <strong>${item.ticker}</strong>
