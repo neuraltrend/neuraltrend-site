@@ -69,16 +69,17 @@ def get_csv_version():
     # If no CSVs exist, still return something
     return max(mtimes) if mtimes else 0
 
-periods_per_year = 360
+periods_per_year = 365
 transaction_cost = 0.01  # 1% per transaction (per side)
 cache = {}  # simple in-memory cache per ticker
 
 def compute_signals_for_ticker(ticker):
+    
     # Return cached result if available
     if ticker in cache:
         return cache[ticker]
 
-    delta = pd.Timedelta(days=365*2)  # last 2 years
+    delta = pd.Timedelta(days=365*10)  # last 10 years
     start_date = datetime.today().date() - delta
 
     base_symbol = ticker.split('-')[0]
@@ -92,9 +93,9 @@ def compute_signals_for_ticker(ticker):
         parse_dates=['Date']
     )
 
-    # Keep only last 2 years
+    # Keep only last 10 years
     signals_df = signals_df.loc[signals_df['Date'] >= pd.to_datetime(start_date)]
-    signals_df = signals_df.tail(600)  # ~2 years of daily data
+    signals_df = signals_df.tail(365*10)  # ~10 years of daily data
     signals_df.set_index('Date', inplace=True)
     signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
     signals_df = signals_df.dropna()
