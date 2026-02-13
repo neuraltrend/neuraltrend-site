@@ -1468,6 +1468,8 @@ function renderSignals({
     yesterday_signal,
     last_week_signal,
     last_month_signal,
+    buy_hold_annual_return,
+    strategy_annual_return
 }) {
     const signalsDiv = document.getElementById('signals');
 
@@ -1477,14 +1479,17 @@ function renderSignals({
 
             <div style="
                 display: grid;
-                grid-template-columns: repeat(4, auto);
-                gap: 20px;
+                grid-template-columns: 180px 120px 90px 90px 90px 180px 180px;
                 align-items: center;
+                gap: 10px;
             ">
+                <span><strong>${ticker}</strong></span>
                 <span>Today: ${formatSignal(today_signal)}</span>
                 <span>Yesterday: ${formatSignal(yesterday_signal)}</span>
                 <span>Last Week: ${formatSignal(last_week_signal)}</span>
                 <span>Last Month: ${formatSignal(last_month_signal)}</span>
+                <span>Buy&Hold Annual Return: ${formatPercent(buy_hold_annual_return)}</span>
+                <span>EpochSignaler Annual Return: ${formatPercent(strategy_annual_return)}</span>
             </div>
         </div>
     `;
