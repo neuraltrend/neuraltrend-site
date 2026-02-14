@@ -144,8 +144,8 @@ def compute_signals_for_ticker(ticker):
     bh_cagr = compute_cagr(signals_df['bh_equity'])
     strategy_cagr = compute_cagr(signals_df['strategy_equity'])
 
-    print('buy_hold_annual_return: ', bh_cagr)
-    print('strategy_annual_return: ', strategy_cagr)
+    # print('buy_hold_annual_return: ', bh_cagr)
+    # print('strategy_annual_return: ', strategy_cagr)
 
     # -------------------------------
     # Prepare output
