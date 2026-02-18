@@ -502,69 +502,93 @@
         <section class="results-section">
 
                 <!-- QUICK SIGNAL BOARD -->
-                <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: center; margin-bottom: 30px;">
                     <div style="width: 1030px;">
                 
                         <!-- TITLE -->
-                        <h3 style="text-align: center; margin-bottom: 10px;">
+                        <h3 style="
+                            text-align: center; 
+                            margin-bottom: 20px;
+                            font-weight: 600;
+                        ">
                             EpochSignaler (Basic) Signal Overview
                         </h3>
-
-                        <!-- SEARCH BAR -->
+                
+                        <!-- CONTROL PANEL -->
                         <div style="
-                            margin-bottom: 16px;
-                            padding: 12px;
-                            background: #f4f6fb;
-                            border-radius: 8px;
-                            border: 1px solid #e0e6f5;
+                            margin-bottom: 20px;
+                            padding: 16px;
+                            background: #f7f9fc;
+                            border-radius: 10px;
+                            border: 1px solid #e3e8f3;
+                            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
                         ">
-                            
-                            <!-- Search Icon -->
-                            <span style="
-                                position: absolute;
-                                left: 10px;
-                                top: 50%;
-                                transform: translateY(-50%);
-                                font-size: 14px;
-                                color: #888;
-                                pointer-events: none;
+                
+                            <!-- Label -->
+                            <div style="
+                                font-size: 13px;
+                                font-weight: 600;
+                                margin-bottom: 8px;
+                                color: #444;
                             ">
-                                🔍
-                            </span>
-                        
-                            <input 
-                                type="text" 
-                                id="ticker-search" 
-                                placeholder="Search ticker (e.g. BTC, AAPL...)"
-                                onfocus="this.style.borderColor='#888'"
-                                onblur="this.style.borderColor='#ccc'"
-                                style="
-                                    width: 100%;
-                                    padding: 6px 10px 6px 30px; /* extra left padding for icon */
-                                    border-radius: 4px;
-                                    border: 1px solid #ccc;
+                                🔎 Filter Tickers
+                            </div>
+                
+                            <!-- Search Wrapper (fixes icon positioning) -->
+                            <div style="position: relative; max-width: 420px;">
+                
+                                <!-- Search Icon -->
+                                <span style="
+                                    position: absolute;
+                                    left: 12px;
+                                    top: 50%;
+                                    transform: translateY(-50%);
                                     font-size: 14px;
-                                    box-sizing: border-box;
-                                    background: #f8f8f8;
-                                    outline: none;
-                                "
-                            >
+                                    color: #999;
+                                    pointer-events: none;
+                                ">
+                                    🔍
+                                </span>
+                
+                                <input 
+                                    type="text" 
+                                    id="ticker-search" 
+                                    placeholder="Search ticker (e.g. BTC, AAPL...)"
+                                    onfocus="this.style.borderColor='#5b7cff'; this.style.background='#fff';"
+                                    onblur="this.style.borderColor='#d0d7e2'; this.style.background='#f8f9fb';"
+                                    style="
+                                        width: 100%;
+                                        padding: 8px 12px 8px 34px;
+                                        border-radius: 6px;
+                                        border: 1px solid #d0d7e2;
+                                        font-size: 14px;
+                                        box-sizing: border-box;
+                                        background: #f8f9fb;
+                                        outline: none;
+                                        transition: all 0.15s ease;
+                                    "
+                                >
+                            </div>
+                
                         </div>
                 
+                        <!-- SIGNAL TABLE CARD -->
                         <div style="
                             border: 1px solid #ddd;
-                            border-radius: 6px;
+                            border-radius: 8px;
+                            overflow: hidden;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
                         ">
                 
                             <!-- HEADER -->
                             <div style="
                                  display: grid;
                                  grid-template-columns: 180px 120px 90px 90px 90px 200px 220px;
-                                 font-weight: bold;
+                                 font-weight: 600;
                                  font-size: 13px;
-                                 padding: 8px 10px;
-                                 border-bottom: 2px solid #ccc;
-                                 background: #fafafa;
+                                 padding: 10px 12px;
+                                 border-bottom: 1px solid #e5e5e5;
+                                 background: #f3f5f8;
                                  white-space: nowrap;
                                  box-sizing: border-box;
                                  width: 100%;
@@ -585,6 +609,7 @@
                                     max-height: 280px;
                                     overflow-y: auto;
                                     width: 100%;
+                                    background: #fff;
                                 "
                             >
                                 <!-- rows injected by JS -->
