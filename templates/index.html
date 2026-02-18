@@ -509,30 +509,8 @@
                         <h3 style="text-align: center; margin-bottom: 10px;">
                             EpochSignaler (Basic) Signal Overview
                         </h3>
-                
-                        <!-- SEARCH BAR -->
-                        <!-- <div style="margin-bottom: 10px;">
-                            <input 
-                                type="text" 
-                                id="ticker-search" 
-                                placeholder="Search ticker (e.g. BTC, AAPL...)"
-                                onfocus="this.style.borderColor='#888'"
-                                onblur="this.style.borderColor='#ccc'"
-                                style="
-                                    width: 100%;
-                                    padding: 6px 10px;
-                                    border-radius: 4px;
-                                    border: 1px solid #ccc;
-                                    font-size: 14px;
-                                    box-sizing: border-box;
-                                    background: #f8f8f8;
-                                    outline: none;
-                                "
-                            >
-                        </div> -->
 
                         <!-- SEARCH BAR -->
-                        <!-- <div style="margin-bottom: 10px; position: relative;"> -->
                         <div style="
                             margin-bottom: 16px;
                             padding: 12px;
@@ -1483,38 +1461,6 @@ board.innerHTML = `
         Loading signals…
     </div>
 `;
-
-// fetch('/signals/summary')
-//     .then(r => r.json())
-//     .then(data => {
-//         board.innerHTML = data.map(item => `
-//             <div
-//                 onclick="loadTicker('${item.ticker}')"
-//                 style="
-//                     display: grid;
-//                     grid-template-columns: 180px 120px 90px 90px 90px 200px 220px;
-//                     align-items: center;
-//                     padding: 6px 10px;
-//                     border-bottom: 1px solid #eee;
-//                     cursor: pointer;
-//                     box-sizing: border-box;
-//                     width: 100%;
-//                 "
-//             >
-//                 <div style="overflow: hidden; text-overflow: ellipsis;">${item.ticker}</div>
-//                 <div style="text-align:center;">${formatSignal(item.today_signal)}</div>
-//                 <div style="text-align:center;">${formatSignal(item.yesterday_signal)}</div>
-//                 <div style="text-align:center;">${formatSignal(item.last_week_signal)}</div>
-//                 <div style="text-align:center;">${formatSignal(item.last_month_signal)}</div>
-//                 <div style="text-align:right;">${formatPercent(item.buy_hold_annual_return)}</div>
-//                 <div style="text-align:right;">${formatPercent(item.strategy_annual_return)}</div>
-//             </div>
-//         `).join('');
-//     })
-//     .catch(err => {
-//         board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
-//         console.error(err);
-//     });
 
 let allSignals = [];
 
