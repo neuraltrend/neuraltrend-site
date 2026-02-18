@@ -501,77 +501,79 @@
         <!-- Trade Signal -->
         <section class="results-section">
 
-            <!-- QUICK SIGNAL BOARD -->
-            <div style="display: flex; justify-content: center; margin-bottom: 20px;">
-                <div style="width: 1030px;">
-            
-                    <!-- TITLE -->
-                    <h3 style="text-align: center; margin-bottom: 10px;">
-                        EpochSignaler (Basic) Signal Overview
-                    </h3>
-            
-                    <!-- SEARCH BAR -->
-                    <div style="margin-bottom: 10px;">
-                        <input 
-                            type="text" 
-                            id="ticker-search" 
-                            placeholder="Search ticker (e.g. BTC, AAPL...)"
-                            style="
-                                width: 100%;
-                                padding: 6px 10px;
-                                border-radius: 4px;
-                                border: 1px solid #ccc;
-                                font-size: 14px;
-                                box-sizing: border-box;
-                                background: #f8f8f8;
-                                outline: none;
-                            "
-                        >
-                    </div>
-            
-                    <div style="
-                        border: 1px solid #ddd;
-                        border-radius: 6px;
-                    ">
-            
-                        <!-- HEADER -->
+                <!-- QUICK SIGNAL BOARD -->
+                <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+                    <div style="width: 1030px;">
+                
+                        <!-- TITLE -->
+                        <h3 style="text-align: center; margin-bottom: 10px;">
+                            EpochSignaler (Basic) Signal Overview
+                        </h3>
+                
+                        <!-- SEARCH BAR -->
+                        <div style="margin-bottom: 10px;">
+                            <input 
+                                type="text" 
+                                id="ticker-search" 
+                                placeholder="Search ticker (e.g. BTC, AAPL...)"
+                                onfocus="this.style.borderColor='#888'"
+                                onblur="this.style.borderColor='#ccc'"
+                                style="
+                                    width: 100%;
+                                    padding: 6px 10px;
+                                    border-radius: 4px;
+                                    border: 1px solid #ccc;
+                                    font-size: 14px;
+                                    box-sizing: border-box;
+                                    background: #f8f8f8;
+                                    outline: none;
+                                "
+                            >
+                        </div>
+                
                         <div style="
-                             display: grid;
-                             grid-template-columns: 180px 120px 90px 90px 90px 200px 220px;
-                             font-weight: bold;
-                             font-size: 13px;
-                             padding: 8px 10px;
-                             border-bottom: 2px solid #ccc;
-                             background: #fafafa;
-                             white-space: nowrap;
-                             box-sizing: border-box;
-                             width: 100%;
+                            border: 1px solid #ddd;
+                            border-radius: 6px;
                         ">
-                            <div>Ticker</div>
-                            <div style="text-align:center;">Today</div>
-                            <div style="text-align:center;">Yesterday</div>
-                            <div style="text-align:center;">Last Week</div>
-                            <div style="text-align:center;">Last Month</div>
-                            <div style="text-align:right;">Buy&Hold Annual Return</div>
-                            <div style="text-align:right;">EpochSignaler Annual Return</div>
+                
+                            <!-- HEADER -->
+                            <div style="
+                                 display: grid;
+                                 grid-template-columns: 180px 120px 90px 90px 90px 200px 220px;
+                                 font-weight: bold;
+                                 font-size: 13px;
+                                 padding: 8px 10px;
+                                 border-bottom: 2px solid #ccc;
+                                 background: #fafafa;
+                                 white-space: nowrap;
+                                 box-sizing: border-box;
+                                 width: 100%;
+                            ">
+                                <div>Ticker</div>
+                                <div style="text-align:center;">Today</div>
+                                <div style="text-align:center;">Yesterday</div>
+                                <div style="text-align:center;">Last Week</div>
+                                <div style="text-align:center;">Last Month</div>
+                                <div style="text-align:right;">Buy&Hold Annual Return</div>
+                                <div style="text-align:right;">EpochSignaler Annual Return</div>
+                            </div>
+                            
+                            <!-- BODY -->
+                            <div
+                                id="signal-board"
+                                style="
+                                    max-height: 280px;
+                                    overflow-y: auto;
+                                    width: 100%;
+                                "
+                            >
+                                <!-- rows injected by JS -->
+                            </div>
+                
                         </div>
-                        
-                        <!-- BODY -->
-                        <div
-                            id="signal-board"
-                            style="
-                                max-height: 280px;
-                                overflow-y: auto;
-                                width: 100%;
-                            "
-                        >
-                            <!-- rows injected by JS -->
-                        </div>
-            
                     </div>
                 </div>
-            </div>
-            <!-- QUICK SIGNAL BOARD END -->
+                <!-- QUICK SIGNAL BOARD END -->
         
             <div id="signals"></div>
         </section>
