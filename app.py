@@ -578,6 +578,7 @@ def signals_summary():
     period_days = int(request.args.get('period_days', 365*10))
     csv_version = get_csv_version()
     results = compute_signals_summary_cached(csv_version, period_days)
+    print("period_days received:", period_days)
     return jsonify(results)
 
 
