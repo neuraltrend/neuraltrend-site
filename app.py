@@ -74,11 +74,13 @@ transaction_cost = 0.01  # 1% per transaction (per side)
 cache = {}  # simple in-memory cache per ticker
 
 def compute_signals_for_ticker(ticker, period_days=365*10):
-    
     cache_key = (ticker, period_days)
     if cache_key in cache:
         return cache[cache_key]
 
+    # -------------------------------
+    # Prepare data
+    # -------------------------------
     delta = pd.Timedelta(days=period_days)
     start_date = datetime.today().date() - delta
 
@@ -93,11 +95,15 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
         parse_dates=['Date']
     )
 
+    # Keep only the last period_days
     signals_df = signals_df.loc[signals_df['Date'] >= pd.to_datetime(start_date)]
     signals_df = signals_df.tail(period_days)
     signals_df.set_index('Date', inplace=True)
     signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
     signals_df = signals_df.dropna()
+
+    if len(signals_df) < 2:
+        return None  # Not enough data
 
     # -------------------------------
     # Buy & Hold Returns
@@ -111,31 +117,38 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
     signals_df['position'] = signals_df['epoch_signal'].replace(0, np.nan).ffill().fillna(0)
 
     # -------------------------------
-    # Vectorized Strategy Equity with Transaction Costs
+    # Strategy Equity with Transaction Costs
     # -------------------------------
     position_change = signals_df['position'].diff().fillna(0).abs()
     cost_factor = (1 - transaction_cost) ** position_change
     gross_factor = 1 + signals_df['position'] * signals_df['bh_returns']
     signals_df['strategy_equity'] = (cost_factor * gross_factor).cumprod()
 
+    # -------------------------------
+    # Correct CAGR computation
+    # -------------------------------
     def compute_cagr(equity_series):
-        total_periods = len(equity_series)
-        if total_periods == 0:
+        if len(equity_series) < 2:
             return None
-    
-        final_value = equity_series.iloc[-1]
-    
-        # Prevent invalid power operations
-        if final_value is None or np.isnan(final_value) or final_value <= 0:
+
+        start_val = equity_series.iloc[0]
+        end_val = equity_series.iloc[-1]
+
+        if start_val <= 0 or end_val <= 0:
             return None
-    
-        return final_value ** (periods_per_year / total_periods) - 1
+
+        # Use actual number of days between first and last date
+        total_days = (equity_series.index[-1] - equity_series.index[0]).days
+        if total_days == 0:
+            return None
+
+        return (end_val / start_val) ** (365 / total_days) - 1
 
     bh_cagr = compute_cagr(signals_df['bh_equity'])
     strategy_cagr = compute_cagr(signals_df['strategy_equity'])
 
-    print(ticker, ' buy_hold_annual_return: ', bh_cagr)
-    print(ticker, ' strategy_annual_return: ', strategy_cagr)
+    print(ticker, 'buy_hold_annual_return:', bh_cagr)
+    print(ticker, 'strategy_annual_return:', strategy_cagr)
 
     # -------------------------------
     # Prepare output
@@ -148,7 +161,8 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
         'buy_hold_annual_return': bh_cagr,
         'strategy_annual_return': strategy_cagr
     }
-    
+
+    # Cache result
     cache[cache_key] = output
     return output
 
