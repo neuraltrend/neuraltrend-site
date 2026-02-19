@@ -1546,7 +1546,8 @@ let allSignals = [];
 function loadSummary() {
     const period = document.getElementById('period-select').value;
 
-    fetch(`/signals/summary?period_days=${period}`)
+    // fetch(`/signals/summary?period_days=${period}`)
+    fetch(`/signals/summary?period_days=${period}&_=${Date.now()}`)
         .then(r => r.json())
         .then(data => {
             allSignals = data;
