@@ -166,9 +166,9 @@ cache = {}  # simple in-memory cache per ticker
 #     cache[cache_key] = output
 #     return output
 
-import numpy as np
 import pandas as pd
-from datetime import datetime, timedelta
+import numpy as np
+from datetime import datetime
 import os
 
 transaction_cost = 0.01  # 1% per trade
@@ -179,7 +179,6 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
     if cache_key in cache:
         return cache[cache_key]
 
-    # Determine start date
     start_date = datetime.today().date() - pd.Timedelta(days=period_days)
 
     base_symbol = ticker.split('-')[0]
@@ -202,38 +201,46 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
         return None  # Not enough data
 
     # -------------------------------
-    # Buy & Hold
+    # Buy & Hold return (just final/initial)
     # -------------------------------
-    df['bh_log_return'] = np.log(df['Close'] / df['Close'].shift(1)).fillna(0)
-    df['bh_equity'] = np.exp(df['bh_log_return'].cumsum())
+    bh_return = df['Close'].iloc[-1] / df['Close'].iloc[0]
 
     # -------------------------------
-    # Strategy Equity
+    # Strategy return with full trades
     # -------------------------------
-    df['position'] = df['epoch_signal'].replace(0, np.nan).ffill().fillna(0)
-    # Strategy log returns
-    strat_log_returns = df['position'] * df['bh_log_return']
-    # Transaction costs (log)
-    position_change = df['position'].diff().fillna(0).abs()
-    strat_log_returns -= np.log(1 + transaction_cost) * position_change
-    df['strategy_equity'] = np.exp(strat_log_returns.cumsum())
+    equity = 1.0  # start with $1
+    position = 0  # 0 = cash, 1 = full in
 
-    # -------------------------------
-    # CAGR Calculation using actual date span
-    # -------------------------------
-    def compute_cagr(equity_series):
-        start_val = equity_series.iloc[0]
-        end_val = equity_series.iloc[-1]
-        total_days = (equity_series.index[-1] - equity_series.index[0]).days
-        if total_days == 0 or start_val <= 0 or end_val <= 0:
-            return None
-        return (end_val / start_val) ** (365 / total_days) - 1
+    for i in range(len(df)):
+        signal = df['epoch_signal'].iloc[i]
+        price_today = df['Close'].iloc[i]
 
-    bh_cagr = compute_cagr(df['bh_equity'])
-    strategy_cagr = compute_cagr(df['strategy_equity'])
+        if i == 0:
+            prev_signal = signal
+            continue
 
-    print(ticker, ' buy_hold_annual_return: ', bh_cagr)
-    print(ticker, ' strategy_annual_return: ', strategy_cagr)
+        # Only act on changes
+        if signal != prev_signal:
+            # Buy signal: move from cash to full position
+            if signal == 1:
+                if position == 0:
+                    equity *= (1 - transaction_cost)  # pay transaction cost
+                    position = 1
+            # Sell signal: move from full position to cash
+            elif signal == -1:
+                if position == 1:
+                    equity *= (1 - transaction_cost)  # pay transaction cost
+                    position = 0
+            # Note: holding (signal same) → do nothing
+
+        prev_signal = signal
+
+        # Update equity based on position
+        if position == 1:
+            # equity grows proportionally with price change
+            equity *= df['Close'].iloc[i] / df['Close'].iloc[i-1]
+
+    strategy_return = equity
 
     # -------------------------------
     # Prepare output
@@ -243,8 +250,8 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
         'yesterday': int(df['epoch_signal'].iloc[-2]),
         'last_week': int(df['epoch_signal'].iloc[-8]) if len(df) >= 8 else int(df['epoch_signal'].iloc[-1]),
         'last_month': int(df['epoch_signal'].iloc[-31]) if len(df) >= 31 else int(df['epoch_signal'].iloc[-1]),
-        'buy_hold_annual_return': bh_cagr,
-        'strategy_annual_return': strategy_cagr
+        'buy_hold_return': bh_return,
+        'strategy_return': strategy_return
     }
 
     cache[cache_key] = output
