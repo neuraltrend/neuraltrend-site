@@ -585,7 +585,7 @@
                                         font-weight: 500;
                                         color: #555;
                                     ">
-                                        Period:
+                                        Time Horizon for Annualized Returns Calculation:
                                     </span>
                 
                                     <select 
@@ -600,7 +600,6 @@
                                             outline: none;
                                         "
                                     >
-                                        <option value="30">1M</option>
                                         <option value="90">3M</option>
                                         <option value="180">6M</option>
                                         <option value="365">1Y</option>
@@ -1531,17 +1530,6 @@ board.innerHTML = `
 `;
 
 let allSignals = [];
-
-// fetch('/signals/summary')
-//     .then(r => r.json())
-//     .then(data => {
-//         allSignals = data;
-//         renderBoard(data);
-//     })
-//     .catch(err => {
-//         board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
-//         console.error(err);
-//     });
 
 function loadSummary() {
     const period = document.getElementById('period-select').value;
