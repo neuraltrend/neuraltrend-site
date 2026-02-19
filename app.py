@@ -501,8 +501,8 @@ def signals():
 @lru_cache(maxsize=1)
 def compute_signals_summary_cached(csv_version, period_days):
     tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', "DOGE-USD", "ADA-USD", "1INCH-USD", "3ULL-USD", "AAVE-USD", "ACE-USD",
-               # "ACH-USD", "AERO-USD", "AEVO-USD", "AGI-USD", "AIOZ-USD", "AIT-USD", "AITECH-USD", "AIXBT-USD", "AKT-USD", "ALEPH-USD",
-               # "ALGO-USD", "ALI-USD", "ALPH-USD", "ALT-USD", "ALU-USD", "ALVA-USD", "AMP-USD", "ANKR-USD", "ANON-USD", "ANYONE-USD",
+               "ACH-USD", "AERO-USD", "AEVO-USD", "AGI-USD", "AIOZ-USD", "AIT-USD", "AITECH-USD", "AIXBT-USD", "AKT-USD", "ALEPH-USD",
+               "ALGO-USD", "ALI-USD", "ALPH-USD", "ALT-USD", "ALU-USD", "ALVA-USD", "AMP-USD", "ANKR-USD", "ANON-USD", "ANYONE-USD",
                # "APU-USD", "AR-USD", "ARB-USD", "ARC-USD", "ASTR-USD", "ATLAS-USD", "ATOM-USD", "AURY-USD", "AUTOS-USD", "AVAX-USD", 
                # "AXL-USD", "AXS-USD", "BAG-USD", "BAI-USD", "BAL-USD", "BAND-USD", "BANANA-USD", "BASEDAI-USD", "BAZED-USD", "BCB-USD",
                # "BCUBE-USD", "BCUT-USD", "BEAM-USD", "BIGTIME-USD", "BLUR-USD", "BNT-USD", "BONK-USD", "BRETT-USD", "BXBT-USD", "BYTES-USD", 
