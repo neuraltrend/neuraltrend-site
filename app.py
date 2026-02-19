@@ -185,69 +185,55 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
     csv_filename = f"epoch_{base_symbol}.csv"
     csv_path = os.path.join(app.root_path, 'data', csv_filename)
 
-    # Load CSV
-    df = pd.read_csv(
-        csv_path,
-        usecols=['Date', 'Close', 'epoch_signal'],
-        parse_dates=['Date']
-    )
-
+    df = pd.read_csv(csv_path, usecols=['Date', 'Close', 'epoch_signal'], parse_dates=['Date'])
     df = df[df['Date'] >= pd.to_datetime(start_date)].copy()
     df.set_index('Date', inplace=True)
     df['Close'] = pd.to_numeric(df['Close'], errors='coerce')
+    df['epoch_signal'] = pd.to_numeric(df['epoch_signal'], errors='coerce')
     df = df.dropna()
 
     if len(df) < 2:
-        return None  # Not enough data
+        print(f"{ticker}: not enough data")
+        return None
 
     # -------------------------------
-    # Buy & Hold return (just final/initial)
+    # Buy & Hold return
     # -------------------------------
     bh_return = df['Close'].iloc[-1] / df['Close'].iloc[0]
 
     # -------------------------------
-    # Strategy return with full trades
+    # Strategy return
     # -------------------------------
-    equity = 1.0  # start with $1
-    position = 0  # 0 = cash, 1 = full in
+    equity = 1.0
+    position = 0
+    prev_signal = df['epoch_signal'].iloc[0]  # initialize first signal
 
-    for i in range(len(df)):
+    for i in range(1, len(df)):
         signal = df['epoch_signal'].iloc[i]
-        price_today = df['Close'].iloc[i]
 
-        if i == 0:
-            prev_signal = signal
-            continue
-
-        # Only act on changes
+        # act only on signal change
         if signal != prev_signal:
-            # Buy signal: move from cash to full position
-            if signal == 1:
-                if position == 0:
-                    equity *= (1 - transaction_cost)  # pay transaction cost
-                    position = 1
-            # Sell signal: move from full position to cash
-            elif signal == -1:
-                if position == 1:
-                    equity *= (1 - transaction_cost)  # pay transaction cost
-                    position = 0
-            # Note: holding (signal same) → do nothing
+            if signal == 1 and position == 0:
+                equity *= (1 - transaction_cost)
+                position = 1
+            elif signal == -1 and position == 1:
+                equity *= (1 - transaction_cost)
+                position = 0
+
+        # update equity according to price change if in position
+        if position == 1:
+            equity *= df['Close'].iloc[i] / df['Close'].iloc[i-1]
 
         prev_signal = signal
-
-        # Update equity based on position
-        if position == 1:
-            # equity grows proportionally with price change
-            equity *= df['Close'].iloc[i] / df['Close'].iloc[i-1]
 
     strategy_return = equity
 
     # -------------------------------
-    # Prepare output
+    # Prepare output safely
     # -------------------------------
     output = {
         'today': int(df['epoch_signal'].iloc[-1]),
-        'yesterday': int(df['epoch_signal'].iloc[-2]),
+        'yesterday': int(df['epoch_signal'].iloc[-2]) if len(df) >= 2 else int(df['epoch_signal'].iloc[-1]),
         'last_week': int(df['epoch_signal'].iloc[-8]) if len(df) >= 8 else int(df['epoch_signal'].iloc[-1]),
         'last_month': int(df['epoch_signal'].iloc[-31]) if len(df) >= 31 else int(df['epoch_signal'].iloc[-1]),
         'buy_hold_return': bh_return,
