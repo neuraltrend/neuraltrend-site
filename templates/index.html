@@ -602,10 +602,10 @@
                                     >
                                         <option value="90">3M</option>
                                         <option value="180">6M</option>
-                                        <option value="365">1Y</option>
+                                        <option value="365" selected>1Y</option>
                                         <option value="1095">3Y</option>
                                         <option value="1825">5Y</option>
-                                        <option value="3650" selected>10Y</option>
+                                        <option value="3650">10Y</option>
                                     </select>
                 
                                 </div>
@@ -639,8 +639,8 @@
                                 <div style="text-align:center;">Yesterday</div>
                                 <div style="text-align:center;">Last Week</div>
                                 <div style="text-align:center;">Last Month</div>
-                                <div style="text-align:right;">Buy&Hold Annual Return</div>
-                                <div style="text-align:right;">EpochSignaler Annual Return</div>
+                                <div style="text-align:right;">Buy&Hold Return</div>
+                                <div style="text-align:right;">EpochSignaler Return</div>
                             </div>
                             
                             <!-- BODY -->
@@ -1685,8 +1685,8 @@ function renderSignals({
                 <div style="text-align:center;">Yesterday: ${formatSignal(yesterday_signal)}</div>
                 <div style="text-align:center;">Last Week: ${formatSignal(last_week_signal)}</div>
                 <div style="text-align:center;">Last Month: ${formatSignal(last_month_signal)}</div>
-                <div style="text-align:right;">Buy&Hold Annual Return: ${formatPercent(buy_hold_annual_return)}</div>
-                <div style="text-align:right;">EpochSignaler Annual Return: ${formatPercent(strategy_annual_return)}</div>
+                <div style="text-align:right;">Buy&Hold Return: ${formatPercent(buy_hold_annual_return)}</div>
+                <div style="text-align:right;">EpochSignaler Return: ${formatPercent(strategy_annual_return)}</div>
             </div>
         </div>
     `;
