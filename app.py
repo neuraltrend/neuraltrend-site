@@ -523,14 +523,14 @@ def compute_signals_summary_cached(csv_version, period_days):
                "PAID-USD", "PANDORA-USD", "PDA-USD", "PENDLE-USD", "PENG-USD", "PENGU-USD", "PEPE-USD", "PERP-USD", "PHA-USD", 
                "PIN-USD", "PIXEL-USD", "POL-USD", "POLS-USD", "POLYX-USD", "PORTAL-USD", "PRIME-USD", "PROPC-USD", "PYR-USD", 
                "PYTH-USD", "QANX-USD", "QI-USD", "QNT-USD", "RAY-USD", "RARE-USD", "RARI-USD", "RDT-USD", "REN-USD", "RENDER-USD", 
-               # "REQ-USD", "RIO-USD", "RLB-USD", "RMRK-USD", "RON-USD", "ROOT-USD", "RSC-USD", "RSR-USD", "RSS3-USD", "RST-USD",
-               # "RSTK-USD", "RUNE-USD", "SAFE-USD", "SC-USD", "SCAR-USD", "SEI-USD", "SENATE-USD", "SERSH-USD", "SHDW-USD", "SHIB-USD", 
-               # "SHIDO-USD", "SHRAP-USD", "SIDUS-USD", "SIPHER-USD", "SKL-USD", "SNS-USD", "SPEC-USD", "SPELL-USD", "SRM-USD", "SSV-USD", 
-               # "STEP-USD", "STG-USD", "STORJ-USD", "STRK-USD", "SUI-USD", "SUNDOG-USD", "SUPER-USD", "SYNT-USD", "TAI-USD", "TAO-USD", 
-               # "TET-USD", "TFUEL-USD", "THETA-USD", "TLOS-USD", "TON-USD", "TRAC-USD", "TRIAS-USD", "TRU-USD", "TURBO-USD", "UNI-USD", 
-               # "UNIBOT-USD", "UOS-USD", "VAI-USD", "VET-USD", "VIA-USD", "VIRTUAL-USD", "VPP-USD", "VR-USD", "VRA-USD", "WAGMIGAMES-USD",
-               # "WAXP-USD", "WELT-USD", "WHALES-USD", "WIF-USD", "WIFI-USD", "WILD-USD", "WINR-USD", "WMTX-USD", "XAI-USD", "XCAD-USD",
-               # "XLM-USD", "XTZ-USD", "XYO-USD", "YGG-USD", "ZBCN-USD", "ZEN-USD", "ZEREBRO-USD", "ZETA-USD", "ZIG-USD", "ZKJ-USD",
+               "REQ-USD", "RIO-USD", "RLB-USD", "RMRK-USD", "RON-USD", "ROOT-USD", "RSC-USD", "RSR-USD", "RSS3-USD", "RST-USD",
+               "RSTK-USD", "RUNE-USD", "SAFE-USD", "SC-USD", "SCAR-USD", "SEI-USD", "SENATE-USD", "SERSH-USD", "SHDW-USD", "SHIB-USD", 
+               "SHIDO-USD", "SHRAP-USD", "SIDUS-USD", "SIPHER-USD", "SKL-USD", "SNS-USD", "SPEC-USD", "SPELL-USD", "SRM-USD", "SSV-USD", 
+               "STEP-USD", "STG-USD", "STORJ-USD", "STRK-USD", "SUI-USD", "SUNDOG-USD", "SUPER-USD", "SYNT-USD", "TAI-USD", "TAO-USD", 
+               "TET-USD", "TFUEL-USD", "THETA-USD", "TLOS-USD", "TON-USD", "TRAC-USD", "TRIAS-USD", "TRU-USD", "TURBO-USD", "UNI-USD", 
+               "UNIBOT-USD", "UOS-USD", "VAI-USD", "VET-USD", "VIA-USD", "VIRTUAL-USD", "VPP-USD", "VR-USD", "VRA-USD", "WAGMIGAMES-USD",
+               "WAXP-USD", "WELT-USD", "WHALES-USD", "WIF-USD", "WIFI-USD", "WILD-USD", "WINR-USD", "WMTX-USD", "XAI-USD", "XCAD-USD",
+               "XLM-USD", "XTZ-USD", "XYO-USD", "YGG-USD", "ZBCN-USD", "ZEN-USD", "ZEREBRO-USD", "ZETA-USD", "ZIG-USD", "ZKJ-USD",
                "ZRX-USD"]
     results = []
 
