@@ -73,13 +73,15 @@ periods_per_year = 365
 transaction_cost = 0.01  # 1% per transaction (per side)
 cache = {}  # simple in-memory cache per ticker
 
-def compute_signals_for_ticker(ticker):
+# def compute_signals_for_ticker(ticker):
+def compute_signals_for_ticker(ticker, period_days=365*10):
     
     # Return cached result if available
     if ticker in cache:
         return cache[ticker]
 
-    delta = pd.Timedelta(days=365*10)  # last 10 years
+    # delta = pd.Timedelta(days=365*10)  # last 10 years
+    delta = pd.Timedelta(days=period_days)
     start_date = datetime.today().date() - delta
 
     base_symbol = ticker.split('-')[0]
@@ -95,7 +97,8 @@ def compute_signals_for_ticker(ticker):
 
     # Keep only last 10 years
     signals_df = signals_df.loc[signals_df['Date'] >= pd.to_datetime(start_date)]
-    signals_df = signals_df.tail(365*10)  # ~10 years of daily data
+    # signals_df = signals_df.tail(365*10)  # ~10 years of daily data
+    signals_df = signals_df.tail(period_days)
     signals_df.set_index('Date', inplace=True)
     signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
     signals_df = signals_df.dropna()
@@ -476,10 +479,27 @@ def backtest():
 
     return jsonify(results)
 
+# @app.route('/signals', methods=['POST'])
+# def signals():
+#     ticker = request.form['ticker']
+#     sigs = compute_signals_for_ticker(ticker)
+
+#     return jsonify({
+#         'ticker': ticker,
+#         'today_signal': sigs['today'],
+#         'yesterday_signal': sigs['yesterday'],
+#         'last_week_signal': sigs['last_week'],
+#         'last_month_signal': sigs['last_month'],
+#         'buy_hold_annual_return': sigs['buy_hold_annual_return'],
+#         'strategy_annual_return': sigs['strategy_annual_return'],
+#     })
+
 @app.route('/signals', methods=['POST'])
 def signals():
     ticker = request.form['ticker']
-    sigs = compute_signals_for_ticker(ticker)
+    period_days = int(request.form.get('period_days', 365*10))
+
+    sigs = compute_signals_for_ticker(ticker, period_days)
 
     return jsonify({
         'ticker': ticker,
@@ -493,7 +513,8 @@ def signals():
 
 # Cached version that invalidates when CSV files change
 @lru_cache(maxsize=1)
-def compute_signals_summary_cached(csv_version):
+# def compute_signals_summary_cached(csv_version):
+def compute_signals_summary_cached(csv_version, period_days):
     tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', "DOGE-USD", "ADA-USD", "1INCH-USD", "3ULL-USD", "AAVE-USD", "ACE-USD",
                "ACH-USD", "AERO-USD", "AEVO-USD", "AGI-USD", "AIOZ-USD", "AIT-USD", "AITECH-USD", "AIXBT-USD", "AKT-USD", "ALEPH-USD",
                "ALGO-USD", "ALI-USD", "ALPH-USD", "ALT-USD", "ALU-USD", "ALVA-USD", "AMP-USD", "ANKR-USD", "ANON-USD", "ANYONE-USD",
@@ -530,7 +551,8 @@ def compute_signals_summary_cached(csv_version):
 
     for t in tickers:
         try:
-            sigs = compute_signals_for_ticker(t)
+            # sigs = compute_signals_for_ticker(t)
+            sigs = compute_signals_for_ticker(t, period_days)
             results.append({
                 'ticker': t,
                 'today_signal': sigs['today'],
@@ -545,11 +567,19 @@ def compute_signals_summary_cached(csv_version):
 
     return results
 
-@app.route('/signals/summary', methods=['GET'])
+# @app.route('/signals/summary', methods=['GET'])
+# def signals_summary():
+#     csv_version = get_csv_version()  # Step 2 helper
+#     results = compute_signals_summary_cached(csv_version)
+#     return jsonify(results)
+
+@app.route('/signals/summary')
 def signals_summary():
-    csv_version = get_csv_version()  # Step 2 helper
-    results = compute_signals_summary_cached(csv_version)
+    period_days = int(request.args.get('period_days', 365*10))
+    csv_version = get_csv_version()
+    results = compute_signals_summary_cached(csv_version, period_days)
     return jsonify(results)
+
 
 # if __name__ == '__main__':
 #     app.run(debug=True)
