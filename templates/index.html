@@ -528,48 +528,90 @@
                             <div style="
                                 font-size: 13px;
                                 font-weight: 600;
-                                margin-bottom: 8px;
+                                margin-bottom: 10px;
                                 color: #444;
                             ">
-                                🔎 Filter Tickers
+                                🔎 Filter & Compare Performance
                             </div>
                 
-                            <!-- Search Wrapper (fixes icon positioning) -->
-                            <div style="position: relative; max-width: 420px;">
+                            <!-- Search + Period Row -->
+                            <div style="
+                                display: flex;
+                                gap: 14px;
+                                align-items: center;
+                                flex-wrap: wrap;
+                            ">
                 
-                                <!-- Search Icon -->
-                                <span style="
-                                    position: absolute;
-                                    left: 12px;
-                                    top: 50%;
-                                    transform: translateY(-50%);
-                                    font-size: 14px;
-                                    color: #999;
-                                    pointer-events: none;
-                                ">
-                                    🔍
-                                </span>
+                                <!-- SEARCH -->
+                                <div style="position: relative; width: 420px;">
                 
-                                <input 
-                                    type="text" 
-                                    id="ticker-search" 
-                                    placeholder="Search ticker (e.g. BTC, AAPL...)"
-                                    onfocus="this.style.borderColor='#5b7cff'; this.style.background='#fff';"
-                                    onblur="this.style.borderColor='#d0d7e2'; this.style.background='#f8f9fb';"
-                                    style="
-                                        width: 100%;
-                                        padding: 8px 12px 8px 34px;
-                                        border-radius: 6px;
-                                        border: 1px solid #d0d7e2;
+                                    <span style="
+                                        position: absolute;
+                                        left: 12px;
+                                        top: 50%;
+                                        transform: translateY(-50%);
                                         font-size: 14px;
-                                        box-sizing: border-box;
-                                        background: #f8f9fb;
-                                        outline: none;
-                                        transition: all 0.15s ease;
-                                    "
-                                >
-                            </div>
+                                        color: #999;
+                                        pointer-events: none;
+                                    ">
+                                        🔍
+                                    </span>
                 
+                                    <input 
+                                        type="text" 
+                                        id="ticker-search" 
+                                        placeholder="Search ticker (e.g. BTC, AAPL...)"
+                                        onfocus="this.style.borderColor='#5b7cff'; this.style.background='#fff';"
+                                        onblur="this.style.borderColor='#d0d7e2'; this.style.background='#f8f9fb';"
+                                        style="
+                                            width: 100%;
+                                            padding: 8px 12px 8px 34px;
+                                            border-radius: 6px;
+                                            border: 1px solid #d0d7e2;
+                                            font-size: 14px;
+                                            box-sizing: border-box;
+                                            background: #f8f9fb;
+                                            outline: none;
+                                            transition: all 0.15s ease;
+                                        "
+                                    >
+                                </div>
+                
+                                <!-- PERIOD DROPDOWN -->
+                                <div style="display:flex; align-items:center; gap:6px;">
+                
+                                    <span style="
+                                        font-size: 13px;
+                                        font-weight: 500;
+                                        color: #555;
+                                    ">
+                                        Period:
+                                    </span>
+                
+                                    <select 
+                                        id="period-select"
+                                        style="
+                                            padding: 8px 10px;
+                                            border-radius: 6px;
+                                            border: 1px solid #d0d7e2;
+                                            font-size: 14px;
+                                            background: #fff;
+                                            cursor: pointer;
+                                            outline: none;
+                                        "
+                                    >
+                                        <option value="30">1M</option>
+                                        <option value="90">3M</option>
+                                        <option value="180">6M</option>
+                                        <option value="365">1Y</option>
+                                        <option value="1095">3Y</option>
+                                        <option value="1825">5Y</option>
+                                        <option value="3650" selected>10Y</option>
+                                    </select>
+                
+                                </div>
+                
+                            </div>
                         </div>
                 
                         <!-- SIGNAL TABLE CARD -->
@@ -616,6 +658,7 @@
                             </div>
                 
                         </div>
+                
                     </div>
                 </div>
                 <!-- QUICK SIGNAL BOARD END -->
@@ -1489,15 +1532,43 @@ board.innerHTML = `
 
 let allSignals = [];
 
-fetch('/signals/summary')
-    .then(r => r.json())
-    .then(data => {
-        allSignals = data;
-        renderBoard(data);
-    })
-    .catch(err => {
-        board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
-        console.error(err);
+// fetch('/signals/summary')
+//     .then(r => r.json())
+//     .then(data => {
+//         allSignals = data;
+//         renderBoard(data);
+//     })
+//     .catch(err => {
+//         board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
+//         console.error(err);
+//     });
+
+function loadSummary() {
+    const period = document.getElementById('period-select').value;
+
+    fetch(`/signals/summary?period_days=${period}`)
+        .then(r => r.json())
+        .then(data => {
+            allSignals = data;
+            renderBoard(data);
+        })
+        .catch(err => {
+            board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
+            console.error(err);
+        });
+}
+
+// Load on page start
+loadSummary();
+
+document.getElementById('period-select')
+    .addEventListener('change', function() {
+        board.innerHTML = `
+            <div style="text-align:center; color:#888; padding:20px;">
+                Updating period…
+            </div>
+        `;
+        loadSummary();
     });
 
 document.getElementById('ticker-search')
@@ -1521,6 +1592,7 @@ function loadTicker(ticker) {
     select.value = ticker;
 
     const formData = new FormData(document.getElementById('signal-form'));
+    formData.append('period_days', document.getElementById('period-select').value);
 
     fetch('/signals', {
         method: 'POST',
