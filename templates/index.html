@@ -1491,57 +1491,57 @@ function formatPercent(value) {
     return (value * 100).toFixed(1) + "%";
 }
 
-// function renderBoard(data) {
-//     board.innerHTML = data.map(item => `
-//         <div
-//             onclick="loadTicker('${item.ticker}')"
-//             style="
-//                 display: grid;
-//                 grid-template-columns: 180px 120px 90px 90px 90px 200px 220px;
-//                 align-items: center;
-//                 padding: 6px 10px;
-//                 border-bottom: 1px solid #eee;
-//                 cursor: pointer;
-//                 box-sizing: border-box;
-//                 width: 100%;
-//             "
-//         >
-//             <div>${item.ticker}</div>
-//             <div style="text-align:center;">${formatSignal(item.today_signal)}</div>
-//             <div style="text-align:center;">${formatSignal(item.yesterday_signal)}</div>
-//             <div style="text-align:center;">${formatSignal(item.last_week_signal)}</div>
-//             <div style="text-align:center;">${formatSignal(item.last_month_signal)}</div>
-//             <div style="text-align:right;">${formatPercent(item.buy_hold_annual_return)}</div>
-//             <div style="text-align:right;">${formatPercent(item.strategy_annual_return)}</div>
-//         </div>
-//     `).join('');
-// }
-
-function renderBoard(signals) {
-    const board = document.getElementById('signal-board');
-    board.innerHTML = '';
-
-    signals.forEach(sig => {
-        const row = document.createElement('div');
-        row.style.display = 'grid';
-        row.style.gridTemplateColumns = '180px 120px 90px 90px 90px 200px 220px';
-        row.style.fontSize = '13px';
-        row.style.padding = '6px 12px';
-        row.style.borderBottom = '1px solid #eee';
-        row.style.alignItems = 'center';
-        
-        row.innerHTML = `
-            <div>${sig.ticker}</div>
-            <div style="text-align:center;">${sig.today_signal}</div>
-            <div style="text-align:center;">${sig.yesterday_signal}</div>
-            <div style="text-align:center;">${sig.last_week_signal}</div>
-            <div style="text-align:center;">${sig.last_month_signal}</div>
-            <div style="text-align:right;">${(sig.buy_hold_return || 0).toFixed(2)}x</div>
-            <div style="text-align:right;">${(sig.strategy_return || 0).toFixed(2)}x</div>
-        `;
-        board.appendChild(row);
-    });
+function renderBoard(data) {
+    board.innerHTML = data.map(item => `
+        <div
+            onclick="loadTicker('${item.ticker}')"
+            style="
+                display: grid;
+                grid-template-columns: 180px 120px 90px 90px 90px 200px 220px;
+                align-items: center;
+                padding: 6px 10px;
+                border-bottom: 1px solid #eee;
+                cursor: pointer;
+                box-sizing: border-box;
+                width: 100%;
+            "
+        >
+            <div>${item.ticker}</div>
+            <div style="text-align:center;">${formatSignal(item.today_signal)}</div>
+            <div style="text-align:center;">${formatSignal(item.yesterday_signal)}</div>
+            <div style="text-align:center;">${formatSignal(item.last_week_signal)}</div>
+            <div style="text-align:center;">${formatSignal(item.last_month_signal)}</div>
+            <div style="text-align:right;">${formatPercent(item.buy_hold_annual_return)}</div>
+            <div style="text-align:right;">${formatPercent(item.strategy_annual_return)}</div>
+        </div>
+    `).join('');
 }
+
+// function renderBoard(signals) {
+//     const board = document.getElementById('signal-board');
+//     board.innerHTML = '';
+
+//     signals.forEach(sig => {
+//         const row = document.createElement('div');
+//         row.style.display = 'grid';
+//         row.style.gridTemplateColumns = '180px 120px 90px 90px 90px 200px 220px';
+//         row.style.fontSize = '13px';
+//         row.style.padding = '6px 12px';
+//         row.style.borderBottom = '1px solid #eee';
+//         row.style.alignItems = 'center';
+        
+//         row.innerHTML = `
+//             <div>${sig.ticker}</div>
+//             <div style="text-align:center;">${sig.today_signal}</div>
+//             <div style="text-align:center;">${sig.yesterday_signal}</div>
+//             <div style="text-align:center;">${sig.last_week_signal}</div>
+//             <div style="text-align:center;">${sig.last_month_signal}</div>
+//             <div style="text-align:right;">${(sig.buy_hold_return || 0).toFixed(2)}x</div>
+//             <div style="text-align:right;">${(sig.strategy_return || 0).toFixed(2)}x</div>
+//         `;
+//         board.appendChild(row);
+//     });
+// }
 
 /* ===============================
    2. QUICK SIGNAL BOARD (AUTO LOAD)
@@ -1602,40 +1602,40 @@ document.getElementById('ticker-search')
    3. LOAD TICKER FROM BOARD CLICK
 ================================ */
 
-// function loadTicker(ticker) {
-//     const select = document.getElementById('ticker');
-//     select.value = ticker;
-
-//     const formData = new FormData(document.getElementById('signal-form'));
-//     formData.append('period_days', document.getElementById('period-select').value);
-
-//     fetch('/signals', {
-//         method: 'POST',
-//         body: formData
-//     })
-//     .then(r => r.json())
-//     .then(renderSignals);
-// }
-
 function loadTicker(ticker) {
-    const period = document.getElementById('period-select').value;
+    const select = document.getElementById('ticker');
+    select.value = ticker;
 
-    const formData = new FormData();
-    formData.append('ticker', ticker);
-    formData.append('period_days', period);
+    const formData = new FormData(document.getElementById('signal-form'));
+    formData.append('period_days', document.getElementById('period-select').value);
 
     fetch('/signals', {
         method: 'POST',
         body: formData
     })
     .then(r => r.json())
-    .then(data => {
-        // Update table row for this ticker
-        console.log(data);
-        renderSignalsForTicker(data); // your existing function to render ticker details
-    })
-    .catch(err => console.error(err));
+    .then(renderSignals);
 }
+
+// function loadTicker(ticker) {
+//     const period = document.getElementById('period-select').value;
+
+//     const formData = new FormData();
+//     formData.append('ticker', ticker);
+//     formData.append('period_days', period);
+
+//     fetch('/signals', {
+//         method: 'POST',
+//         body: formData
+//     })
+//     .then(r => r.json())
+//     .then(data => {
+//         // Update table row for this ticker
+//         console.log(data);
+//         renderSignalsForTicker(data); // your existing function to render ticker details
+//     })
+//     .catch(err => console.error(err));
+// }
 
 /* ===============================
    4. EXISTING FORM SUBMIT (STILL WORKS)
