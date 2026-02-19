@@ -185,6 +185,9 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
     csv_filename = f"epoch_{base_symbol}.csv"
     csv_path = os.path.join(app.root_path, 'data', csv_filename)
 
+    # -------------------------------
+    # Load data
+    # -------------------------------
     df = pd.read_csv(csv_path, usecols=['Date', 'Close', 'epoch_signal'], parse_dates=['Date'])
     df = df[df['Date'] >= pd.to_datetime(start_date)].copy()
     df.set_index('Date', inplace=True)
@@ -202,31 +205,34 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
     bh_return = df['Close'].iloc[-1] / df['Close'].iloc[0]
 
     # -------------------------------
-    # Strategy return
+    # Strategy return (cash-based)
     # -------------------------------
-    equity = 1.0
-    position = 0
-    prev_signal = df['epoch_signal'].iloc[0]  # initialize first signal
+    cash = 1.0
+    shares = 0.0  # number of shares held
 
-    for i in range(1, len(df)):
-        signal = df['epoch_signal'].iloc[i]
+    for i in range(len(df)):
+        sig = df['epoch_signal'].iloc[i]
+        price = df['Close'].iloc[i]
 
-        # act only on signal change
-        if signal != prev_signal:
-            if signal == 1 and position == 0:
-                equity *= (1 - transaction_cost)
-                position = 1
-            elif signal == -1 and position == 1:
-                equity *= (1 - transaction_cost)
-                position = 0
+        # BUY signal: buy full position if not already in
+        if sig == 1 and shares == 0:
+            shares = cash / price
+            cash = 0
+            shares *= (1 - transaction_cost)  # subtract transaction cost
 
-        # update equity according to price change if in position
-        if position == 1:
-            equity *= df['Close'].iloc[i] / df['Close'].iloc[i-1]
+        # SELL signal: sell full position if holding
+        elif sig == -1 and shares > 0:
+            cash = shares * price
+            cash *= (1 - transaction_cost)  # subtract transaction cost
+            shares = 0
 
-        prev_signal = signal
+    # Final liquidation if still holding shares
+    if shares > 0:
+        cash = shares * df['Close'].iloc[-1]
+        cash *= (1 - transaction_cost)
+        shares = 0
 
-    strategy_return = equity
+    strategy_return = cash  # final equity
 
     # -------------------------------
     # Prepare output safely
@@ -236,12 +242,13 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
         'yesterday': int(df['epoch_signal'].iloc[-2]) if len(df) >= 2 else int(df['epoch_signal'].iloc[-1]),
         'last_week': int(df['epoch_signal'].iloc[-8]) if len(df) >= 8 else int(df['epoch_signal'].iloc[-1]),
         'last_month': int(df['epoch_signal'].iloc[-31]) if len(df) >= 31 else int(df['epoch_signal'].iloc[-1]),
-        'buy_hold_annual_return': bh_return,
-        'strategy_annual_return': strategy_return
+        'buy_hold_return': bh_return,       # raw return over the period
+        'strategy_return': strategy_return  # raw return over the period
     }
 
     cache[cache_key] = output
     return output
+
 
 # --------------------
 # Routes
