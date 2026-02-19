@@ -80,9 +80,9 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
     # if ticker in cache:
     #     return cache[ticker]
     
-    # cache_key = (ticker, period_days)
-    # if cache_key in cache:
-    #     return cache[cache_key]
+    cache_key = (ticker, period_days)
+    if cache_key in cache:
+        return cache[cache_key]
 
 
     # delta = pd.Timedelta(days=365*10)  # last 10 years
@@ -169,7 +169,7 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
 
     # Cache result
     # cache[ticker] = output
-    # cache[cache_key] = output
+    cache[cache_key] = output
     return output
 
 
