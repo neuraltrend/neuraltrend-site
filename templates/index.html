@@ -1501,6 +1501,9 @@ function renderResults({
    1. HELPERS
 ================================ */
 
+let allSignals = [];
+let defaultOrder = [];
+
 function formatSignal(signal) {
     if (signal === 1) {
         return `<span style="color: green; font-weight: bold;">▲ BUY</span>`;
@@ -1521,21 +1524,52 @@ let currentSort = {
     direction: 1   // 1 = ascending, -1 = descending
 };
 
+// function sortBy(key) {
+
+//     // Toggle direction if clicking same column
+//     if (currentSort.key === key) {
+//         currentSort.direction *= -1;
+//     } else {
+//         currentSort.key = key;
+//         currentSort.direction = 1;
+//     }
+
+//     const sorted = [...allSignals].sort((a, b) => {
+
+//         let valA = a[key] ?? 0;
+//         let valB = b[key] ?? 0;
+
+//         return (valA - valB) * currentSort.direction;
+//     });
+
+//     renderBoard(sorted);
+// }
+
 function sortBy(key) {
 
-    // Toggle direction if clicking same column
-    if (currentSort.key === key) {
-        currentSort.direction *= -1;
-    } else {
+    // If new column
+    if (currentSort.key !== key) {
         currentSort.key = key;
         currentSort.direction = 1;
     }
+    // If same column
+    else {
+        // Asc -> Desc
+        if (currentSort.direction === 1) {
+            currentSort.direction = -1;
+        }
+        // Desc -> Default
+        else {
+            currentSort.key = null;
+            currentSort.direction = 1;
+            renderBoard(defaultOrder);
+            return;
+        }
+    }
 
     const sorted = [...allSignals].sort((a, b) => {
-
         let valA = a[key] ?? 0;
         let valB = b[key] ?? 0;
-
         return (valA - valB) * currentSort.direction;
     });
 
@@ -1606,8 +1640,6 @@ board.innerHTML = `
     </div>
 `;
 
-let allSignals = [];
-
 function loadSummary() {
     const period = document.getElementById('period-select').value;
 
@@ -1616,6 +1648,7 @@ function loadSummary() {
         .then(r => r.json())
         .then(data => {
             allSignals = data;
+            defaultOrder = [...data];   // store original order
             renderBoard(data);
         })
         .catch(err => {
