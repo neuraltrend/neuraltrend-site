@@ -637,10 +637,49 @@
                                  width: 100%;
                             ">
                                 <div>Ticker</div>
-                                <div style="text-align:center;">Today</div>
+                                <!-- <div style="text-align:center;">Today</div>
                                 <div style="text-align:center;">Yesterday</div>
                                 <div style="text-align:center;">Last Week</div>
-                                <div style="text-align:center;">Last Month</div>
+                                <div style="text-align:center;">Last Month</div> -->
+                                <div style="text-align:center;">
+                                    Today<br>
+                                    <select class="signal-filter" data-key="today_signal" style="font-size:11px;">
+                                        <option value="">All</option>
+                                        <option value="1">Buy</option>
+                                        <option value="0">Hold</option>
+                                        <option value="-1">Sell</option>
+                                    </select>
+                                </div>
+                                
+                                <div style="text-align:center;">
+                                    Yesterday<br>
+                                    <select class="signal-filter" data-key="yesterday_signal" style="font-size:11px;">
+                                        <option value="">All</option>
+                                        <option value="1">Buy</option>
+                                        <option value="0">Hold</option>
+                                        <option value="-1">Sell</option>
+                                    </select>
+                                </div>
+                                
+                                <div style="text-align:center;">
+                                    Last Week<br>
+                                    <select class="signal-filter" data-key="last_week_signal" style="font-size:11px;">
+                                        <option value="">All</option>
+                                        <option value="1">Buy</option>
+                                        <option value="0">Hold</option>
+                                        <option value="-1">Sell</option>
+                                    </select>
+                                </div>
+                                
+                                <div style="text-align:center;">
+                                    Last Month<br>
+                                    <select class="signal-filter" data-key="last_month_signal" style="font-size:11px;">
+                                        <option value="">All</option>
+                                        <option value="1">Buy</option>
+                                        <option value="0">Hold</option>
+                                        <option value="-1">Sell</option>
+                                    </select>
+                                </div>
                                 <!-- <div style="text-align:right;">Buy&Hold Return</div>
                                 <div style="text-align:right;">EpochSignaler Return</div> -->
                                 <div 
@@ -1506,6 +1545,46 @@ function renderResults({
 let allSignals = [];
 let defaultOrder = [];
 
+let signalFilters = {
+    today_signal: null,
+    yesterday_signal: null,
+    last_week_signal: null,
+    last_month_signal: null
+};
+
+function applyAllFilters() {
+
+    let filtered = [...defaultOrder];
+
+    // 1️⃣ Search filter
+    const query = document.getElementById('ticker-search').value.toLowerCase();
+    if (query) {
+        filtered = filtered.filter(item =>
+            item.ticker.toLowerCase().includes(query)
+        );
+    }
+
+    // 2️⃣ Signal filters (AND logic)
+    Object.keys(signalFilters).forEach(key => {
+        const val = signalFilters[key];
+        if (val !== null) {
+            filtered = filtered.filter(item => item[key] === val);
+        }
+    });
+
+    // 3️⃣ Sorting
+    if (currentSort.key) {
+        filtered.sort((a, b) => {
+            let valA = a[currentSort.key] ?? 0;
+            let valB = b[currentSort.key] ?? 0;
+            return (valA - valB) * currentSort.direction;
+        });
+    }
+
+    allSignals = filtered;
+    renderBoard(filtered);
+}
+
 function formatSignal(signal) {
     if (signal === 1) {
         return `<span style="color: green; font-weight: bold;">▲ BUY</span>`;
@@ -1526,39 +1605,60 @@ let currentSort = {
     direction: 1   // 1 = ascending, -1 = descending
 };
     
+// function sortBy(key) {
+
+//     // If new column
+//     if (currentSort.key !== key) {
+//         currentSort.key = key;
+//         currentSort.direction = 1;
+//     }
+//     // If same column
+//     else {
+//         // Asc -> Desc
+//         if (currentSort.direction === 1) {
+//             currentSort.direction = -1;
+//         }
+//         // Desc -> Default
+//         else {
+//             currentSort.key = null;
+//             currentSort.direction = 1;
+
+//             allSignals = [...defaultOrder];   // ✅ restore state
+//             renderBoard(allSignals);
+//             return;
+//         }
+//     }
+
+//     const sorted = [...allSignals].sort((a, b) => {
+//         let valA = a[key] ?? 0;
+//         let valB = b[key] ?? 0;
+//         return (valA - valB) * currentSort.direction;
+//     });
+
+//     allSignals = sorted;   // ✅ update state
+
+//     renderBoard(allSignals);
+// }
+
 function sortBy(key) {
 
-    // If new column
     if (currentSort.key !== key) {
         currentSort.key = key;
         currentSort.direction = 1;
     }
-    // If same column
     else {
-        // Asc -> Desc
         if (currentSort.direction === 1) {
             currentSort.direction = -1;
         }
-        // Desc -> Default
         else {
             currentSort.key = null;
             currentSort.direction = 1;
-
-            allSignals = [...defaultOrder];   // ✅ restore state
-            renderBoard(allSignals);
+            applyAllFilters();
             return;
         }
     }
 
-    const sorted = [...allSignals].sort((a, b) => {
-        let valA = a[key] ?? 0;
-        let valB = b[key] ?? 0;
-        return (valA - valB) * currentSort.direction;
-    });
-
-    allSignals = sorted;   // ✅ update state
-
-    renderBoard(allSignals);
+    applyAllFilters();
 }
 
 function renderBoard(data) {
@@ -1608,7 +1708,8 @@ function loadSummary() {
         .then(data => {
             allSignals = data;
             defaultOrder = [...data];   // store original order
-            renderBoard(data);
+            // renderBoard(data);
+            applyAllFilters();
         })
         .catch(err => {
             board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
@@ -1618,6 +1719,17 @@ function loadSummary() {
 
 // Load on page start
 loadSummary();
+
+document.querySelectorAll('.signal-filter').forEach(select => {
+    select.addEventListener('change', function() {
+        const key = this.dataset.key;
+        const value = this.value;
+
+        signalFilters[key] = value === "" ? null : parseInt(value);
+
+        applyAllFilters();
+    });
+});
 
 document.getElementById('period-select')
     .addEventListener('change', function() {
@@ -1629,16 +1741,21 @@ document.getElementById('period-select')
         loadSummary();
     });
 
+// document.getElementById('ticker-search')
+//     .addEventListener('input', function() {
+
+//         const query = this.value.toLowerCase();
+
+//         const filtered = allSignals.filter(item =>
+//             item.ticker.toLowerCase().includes(query)
+//         );
+
+//         renderBoard(filtered);
+//     });
+
 document.getElementById('ticker-search')
     .addEventListener('input', function() {
-
-        const query = this.value.toLowerCase();
-
-        const filtered = allSignals.filter(item =>
-            item.ticker.toLowerCase().includes(query)
-        );
-
-        renderBoard(filtered);
+        applyAllFilters();
     });
 
 /* ===============================
