@@ -1525,7 +1525,7 @@ let currentSort = {
     key: null,
     direction: 1   // 1 = ascending, -1 = descending
 };
-
+    
 function sortBy(key) {
 
     // If new column
@@ -1543,7 +1543,9 @@ function sortBy(key) {
         else {
             currentSort.key = null;
             currentSort.direction = 1;
-            renderBoard(defaultOrder);
+
+            allSignals = [...defaultOrder];   // ✅ restore state
+            renderBoard(allSignals);
             return;
         }
     }
@@ -1554,7 +1556,9 @@ function sortBy(key) {
         return (valA - valB) * currentSort.direction;
     });
 
-    renderBoard(sorted);
+    allSignals = sorted;   // ✅ update state
+
+    renderBoard(allSignals);
 }
 
 function renderBoard(data) {
