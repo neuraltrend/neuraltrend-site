@@ -69,8 +69,6 @@ def get_csv_version():
     # If no CSVs exist, still return something
     return max(mtimes) if mtimes else 0
 
-periods_per_year = 365
-transaction_cost = 0.01  # 1% per transaction (per side)
 cache = {}  # simple in-memory cache per ticker
 
 def compute_signals_for_ticker(ticker, period_days=365*10):
@@ -104,11 +102,13 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
         # calendar slicing
         start_date = datetime.today().date() - pd.Timedelta(days=period_days)
         df = df[df.index >= pd.to_datetime(start_date)].copy()
+        transaction_cost = 0.01 # 1% per transaction (per side)
     else:
         # stock → use trading days
         trading_days_per_year = 252
         trading_days = int(period_days * (trading_days_per_year / 365))
         df = df.tail(trading_days).copy()
+        transaction_cost = 0.001 # 0.1% per transaction (per side)
 
     if len(df) < 2:
         return None
@@ -156,81 +156,6 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
 
     cache[cache_key] = output
     return output
-
-# def compute_signals_for_ticker(ticker, period_days=365*10):
-#     cache_key = (ticker, period_days)
-#     if cache_key in cache:
-#         return cache[cache_key]
-
-#     start_date = datetime.today().date() - pd.Timedelta(days=period_days)
-
-#     base_symbol = ticker.split('-')[0]
-#     csv_filename = f"epoch_{base_symbol}.csv"
-#     csv_path = os.path.join(app.root_path, 'data', csv_filename)
-
-#     # -------------------------------
-#     # Load data
-#     # -------------------------------
-#     df = pd.read_csv(csv_path, usecols=['Date', 'Close', 'epoch_signal'], parse_dates=['Date'])
-#     df = df[df['Date'] >= pd.to_datetime(start_date)].copy()
-#     df.set_index('Date', inplace=True)
-#     df['Close'] = pd.to_numeric(df['Close'], errors='coerce')
-#     df['epoch_signal'] = pd.to_numeric(df['epoch_signal'], errors='coerce')
-#     df = df.dropna()
-
-#     if len(df) < 2:
-#         print(f"{ticker}: not enough data")
-#         return None
-
-#     # -------------------------------
-#     # Buy & Hold return
-#     # -------------------------------
-#     bh_return = df['Close'].iloc[-1] / df['Close'].iloc[0]
-
-#     # -------------------------------
-#     # Strategy return (cash-based)
-#     # -------------------------------
-#     cash = 1.0
-#     shares = 0.0  # number of shares held
-
-#     for i in range(len(df)):
-#         sig = df['epoch_signal'].iloc[i]
-#         price = df['Close'].iloc[i]
-
-#         # BUY signal: buy full position if not already in
-#         if sig == 1 and shares == 0:
-#             shares = cash / price
-#             cash = 0
-#             shares *= (1 - transaction_cost)  # subtract transaction cost
-
-#         # SELL signal: sell full position if holding
-#         elif sig == -1 and shares > 0:
-#             cash = shares * price
-#             cash *= (1 - transaction_cost)  # subtract transaction cost
-#             shares = 0
-
-#     # Final liquidation if still holding shares
-#     if shares > 0:
-#         cash = shares * df['Close'].iloc[-1]
-#         cash *= (1 - transaction_cost)
-#         shares = 0
-
-#     strategy_return = cash  # final equity
-
-#     # -------------------------------
-#     # Prepare output safely
-#     # -------------------------------
-#     output = {
-#         'today': int(df['epoch_signal'].iloc[-1]),
-#         'yesterday': int(df['epoch_signal'].iloc[-2]) if len(df) >= 2 else int(df['epoch_signal'].iloc[-1]),
-#         'last_week': int(df['epoch_signal'].iloc[-8]) if len(df) >= 8 else int(df['epoch_signal'].iloc[-1]),
-#         'last_month': int(df['epoch_signal'].iloc[-31]) if len(df) >= 31 else int(df['epoch_signal'].iloc[-1]),
-#         'buy_hold_annual_return': bh_return-1,       # raw return over the period
-#         'strategy_annual_return': strategy_return-1  # raw return over the period
-#     }
-
-#     cache[cache_key] = output
-#     return output
 
 # --------------------
 # Routes
