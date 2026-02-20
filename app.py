@@ -531,7 +531,7 @@ def compute_signals_summary_cached(csv_version, period_days):
                "UNIBOT-USD", "UOS-USD", "VAI-USD", "VET-USD", "VIA-USD", "VIRTUAL-USD", "VPP-USD", "VR-USD", "VRA-USD", "WAGMIGAMES-USD",
                "WAXP-USD", "WELT-USD", "WHALES-USD", "WIF-USD", "WIFI-USD", "WILD-USD", "WINR-USD", "WMTX-USD", "XAI-USD", "XCAD-USD",
                "XLM-USD", "XTZ-USD", "XYO-USD", "YGG-USD", "ZBCN-USD", "ZEN-USD", "ZEREBRO-USD", "ZETA-USD", "ZIG-USD", "ZKJ-USD",
-               "ZRX-USD"]
+               "ZRX-USD", 'GOOGL','NVDA','AMZN','MSFT','AAPL','AVGO','BRKB','TSLA','V','TCEHY','TSM','META']
     results = []
 
     for t in tickers:
