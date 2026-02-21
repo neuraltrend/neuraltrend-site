@@ -653,7 +653,7 @@
                                     </select>
                                 </div>
                                 
-                                <div style="text-align:center;">
+                                <div style="text-align:left;">
                                     Yesterday<br>
                                     <select class="signal-filter" data-key="yesterday_signal" style="font-size:10px;">
                                         <option value="">No Filter</option>
@@ -663,7 +663,7 @@
                                     </select>
                                 </div>
                                 
-                                <div style="text-align:center;">
+                                <div style="text-align:left;">
                                     Last Week<br>
                                     <select class="signal-filter" data-key="last_week_signal" style="font-size:10px;">
                                         <option value="">No Filter</option>
@@ -673,7 +673,7 @@
                                     </select>
                                 </div>
                                 
-                                <div style="text-align:center;">
+                                <div style="text-align:left;">
                                     Last Month<br>
                                     <select class="signal-filter" data-key="last_month_signal" style="font-size:10px;">
                                         <option value="">No Filter</option>
@@ -1682,9 +1682,9 @@ function renderBoard(data) {
         >
             <div>${item.ticker}</div>
             <div style="text-align:left;">${formatSignal(item.today_signal)}</div>
-            <div style="text-align:center;">${formatSignal(item.yesterday_signal)}</div>
-            <div style="text-align:center;">${formatSignal(item.last_week_signal)}</div>
-            <div style="text-align:center;">${formatSignal(item.last_month_signal)}</div>
+            <div style="text-align:left;">${formatSignal(item.yesterday_signal)}</div>
+            <div style="text-align:left;">${formatSignal(item.last_week_signal)}</div>
+            <div style="text-align:left;">${formatSignal(item.last_month_signal)}</div>
             <div style="text-align:right;">${formatPercent(item.buy_hold_annual_return)}</div>
             <div style="text-align:right;">${formatPercent(item.strategy_annual_return)}</div>
         </div>
@@ -1826,9 +1826,9 @@ function renderSignals({
             ">
                 <div><strong>${ticker}</strong></div>
                 <div style="text-align:left;">Today: ${formatSignal(today_signal)}</div>
-                <div style="text-align:center;">Yesterday: ${formatSignal(yesterday_signal)}</div>
-                <div style="text-align:center;">Last Week: ${formatSignal(last_week_signal)}</div>
-                <div style="text-align:center;">Last Month: ${formatSignal(last_month_signal)}</div>
+                <div style="text-align:left;">Yesterday: ${formatSignal(yesterday_signal)}</div>
+                <div style="text-align:left;">Last Week: ${formatSignal(last_week_signal)}</div>
+                <div style="text-align:left;">Last Month: ${formatSignal(last_month_signal)}</div>
                 <div style="text-align:right;">Buy&Hold Return: ${formatPercent(buy_hold_annual_return)}</div>
                 <div style="text-align:right;">EpochSignaler Return: ${formatPercent(strategy_annual_return)}</div>
             </div>
