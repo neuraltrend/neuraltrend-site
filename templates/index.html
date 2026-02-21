@@ -1591,11 +1591,11 @@ function applyAllFilters() {
 
 function formatSignal(signal) {
     if (signal === 1) {
-        return `<span style="color: green; font-weight: bold;">BUY ▲</span>`;
+        return `<span style="color: green; font-weight: bold;">▲ BUY</span>`;
     } else if (signal === -1) {
-        return `<span style="color: red; font-weight: bold;">SELL ▼</span>`;
+        return `<span style="color: red; font-weight: bold;">▼ SELL</span>`;
     } else {
-        return `<span style="color: gray;">HOLD</span>`;
+        return `<span style="color: gray;">- HOLD</span>`;
     }
 }
 
