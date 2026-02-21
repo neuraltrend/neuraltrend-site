@@ -1590,39 +1590,13 @@ function applyAllFilters() {
 }
 
 function formatSignal(signal) {
-
-    let icon = "";
-    let text = "";
-    let color = "";
-
     if (signal === 1) {
-        icon = "▲";
-        text = "BUY";
-        color = "green";
+        return `<span style="color: green; font-weight: bold;">▲ BUY</span>`;
     } else if (signal === -1) {
-        icon = "▼";
-        text = "SELL";
-        color = "red";
+        return `<span style="color: red; font-weight: bold;">▼ SELL</span>`;
     } else {
-        icon = "•";   // bullet dot
-        text = "HOLD";
-        color = "gray";
+        return `<span style="color: gray;">. HOLD</span>`;
     }
-
-    return `
-        <span style="
-            display:inline-flex;
-            align-items:center;
-            gap:4px;
-            color:${color};
-            font-weight:bold;
-        ">
-            <span style="width:14px; text-align:center;">
-                ${icon}
-            </span>
-            ${text}
-        </span>
-    `;
 }
 
 function formatPercent(value) {
