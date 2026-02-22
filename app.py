@@ -153,6 +153,8 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
     else:
         outperformance = None
 
+    print(bh_return,"- ", outperformance)
+
     output = {
         'today': int(df['epoch_signal'].iloc[-1]),
         'yesterday': int(df['epoch_signal'].iloc[-2]) if len(df) >= 2 else int(df['epoch_signal'].iloc[-1]),
@@ -461,6 +463,7 @@ def compute_signals_summary_cached(csv_version, period_days):
                 'last_month_signal': sigs['last_month'],
                 'buy_hold_annual_return': sigs['buy_hold_annual_return'],
                 'strategy_annual_return': sigs['strategy_annual_return'],
+                'outperformance': sigs['outperformance'],
             })
         except Exception as e:
             print(f"Skipping {t}: {e}")
