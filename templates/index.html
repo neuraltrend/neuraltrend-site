@@ -656,7 +656,8 @@
                             <!-- HEADER -->
                             <div style="
                                  display: grid;
-                                 grid-template-columns: 160px 120px 120px 120px 120px 160px 180px;
+                                 /* grid-template-columns: 160px 120px 120px 120px 120px 160px 180px; */
+                                 grid-template-columns: 160px 120px 120px 120px 120px 160px 160px 130px;
                                  font-weight: 600;
                                  font-size: 13px;
                                  padding: 10px 12px;
@@ -743,6 +744,14 @@
                                 >
                                     EpochSignaler Return<br>
                                     <span id="strategy-sort-indicator" style="font-size:11px; font-weight:500; color:#666;">—</span>
+                                </div>
+
+                                <div 
+                                    style="text-align:right; cursor:pointer;"
+                                    onclick="sortBy('outperformance')"
+                                >
+                                    Outperformance<br>
+                                    <span id="outperformance-sort-indicator" style="font-size:11px; font-weight:500; color:#666;">—</span>
                                 </div>
 
                             </div>
@@ -1665,6 +1674,11 @@ function formatPercent(value) {
     return (value * 100).toFixed(1) + "%";
 }
 
+function formatMultiple(value) {
+    if (value === null || value === undefined) return "-";
+    return value.toFixed(2) + "×";
+}
+
 let currentSort = {
     key: null,
     direction: 1   // 1 = ascending, -1 = descending
@@ -1744,7 +1758,8 @@ function renderBoard(data) {
             onclick="loadTicker('${item.ticker}')"
             style="
                 display: grid;
-                grid-template-columns: 160px 120px 120px 120px 120px 160px 180px;
+                // grid-template-columns: 160px 120px 120px 120px 120px 160px 180px;
+                grid-template-columns: 160px 120px 120px 120px 120px 160px 160px 130px;
                 align-items: center;
                 padding: 6px 10px;
                 border-bottom: 1px solid #eee;
@@ -1760,6 +1775,7 @@ function renderBoard(data) {
             <div style="text-align:left;">${formatSignal(item.last_month_signal)}</div>
             <div style="text-align:right;">${formatPercent(item.buy_hold_annual_return)}</div>
             <div style="text-align:right;">${formatPercent(item.strategy_annual_return)}</div>
+            <div style="text-align:right;">${formatMultiple(item.outperformance)}</div>
         </div>
     `).join('');
 }
@@ -1888,7 +1904,8 @@ function renderSignals({
 
             <div style="
                 display: grid;
-                grid-template-columns: 160px 120px 120px 120px 120px 160px 180px;
+                // grid-template-columns: 160px 120px 120px 120px 120px 160px 180px;
+                grid-template-columns: 160px 120px 120px 120px 120px 160px 160px 130px;
                 align-items: center;
                 box-sizing: border-box;
                 width: 100%;
@@ -1900,6 +1917,7 @@ function renderSignals({
                 <div style="text-align:left;">Last Month: ${formatSignal(last_month_signal)}</div>
                 <div style="text-align:right;">Buy&Hold Return: ${formatPercent(buy_hold_annual_return)}</div>
                 <div style="text-align:right;">EpochSignaler Return: ${formatPercent(strategy_annual_return)}</div>
+                <div style="text-align:right;">Outperformance${formatMultiple(item.outperformance)}</div>
             </div>
         </div>
     `;
