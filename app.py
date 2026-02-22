@@ -145,13 +145,22 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
 
     strategy_return = cash
 
+    # -------------------------------
+    # Outperformance (relative multiple)
+    # -------------------------------
+    if bh_return and bh_return != 0:
+        outperformance = strategy_return / bh_return
+    else:
+        outperformance = None
+
     output = {
         'today': int(df['epoch_signal'].iloc[-1]),
         'yesterday': int(df['epoch_signal'].iloc[-2]) if len(df) >= 2 else int(df['epoch_signal'].iloc[-1]),
         'last_week': int(df['epoch_signal'].iloc[-8]) if len(df) >= 8 else int(df['epoch_signal'].iloc[-1]),
         'last_month': int(df['epoch_signal'].iloc[-31]) if len(df) >= 31 else int(df['epoch_signal'].iloc[-1]),
         'buy_hold_annual_return': bh_return - 1,
-        'strategy_annual_return': strategy_return - 1
+        'strategy_annual_return': strategy_return - 1,
+        'outperformance': outperformance
     }
 
     cache[cache_key] = output
