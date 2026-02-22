@@ -715,7 +715,7 @@
                                     </select>
                                 </div>
                                 
-                                <div 
+                                <!-- <div 
                                     style="text-align:right; cursor:pointer;"
                                     onclick="sortBy('buy_hold_annual_return')"
                                 >
@@ -727,7 +727,24 @@
                                     onclick="sortBy('strategy_annual_return')"
                                 >
                                     EpochSignaler Return ↕
+                                </div> -->
+
+                                <div 
+                                    style="text-align:right; cursor:pointer;"
+                                    onclick="sortBy('buy_hold_annual_return')"
+                                >
+                                    Buy&Hold Return<br>
+                                    <span id="buy-hold-sort-indicator" style="font-size:11px; font-weight:500; color:#666;">—</span>
                                 </div>
+                                
+                                <div 
+                                    style="text-align:right; cursor:pointer;"
+                                    onclick="sortBy('strategy_annual_return')"
+                                >
+                                    EpochSignaler Return<br>
+                                    <span id="strategy-sort-indicator" style="font-size:11px; font-weight:500; color:#666;">—</span>
+                                </div>
+
                             </div>
                             
                             <!-- BODY -->
@@ -1653,6 +1670,27 @@ let currentSort = {
     direction: 1   // 1 = ascending, -1 = descending
 };
 
+// function sortBy(key) {
+
+//     if (currentSort.key !== key) {
+//         currentSort.key = key;
+//         currentSort.direction = 1;
+//     }
+//     else {
+//         if (currentSort.direction === 1) {
+//             currentSort.direction = -1;
+//         }
+//         else {
+//             currentSort.key = null;
+//             currentSort.direction = 1;
+//             applyAllFilters();
+//             return;
+//         }
+//     }
+
+//     applyAllFilters();
+// }
+
 function sortBy(key) {
 
     if (currentSort.key !== key) {
@@ -1666,12 +1704,38 @@ function sortBy(key) {
         else {
             currentSort.key = null;
             currentSort.direction = 1;
+            updateSortIndicators();
             applyAllFilters();
             return;
         }
     }
 
+    updateSortIndicators();
     applyAllFilters();
+}
+
+function updateSortIndicators() {
+
+    const buyHoldEl = document.getElementById("buy-hold-sort-indicator");
+    const strategyEl = document.getElementById("strategy-sort-indicator");
+
+    if (!buyHoldEl || !strategyEl) return;
+
+    // Default state
+    buyHoldEl.innerHTML = "—";
+    strategyEl.innerHTML = "—";
+
+    if (!currentSort.key) return;
+
+    const arrow = currentSort.direction === 1 ? "▲" : "▼";
+
+    if (currentSort.key === "buy_hold_annual_return") {
+        buyHoldEl.innerHTML = arrow;
+    }
+
+    if (currentSort.key === "strategy_annual_return") {
+        strategyEl.innerHTML = arrow;
+    }
 }
 
 function renderBoard(data) {
@@ -1722,6 +1786,7 @@ function loadSummary() {
             allSignals = data;
             defaultOrder = [...data];   // store original order
             // renderBoard(data);
+            updateSortIndicators();
             applyAllFilters();
         })
         .catch(err => {
