@@ -153,8 +153,6 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
     else:
         outperformance = None
 
-    print(bh_return,"- ", outperformance)
-
     output = {
         'today': int(df['epoch_signal'].iloc[-1]),
         'yesterday': int(df['epoch_signal'].iloc[-2]) if len(df) >= 2 else int(df['epoch_signal'].iloc[-1]),
