@@ -656,8 +656,7 @@
                             <!-- HEADER -->
                             <div style="
                                  display: grid;
-                                 /* grid-template-columns: 160px 120px 120px 120px 120px 160px 180px; */
-                                 grid-template-columns: 160px 100px 100px 100px 100px 140px 160px 130px;
+                                 grid-template-columns: 160px 100px 100px 100px 100px 140px 160px 120px;
                                  font-weight: 600;
                                  font-size: 13px;
                                  padding: 10px 12px;
@@ -1732,12 +1731,14 @@ function updateSortIndicators() {
 
     const buyHoldEl = document.getElementById("buy-hold-sort-indicator");
     const strategyEl = document.getElementById("strategy-sort-indicator");
+    const outperformanceEl = document.getElementById("outperformance-sort-indicator");
 
-    if (!buyHoldEl || !strategyEl) return;
+    if (!buyHoldEl || !strategyEl || !outperformanceEl) return;
 
     // Default state
     buyHoldEl.innerHTML = "—";
     strategyEl.innerHTML = "—";
+    outperformanceEl.innerHTML = "—";
 
     if (!currentSort.key) return;
 
@@ -1750,6 +1751,10 @@ function updateSortIndicators() {
     if (currentSort.key === "strategy_annual_return") {
         strategyEl.innerHTML = arrow;
     }
+
+    if (currentSort.key === "outperformance") {
+        outperformanceEl.innerHTML = arrow;
+    }
 }
 
 function renderBoard(data) {
@@ -1758,8 +1763,7 @@ function renderBoard(data) {
             onclick="loadTicker('${item.ticker}')"
             style="
                 display: grid;
-                // grid-template-columns: 160px 120px 120px 120px 120px 160px 180px;
-                grid-template-columns: 160px 100px 100px 100px 100px 140px 160px 130px;
+                grid-template-columns: 160px 100px 100px 100px 100px 140px 160px 120px;
                 align-items: center;
                 padding: 6px 10px;
                 border-bottom: 1px solid #eee;
@@ -1904,8 +1908,7 @@ function renderSignals({
 
             <div style="
                 display: grid;
-                // grid-template-columns: 160px 120px 120px 120px 120px 160px 180px;
-                grid-template-columns: 160px 100px 100px 100px 100px 140px 160px 130px;
+                grid-template-columns: 160px 100px 100px 100px 100px 140px 160px 120px;
                 align-items: center;
                 box-sizing: border-box;
                 width: 100%;
