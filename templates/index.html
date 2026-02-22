@@ -534,7 +534,7 @@
                                 🔎 Filter & Compare Performance
                             </div>
                 
-                            <!-- Search + Period Row -->
+                            <!-- Filters Row -->
                             <div style="
                                 display: flex;
                                 gap: 14px;
@@ -610,6 +610,36 @@
                                         <option value="3650">10Y</option>
                                     </select>
                 
+                                </div>
+
+                                <!-- ASSET TYPE FILTER -->
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                
+                                    <span style="
+                                        font-size: 14px;
+                                        font-weight: 500;
+                                        color: #555;
+                                    ">
+                                        Asset Type:
+                                    </span>
+                                
+                                    <select 
+                                        id="asset-type-filter"
+                                        style="
+                                            padding: 8px 10px;
+                                            border-radius: 6px;
+                                            border: 1px solid #d0d7e2;
+                                            font-size: 14px;
+                                            background: #fff;
+                                            cursor: pointer;
+                                            outline: none;
+                                        "
+                                    >
+                                        <option value="all" selected>All Assets</option>
+                                        <option value="crypto">Crypto Only</option>
+                                        <option value="stock">Stocks Only</option>
+                                    </select>
+                                
                                 </div>
                 
                             </div>
@@ -1547,6 +1577,7 @@ function renderResults({
 
 let allSignals = [];
 let defaultOrder = [];
+let assetTypeFilter = "all";
 
 let signalFilters = {
     today_signal: null,
@@ -1565,6 +1596,20 @@ function applyAllFilters() {
         filtered = filtered.filter(item =>
             item.ticker.toLowerCase().includes(query)
         );
+    }
+
+    // 2️⃣ Asset type filter
+    if (assetTypeFilter !== "all") {
+    
+        filtered = filtered.filter(item => {
+    
+            const isCrypto = item.ticker.endsWith("-USD");
+    
+            if (assetTypeFilter === "crypto") return isCrypto;
+            if (assetTypeFilter === "stock") return !isCrypto;
+    
+            return true;
+        });
     }
 
     // 2️⃣ Signal filters (AND logic)
@@ -1711,6 +1756,13 @@ document.getElementById('period-select')
 
 document.getElementById('ticker-search')
     .addEventListener('input', function() {
+        applyAllFilters();
+    });
+
+document.getElementById('asset-type-filter')
+    .addEventListener('change', function() {
+
+        assetTypeFilter = this.value;
         applyAllFilters();
     });
 
