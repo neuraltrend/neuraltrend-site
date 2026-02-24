@@ -600,14 +600,6 @@
                                             outline: none;
                                         "
                                     >
-                                        <!-- <option value="7">1W</option>
-                                        <option value="30">1M</option>
-                                        <option value="90">3M</option>
-                                        <option value="180">6M</option>
-                                        <option value="365" selected>1Y</option>
-                                        <option value="1095">3Y</option>
-                                        <option value="1825">5Y</option>
-                                        <option value="3650">10Y</option> -->
                                         <option value="1w">1W</option>
                                         <option value="1mo">1M</option>
                                         <option value="3mo">3M</option>
@@ -676,13 +668,6 @@
                             ">
                                 <div>Ticker</div>
                                 
-                                <!-- <div style="text-align:center;">Today</div>
-                                <div style="text-align:center;">Yesterday</div>
-                                <div style="text-align:center;">Last Week</div>
-                                <div style="text-align:center;">Last Month</div>
-                                <div style="text-align:right;">Buy&Hold Return</div>
-                                <div style="text-align:right;">EpochSignaler Return</div> -->
-                                
                                 <div style="text-align:left;">
                                     Today<br>
                                     <select class="signal-filter" data-key="today_signal" style="font-size:10px;">
@@ -722,20 +707,6 @@
                                         <option value="-1">Sell Only</option>
                                     </select>
                                 </div>
-                                
-                                <!-- <div 
-                                    style="text-align:right; cursor:pointer;"
-                                    onclick="sortBy('buy_hold_annual_return')"
-                                >
-                                    Buy&Hold Return ↕
-                                </div>
-                                
-                                <div 
-                                    style="text-align:right; cursor:pointer;"
-                                    onclick="sortBy('strategy_annual_return')"
-                                >
-                                    EpochSignaler Return ↕
-                                </div> -->
 
                                 <div 
                                     style="text-align:right; cursor:pointer;"
@@ -1693,27 +1664,6 @@ let currentSort = {
     direction: 1   // 1 = ascending, -1 = descending
 };
 
-// function sortBy(key) {
-
-//     if (currentSort.key !== key) {
-//         currentSort.key = key;
-//         currentSort.direction = 1;
-//     }
-//     else {
-//         if (currentSort.direction === 1) {
-//             currentSort.direction = -1;
-//         }
-//         else {
-//             currentSort.key = null;
-//             currentSort.direction = 1;
-//             applyAllFilters();
-//             return;
-//         }
-//     }
-
-//     applyAllFilters();
-// }
-
 function sortBy(key) {
 
     if (currentSort.key !== key) {
@@ -1806,25 +1756,6 @@ board.innerHTML = `
     </div>
 `;
 
-// function loadSummary() {
-//     const period = document.getElementById('period-select').value;
-
-//     // fetch(`/signals/summary?period_days=${period}`)
-//     fetch(`/signals/summary?period_days=${period}&_=${Date.now()}`)
-//         .then(r => r.json())
-//         .then(data => {
-//             allSignals = data;
-//             defaultOrder = [...data];   // store original order
-//             // renderBoard(data);
-//             updateSortIndicators();
-//             applyAllFilters();
-//         })
-//         .catch(err => {
-//             board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
-//             console.error(err);
-//         });
-// }
-
 function loadSummary() {
     const duration = document.getElementById('period-select').value; // e.g., '1w', '1mo', '1y'
 
@@ -1856,16 +1787,6 @@ document.querySelectorAll('.signal-filter').forEach(select => {
     });
 });
 
-// document.getElementById('period-select')
-//     .addEventListener('change', function() {
-//         board.innerHTML = `
-//             <div style="text-align:center; color:#888; padding:20px;">
-//                 Updating period…
-//             </div>
-//         `;
-//         loadSummary();
-//     });
-
 document.getElementById('period-select')
     .addEventListener('change', function() {
         board.innerHTML = `
@@ -1875,30 +1796,6 @@ document.getElementById('period-select')
         `;
         loadSummary();  // loadSummary now sends duration string
     });
-
-// document.getElementById('period-select')
-//     .addEventListener('change', function() {
-//         const durationStr = this.value;  // e.g., '1w', '1mo', '1y'
-        
-//         board.innerHTML = `
-//             <div style="text-align:center; color:#888; padding:20px;">
-//                 Updating period…
-//             </div>
-//         `;
-
-//         fetch(`/signals/summary?duration=${durationStr}&_=${Date.now()}`)
-//             .then(r => r.json())
-//             .then(data => {
-//                 allSignals = data;
-//                 defaultOrder = [...data];
-//                 updateSortIndicators();
-//                 applyAllFilters();
-//             })
-//             .catch(err => {
-//                 board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
-//                 console.error(err);
-//             });
-//     });
 
 document.getElementById('ticker-search')
     .addEventListener('input', function() {
@@ -1915,21 +1812,6 @@ document.getElementById('asset-type-filter')
 /* ===============================
    3. LOAD TICKER FROM BOARD CLICK
 ================================ */
-
-// function loadTicker(ticker) {
-//     const select = document.getElementById('ticker');
-//     select.value = ticker;
-
-//     const formData = new FormData(document.getElementById('signal-form'));
-//     formData.append('period_days', document.getElementById('period-select').value);
-
-//     fetch('/signals', {
-//         method: 'POST',
-//         body: formData
-//     })
-//     .then(r => r.json())
-//     .then(renderSignals);
-// }
 
 function loadTicker(ticker) {
     const select = document.getElementById('ticker');
