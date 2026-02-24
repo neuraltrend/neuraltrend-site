@@ -42,11 +42,27 @@ def supabase_auth(endpoint, payload):
         json=payload
     )
 
+# def parse_duration(duration: str):
+#     """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
+#     s = duration.strip().lower()
+#     if s.endswith("mo"):
+#         return relativedelta(months=int(s[:-2]))
+#     if s.endswith("yr") or s.endswith("y"):
+#         return relativedelta(years=int(s.rstrip('yr').rstrip('y')))
+#     if s.endswith("w"):
+#         return timedelta(weeks=int(s[:-1]))
+#     if s.endswith("d"):
+#         return timedelta(days=int(s[:-1]))
+#     raise ValueError(f"Unsupported duration: {duration}")
+
+# from datetime import timedelta
+# from dateutil.relativedelta import relativedelta
+
 def parse_duration(duration: str):
     """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
     s = duration.strip().lower()
-    if s.endswith("mo"):
-        return relativedelta(months=int(s[:-2]))
+    if s.endswith("mo") or s.endswith("m"):   # support '1m' or '1mo'
+        return relativedelta(months=int(s.rstrip('mo').rstrip('m')))
     if s.endswith("yr") or s.endswith("y"):
         return relativedelta(years=int(s.rstrip('yr').rstrip('y')))
     if s.endswith("w"):
@@ -54,6 +70,17 @@ def parse_duration(duration: str):
     if s.endswith("d"):
         return timedelta(days=int(s[:-1]))
     raise ValueError(f"Unsupported duration: {duration}")
+
+def duration_to_days(duration_str: str):
+    delta = parse_duration(duration_str)
+
+    if isinstance(delta, timedelta):
+        return delta.days
+    elif isinstance(delta, relativedelta):
+        # Approximate 1 month = 30 days, 1 year = 365 days
+        return delta.years * 365 + delta.months * 30 + delta.days
+    else:
+        raise ValueError(f"Unsupported delta type: {type(delta)}")
 
 def get_csv_version():
     """
@@ -524,10 +551,32 @@ def equity():
 
     return jsonify(results)
     
+# @app.route('/signals', methods=['POST'])
+# def signals():
+#     ticker = request.form['ticker']
+#     period_days = int(request.form.get('period_days', 365*10))
+
+#     sigs = compute_signals_for_ticker(ticker, period_days)
+
+#     return jsonify({
+#         'ticker': ticker,
+#         'today_signal': sigs['today'],
+#         'yesterday_signal': sigs['yesterday'],
+#         'last_week_signal': sigs['last_week'],
+#         'last_month_signal': sigs['last_month'],
+#         'buy_hold_annual_return': sigs['buy_hold_annual_return'],
+#         'strategy_annual_return': sigs['strategy_annual_return'],
+#     })
+
 @app.route('/signals', methods=['POST'])
 def signals():
     ticker = request.form['ticker']
-    period_days = int(request.form.get('period_days', 365*10))
+    duration_str = request.form.get('duration', '10y')  # default '10y'
+
+    try:
+        period_days = duration_to_days(duration_str)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
     sigs = compute_signals_for_ticker(ticker, period_days)
 
@@ -539,6 +588,7 @@ def signals():
         'last_month_signal': sigs['last_month'],
         'buy_hold_annual_return': sigs['buy_hold_annual_return'],
         'strategy_annual_return': sigs['strategy_annual_return'],
+        'outperformance': sigs['outperformance'],
     })
 
 # Cached version that invalidates when CSV files change
@@ -596,10 +646,24 @@ def compute_signals_summary_cached(csv_version, period_days):
 
     return results
 
+# @app.route('/signals/summary')
+# def signals_summary():
+#     period_days = int(request.args.get('period_days', 365*10))
+#     csv_version = get_csv_version()
+#     results = compute_signals_summary_cached(csv_version, period_days)
+#     print("period_days received:", period_days)
+#     return jsonify(results)
+
 @app.route('/signals/summary')
 def signals_summary():
-    period_days = int(request.args.get('period_days', 365*10))
+    duration_str = request.args.get('duration', '10y')  # default '10y'
+    
+    try:
+        period_days = duration_to_days(duration_str)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
     csv_version = get_csv_version()
     results = compute_signals_summary_cached(csv_version, period_days)
-    print("period_days received:", period_days)
+    print("duration received:", duration_str, "-> period_days:", period_days)
     return jsonify(results)
