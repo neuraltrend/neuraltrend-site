@@ -71,56 +71,157 @@ def get_csv_version():
 
 cache = {}  # simple in-memory cache per ticker
 
-def compute_signals_for_ticker(ticker, period_days=365*10):
-    cache_key = (ticker, period_days)
+# def compute_signals_for_ticker(ticker, period_days=365*10):
+# def compute_signals_for_ticker(ticker, start_date=None):
+#     cache_key = (ticker, period_days)
+#     if cache_key in cache:
+#         return cache[cache_key]
+
+#     base_symbol = ticker.split('-')[0]
+#     csv_filename = f"epoch_{base_symbol}.csv"
+#     csv_path = os.path.join(app.root_path, 'data', csv_filename)
+
+#     # -------------------------------
+#     # Load full data first
+#     # -------------------------------
+#     df = pd.read_csv(csv_path, usecols=['Date', 'Close', 'epoch_signal'], parse_dates=['Date'])
+#     df.set_index('Date', inplace=True)
+#     df['Close'] = pd.to_numeric(df['Close'], errors='coerce')
+#     df['epoch_signal'] = pd.to_numeric(df['epoch_signal'], errors='coerce')
+#     df = df.dropna()
+
+#     if len(df) < 2:
+#         print(f"{ticker}: not enough data")
+#         return None
+
+#     # -------------------------------
+#     # Determine asset type
+#     # -------------------------------
+#     is_crypto = ticker.endswith("-USD")
+
+#     # if is_crypto:
+#     #     # calendar slicing
+#     #     start_date = datetime.today().date() - pd.Timedelta(days=period_days)
+#     #     df = df[df.index >= pd.to_datetime(start_date)].copy()
+#     #     transaction_cost = 0.01 # 1% per transaction (per side)
+#     # else:
+#     #     # stock → use trading days
+#     #     trading_days_per_year = 252
+#     #     trading_days = int(period_days * (trading_days_per_year / 365))
+#     #     df = df.tail(trading_days).copy()
+#     #     transaction_cost = 0.001 # 0.1% per transaction (per side)
+
+#     if start_date is not None:
+#         df = df[df.index >= pd.to_datetime(start_date)].copy()
+    
+#     transaction_cost = 0.01 if ticker.endswith("-USD") else 0.001
+
+#     if len(df) < 2:
+#         return None
+
+#     # -------------------------------
+#     # Buy & Hold return
+#     # -------------------------------
+#     bh_return = df['Close'].iloc[-1] / df['Close'].iloc[0]
+
+#     # -------------------------------
+#     # Strategy return (cash-based)
+#     # -------------------------------
+#     cash = 1.0
+#     shares = 0.0
+
+#     for i in range(len(df)):
+#         sig = df['epoch_signal'].iloc[i]
+#         price = df['Close'].iloc[i]
+
+#         if sig == 1 and shares == 0:
+#             shares = cash / price
+#             shares *= (1 - transaction_cost)
+#             cash = 0
+
+#         elif sig == -1 and shares > 0:
+#             cash = shares * price
+#             cash *= (1 - transaction_cost)
+#             shares = 0
+
+#     # Final liquidation
+#     if shares > 0:
+#         cash = shares * df['Close'].iloc[-1]
+#         cash *= (1 - transaction_cost)
+
+#     strategy_return = cash
+
+#     # -------------------------------
+#     # Outperformance (relative multiple)
+#     # -------------------------------
+#     if bh_return and bh_return != 0:
+#         outperformance = strategy_return / bh_return
+#     else:
+#         outperformance = None
+
+#     output = {
+#         'today': int(df['epoch_signal'].iloc[-1]),
+#         'yesterday': int(df['epoch_signal'].iloc[-2]) if len(df) >= 2 else int(df['epoch_signal'].iloc[-1]),
+#         'last_week': int(df['epoch_signal'].iloc[-8]) if len(df) >= 8 else int(df['epoch_signal'].iloc[-1]),
+#         'last_month': int(df['epoch_signal'].iloc[-31]) if len(df) >= 31 else int(df['epoch_signal'].iloc[-1]),
+#         'buy_hold_annual_return': bh_return - 1,
+#         'strategy_annual_return': strategy_return - 1,
+#         'outperformance': outperformance
+#     }
+
+#     cache[cache_key] = output
+#     return output
+
+def compute_signals_for_ticker(ticker, duration_str):
+
+    cache_key = (ticker, duration_str)
     if cache_key in cache:
         return cache[cache_key]
 
+    # ---------------------------------
+    # Compute date range
+    # ---------------------------------
+    delta = parse_duration(duration_str)
+    end_date = datetime.today().date()
+    start_date = end_date - delta
+
+    # ---------------------------------
+    # Load CSV
+    # ---------------------------------
     base_symbol = ticker.split('-')[0]
     csv_filename = f"epoch_{base_symbol}.csv"
     csv_path = os.path.join(app.root_path, 'data', csv_filename)
 
-    # -------------------------------
-    # Load full data first
-    # -------------------------------
-    df = pd.read_csv(csv_path, usecols=['Date', 'Close', 'epoch_signal'], parse_dates=['Date'])
+    df = pd.read_csv(
+        csv_path,
+        usecols=['Date', 'Close', 'epoch_signal'],
+        parse_dates=['Date']
+    )
+
     df.set_index('Date', inplace=True)
     df['Close'] = pd.to_numeric(df['Close'], errors='coerce')
     df['epoch_signal'] = pd.to_numeric(df['epoch_signal'], errors='coerce')
     df = df.dropna()
 
-    if len(df) < 2:
-        print(f"{ticker}: not enough data")
-        return None
-
-    # -------------------------------
-    # Determine asset type
-    # -------------------------------
-    is_crypto = ticker.endswith("-USD")
-
-    if is_crypto:
-        # calendar slicing
-        start_date = datetime.today().date() - pd.Timedelta(days=period_days)
-        df = df[df.index >= pd.to_datetime(start_date)].copy()
-        transaction_cost = 0.01 # 1% per transaction (per side)
-    else:
-        # stock → use trading days
-        trading_days_per_year = 252
-        trading_days = int(period_days * (trading_days_per_year / 365))
-        df = df.tail(trading_days).copy()
-        transaction_cost = 0.001 # 0.1% per transaction (per side)
+    # Filter by duration
+    df = df[df.index >= pd.to_datetime(start_date)].copy()
 
     if len(df) < 2:
         return None
 
-    # -------------------------------
+    # ---------------------------------
+    # Transaction cost
+    # ---------------------------------
+    transaction_cost = 0.01 if ticker.endswith("-USD") else 0.001
+
+    # ---------------------------------
     # Buy & Hold return
-    # -------------------------------
+    # ---------------------------------
     bh_return = df['Close'].iloc[-1] / df['Close'].iloc[0]
 
-    # -------------------------------
-    # Strategy return (cash-based)
-    # -------------------------------
+    # ---------------------------------
+    # Strategy return
+    # ---------------------------------
     cash = 1.0
     shares = 0.0
 
@@ -129,37 +230,34 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
         price = df['Close'].iloc[i]
 
         if sig == 1 and shares == 0:
-            shares = cash / price
-            shares *= (1 - transaction_cost)
+            shares = (cash / price) * (1 - transaction_cost)
             cash = 0
 
         elif sig == -1 and shares > 0:
-            cash = shares * price
-            cash *= (1 - transaction_cost)
+            cash = (shares * price) * (1 - transaction_cost)
             shares = 0
 
     # Final liquidation
     if shares > 0:
-        cash = shares * df['Close'].iloc[-1]
-        cash *= (1 - transaction_cost)
+        cash = (shares * df['Close'].iloc[-1]) * (1 - transaction_cost)
 
     strategy_return = cash
 
-    # -------------------------------
+    # ---------------------------------
     # Outperformance (relative multiple)
-    # -------------------------------
-    if bh_return and bh_return != 0:
-        outperformance = strategy_return / bh_return
-    else:
-        outperformance = None
+    # ---------------------------------
+    outperformance = (
+        strategy_return / bh_return
+        if bh_return != 0 else None
+    )
 
     output = {
         'today': int(df['epoch_signal'].iloc[-1]),
         'yesterday': int(df['epoch_signal'].iloc[-2]) if len(df) >= 2 else int(df['epoch_signal'].iloc[-1]),
         'last_week': int(df['epoch_signal'].iloc[-8]) if len(df) >= 8 else int(df['epoch_signal'].iloc[-1]),
         'last_month': int(df['epoch_signal'].iloc[-31]) if len(df) >= 31 else int(df['epoch_signal'].iloc[-1]),
-        'buy_hold_annual_return': bh_return - 1,
-        'strategy_annual_return': strategy_return - 1,
+        'buy_hold_return': bh_return - 1,
+        'strategy_return': strategy_return - 1,
         'outperformance': outperformance
     }
 
@@ -408,21 +506,26 @@ def equity():
     # -----------------------------------
     # Map duration to time delta
     # -----------------------------------
-    duration_map = {
-        "1w": pd.DateOffset(weeks=1),
-        "1m": pd.DateOffset(months=1),
-        "3m": pd.DateOffset(months=3),
-        "6m": pd.DateOffset(months=6),
-        "1y": pd.DateOffset(years=1),
-        "3y": pd.DateOffset(years=3),
-        "5y": pd.DateOffset(years=5),
-    }
+    # duration_map = {
+    #     "1w": pd.DateOffset(weeks=1),
+    #     "1m": pd.DateOffset(months=1),
+    #     "3m": pd.DateOffset(months=3),
+    #     "6m": pd.DateOffset(months=6),
+    #     "1y": pd.DateOffset(years=1),
+    #     "3y": pd.DateOffset(years=3),
+    #     "5y": pd.DateOffset(years=5),
+    #     "10y": pd.DateOffset(years=10),
+    # }
 
-    if duration not in duration_map:
-        return jsonify({"error": "Invalid duration"}), 400
+    # if duration not in duration_map:
+    #     return jsonify({"error": "Invalid duration"}), 400
 
+    # end_date = datetime.today()
+    # start_date = end_date - duration_map[duration]
+
+    delta = parse_duration(duration)
     end_date = datetime.today()
-    start_date = end_date - duration_map[duration]
+    start_date = end_date - delta
 
     base_symbol = ticker.split('-')[0]
 
@@ -524,12 +627,59 @@ def equity():
 
     return jsonify(results)
     
+# @app.route('/signals', methods=['POST'])
+# def signals():
+#     ticker = request.form['ticker']
+#     period_days = int(request.form.get('period_days', 365*10))
+
+#     sigs = compute_signals_for_ticker(ticker, period_days)
+
+#     return jsonify({
+#         'ticker': ticker,
+#         'today_signal': sigs['today'],
+#         'yesterday_signal': sigs['yesterday'],
+#         'last_week_signal': sigs['last_week'],
+#         'last_month_signal': sigs['last_month'],
+#         'buy_hold_annual_return': sigs['buy_hold_annual_return'],
+#         'strategy_annual_return': sigs['strategy_annual_return'],
+#     })
+
+# @app.route('/signals', methods=['POST'])
+# def signals():
+
+#     ticker = request.form['ticker']
+#     duration = request.form.get('duration', '1y')  # default 1 year
+
+#     # Compute start date from duration
+#     delta = parse_duration(duration)
+#     end_date = datetime.today().date()
+#     start_date = end_date - delta
+
+#     sigs = compute_signals_for_ticker(
+#         ticker=ticker,
+#         start_date=start_date
+#     )
+
+#     return jsonify({
+#         'ticker': ticker,
+#         'today_signal': sigs['today'],
+#         'yesterday_signal': sigs['yesterday'],
+#         'last_week_signal': sigs['last_week'],
+#         'last_month_signal': sigs['last_month'],
+#         'buy_hold_annual_return': sigs['buy_hold_annual_return'],
+#         'strategy_annual_return': sigs['strategy_annual_return'],
+#     })
+
 @app.route('/signals', methods=['POST'])
 def signals():
-    ticker = request.form['ticker']
-    period_days = int(request.form.get('period_days', 365*10))
 
-    sigs = compute_signals_for_ticker(ticker, period_days)
+    ticker = request.form['ticker']
+    duration = request.form.get('duration', '1y')
+
+    sigs = compute_signals_for_ticker(ticker, duration)
+
+    if sigs is None:
+        return jsonify({"error": "Not enough data"}), 400
 
     return jsonify({
         'ticker': ticker,
@@ -537,13 +687,16 @@ def signals():
         'yesterday_signal': sigs['yesterday'],
         'last_week_signal': sigs['last_week'],
         'last_month_signal': sigs['last_month'],
-        'buy_hold_annual_return': sigs['buy_hold_annual_return'],
-        'strategy_annual_return': sigs['strategy_annual_return'],
+        'buy_hold_return': sigs['buy_hold_return'],
+        'strategy_return': sigs['strategy_return'],
+        'outperformance': sigs['outperformance']
     })
 
 # Cached version that invalidates when CSV files change
-@lru_cache(maxsize=1)
-def compute_signals_summary_cached(csv_version, period_days):
+# @lru_cache(maxsize=1)
+@lru_cache(maxsize=8)   # allow caching different durations
+def compute_signals_summary_cached(csv_version, duration_str):
+# def compute_signals_summary_cached(csv_version, period_days):
     tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL', 'GOOGL', 'MSFT', "1INCH-USD", "3ULL-USD", "AAVE-USD", "ACE-USD",
                "ACH-USD", "ADA-USD", "AERO-USD", "AEVO-USD", "AGI-USD", "AIOZ-USD", "AIT-USD", "AITECH-USD", "AIXBT-USD", "AKT-USD", "ALEPH-USD",
                "ALGO-USD", "ALI-USD", "ALPH-USD", "ALT-USD", "ALU-USD", "ALVA-USD", "AMP-USD", 'AMZN', "ANKR-USD", "ANON-USD", "ANYONE-USD",
@@ -580,15 +733,19 @@ def compute_signals_summary_cached(csv_version, period_days):
 
     for t in tickers:
         try:
-            sigs = compute_signals_for_ticker(t, period_days)
+            sigs = compute_signals_for_ticker(t, duration_str)
+
+            if sigs is None:
+                continue
+
             results.append({
                 'ticker': t,
                 'today_signal': sigs['today'],
                 'yesterday_signal': sigs['yesterday'],
                 'last_week_signal': sigs['last_week'],
                 'last_month_signal': sigs['last_month'],
-                'buy_hold_annual_return': sigs['buy_hold_annual_return'],
-                'strategy_annual_return': sigs['strategy_annual_return'],
+                'buy_hold_return': sigs['buy_hold_return'],
+                'strategy_return': sigs['strategy_return'],
                 'outperformance': sigs['outperformance'],
             })
         except Exception as e:
@@ -596,10 +753,27 @@ def compute_signals_summary_cached(csv_version, period_days):
 
     return results
 
+# @app.route('/signals/summary')
+# def signals_summary():
+#     period_days = int(request.args.get('period_days', 365*10))
+#     csv_version = get_csv_version()
+#     results = compute_signals_summary_cached(csv_version, period_days)
+#     print("period_days received:", period_days)
+#     return jsonify(results)
+
 @app.route('/signals/summary')
 def signals_summary():
-    period_days = int(request.args.get('period_days', 365*10))
+
+    # Get duration string from query params (default 1yr)
+    duration_str = request.args.get('duration', '1y')
+
     csv_version = get_csv_version()
-    results = compute_signals_summary_cached(csv_version, period_days)
-    print("period_days received:", period_days)
+
+    results = compute_signals_summary_cached(
+        csv_version,
+        duration_str
+    )
+
+    print("duration received:", duration_str)
+
     return jsonify(results)
