@@ -42,63 +42,63 @@ def supabase_auth(endpoint, payload):
         json=payload
     )
 
-# def parse_duration(duration: str):
-#     """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
-#     s = duration.strip().lower()
-#     if s.endswith("mo"):
-#         return relativedelta(months=int(s[:-2]))
-#     if s.endswith("yr") or s.endswith("y"):
-#         return relativedelta(years=int(s.rstrip('yr').rstrip('y')))
-#     if s.endswith("w"):
-#         return timedelta(weeks=int(s[:-1]))
-#     if s.endswith("d"):
-#         return timedelta(days=int(s[:-1]))
-#     raise ValueError(f"Unsupported duration: {duration}")
+def parse_duration(duration: str):
+    """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
+    s = duration.strip().lower()
+    if s.endswith("mo"):
+        return relativedelta(months=int(s[:-2]))
+    if s.endswith("yr") or s.endswith("y"):
+        return relativedelta(years=int(s.rstrip('yr').rstrip('y')))
+    if s.endswith("w"):
+        return timedelta(weeks=int(s[:-1]))
+    if s.endswith("d"):
+        return timedelta(days=int(s[:-1]))
+    raise ValueError(f"Unsupported duration: {duration}")
 
 # import re
 # from datetime import timedelta
 # from dateutil.relativedelta import relativedelta
 
 
-def parse_duration(duration: str):
-    """
-    Parse strings like:
-    1m, 1mo, 3m, 6m
-    1y, 1yr, 3y
-    2w
-    10d
-    """
+# def parse_duration(duration: str):
+#     """
+#     Parse strings like:
+#     1m, 1mo, 3m, 6m
+#     1y, 1yr, 3y
+#     2w
+#     10d
+#     """
 
-    s = duration.strip().lower()
+#     s = duration.strip().lower()
 
-    # Match: number + letters
-    match = re.fullmatch(r"(\d+)([a-z]+)", s)
-    if not match:
-        raise ValueError(f"Unsupported duration format: {duration}")
+#     # Match: number + letters
+#     match = re.fullmatch(r"(\d+)([a-z]+)", s)
+#     if not match:
+#         raise ValueError(f"Unsupported duration format: {duration}")
 
-    value = int(match.group(1))
-    unit = match.group(2)
+#     value = int(match.group(1))
+#     unit = match.group(2)
 
-    # Months
-    if unit in ["m", "mo", "month", "months"]:
-        return relativedelta(months=value)
+#     # Months
+#     if unit in ["m", "mo", "month", "months"]:
+#         return relativedelta(months=value)
 
-    # Years
-    if unit in ["y", "yr", "year", "years"]:
-        return relativedelta(years=value)
+#     # Years
+#     if unit in ["y", "yr", "year", "years"]:
+#         return relativedelta(years=value)
 
-    # Weeks
-    if unit in ["w", "week", "weeks"]:
-        return timedelta(weeks=value)
+#     # Weeks
+#     if unit in ["w", "week", "weeks"]:
+#         return timedelta(weeks=value)
 
-    # Days
-    if unit in ["d", "day", "days"]:
-        return timedelta(days=value)
+#     # Days
+#     if unit in ["d", "day", "days"]:
+#         return timedelta(days=value)
 
-    if value <= 0:
-        raise ValueError("Duration must be positive")
+#     if value <= 0:
+#         raise ValueError("Duration must be positive")
 
-    raise ValueError(f"Unsupported duration unit: {duration}")
+#     raise ValueError(f"Unsupported duration unit: {duration}")
 
 def get_csv_version():
     """
