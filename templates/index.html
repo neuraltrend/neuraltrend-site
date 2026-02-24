@@ -600,21 +600,14 @@
                                             outline: none;
                                         "
                                     >
-                                        <!-- <option value="7">1W</option>
+                                        <option value="7">1W</option>
                                         <option value="30">1M</option>
                                         <option value="90">3M</option>
                                         <option value="180">6M</option>
                                         <option value="365" selected>1Y</option>
                                         <option value="1095">3Y</option>
                                         <option value="1825">5Y</option>
-                                        <option value="3650">10Y</option> -->
-                                        <option value="1w">1W</option>
-                                        <option value="1m">1M</option>
-                                        <option value="3m">3M</option>
-                                        <option value="6m">6M</option>
-                                        <option value="1y" selected>1Y</option>
-                                        <option value="3y">3Y</option>
-                                        <option value="5y">5Y</option>
+                                        <option value="3650">10Y</option>
                                     </select>
                 
                                 </div>
@@ -738,7 +731,7 @@
 
                                 <div 
                                     style="text-align:right; cursor:pointer;"
-                                    onclick="sortBy('buy_hold_return')"
+                                    onclick="sortBy('buy_hold_annual_return')"
                                 >
                                     Buy&Hold Return<br>
                                     <span id="buy-hold-sort-indicator" style="font-size:11px; font-weight:500; color:#666;">—</span>
@@ -746,7 +739,7 @@
                                 
                                 <div 
                                     style="text-align:right; cursor:pointer;"
-                                    onclick="sortBy('strategy_return')"
+                                    onclick="sortBy('strategy_annual_return')"
                                 >
                                     EpochSignaler Return<br>
                                     <span id="strategy-sort-indicator" style="font-size:11px; font-weight:500; color:#666;">—</span>
@@ -1142,13 +1135,13 @@
                     <div class="form-group">
                         <label for="duration">Backtest Duration:</label>
                         <select id="duration" name="duration" required>
-                            <option value="5y">5 yr</option>
-                            <option value="3y">3 yr</option>
-                            <option value="2y">2 yr</option>
-                            <option value="1y">1 yr</option>
-                            <option value="6m">6 mo</option>
-                            <option value="3m">3 mo</option>
-                            <option value="1m">1 mo</option>
+                            <option value="5yr">5 yr</option>
+                            <option value="3yr">3 yr</option>
+                            <option value="2yr">2 yr</option>
+                            <option value="1yr">1 yr</option>
+                            <option value="6mo">6 mo</option>
+                            <option value="3mo">3 mo</option>
+                            <option value="1mo">1 mo</option>
                         </select>
                     </div>
 
@@ -1753,11 +1746,11 @@ function updateSortIndicators() {
 
     const arrow = currentSort.direction === 1 ? "▲" : "▼";
 
-    if (currentSort.key === "buy_hold_return") {
+    if (currentSort.key === "buy_hold_annual_return") {
         buyHoldEl.innerHTML = arrow;
     }
 
-    if (currentSort.key === "strategy_return") {
+    if (currentSort.key === "strategy_annual_return") {
         strategyEl.innerHTML = arrow;
     }
 
@@ -1786,8 +1779,8 @@ function renderBoard(data) {
             <div style="text-align:left;">${formatSignal(item.yesterday_signal)}</div>
             <div style="text-align:left;">${formatSignal(item.last_week_signal)}</div>
             <div style="text-align:left;">${formatSignal(item.last_month_signal)}</div>
-            <div style="text-align:right;">${formatPercent(item.buy_hold_return)}</div>
-            <div style="text-align:right;">${formatPercent(item.strategy_return)}</div>
+            <div style="text-align:right;">${formatPercent(item.buy_hold_annual_return)}</div>
+            <div style="text-align:right;">${formatPercent(item.strategy_annual_return)}</div>
             <div style="text-align:right;">${formatMultiple(item.outperformance)}</div>
         </div>
     `).join('');
@@ -1906,8 +1899,8 @@ function renderSignals({
     yesterday_signal,
     last_week_signal,
     last_month_signal,
-    buy_hold_return,
-    strategy_return
+    buy_hold_annual_return,
+    strategy_annual_return
 }) {
     const signalsDiv = document.getElementById('signals');
 
@@ -1927,8 +1920,8 @@ function renderSignals({
                 <div style="text-align:left;">Yesterday: ${formatSignal(yesterday_signal)}</div>
                 <div style="text-align:left;">Last Week: ${formatSignal(last_week_signal)}</div>
                 <div style="text-align:left;">Last Month: ${formatSignal(last_month_signal)}</div>
-                <div style="text-align:right;">Buy&Hold Return: ${formatPercent(buy_hold_return)}</div>
-                <div style="text-align:right;">EpochSignaler Return: ${formatPercent(strategy_return)}</div>
+                <div style="text-align:right;">Buy&Hold Return: ${formatPercent(buy_hold_annual_return)}</div>
+                <div style="text-align:right;">EpochSignaler Return: ${formatPercent(strategy_annual_return)}</div>
                 <div style="text-align:right;">Outperformance${formatMultiple(item.outperformance)}</div>
             </div>
         </div>
