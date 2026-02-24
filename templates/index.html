@@ -600,14 +600,22 @@
                                             outline: none;
                                         "
                                     >
-                                        <option value="7">1W</option>
+                                        <!-- <option value="7">1W</option>
                                         <option value="30">1M</option>
                                         <option value="90">3M</option>
                                         <option value="180">6M</option>
                                         <option value="365" selected>1Y</option>
                                         <option value="1095">3Y</option>
                                         <option value="1825">5Y</option>
-                                        <option value="3650">10Y</option>
+                                        <option value="3650">10Y</option> -->
+                                        <option value="1w">1W</option>
+                                        <option value="1mo">1M</option>
+                                        <option value="3mo">3M</option>
+                                        <option value="6mo">6M</option>
+                                        <option value="1y" selected>1Y</option>
+                                        <option value="3y">3Y</option>
+                                        <option value="5y">5Y</option>
+                                        <option value="10y">10Y</option>
                                     </select>
                 
                                 </div>
@@ -1798,16 +1806,33 @@ board.innerHTML = `
     </div>
 `;
 
-function loadSummary() {
-    const period = document.getElementById('period-select').value;
+// function loadSummary() {
+//     const period = document.getElementById('period-select').value;
 
-    // fetch(`/signals/summary?period_days=${period}`)
-    fetch(`/signals/summary?period_days=${period}&_=${Date.now()}`)
+//     // fetch(`/signals/summary?period_days=${period}`)
+//     fetch(`/signals/summary?period_days=${period}&_=${Date.now()}`)
+//         .then(r => r.json())
+//         .then(data => {
+//             allSignals = data;
+//             defaultOrder = [...data];   // store original order
+//             // renderBoard(data);
+//             updateSortIndicators();
+//             applyAllFilters();
+//         })
+//         .catch(err => {
+//             board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
+//             console.error(err);
+//         });
+// }
+
+function loadSummary() {
+    const duration = document.getElementById('period-select').value; // e.g., '1w', '1mo', '1y'
+
+    fetch(`/signals/summary?duration=${duration}&_=${Date.now()}`)
         .then(r => r.json())
         .then(data => {
             allSignals = data;
             defaultOrder = [...data];   // store original order
-            // renderBoard(data);
             updateSortIndicators();
             applyAllFilters();
         })
@@ -1831,6 +1856,16 @@ document.querySelectorAll('.signal-filter').forEach(select => {
     });
 });
 
+// document.getElementById('period-select')
+//     .addEventListener('change', function() {
+//         board.innerHTML = `
+//             <div style="text-align:center; color:#888; padding:20px;">
+//                 Updating period…
+//             </div>
+//         `;
+//         loadSummary();
+//     });
+
 document.getElementById('period-select')
     .addEventListener('change', function() {
         board.innerHTML = `
@@ -1838,8 +1873,32 @@ document.getElementById('period-select')
                 Updating period…
             </div>
         `;
-        loadSummary();
+        loadSummary();  // loadSummary now sends duration string
     });
+
+// document.getElementById('period-select')
+//     .addEventListener('change', function() {
+//         const durationStr = this.value;  // e.g., '1w', '1mo', '1y'
+        
+//         board.innerHTML = `
+//             <div style="text-align:center; color:#888; padding:20px;">
+//                 Updating period…
+//             </div>
+//         `;
+
+//         fetch(`/signals/summary?duration=${durationStr}&_=${Date.now()}`)
+//             .then(r => r.json())
+//             .then(data => {
+//                 allSignals = data;
+//                 defaultOrder = [...data];
+//                 updateSortIndicators();
+//                 applyAllFilters();
+//             })
+//             .catch(err => {
+//                 board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
+//                 console.error(err);
+//             });
+//     });
 
 document.getElementById('ticker-search')
     .addEventListener('input', function() {
@@ -1857,12 +1916,27 @@ document.getElementById('asset-type-filter')
    3. LOAD TICKER FROM BOARD CLICK
 ================================ */
 
+// function loadTicker(ticker) {
+//     const select = document.getElementById('ticker');
+//     select.value = ticker;
+
+//     const formData = new FormData(document.getElementById('signal-form'));
+//     formData.append('period_days', document.getElementById('period-select').value);
+
+//     fetch('/signals', {
+//         method: 'POST',
+//         body: formData
+//     })
+//     .then(r => r.json())
+//     .then(renderSignals);
+// }
+
 function loadTicker(ticker) {
     const select = document.getElementById('ticker');
     select.value = ticker;
 
     const formData = new FormData(document.getElementById('signal-form'));
-    formData.append('period_days', document.getElementById('period-select').value);
+    formData.append('duration', document.getElementById('period-select').value);
 
     fetch('/signals', {
         method: 'POST',
@@ -1900,7 +1974,8 @@ function renderSignals({
     last_week_signal,
     last_month_signal,
     buy_hold_annual_return,
-    strategy_annual_return
+    strategy_annual_return,
+    outperformance
 }) {
     const signalsDiv = document.getElementById('signals');
 
@@ -1922,7 +1997,7 @@ function renderSignals({
                 <div style="text-align:left;">Last Month: ${formatSignal(last_month_signal)}</div>
                 <div style="text-align:right;">Buy&Hold Return: ${formatPercent(buy_hold_annual_return)}</div>
                 <div style="text-align:right;">EpochSignaler Return: ${formatPercent(strategy_annual_return)}</div>
-                <div style="text-align:right;">Outperformance${formatMultiple(item.outperformance)}</div>
+                <div style="text-align:right;">Outperformance${formatMultiple(outperformance)}</div>
             </div>
         </div>
     `;
