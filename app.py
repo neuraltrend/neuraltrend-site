@@ -411,46 +411,19 @@ def backtest():
 def equity():
 
     ticker = request.form['ticker']
-    duration = request.form["duration"]   # '1w','1m','3m','6m','1y','3y','5y'
+    duration_str = request.form["duration"]  # '1w','1mo','1y', etc.
 
-    initial_cash = 1.0
-    TRANSACTION_COST = 0.01   # 1% per transaction (per side)
-
-    # -----------------------------------
-    # Map duration to time delta
-    # -----------------------------------
-    duration_map = {
-        "1w": pd.DateOffset(weeks=1),
-        "1m": pd.DateOffset(months=1),
-        "3m": pd.DateOffset(months=3),
-        "6m": pd.DateOffset(months=6),
-        "1y": pd.DateOffset(years=1),
-        "3y": pd.DateOffset(years=3),
-        "5y": pd.DateOffset(years=5),
-    }
-
-    if duration not in duration_map:
-        return jsonify({"error": "Invalid duration"}), 400
-
-    end_date = datetime.today()
-    start_date = end_date - duration_map[duration]
+    # Convert duration to days
+    try:
+        period_days = duration_to_days(duration_str)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
     base_symbol = ticker.split('-')[0]
-
-    # -----------------------------------
-    # Load CSV
-    # -----------------------------------
     csv_filename = f"epoch_{base_symbol}.csv"
     csv_path = os.path.join(app.root_path, 'data', csv_filename)
 
     signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
-
-    mask = (
-        (signals_df['Date'] >= pd.to_datetime(start_date)) &
-        (signals_df['Date'] <= pd.to_datetime(end_date))
-    )
-
-    signals_df = signals_df.loc[mask].copy()
     signals_df.set_index('Date', inplace=True)
 
     signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
@@ -460,60 +433,78 @@ def equity():
     if len(signals_df) < 2:
         return jsonify({"error": "Not enough data"}), 400
 
-    # -----------------------------------
-    # Epoch Strategy Backtest (with cost)
-    # -----------------------------------
-    cash = initial_cash
-    position = 0
-    equity_curve = []
+    # ---------------------------------------------------
+    # Slice from duration ago until today
+    # ---------------------------------------------------
+    end_date = signals_df.index.max()
+    start_date = end_date - pd.Timedelta(days=period_days)
+    signals_df = signals_df[signals_df.index >= start_date].copy()
+
+    if len(signals_df) < 2:
+        return jsonify({"error": "Not enough data in selected duration"}), 400
+
+    # ---------------------------------------------------
+    # Transaction cost
+    # ---------------------------------------------------
+    transaction_cost = 0.01 if ticker.endswith("-USD") else 0.001
+
+    # ---------------------------------------------------
+    # Strategy Simulation (start cash = 1)
+    # ---------------------------------------------------
+    cash = 1.0
+    position = 0.0
+    epoch_equity_curve = []
 
     for date, row in signals_df.iterrows():
         price = row['Close']
         signal = row['epoch_signal']
 
         if signal == 1 and cash > 0:
-            position = (cash / price) * (1 - TRANSACTION_COST)
+            position = (cash / price) * (1 - transaction_cost)
             cash = 0
 
         elif signal == -1 and position > 0:
-            cash = (position * price) * (1 - TRANSACTION_COST)
+            cash = (position * price) * (1 - transaction_cost)
             position = 0
 
         equity = cash + position * price
-        equity_curve.append((date, equity))
+        epoch_equity_curve.append(equity)
 
-    eq_df = pd.DataFrame(equity_curve, columns=['Date', 'Equity']).set_index('Date')
+    # Final liquidation
+    if position > 0:
+        cash = (position * signals_df['Close'].iloc[-1]) * (1 - transaction_cost)
+        epoch_equity_curve[-1] = cash
 
-    # -----------------------------------
-    # Buy & Hold Curve (normalized to 1)
-    # -----------------------------------
-    close_prices = signals_df['Close'].to_numpy().astype(float)
-    equity_curve_bh = (close_prices / close_prices[0]) * initial_cash
-    equity_curve_bh = equity_curve_bh.tolist()
+    # ---------------------------------------------------
+    # Buy & Hold Curve (start = 1)
+    # ---------------------------------------------------
+    prices = signals_df['Close'].to_numpy()
+    buy_hold_curve = (prices / prices[0]).tolist()
 
-    final_value_bh = float(equity_curve_bh[-1])
-    final_value_epoch = float(eq_df['Equity'].iloc[-1])
-
-    profit_factor_bh = final_value_bh / initial_cash
-    profit_factor_epoch = final_value_epoch / initial_cash
-
-    # -----------------------------------
-    # Sharpe (buy & hold based)
-    # -----------------------------------
-    returns = signals_df['Close'].pct_change().dropna()
-    risk_free_rate_annual = 0.01
-    risk_free_rate_daily = (1 + risk_free_rate_annual) ** (1/252) - 1
-    excess_returns = returns - risk_free_rate_daily
-    sharpe_ratio = float((excess_returns.mean() / excess_returns.std()) * (252 ** 0.5))
-
-    # -----------------------------------
+    # ---------------------------------------------------
     # Buy/Sell markers
-    # -----------------------------------
+    # ---------------------------------------------------
     buy_dates = signals_df.index[signals_df['epoch_signal'] == 1]
     sell_dates = signals_df.index[signals_df['epoch_signal'] == -1]
 
-    buy_prices = eq_df.loc[buy_dates, 'Equity']
-    sell_prices = eq_df.loc[sell_dates, 'Equity']
+    buy_prices = [
+        epoch_equity_curve[signals_df.index.get_loc(d)]
+        for d in buy_dates if d in signals_df.index
+    ]
+
+    sell_prices = [
+        epoch_equity_curve[signals_df.index.get_loc(d)]
+        for d in sell_dates if d in signals_df.index
+    ]
+
+    # ---------------------------------------------------
+    # Final Metrics
+    # ---------------------------------------------------
+    final_value_bh = buy_hold_curve[-1]
+    final_value_epoch = epoch_equity_curve[-1]
+
+    returns = signals_df['Close'].pct_change().dropna()
+    sharpe_ratio = float((returns.mean() / returns.std()) * (252 ** 0.5)) if returns.std() != 0 else 0.0
 
     dates = signals_df.index.strftime('%Y-%m-%d').tolist()
 
@@ -521,20 +512,20 @@ def equity():
         'ticker': ticker,
         'final_value': final_value_bh,
         'final_value_epoch': final_value_epoch,
-        'profit_factor': profit_factor_bh,
-        'profit_factor_epoch': profit_factor_epoch,
+        'profit_factor': final_value_bh,
+        'profit_factor_epoch': final_value_epoch,
         'sharpe_ratio': sharpe_ratio,
-        'equity_curve': equity_curve_bh,
-        'epoch_equity_curve': eq_df['Equity'].tolist(),
+        'equity_curve': buy_hold_curve,
+        'epoch_equity_curve': epoch_equity_curve,
         'dates': dates,
         'buy_dates': [d.strftime("%Y-%m-%d") for d in buy_dates],
-        'buy_prices': buy_prices.tolist() if isinstance(buy_prices, pd.Series) else [],
+        'buy_prices': buy_prices,
         'sell_dates': [d.strftime("%Y-%m-%d") for d in sell_dates],
-        'sell_prices': sell_prices.tolist() if isinstance(sell_prices, pd.Series) else [],
+        'sell_prices': sell_prices,
     }
 
     return jsonify(results)
-
+    
 @app.route('/signals', methods=['POST'])
 def signals():
     ticker = request.form['ticker']
