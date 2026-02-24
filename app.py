@@ -571,7 +571,7 @@ def equity():
 @app.route('/signals', methods=['POST'])
 def signals():
     ticker = request.form['ticker']
-    duration_str = request.form.get('duration', '10y')  # default '10y'
+    duration_str = request.form.get('duration', '1y')  # default '10y'
 
     try:
         period_days = duration_to_days(duration_str)
@@ -656,7 +656,7 @@ def compute_signals_summary_cached(csv_version, period_days):
 
 @app.route('/signals/summary')
 def signals_summary():
-    duration_str = request.args.get('duration', '10y')  # default '10y'
+    duration_str = request.args.get('duration', '1y')  # default '1y'
     
     try:
         period_days = duration_to_days(duration_str)
