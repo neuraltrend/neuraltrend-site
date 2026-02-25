@@ -1920,6 +1920,66 @@ function renderSignals({
     `;
 }
 
+// function renderEquityPreview(data) {
+
+//     const container = document.getElementById("equity-preview-container");
+//     const chartDiv = document.getElementById("equity-preview-chart");
+
+//     container.style.display = "block";
+//     document.getElementById("preview-title").innerText =
+//         `${data.ticker} — Equity Preview`;
+
+//     // Clear previous chart
+//     chartDiv.innerHTML = '<canvas id="previewChartCanvas"></canvas>';
+
+//     const ctx = document.getElementById("previewChartCanvas").getContext("2d");
+
+//     // Destroy old chart if exists
+//     if (previewChart) {
+//         previewChart.destroy();
+//     }
+
+//     const equity = data.epoch_equity_curve;
+//     const buyHold = data.equity_curve;
+//     const dates = data.dates;
+
+//     previewChart = new Chart(ctx, {
+//         type: "line",
+//         data: {
+//             labels: dates,
+//             datasets: [
+//                 {
+//                     label: "EpochSignaler",
+//                     data: equity,
+//                     borderColor: "blue",
+//                     pointRadius: 0,
+//                     fill: false
+//                 },
+//                 {
+//                     label: "Buy & Hold",
+//                     data: buyHold,
+//                     borderColor: "purple",
+//                     borderDash: [5, 5],
+//                     pointRadius: 0,
+//                     fill: false
+//                 }
+//             ]
+//         },
+//         options: {
+//             responsive: true,
+//             plugins: {
+//                 legend: {
+//                     labels: { usePointStyle: true }
+//                 }
+//             },
+//             scales: {
+//                 x: { display: true },
+//                 y: { display: true }
+//             }
+//         }
+//     });
+// }
+
 function renderEquityPreview(data) {
 
     const container = document.getElementById("equity-preview-container");
@@ -1929,12 +1989,9 @@ function renderEquityPreview(data) {
     document.getElementById("preview-title").innerText =
         `${data.ticker} — Equity Preview`;
 
-    // Clear previous chart
     chartDiv.innerHTML = '<canvas id="previewChartCanvas"></canvas>';
-
     const ctx = document.getElementById("previewChartCanvas").getContext("2d");
 
-    // Destroy old chart if exists
     if (previewChart) {
         previewChart.destroy();
     }
@@ -1942,6 +1999,21 @@ function renderEquityPreview(data) {
     const equity = data.epoch_equity_curve;
     const buyHold = data.equity_curve;
     const dates = data.dates;
+    const buy_dates = data.buy_dates;
+    const sell_dates = data.sell_dates;
+
+    // 🔥 Dynamic offset (same as backtest)
+    const equity_min = Math.min(...equity);
+    const equity_max = Math.max(...equity);
+    const offset = (equity_max - equity_min) * 0.04;
+
+    const adjustedBuySignals = dates.map((d, i) =>
+        buy_dates.includes(d) ? equity[i] - offset : null
+    );
+
+    const adjustedSellSignals = dates.map((d, i) =>
+        sell_dates.includes(d) ? equity[i] + offset : null
+    );
 
     previewChart = new Chart(ctx, {
         type: "line",
@@ -1962,6 +2034,23 @@ function renderEquityPreview(data) {
                     borderDash: [5, 5],
                     pointRadius: 0,
                     fill: false
+                },
+                {
+                    label: "Buy Signal",
+                    data: adjustedBuySignals,
+                    pointStyle: "triangle",
+                    pointRadius: 10,
+                    backgroundColor: "green",
+                    showLine: false
+                },
+                {
+                    label: "Sell Signal",
+                    data: adjustedSellSignals,
+                    pointStyle: "triangle",
+                    rotation: 180,
+                    pointRadius: 10,
+                    backgroundColor: "red",
+                    showLine: false
                 }
             ]
         },
