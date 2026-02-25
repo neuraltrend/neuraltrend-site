@@ -2029,10 +2029,13 @@ function renderEquityPreview(data) {
         `${data.ticker} — Equity Preview`;
 
     // chartDiv.innerHTML = '<canvas id="previewChartCanvas"></canvas>';
+    // chartDiv.innerHTML = `
+    //     <div style="display:flex; justify-content:center;">
+    //         <canvas id="previewChartCanvas" style="max-width:100%;"></canvas>
+    //     </div>
+    // `;
     chartDiv.innerHTML = `
-        <div style="display:flex; justify-content:center;">
-            <canvas id="previewChartCanvas" style="max-width:100%;"></canvas>
-        </div>
+        <canvas id="previewChartCanvas"></canvas>
     `;
     const ctx = document.getElementById("previewChartCanvas").getContext("2d");
 
@@ -2100,11 +2103,24 @@ function renderEquityPreview(data) {
                 }
             ]
         },
+        // options: {
+        //     responsive: true,
+        //     plugins: {
+        //         legend: {
+        //             labels: { usePointStyle: true }
+        //         }
+        //     },
+        //     scales: {
+        //         x: { display: true },
+        //         y: { display: true }
+        //     }
+        // }
         options: {
             responsive: true,
+            maintainAspectRatio: false,   // 🔥 THIS FIXES OVERFLOW
             plugins: {
                 legend: {
-                    labels: { usePointStyle: true }
+                    labels: { usePointStyle: false }  // match backtest style
                 }
             },
             scales: {
