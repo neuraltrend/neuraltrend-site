@@ -127,7 +127,7 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
     # -------------------------------
     # Buy & Hold return
     # -------------------------------
-    bh_return = df['Close'].iloc[-1] / df['Close'].iloc[0]
+    bh_return = (df['Close'].iloc[-1] / df['Close'].iloc[0]) * (1 - transaction_cost) ** 2
 
     # -------------------------------
     # Strategy return (cash-based)
