@@ -1813,11 +1813,25 @@ function loadSummary() {
 
     fetch(`/signals/summary?duration=${duration}&_=${Date.now()}`)
         .then(r => r.json())
+        // .then(data => {
+        //     allSignals = data;
+        //     defaultOrder = [...data];   // store original order
+        //     updateSortIndicators();
+        //     applyAllFilters();
+        // })
         .then(data => {
             allSignals = data;
-            defaultOrder = [...data];   // store original order
+            defaultOrder = [...data];
             updateSortIndicators();
             applyAllFilters();
+        
+            // 🔥 Auto-load BTC-USD preview only once
+            if (!currentTicker) {
+                const btcExists = data.find(item => item.ticker === "BTC-USD");
+                if (btcExists) {
+                    loadTicker("BTC-USD");
+                }
+            }
         })
         .catch(err => {
             board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
