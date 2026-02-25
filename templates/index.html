@@ -2029,7 +2029,12 @@ function renderEquityPreview(data) {
     document.getElementById("preview-title").innerText =
         `${data.ticker} — Equity Preview`;
 
-    chartDiv.innerHTML = '<canvas id="previewChartCanvas"></canvas>';
+    // chartDiv.innerHTML = '<canvas id="previewChartCanvas"></canvas>';
+    chartDiv.innerHTML = `
+        <div style="display:flex; justify-content:center;">
+            <canvas id="previewChartCanvas" style="max-width:100%;"></canvas>
+        </div>
+    `;
     const ctx = document.getElementById("previewChartCanvas").getContext("2d");
 
     if (previewChart) {
