@@ -606,7 +606,7 @@ def compute_signals_summary_cached(csv_version, period_days):
 
 @app.route('/signals/summary')
 def signals_summary():
-    duration_str = request.args.get('duration', '1y')  # default '1y'
+    duration_str = request.args.get('duration', '5y')  # default '5y'
     
     try:
         period_days = duration_to_days(duration_str)
