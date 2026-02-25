@@ -1442,6 +1442,8 @@
 </div>
 
 <script>
+let equityChart = null;
+    
 document.getElementById('backtest-form').addEventListener('submit', function(e) {
     e.preventDefault();
 
@@ -1554,7 +1556,12 @@ function renderResults({
         });
     }
 
-    new Chart(ctx, {
+    // new Chart(ctx, {
+    if (equityChart) {
+        equityChart.destroy();
+    }
+    
+    equityChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: dates,
@@ -1787,14 +1794,31 @@ document.querySelectorAll('.signal-filter').forEach(select => {
     });
 });
 
+// document.getElementById('period-select')
+//     .addEventListener('change', function() {
+//         board.innerHTML = `
+//             <div style="text-align:center; color:#888; padding:20px;">
+//                 Updating period…
+//             </div>
+//         `;
+//         loadSummary();  // loadSummary now sends duration string
+//     });
+
 document.getElementById('period-select')
     .addEventListener('change', function() {
+
         board.innerHTML = `
             <div style="text-align:center; color:#888; padding:20px;">
                 Updating period…
             </div>
         `;
-        loadSummary();  // loadSummary now sends duration string
+
+        loadSummary();
+
+        // 🔥 If a ticker is already selected, update its chart too
+        if (currentTicker) {
+            loadTicker(currentTicker);
+        }
     });
 
 document.getElementById('ticker-search')
@@ -1813,19 +1837,48 @@ document.getElementById('asset-type-filter')
    3. LOAD TICKER FROM BOARD CLICK
 ================================ */
 
+// function loadTicker(ticker) {
+//     const select = document.getElementById('ticker');
+//     select.value = ticker;
+
+//     const formData = new FormData(document.getElementById('signal-form'));
+//     formData.append('duration', document.getElementById('period-select').value);
+
+//     fetch('/signals', {
+//         method: 'POST',
+//         body: formData
+//     })
+//     .then(r => r.json())
+//     .then(renderSignals);
+// }
+
+let currentTicker = null;
+
 function loadTicker(ticker) {
-    const select = document.getElementById('ticker');
-    select.value = ticker;
 
-    const formData = new FormData(document.getElementById('signal-form'));
-    formData.append('duration', document.getElementById('period-select').value);
+    currentTicker = ticker;
 
+    const duration = document.getElementById('period-select').value;
+
+    const formData = new FormData();
+    formData.append('ticker', ticker);
+    formData.append('duration', duration);
+
+    // 1️⃣ Load signal summary
     fetch('/signals', {
         method: 'POST',
         body: formData
     })
     .then(r => r.json())
     .then(renderSignals);
+
+    // 2️⃣ Load equity curve
+    fetch('/equity', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(renderResults);  // 👈 your existing chart function
 }
 
 /* ===============================
