@@ -752,6 +752,12 @@
                     </div>
                 </div>
                 <!-- QUICK SIGNAL BOARD END -->
+
+                <!-- 🔥 NEW: Equity Preview Section -->
+                <div id="equity-preview-container" style="display:none; margin-top:30px;">
+                    <h3 id="preview-title"></h3>
+                    <div id="equity-preview-chart" style="height:400px;"></div>
+                </div>
         
             <div id="signals"></div>
         </section>
@@ -1852,7 +1858,37 @@ document.getElementById('asset-type-filter')
 //     .then(renderSignals);
 // }
 
+// let currentTicker = null;
+
+// function loadTicker(ticker) {
+
+//     currentTicker = ticker;
+
+//     const duration = document.getElementById('period-select').value;
+
+//     const formData = new FormData();
+//     formData.append('ticker', ticker);
+//     formData.append('duration', duration);
+
+//     // 1️⃣ Load signal summary
+//     fetch('/signals', {
+//         method: 'POST',
+//         body: formData
+//     })
+//     .then(r => r.json())
+//     .then(renderSignals);
+
+//     // 2️⃣ Load equity curve
+//     fetch('/equity', {
+//         method: 'POST',
+//         body: formData
+//     })
+//     .then(r => r.json())
+//     .then(renderResults);  // 👈 your existing chart function
+// }
+
 let currentTicker = null;
+let previewChart = null;   // 🔥 prevents duplicate charts
 
 function loadTicker(ticker) {
 
@@ -1864,7 +1900,7 @@ function loadTicker(ticker) {
     formData.append('ticker', ticker);
     formData.append('duration', duration);
 
-    // 1️⃣ Load signal summary
+    // 1️⃣ Load signal summary (right panel text)
     fetch('/signals', {
         method: 'POST',
         body: formData
@@ -1872,13 +1908,13 @@ function loadTicker(ticker) {
     .then(r => r.json())
     .then(renderSignals);
 
-    // 2️⃣ Load equity curve
+    // 2️⃣ Load equity preview (UNDER BOARD)
     fetch('/equity', {
         method: 'POST',
         body: formData
     })
     .then(r => r.json())
-    .then(renderResults);  // 👈 your existing chart function
+    .then(renderEquityPreview);
 }
 
 /* ===============================
@@ -1937,6 +1973,67 @@ function renderSignals({
         </div>
     `;
 }
+
+function renderEquityPreview(data) {
+
+    const container = document.getElementById("equity-preview-container");
+    const chartDiv = document.getElementById("equity-preview-chart");
+
+    container.style.display = "block";
+    document.getElementById("preview-title").innerText =
+        `${data.ticker} — Equity Preview`;
+
+    // Clear previous chart
+    chartDiv.innerHTML = '<canvas id="previewChartCanvas"></canvas>';
+
+    const ctx = document.getElementById("previewChartCanvas").getContext("2d");
+
+    // Destroy old chart if exists
+    if (previewChart) {
+        previewChart.destroy();
+    }
+
+    const equity = data.epoch_equity_curve;
+    const buyHold = data.equity_curve;
+    const dates = data.dates;
+
+    previewChart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: dates,
+            datasets: [
+                {
+                    label: "EpochSignaler",
+                    data: equity,
+                    borderColor: "blue",
+                    pointRadius: 0,
+                    fill: false
+                },
+                {
+                    label: "Buy & Hold",
+                    data: buyHold,
+                    borderColor: "purple",
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: { usePointStyle: true }
+                }
+            },
+            scales: {
+                x: { display: true },
+                y: { display: true }
+            }
+        }
+    });
+}
+    
 </script>
 
 <script>
