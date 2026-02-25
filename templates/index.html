@@ -2130,6 +2130,13 @@ function renderEquityPreview(data) {
         }
     });
 }
+
+document.addEventListener("DOMContentLoaded", function() {
+    // small delay to make sure board & dropdown are ready
+    setTimeout(() => {
+        loadTicker("BTC-USD");
+    }, 200);
+});
     
 </script>
 
