@@ -2065,9 +2065,26 @@ function renderEquityPreview(data) {
         : "Log Scale";
 }
 
+// document.getElementById("scale-toggle-btn").onclick = function () {
+
+//     if (!previewChart) return;
+
+//     isLogScale = !isLogScale;
+
+//     this.innerText = isLogScale
+//         ? "Normal Scale"
+//         : "Log Scale";
+
+//     // ✅ Only mutate y scale type
+//     previewChart.options.scales.y.type =
+//         isLogScale ? "logarithmic" : "linear";
+
+//     previewChart.update();
+// };
+
 document.getElementById("scale-toggle-btn").onclick = function () {
 
-    if (!previewChart) return;
+    if (!currentTicker) return;
 
     isLogScale = !isLogScale;
 
@@ -2075,11 +2092,8 @@ document.getElementById("scale-toggle-btn").onclick = function () {
         ? "Normal Scale"
         : "Log Scale";
 
-    // ✅ Only mutate y scale type
-    previewChart.options.scales.y.type =
-        isLogScale ? "logarithmic" : "linear";
-
-    previewChart.update();
+    // 🔥 Reload current ticker with same duration
+    loadTicker(currentTicker);
 };
 
 document.addEventListener("DOMContentLoaded", function() {
