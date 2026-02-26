@@ -2108,13 +2108,37 @@ function renderEquityPreview(data) {
 //     }, 200);
 // });
 
+// document.addEventListener("DOMContentLoaded", function() {
+
+//     const toggleBtn = document.getElementById("scale-toggle-btn");
+
+//     toggleBtn.addEventListener("click", function () {
+
+//         if (!currentTicker) return;
+
+//         isLogScale = !isLogScale;
+
+//         this.innerText = isLogScale
+//             ? "Normal Scale"
+//             : "Log Scale";
+
+//         loadTicker(currentTicker);
+//     });
+
+//     // Auto-load BTC after page is ready
+//     setTimeout(() => {
+//         loadTicker("BTC-USD");
+//     }, 200);
+
+// });
+
 document.addEventListener("DOMContentLoaded", function() {
 
     const toggleBtn = document.getElementById("scale-toggle-btn");
 
     toggleBtn.addEventListener("click", function () {
 
-        if (!currentTicker) return;
+        if (!previewChart) return;
 
         isLogScale = !isLogScale;
 
@@ -2122,10 +2146,12 @@ document.addEventListener("DOMContentLoaded", function() {
             ? "Normal Scale"
             : "Log Scale";
 
-        loadTicker(currentTicker);
+        previewChart.options.scales.y.type =
+            isLogScale ? "logarithmic" : "linear";
+
+        previewChart.update();
     });
 
-    // Auto-load BTC after page is ready
     setTimeout(() => {
         loadTicker("BTC-USD");
     }, 200);
