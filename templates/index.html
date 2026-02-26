@@ -2127,6 +2127,8 @@ function renderEquityPreview(data) {
             maintainAspectRatio: false,   // 🔥 THIS FIXES OVERFLOW
             plugins: {
                 legend: {
+                    position: "top",   // keep at top
+                    align: "end",      // 🔥 move to right
                     labels: { usePointStyle: true }  // match backtest style
                 }
             },
