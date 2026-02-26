@@ -2134,25 +2134,25 @@ function renderEquityPreview(data) {
 
 document.addEventListener("DOMContentLoaded", function() {
 
-    const toggleBtn = document.getElementById("scale-toggle-btn");
+    document.addEventListener("click", function (e) {
 
-    // toggleBtn.addEventListener("click", function () {
+        if (e.target && e.target.id === "scale-toggle-btn") {
 
-    //     if (!previewChart) return;
+            console.log("BUTTON CLICKED");
 
-    //     isLogScale = !isLogScale;
+            if (!previewChart) return;
 
-    //     this.innerText = isLogScale
-    //         ? "Normal Scale"
-    //         : "Log Scale";
+            isLogScale = !isLogScale;
 
-    //     previewChart.options.scales.y.type =
-    //         isLogScale ? "logarithmic" : "linear";
+            e.target.innerText = isLogScale
+                ? "Normal Scale"
+                : "Log Scale";
 
-    //     previewChart.update();
-    // });
-    toggleBtn.addEventListener("click", function () {
-        console.log("BUTTON CLICKED");
+            previewChart.options.scales.y.type =
+                isLogScale ? "logarithmic" : "linear";
+
+            previewChart.update();
+        }
     });
 
     setTimeout(() => {
