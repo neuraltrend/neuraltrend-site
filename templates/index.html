@@ -766,14 +766,29 @@
                             display: none;
                             width: 1100px;
                          ">
-                
-                        <h3 id="preview-title"
-                            style="
-                                text-align: center;
-                                margin-bottom: 0px;
-                                font-weight: 600;
-                            ">
-                        </h3>
+
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <button id="scale-toggle-btn" 
+                                style="
+                                    padding:4px 10px;
+                                    font-size:12px;
+                                    cursor:pointer;
+                                    border-radius:6px;
+                                    border:1px solid #ccc;
+                                    background:white;
+                                ">
+                                Log Scale
+                            </button>
+                        
+                            <h3 id="preview-title"
+                                style="
+                                    text-align: center;
+                                    margin-bottom: 0px;
+                                    font-weight: 600;
+                                ">
+                            </h3>
+                        </div>
+                        
                         <div id="equity-preview-chart" style="height:500px; width:100%; position:relative;"></div>
                         <!-- <div id="equity-preview-chart"
                              style="
@@ -1629,6 +1644,7 @@ function renderResults({
 let allSignals = [];
 let defaultOrder = [];
 let assetTypeFilter = "all";
+let isLogScale = false;
 
 let signalFilters = {
     today_signal: null,
@@ -2132,12 +2148,34 @@ function renderEquityPreview(data) {
                     labels: { usePointStyle: true }  // match backtest style
                 }
             },
+            // scales: {
+            //     x: { display: true },
+            //     y: { display: true }
+            // }
             scales: {
                 x: { display: true },
-                y: { display: true }
+                y: { 
+                    display: true,
+                    type: "linear"  // default
+                }
             }
         }
     });
+
+    document.getElementById("scale-toggle-btn").onclick = function () {
+    
+        isLogScale = !isLogScale;
+    
+        previewChart.options.scales.y.type = isLogScale
+            ? "logarithmic"
+            : "linear";
+    
+        this.innerText = isLogScale
+            ? "Normal Scale"
+            : "Log Scale";
+    
+        previewChart.update();
+    };
 }
 
 document.addEventListener("DOMContentLoaded", function() {
