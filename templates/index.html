@@ -493,11 +493,6 @@
                 An AI-based algorithm for crypto and traditional assets analytics signal.
             </p>
 
-        <!-- EpochSignaler Image -->
-        <!-- <div style="text-align: center; margin-top: 20px;">
-            <img src="{{ url_for('static', filename='epoch_signaler.png') }}" alt="EpochSignaler" style="max-width: 75%; height: auto;">
-        </div>        -->
-
         <!-- Trade Signal -->
         <section class="results-section">
 
@@ -767,28 +762,6 @@
                             width: 1100px;
                          ">
 
-                        <!-- <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <button id="scale-toggle-btn" 
-                                style="
-                                    padding:4px 10px;
-                                    font-size:12px;
-                                    cursor:pointer;
-                                    border-radius:6px;
-                                    border:1px solid #ccc;
-                                    background:white;
-                                ">
-                                Log Scale
-                            </button>
-                        
-                            <h3 id="preview-title"
-                                style="
-                                    text-align: center;
-                                    margin-bottom: 0px;
-                                    font-weight: 600;
-                                ">
-                            </h3>
-                        </div> -->
-
                         <div style="
                             position: relative;
                             display: flex;
@@ -820,17 +793,6 @@
                         </div>
                         
                         <div id="equity-preview-chart" style="height:500px; width:100%; position:relative;"></div>
-                        <!-- <div id="equity-preview-chart"
-                             style="
-                                height: 400px;
-                                width: 100%;
-                                border: 1px solid #ddd;
-                                border-radius: 8px;
-                                padding: 10px;
-                                box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-                                background: #fff;
-                             ">
-                        </div> -->
                 
                     </div>
                 </div>
@@ -1852,12 +1814,6 @@ function loadSummary() {
 
     fetch(`/signals/summary?duration=${duration}&_=${Date.now()}`)
         .then(r => r.json())
-        // .then(data => {
-        //     allSignals = data;
-        //     defaultOrder = [...data];   // store original order
-        //     updateSortIndicators();
-        //     applyAllFilters();
-        // })
         .then(data => {
             allSignals = data;
             defaultOrder = [...data];
@@ -1938,14 +1894,6 @@ function loadTicker(ticker) {
     formData.append('ticker', ticker);
     formData.append('duration', duration);
 
-    // // 1️⃣ Load signal summary (right panel text)
-    // fetch('/signals', {
-    //     method: 'POST',
-    //     body: formData
-    // })
-    // .then(r => r.json())
-    // .then(renderSignals);
-
     // 2️⃣ Load equity preview (UNDER BOARD)
     fetch('/equity', {
         method: 'POST',
@@ -2012,66 +1960,6 @@ function renderSignals({
     `;
 }
 
-// function renderEquityPreview(data) {
-
-//     const container = document.getElementById("equity-preview-container");
-//     const chartDiv = document.getElementById("equity-preview-chart");
-
-//     container.style.display = "block";
-//     document.getElementById("preview-title").innerText =
-//         `${data.ticker} — Equity Preview`;
-
-//     // Clear previous chart
-//     chartDiv.innerHTML = '<canvas id="previewChartCanvas"></canvas>';
-
-//     const ctx = document.getElementById("previewChartCanvas").getContext("2d");
-
-//     // Destroy old chart if exists
-//     if (previewChart) {
-//         previewChart.destroy();
-//     }
-
-//     const equity = data.epoch_equity_curve;
-//     const buyHold = data.equity_curve;
-//     const dates = data.dates;
-
-//     previewChart = new Chart(ctx, {
-//         type: "line",
-//         data: {
-//             labels: dates,
-//             datasets: [
-//                 {
-//                     label: "EpochSignaler",
-//                     data: equity,
-//                     borderColor: "blue",
-//                     pointRadius: 0,
-//                     fill: false
-//                 },
-//                 {
-//                     label: "Buy & Hold",
-//                     data: buyHold,
-//                     borderColor: "purple",
-//                     borderDash: [5, 5],
-//                     pointRadius: 0,
-//                     fill: false
-//                 }
-//             ]
-//         },
-//         options: {
-//             responsive: true,
-//             plugins: {
-//                 legend: {
-//                     labels: { usePointStyle: true }
-//                 }
-//             },
-//             scales: {
-//                 x: { display: true },
-//                 y: { display: true }
-//             }
-//         }
-//     });
-// }
-
 function renderEquityPreview(data) {
 
     const container = document.getElementById("equity-preview-container");
@@ -2081,12 +1969,6 @@ function renderEquityPreview(data) {
     document.getElementById("preview-title").innerText =
         `${data.ticker} — Equity Preview`;
 
-    // chartDiv.innerHTML = '<canvas id="previewChartCanvas"></canvas>';
-    // chartDiv.innerHTML = `
-    //     <div style="display:flex; justify-content:center;">
-    //         <canvas id="previewChartCanvas" style="max-width:100%;"></canvas>
-    //     </div>
-    // `;
     chartDiv.innerHTML = `
         <canvas id="previewChartCanvas"></canvas>
     `;
@@ -2156,18 +2038,6 @@ function renderEquityPreview(data) {
                 }
             ]
         },
-        // options: {
-        //     responsive: true,
-        //     plugins: {
-        //         legend: {
-        //             labels: { usePointStyle: true }
-        //         }
-        //     },
-        //     scales: {
-        //         x: { display: true },
-        //         y: { display: true }
-        //     }
-        // }
         options: {
             responsive: true,
             maintainAspectRatio: false,   // 🔥 THIS FIXES OVERFLOW
@@ -2178,20 +2048,12 @@ function renderEquityPreview(data) {
                     labels: { usePointStyle: true }  // match backtest style
                 }
             },
-            // scales: {
-            //     x: { display: true },
-            //     y: { display: true }
-            // }
             scales: {
                 x: { display: true },
                 y: { 
                     display: true,
                     type: isLogScale ? "logarithmic" : "linear"
                 }
-                // y: { 
-                //     display: true,
-                //     type: "linear"  // default
-                // }
             }
         }
     });
@@ -2203,21 +2065,6 @@ function renderEquityPreview(data) {
         : "Log Scale";
 }
 
-// document.getElementById("scale-toggle-btn").onclick = function () {
-
-//     isLogScale = !isLogScale;
-
-//     previewChart.options.scales.y.type = isLogScale
-//         ? "logarithmic"
-//         : "linear";
-
-//     this.innerText = isLogScale
-//         ? "Normal Scale"
-//         : "Log Scale";
-
-//     previewChart.update();
-// };
-
 document.getElementById("scale-toggle-btn").onclick = function () {
 
     if (!previewChart) return;
@@ -2228,14 +2075,9 @@ document.getElementById("scale-toggle-btn").onclick = function () {
         ? "Normal Scale"
         : "Log Scale";
 
-    // 🔥 Re-assign full scales object
-    previewChart.options.scales = {
-        x: { display: true },
-        y: {
-            display: true,
-            type: isLogScale ? "logarithmic" : "linear"
-        }
-    };
+    // ✅ Only mutate y scale type
+    previewChart.options.scales.y.type =
+        isLogScale ? "logarithmic" : "linear";
 
     previewChart.update();
 };
