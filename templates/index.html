@@ -2136,20 +2136,23 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const toggleBtn = document.getElementById("scale-toggle-btn");
 
+    // toggleBtn.addEventListener("click", function () {
+
+    //     if (!previewChart) return;
+
+    //     isLogScale = !isLogScale;
+
+    //     this.innerText = isLogScale
+    //         ? "Normal Scale"
+    //         : "Log Scale";
+
+    //     previewChart.options.scales.y.type =
+    //         isLogScale ? "logarithmic" : "linear";
+
+    //     previewChart.update();
+    // });
     toggleBtn.addEventListener("click", function () {
-
-        if (!previewChart) return;
-
-        isLogScale = !isLogScale;
-
-        this.innerText = isLogScale
-            ? "Normal Scale"
-            : "Log Scale";
-
-        previewChart.options.scales.y.type =
-            isLogScale ? "logarithmic" : "linear";
-
-        previewChart.update();
+        console.log("BUTTON CLICKED");
     });
 
     setTimeout(() => {
