@@ -2186,27 +2186,52 @@ function renderEquityPreview(data) {
                 x: { display: true },
                 y: { 
                     display: true,
-                    type: "linear"  // default
+                    type: isLogScale ? "logarithmic" : "linear"
                 }
+                // y: { 
+                //     display: true,
+                //     type: "linear"  // default
+                // }
             }
         }
     });
 
-    document.getElementById("scale-toggle-btn").onclick = function () {
+    const toggleBtn = document.getElementById("scale-toggle-btn");
     
-        isLogScale = !isLogScale;
+    toggleBtn.innerText = isLogScale
+        ? "Normal Scale"
+        : "Log Scale";
+
+    // document.getElementById("scale-toggle-btn").onclick = function () {
     
-        previewChart.options.scales.y.type = isLogScale
-            ? "logarithmic"
-            : "linear";
+    //     isLogScale = !isLogScale;
     
-        this.innerText = isLogScale
-            ? "Normal Scale"
-            : "Log Scale";
+    //     previewChart.options.scales.y.type = isLogScale
+    //         ? "logarithmic"
+    //         : "linear";
     
-        previewChart.update();
-    };
+    //     this.innerText = isLogScale
+    //         ? "Normal Scale"
+    //         : "Log Scale";
+    
+    //     previewChart.update();
+    // };
 }
+
+document.getElementById("scale-toggle-btn").onclick = function () {
+
+    isLogScale = !isLogScale;
+
+    previewChart.options.scales.y.type = isLogScale
+        ? "logarithmic"
+        : "linear";
+
+    this.innerText = isLogScale
+        ? "Normal Scale"
+        : "Log Scale";
+
+    previewChart.update();
+};
 
 document.addEventListener("DOMContentLoaded", function() {
     // small delay to make sure board & dropdown are ready
