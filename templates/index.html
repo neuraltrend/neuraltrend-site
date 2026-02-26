@@ -2082,25 +2082,54 @@ function renderEquityPreview(data) {
 //     previewChart.update();
 // };
 
-document.getElementById("scale-toggle-btn").onclick = function () {
+// document.addEventListener("DOMContentLoaded", function() {
 
-    if (!currentTicker) return;
+//     const toggleBtn = document.getElementById("scale-toggle-btn");
 
-    isLogScale = !isLogScale;
+//     toggleBtn.addEventListener("click", function () {
 
-    this.innerText = isLogScale
-        ? "Normal Scale"
-        : "Log Scale";
+//         if (!currentTicker) return;
 
-    // 🔥 Reload current ticker with same duration
-    loadTicker(currentTicker);
-};
+//         isLogScale = !isLogScale;
+
+//         this.innerText = isLogScale
+//             ? "Normal Scale"
+//             : "Log Scale";
+
+//         loadTicker(currentTicker);
+//     });
+
+// });
+
+// document.addEventListener("DOMContentLoaded", function() {
+//     // small delay to make sure board & dropdown are ready
+//     setTimeout(() => {
+//         loadTicker("BTC-USD");
+//     }, 200);
+// });
 
 document.addEventListener("DOMContentLoaded", function() {
-    // small delay to make sure board & dropdown are ready
+
+    const toggleBtn = document.getElementById("scale-toggle-btn");
+
+    toggleBtn.addEventListener("click", function () {
+
+        if (!currentTicker) return;
+
+        isLogScale = !isLogScale;
+
+        this.innerText = isLogScale
+            ? "Normal Scale"
+            : "Log Scale";
+
+        loadTicker(currentTicker);
+    });
+
+    // Auto-load BTC after page is ready
     setTimeout(() => {
         loadTicker("BTC-USD");
     }, 200);
+
 });
     
 </script>
