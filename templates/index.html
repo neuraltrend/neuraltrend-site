@@ -767,7 +767,7 @@
                             width: 1100px;
                          ">
 
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <!-- <div style="display:flex; justify-content:space-between; align-items:center;">
                             <button id="scale-toggle-btn" 
                                 style="
                                     padding:4px 10px;
@@ -785,6 +785,36 @@
                                     text-align: center;
                                     margin-bottom: 0px;
                                     font-weight: 600;
+                                ">
+                            </h3>
+                        </div> -->
+
+                        <div style="
+                            position: relative;
+                            display: flex;
+                            align-items: center;
+                            height: 40px;
+                        ">
+                            <button id="scale-toggle-btn" 
+                                style="
+                                    padding:4px 10px;
+                                    font-size:12px;
+                                    cursor:pointer;
+                                    border-radius:6px;
+                                    border:1px solid #ccc;
+                                    background:white;
+                                    z-index:2;
+                                ">
+                                Log Scale
+                            </button>
+                        
+                            <h3 id="preview-title"
+                                style="
+                                    position:absolute;
+                                    left:50%;
+                                    transform:translateX(-50%);
+                                    margin:0;
+                                    font-weight:600;
                                 ">
                             </h3>
                         </div>
