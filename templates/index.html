@@ -749,12 +749,13 @@
                 <!-- QUICK SIGNAL BOARD END -->
 
                 <!-- 🔥 Equity Preview Section -->
-                <div id="equity-preview-wrapper"
+                <div id="equity-preview-wrapper"                    
                      style="
-                        width: 100%;
+                        position: relative;
                         display: flex;
-                        justify-content: center;
-                        margin-top: 0px;
+                        align-items: center;
+                        height: 40px;
+                        z-index: 10;
                      ">
                     <div id="equity-preview-container"
                          style="
@@ -803,7 +804,15 @@
                             </h3>
                         </div>
                         
-                        <div id="equity-preview-chart" style="height:500px; width:100%; position:relative;"></div>
+                        <!-- <div id="equity-preview-chart" style="height:500px; width:100%; position:relative;"></div> -->
+                        <div id="equity-preview-chart"
+                             style="
+                                height:500px;
+                                width:100%;
+                                position:relative;
+                                z-index:1;
+                             ">
+                        </div>
                 
                     </div>
                 </div>
