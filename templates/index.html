@@ -794,7 +794,6 @@
                             </h3>
                         </div>
                         
-                        <!-- <div id="equity-preview-chart" style="height:500px; width:100%; position:relative;"></div> -->
                         <div id="equity-preview-chart"
                              style="
                                 height:500px;
@@ -1922,19 +1921,6 @@ function loadTicker(ticker) {
    4. EXISTING FORM SUBMIT (STILL WORKS)
 ================================ */
 
-// document.getElementById('signal-form').addEventListener('submit', function(e) {
-//     e.preventDefault();
-
-//     const formData = new FormData(this);
-
-//     fetch('/signals', {
-//         method: 'POST',
-//         body: formData
-//     })
-//     .then(r => r.json())
-//     .then(renderSignals);
-// });
-
 const signalForm = document.getElementById('signal-form');
 if (signalForm) {
     signalForm.addEventListener('submit', function(e) {
@@ -2048,14 +2034,6 @@ function renderEquityPreview(data) {
         sell_dates.includes(d) ? equity[i] : null
     );
 
-    // const adjustedBuySignals = dates.map((d, i) =>
-    //     buy_dates.includes(d) ? equity[i] - offset : null
-    // );
-
-    // const adjustedSellSignals = dates.map((d, i) =>
-    //     sell_dates.includes(d) ? equity[i] + offset : null
-    // );
-
     previewChart = new Chart(ctx, {
         type: "line",
         data: {
@@ -2078,23 +2056,6 @@ function renderEquityPreview(data) {
                     pointRadius: 0,
                     fill: false
                 },
-                // {
-                //     label: "Buy Signal",
-                //     data: adjustedBuySignals,
-                //     pointStyle: "triangle",
-                //     pointRadius: 10,
-                //     backgroundColor: "green",
-                //     showLine: false
-                // },
-                // {
-                //     label: "Sell Signal",
-                //     data: adjustedSellSignals,
-                //     pointStyle: "triangle",
-                //     rotation: 180,
-                //     pointRadius: 10,
-                //     backgroundColor: "red",
-                //     showLine: false
-                // }
                 {
                     label: "Buy Signal",
                     data: buySignals,
@@ -2103,7 +2064,7 @@ function renderEquityPreview(data) {
                     backgroundColor: "green",
                     showLine: false,
                     clip: false,
-                    pointOffsetY: 8
+                    pointOffsetY: 20
                 },
                 {
                     label: "Sell Signal",
@@ -2114,7 +2075,7 @@ function renderEquityPreview(data) {
                     backgroundColor: "red",
                     showLine: false,
                     clip: false,
-                    pointOffsetY: -8
+                    pointOffsetY: -20
                 }
             ]
         },
@@ -2199,12 +2160,6 @@ function showModal(message, iconHTML) {
 }
 
 // Manual close
-// document.querySelector(".close-btn").addEventListener("click", function () {
-//     const modal = document.getElementById("customModal");
-//     modal.classList.remove("show");
-//     setTimeout(() => modal.style.display = "none", 400);
-// });
-
 const closeBtn = document.querySelector(".close-btn");
 if (closeBtn) {
     closeBtn.addEventListener("click", function () {
@@ -2224,28 +2179,6 @@ window.addEventListener("click", function (event) {
 });
 
 // Form Validation
-// document.getElementById("backtest-form").addEventListener("submit", function(event) {
-//     const startDate = new Date(document.getElementById("start").value);
-//     // const endDate = new Date(document.getElementById("end").value);
-//     const today = new Date();
-//     startDate.setHours(0,0,0,0);
-//     today.setHours(0,0,0,0);
-
-//     // if (startDate > endDate) {
-//     //     showModal("❌ Start Date cannot be after End Date.", "Error!");
-//     //     event.preventDefault();
-//     //     return;
-//     // }
-
-//     if (startDate >= today) {
-//         showModal("❌ Start Date cannot be in the future.", "Error!");
-//         event.preventDefault();
-//         return;
-//     }
-
-//     // If passes validation
-//     showModal("✅ Backtest started successfully!", "Success!");
-// });
 
 const backtestForm = document.getElementById("backtest-form");
 if (backtestForm) {
