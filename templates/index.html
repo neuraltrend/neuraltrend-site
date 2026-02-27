@@ -2143,34 +2143,34 @@ function renderEquityPreview(data) {
 
 // });
 
-document.addEventListener("DOMContentLoaded", function() {
+// Global delegated click handler
+document.addEventListener("click", function (e) {
 
-    document.addEventListener("click", function (e) {
+    const btn = e.target.closest("#scale-toggle-btn");
 
-        if (e.target && e.target.id === "scale-toggle-btn") {
+    if (btn) {
 
-            console.log("BUTTON CLICKED");
+        console.log("BUTTON CLICKED");
 
-            if (!previewChart) return;
+        if (!previewChart) return;
 
-            isLogScale = !isLogScale;
+        isLogScale = !isLogScale;
 
-            e.target.innerText = isLogScale
-                ? "Normal Scale"
-                : "Log Scale";
+        btn.innerText = isLogScale
+            ? "Normal Scale"
+            : "Log Scale";
 
-            previewChart.options.scales.y.type =
-                isLogScale ? "logarithmic" : "linear";
+        previewChart.options.scales.y.type =
+            isLogScale ? "logarithmic" : "linear";
 
-            previewChart.update();
-        }
-    });
-
-    setTimeout(() => {
-        loadTicker("BTC-USD");
-    }, 200);
-
+        previewChart.update();
+    }
 });
+
+// Load default ticker
+setTimeout(() => {
+    loadTicker("BTC-USD");
+}, 200);
     
 </script>
 
