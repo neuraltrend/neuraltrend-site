@@ -1922,18 +1922,34 @@ function loadTicker(ticker) {
    4. EXISTING FORM SUBMIT (STILL WORKS)
 ================================ */
 
-document.getElementById('signal-form').addEventListener('submit', function(e) {
-    e.preventDefault();
+// document.getElementById('signal-form').addEventListener('submit', function(e) {
+//     e.preventDefault();
 
-    const formData = new FormData(this);
+//     const formData = new FormData(this);
 
-    fetch('/signals', {
-        method: 'POST',
-        body: formData
-    })
-    .then(r => r.json())
-    .then(renderSignals);
-});
+//     fetch('/signals', {
+//         method: 'POST',
+//         body: formData
+//     })
+//     .then(r => r.json())
+//     .then(renderSignals);
+// });
+
+const signalForm = document.getElementById('signal-form');
+if (signalForm) {
+    signalForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+
+        fetch('/signals', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(renderSignals);
+    });
+}
 
 /* ===============================
    5. RENDER DETAILED SIGNALS
@@ -2134,11 +2150,20 @@ function showModal(message, iconHTML) {
 }
 
 // Manual close
-document.querySelector(".close-btn").addEventListener("click", function () {
-    const modal = document.getElementById("customModal");
-    modal.classList.remove("show");
-    setTimeout(() => modal.style.display = "none", 400);
-});
+// document.querySelector(".close-btn").addEventListener("click", function () {
+//     const modal = document.getElementById("customModal");
+//     modal.classList.remove("show");
+//     setTimeout(() => modal.style.display = "none", 400);
+// });
+
+const closeBtn = document.querySelector(".close-btn");
+if (closeBtn) {
+    closeBtn.addEventListener("click", function () {
+        const modal = document.getElementById("customModal");
+        modal.classList.remove("show");
+        setTimeout(() => modal.style.display = "none", 400);
+    });
+}
 
 // Click outside to close
 window.addEventListener("click", function (event) {
@@ -2150,28 +2175,54 @@ window.addEventListener("click", function (event) {
 });
 
 // Form Validation
-document.getElementById("backtest-form").addEventListener("submit", function(event) {
-    const startDate = new Date(document.getElementById("start").value);
-    // const endDate = new Date(document.getElementById("end").value);
-    const today = new Date();
-    startDate.setHours(0,0,0,0);
-    today.setHours(0,0,0,0);
+// document.getElementById("backtest-form").addEventListener("submit", function(event) {
+//     const startDate = new Date(document.getElementById("start").value);
+//     // const endDate = new Date(document.getElementById("end").value);
+//     const today = new Date();
+//     startDate.setHours(0,0,0,0);
+//     today.setHours(0,0,0,0);
 
-    // if (startDate > endDate) {
-    //     showModal("❌ Start Date cannot be after End Date.", "Error!");
-    //     event.preventDefault();
-    //     return;
-    // }
+//     // if (startDate > endDate) {
+//     //     showModal("❌ Start Date cannot be after End Date.", "Error!");
+//     //     event.preventDefault();
+//     //     return;
+//     // }
 
-    if (startDate >= today) {
-        showModal("❌ Start Date cannot be in the future.", "Error!");
-        event.preventDefault();
-        return;
-    }
+//     if (startDate >= today) {
+//         showModal("❌ Start Date cannot be in the future.", "Error!");
+//         event.preventDefault();
+//         return;
+//     }
 
-    // If passes validation
-    showModal("✅ Backtest started successfully!", "Success!");
-});
+//     // If passes validation
+//     showModal("✅ Backtest started successfully!", "Success!");
+// });
+
+const backtestForm = document.getElementById("backtest-form");
+if (backtestForm) {
+    backtestForm.addEventListener("submit", function(event) {
+        const startDate = new Date(document.getElementById("start").value);
+        // const endDate = new Date(document.getElementById("end").value);
+        const today = new Date();
+        startDate.setHours(0,0,0,0);
+        today.setHours(0,0,0,0);
+    
+        // if (startDate > endDate) {
+        //     showModal("❌ Start Date cannot be after End Date.", "Error!");
+        //     event.preventDefault();
+        //     return;
+        // }
+    
+        if (startDate >= today) {
+            showModal("❌ Start Date cannot be in the future.", "Error!");
+            event.preventDefault();
+            return;
+        }
+    
+        // If passes validation
+        showModal("✅ Backtest started successfully!", "Success!");
+    });
+}
 
 document.addEventListener("DOMContentLoaded", function() {
     const startInput = document.getElementById("start");
