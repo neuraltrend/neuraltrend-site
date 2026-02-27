@@ -1991,6 +1991,26 @@ function renderSignals({
     `;
 }
 
+const verticalOffsetPlugin = {
+    id: 'verticalOffsetPlugin',
+    afterDatasetsDraw(chart) {
+        const ctx = chart.ctx;
+
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+
+            if (!dataset.verticalOffset) return;
+
+            const meta = chart.getDatasetMeta(datasetIndex);
+
+            meta.data.forEach(point => {
+                point.y += dataset.verticalOffset;
+            });
+        });
+    }
+};
+
+Chart.register(verticalOffsetPlugin);
+
 function renderEquityPreview(data) {
 
     const container = document.getElementById("equity-preview-container");
@@ -2020,13 +2040,21 @@ function renderEquityPreview(data) {
     const equity_max = Math.max(...equity);
     const offset = (equity_max - equity_min) * 0.04;
 
-    const adjustedBuySignals = dates.map((d, i) =>
-        buy_dates.includes(d) ? equity[i] - offset : null
+    const buySignals = dates.map((d, i) =>
+    buy_dates.includes(d) ? equity[i] : null
+    );
+    
+    const sellSignals = dates.map((d, i) =>
+        sell_dates.includes(d) ? equity[i] : null
     );
 
-    const adjustedSellSignals = dates.map((d, i) =>
-        sell_dates.includes(d) ? equity[i] + offset : null
-    );
+    // const adjustedBuySignals = dates.map((d, i) =>
+    //     buy_dates.includes(d) ? equity[i] - offset : null
+    // );
+
+    // const adjustedSellSignals = dates.map((d, i) =>
+    //     sell_dates.includes(d) ? equity[i] + offset : null
+    // );
 
     previewChart = new Chart(ctx, {
         type: "line",
@@ -2050,22 +2078,43 @@ function renderEquityPreview(data) {
                     pointRadius: 0,
                     fill: false
                 },
+                // {
+                //     label: "Buy Signal",
+                //     data: adjustedBuySignals,
+                //     pointStyle: "triangle",
+                //     pointRadius: 10,
+                //     backgroundColor: "green",
+                //     showLine: false
+                // },
+                // {
+                //     label: "Sell Signal",
+                //     data: adjustedSellSignals,
+                //     pointStyle: "triangle",
+                //     rotation: 180,
+                //     pointRadius: 10,
+                //     backgroundColor: "red",
+                //     showLine: false
+                // }
                 {
                     label: "Buy Signal",
-                    data: adjustedBuySignals,
+                    data: buySignals,
                     pointStyle: "triangle",
                     pointRadius: 10,
                     backgroundColor: "green",
-                    showLine: false
+                    showLine: false,
+                    clip: false,
+                    pointOffsetY: 8
                 },
                 {
                     label: "Sell Signal",
-                    data: adjustedSellSignals,
+                    data: sellSignals,
                     pointStyle: "triangle",
                     rotation: 180,
                     pointRadius: 10,
                     backgroundColor: "red",
-                    showLine: false
+                    showLine: false,
+                    clip: false,
+                    pointOffsetY: -8
                 }
             ]
         },
