@@ -1977,24 +1977,6 @@ function renderSignals({
     `;
 }
 
-// const verticalOffsetPlugin = {
-//     id: 'verticalOffsetPlugin',
-//     afterDatasetsDraw(chart) {
-//         const ctx = chart.ctx;
-
-//         chart.data.datasets.forEach((dataset, datasetIndex) => {
-
-//             if (!dataset.verticalOffset) return;
-
-//             const meta = chart.getDatasetMeta(datasetIndex);
-
-//             meta.data.forEach(point => {
-//                 point.y += dataset.verticalOffset;
-//             });
-//         });
-//     }
-// };
-
 const verticalOffsetPlugin = {
     id: 'verticalOffsetPlugin',
     beforeDatasetsDraw(chart) {
@@ -2030,6 +2012,57 @@ const verticalOffsetPlugin = {
 };
 
 Chart.register(verticalOffsetPlugin);
+
+const signalMarkerPlugin = {
+    id: "signalMarkerPlugin",
+    afterDatasetsDraw(chart) {
+
+        const { ctx } = chart;
+
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+
+            if (!dataset.isSignal) return;
+
+            const meta = chart.getDatasetMeta(datasetIndex);
+
+            meta.data.forEach(point => {
+
+                if (!point || point.skip) return;
+
+                const x = point.x;
+                const y = point.y;
+
+                const offset = dataset.offsetPx || 0;
+
+                ctx.save();
+
+                ctx.translate(x, y + offset);
+
+                ctx.beginPath();
+
+                if (dataset.direction === "buy") {
+                    // Up triangle
+                    ctx.moveTo(0, -8);
+                    ctx.lineTo(6, 6);
+                    ctx.lineTo(-6, 6);
+                } else {
+                    // Down triangle
+                    ctx.moveTo(0, 8);
+                    ctx.lineTo(6, -6);
+                    ctx.lineTo(-6, -6);
+                }
+
+                ctx.closePath();
+                ctx.fillStyle = dataset.color;
+                ctx.fill();
+
+                ctx.restore();
+            });
+        });
+    }
+};
+
+Chart.register(signalMarkerPlugin);
 
 function renderEquityPreview(data) {
 
@@ -2090,26 +2123,46 @@ function renderEquityPreview(data) {
                     pointRadius: 0,
                     fill: false
                 },
+                // {
+                //     label: "Buy Signal",
+                //     data: buySignals,
+                //     pointStyle: "triangle",
+                //     pointRadius: 10,
+                //     backgroundColor: "green",
+                //     showLine: false,
+                //     clip: false,
+                //     verticalOffset: -8
+                // },
+                // {
+                //     label: "Sell Signal",
+                //     data: sellSignals,
+                //     pointStyle: "triangle",
+                //     rotation: 180,
+                //     pointRadius: 10,
+                //     backgroundColor: "red",
+                //     showLine: false,
+                //     clip: false,
+                //     verticalOffset: 8
+                // },
                 {
                     label: "Buy Signal",
                     data: buySignals,
-                    pointStyle: "triangle",
-                    pointRadius: 10,
-                    backgroundColor: "green",
                     showLine: false,
-                    clip: false,
-                    verticalOffset: -8
+                    pointRadius: 0,        // disable normal points
+                    isSignal: true,
+                    direction: "buy",
+                    color: "green",
+                    offsetPx: 10           // 10px BELOW curve
                 },
                 {
                     label: "Sell Signal",
                     data: sellSignals,
-                    pointStyle: "triangle",
-                    rotation: 180,
-                    pointRadius: 10,
-                    backgroundColor: "red",
                     showLine: false,
-                    clip: false,
-                    verticalOffset: 8
+                    pointRadius: 0,
+                    isSignal: true,
+                    direction: "sell",
+                    color: "red",
+                    offsetPx: -10          // 10px ABOVE curve
                 }
             ]
         },
