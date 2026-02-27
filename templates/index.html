@@ -1497,6 +1497,9 @@
 </div>
 
 <script>
+
+console.log("SCRIPT 1 LOADED");
+    
 let equityChart = null;
     
 document.getElementById('backtest-form').addEventListener('submit', function(e) {
@@ -1642,6 +1645,8 @@ function renderResults({
 /* ===============================
    1. HELPERS
 ================================ */
+
+console.log("SCRIPT 2 LOADED");
 
 let allSignals = [];
 let defaultOrder = [];
