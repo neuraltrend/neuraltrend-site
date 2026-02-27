@@ -1977,19 +1977,53 @@ function renderSignals({
     `;
 }
 
+// const verticalOffsetPlugin = {
+//     id: 'verticalOffsetPlugin',
+//     afterDatasetsDraw(chart) {
+//         const ctx = chart.ctx;
+
+//         chart.data.datasets.forEach((dataset, datasetIndex) => {
+
+//             if (!dataset.verticalOffset) return;
+
+//             const meta = chart.getDatasetMeta(datasetIndex);
+
+//             meta.data.forEach(point => {
+//                 point.y += dataset.verticalOffset;
+//             });
+//         });
+//     }
+// };
+
 const verticalOffsetPlugin = {
     id: 'verticalOffsetPlugin',
-    afterDatasetsDraw(chart) {
-        const ctx = chart.ctx;
+    beforeDatasetsDraw(chart) {
+        const { ctx } = chart;
 
         chart.data.datasets.forEach((dataset, datasetIndex) => {
-
             if (!dataset.verticalOffset) return;
 
             const meta = chart.getDatasetMeta(datasetIndex);
 
             meta.data.forEach(point => {
-                point.y += dataset.verticalOffset;
+                point.$verticalOffset = dataset.verticalOffset;
+            });
+        });
+    },
+
+    afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+            if (!dataset.verticalOffset) return;
+
+            const meta = chart.getDatasetMeta(datasetIndex);
+
+            meta.data.forEach(point => {
+                if (!point.$verticalOffset) return;
+
+                // Shift ONLY during drawing
+                point.y -= point.$verticalOffset;
             });
         });
     }
@@ -2064,7 +2098,7 @@ function renderEquityPreview(data) {
                     backgroundColor: "green",
                     showLine: false,
                     clip: false,
-                    verticalOffset: 8
+                    verticalOffset: -8
                 },
                 {
                     label: "Sell Signal",
@@ -2075,7 +2109,7 @@ function renderEquityPreview(data) {
                     backgroundColor: "red",
                     showLine: false,
                     clip: false,
-                    verticalOffset: -8
+                    verticalOffset: 8
                 }
             ]
         },
