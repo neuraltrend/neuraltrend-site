@@ -1977,42 +1977,6 @@ function renderSignals({
     `;
 }
 
-const verticalOffsetPlugin = {
-    id: 'verticalOffsetPlugin',
-    beforeDatasetsDraw(chart) {
-        const { ctx } = chart;
-
-        chart.data.datasets.forEach((dataset, datasetIndex) => {
-            if (!dataset.verticalOffset) return;
-
-            const meta = chart.getDatasetMeta(datasetIndex);
-
-            meta.data.forEach(point => {
-                point.$verticalOffset = dataset.verticalOffset;
-            });
-        });
-    },
-
-    afterDatasetsDraw(chart) {
-        const { ctx } = chart;
-
-        chart.data.datasets.forEach((dataset, datasetIndex) => {
-            if (!dataset.verticalOffset) return;
-
-            const meta = chart.getDatasetMeta(datasetIndex);
-
-            meta.data.forEach(point => {
-                if (!point.$verticalOffset) return;
-
-                // Shift ONLY during drawing
-                point.y -= point.$verticalOffset;
-            });
-        });
-    }
-};
-
-Chart.register(verticalOffsetPlugin);
-
 const signalMarkerPlugin = {
     id: "signalMarkerPlugin",
     afterDatasetsDraw(chart) {
@@ -2152,7 +2116,7 @@ function renderEquityPreview(data) {
                     isSignal: true,
                     direction: "buy",
                     color: "green",
-                    offsetPx: 10           // 10px BELOW curve
+                    offsetPx: 11           // 10px BELOW curve
                 },
                 {
                     label: "Sell Signal",
