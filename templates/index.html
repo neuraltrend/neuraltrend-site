@@ -1496,8 +1496,6 @@
 </div>
 
 <script>
-
-console.log("SCRIPT 1 LOADED");
     
 let equityChart = null;
     
@@ -1644,8 +1642,6 @@ function renderResults({
 /* ===============================
    1. HELPERS
 ================================ */
-
-console.log("SCRIPT 2 LOADED");
 
 let allSignals = [];
 let defaultOrder = [];
@@ -2090,43 +2086,49 @@ function renderEquityPreview(data) {
                 // {
                 //     label: "Buy Signal",
                 //     data: buySignals,
-                //     pointStyle: "triangle",
-                //     pointRadius: 10,
-                //     backgroundColor: "green",
                 //     showLine: false,
-                //     clip: false,
-                //     verticalOffset: -8
+                //     pointRadius: 0,        // disable normal points
+                //     isSignal: true,
+                //     direction: "buy",
+                //     color: "green",
+                //     offsetPx: 11           // 10px BELOW curve
                 // },
                 // {
                 //     label: "Sell Signal",
                 //     data: sellSignals,
-                //     pointStyle: "triangle",
-                //     rotation: 180,
-                //     pointRadius: 10,
-                //     backgroundColor: "red",
                 //     showLine: false,
-                //     clip: false,
-                //     verticalOffset: 8
-                // },
+                //     pointRadius: 0,
+                //     isSignal: true,
+                //     direction: "sell",
+                //     color: "red",
+                //     offsetPx: -10          // 10px ABOVE curve
+                // }
                 {
                     label: "Buy Signal",
                     data: buySignals,
                     showLine: false,
-                    pointRadius: 0,        // disable normal points
+                    pointRadius: 0,
+                    pointStyle: "triangle",      // 👈 ADD THIS
+                    backgroundColor: "green",    // 👈 ADD THIS
+                    borderColor: "green",        // 👈 ADD THIS
                     isSignal: true,
                     direction: "buy",
                     color: "green",
-                    offsetPx: 11           // 10px BELOW curve
+                    offsetPx: 11
                 },
                 {
                     label: "Sell Signal",
                     data: sellSignals,
                     showLine: false,
                     pointRadius: 0,
+                    pointStyle: "triangle",      // 👈 ADD THIS
+                    rotation: 180,               // 👈 ADD THIS
+                    backgroundColor: "red",      // 👈 ADD THIS
+                    borderColor: "red",          // 👈 ADD THIS
                     isSignal: true,
                     direction: "sell",
                     color: "red",
-                    offsetPx: -10          // 10px ABOVE curve
+                    offsetPx: -10
                 }
             ]
         },
