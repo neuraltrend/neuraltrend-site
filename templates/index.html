@@ -636,6 +636,27 @@
                                     </select>
                                 
                                 </div>
+
+                                <!-- RESET FILTER BUTTON -->
+                                <div style="margin-left:auto;">
+                                    <button 
+                                        id="reset-signal-board"
+                                        style="
+                                            padding: 8px 14px;
+                                            border-radius: 6px;
+                                            border: 1px solid #d0d7e2;
+                                            background: #ffffff;
+                                            cursor: pointer;
+                                            font-size: 13px;
+                                            font-weight: 500;
+                                            transition: all 0.15s ease;
+                                        "
+                                        onmouseover="this.style.background='#f3f6ff'"
+                                        onmouseout="this.style.background='#fff'"
+                                    >
+                                        Reset Signal Board
+                                    </button>
+                                </div>
                 
                             </div>
                         </div>
@@ -1881,6 +1902,34 @@ document.getElementById('asset-type-filter')
     .addEventListener('change', function() {
 
         assetTypeFilter = this.value;
+        applyAllFilters();
+    });
+
+document.getElementById("reset-signal-board")
+    .addEventListener("click", function () {
+
+        // Reset signal filters
+        signalFilters = {
+            today_signal: null,
+            yesterday_signal: null,
+            last_week_signal: null,
+            last_month_signal: null
+        };
+
+        // Reset dropdown UI
+        document.querySelectorAll(".signal-filter").forEach(select => {
+            select.value = "";
+        });
+
+        // Reset sorting
+        currentSort = {
+            key: null,
+            direction: 1
+        };
+
+        updateSortIndicators();
+
+        // Reapply filters
         applyAllFilters();
     });
 
