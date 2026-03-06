@@ -569,7 +569,7 @@ def compute_signals_summary_cached(csv_version, period_days):
                "IVPAY-USD", "JASMY-USD", "JNJ", "JOE-USD", "JTO-USD", "JUP-USD", "KARATE-USD", "KARRAT-USD", "KAS-USD", "KATA-USD", 
                "KOMPETE-USD", "KRL-USD", "LAI-USD", "LFNTY-USD", "LIKE-USD", "LINK-USD", "LMWR-USD", "LPT-USD", "LRC-USD", "LTC-USD",
                "MAGIC-USD", "MASK-USD", "MAVIA-USD", "MBS-USD", 'META', "METIS-USD", "MEW-USD", "MINA-USD", "ML-USD", "MLN-USD", "MNDE-USD",
-               "MNT-USD", "MOODENG-USD", "MOZ-USD", "MPLX-USD", "MUBI-USD", "MXM-USD", "MYRIA-USD", "MYRO-USD", "MZERO-USD", "NAKA-USD", 
+               "MNT-USD", "MOODENG-USD", "MOZ-USD", "MPLX-USD", "MU", "MUBI-USD", "MXM-USD", "MYRIA-USD", "MYRO-USD", "MZERO-USD", "NAKA-USD", 
                "NEAR-USD", "NEON-USD", "NEURAL-USD", "NMT-USD", "NOS-USD", "NTRN-USD", "NU-USD", "NXRA-USD", "OCT-USD", "OGN-USD", 
                "OLAS-USD", "OMG-USD", "ONDO-USD", "OP-USD", "ORAI-USD", "ORCA-USD", "ORCL", "ORDI-USD", "OTK-USD", "OXT-USD", "PAAL-USD", 
                "PAID-USD", "PANDORA-USD", "PDA-USD", "PENDLE-USD", "PENG-USD", "PENGU-USD", "PEPE-USD", "PERP-USD", "PHA-USD", 
