@@ -1907,6 +1907,34 @@ document.getElementById('asset-type-filter')
         applyAllFilters();
     });
 
+// document.getElementById("reset-signal-board")
+//     .addEventListener("click", function () {
+
+//         // Reset signal filters
+//         signalFilters = {
+//             today_signal: null,
+//             yesterday_signal: null,
+//             last_week_signal: null,
+//             last_month_signal: null
+//         };
+
+//         // Reset dropdown UI
+//         document.querySelectorAll(".signal-filter").forEach(select => {
+//             select.value = "";
+//         });
+
+//         // Reset sorting
+//         currentSort = {
+//             key: null,
+//             direction: 1
+//         };
+
+//         updateSortIndicators();
+
+//         // Reapply filters
+//         applyAllFilters();
+//     });
+
 document.getElementById("reset-signal-board")
     .addEventListener("click", function () {
 
@@ -1922,6 +1950,10 @@ document.getElementById("reset-signal-board")
         document.querySelectorAll(".signal-filter").forEach(select => {
             select.value = "";
         });
+
+        // ✅ RESET SEARCH BAR
+        document.getElementById("ticker-search").value = "";
+        document.getElementById("ticker-search").blur();
 
         // Reset sorting
         currentSort = {
