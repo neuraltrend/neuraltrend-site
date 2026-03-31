@@ -1907,34 +1907,6 @@ document.getElementById('asset-type-filter')
         applyAllFilters();
     });
 
-// document.getElementById("reset-signal-board")
-//     .addEventListener("click", function () {
-
-//         // Reset signal filters
-//         signalFilters = {
-//             today_signal: null,
-//             yesterday_signal: null,
-//             last_week_signal: null,
-//             last_month_signal: null
-//         };
-
-//         // Reset dropdown UI
-//         document.querySelectorAll(".signal-filter").forEach(select => {
-//             select.value = "";
-//         });
-
-//         // Reset sorting
-//         currentSort = {
-//             key: null,
-//             direction: 1
-//         };
-
-//         updateSortIndicators();
-
-//         // Reapply filters
-//         applyAllFilters();
-//     });
-
 document.getElementById("reset-signal-board")
     .addEventListener("click", function () {
 
@@ -2163,26 +2135,6 @@ function renderEquityPreview(data) {
                     pointRadius: 0,
                     fill: false
                 },
-                // {
-                //     label: "Buy Signal",
-                //     data: buySignals,
-                //     showLine: false,
-                //     pointRadius: 0,        // disable normal points
-                //     isSignal: true,
-                //     direction: "buy",
-                //     color: "green",
-                //     offsetPx: 11           // 10px BELOW curve
-                // },
-                // {
-                //     label: "Sell Signal",
-                //     data: sellSignals,
-                //     showLine: false,
-                //     pointRadius: 0,
-                //     isSignal: true,
-                //     direction: "sell",
-                //     color: "red",
-                //     offsetPx: -10          // 10px ABOVE curve
-                // }
                 {
                     label: "Buy Signal",
                     data: buySignals,
