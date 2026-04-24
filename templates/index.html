@@ -70,25 +70,7 @@
         .navbar .nav-links a:hover {
             background-color: #575757;
         }
-      
-        /* Auth area (Login / Username) */
-        .nav-auth {
-            display: flex;
-            align-items: center;
-        }
         
-        .nav-auth #authArea {
-            color: white;
-            padding: 10px 15px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        
-        .nav-auth #authArea:hover {
-            background-color: #575757;
-        }
 
         .user-menu {
             position: relative;
@@ -165,7 +147,6 @@
             justify-content: center;
             align-items: center;
         }
-
 
         .block-bottom {
             display: flex;
@@ -468,12 +449,6 @@
         <a href="/market">Market Insight</a>
         <a href="/knowledge">Knowledge Hub</a>
         <a href="mailto:contact@neuraltrend.org">Contact</a>
-    </div>
-
-    <!-- RIGHT: auth -->
-    <div class="nav-auth">
-        <!-- <span id="authArea">Log In</span> -->
-        <span id="authArea" onclick="openAuth('login')">Log In</span>
     </div>
 </div>
 
@@ -1495,28 +1470,6 @@
     <a href="/privacy">Privacy Notice</a>
 </div>
 
-<!-- AUTH MODAL -->
-<div id="authModal" class="modal">
-    <div class="modal-content">
-        <h3 id="authTitle">Log In</h3>
-
-        <input id="auth-username" type="email" placeholder="Email" required>
-        <input id="auth-password" type="password" placeholder="Password">
-
-        <!-- 🔥 ERROR MESSAGE GOES HERE -->
-        <p id="authError"
-           style="color:red; display:none; margin-top:10px; font-size:0.9em;">
-        </p>
-
-        <button onclick="submitAuth(event)">Continue</button>
-
-        <p style="margin-top:10px;">
-            <span id="authToggleText">No account?</span>
-            <a style="cursor:pointer;" onclick="toggleAuthMode()">Sign up</a>
-        </p>
-    </div>
-</div>
-
 <script>
     
 let equityChart = null;
@@ -2430,143 +2383,6 @@ fetch("/data")
             displaylogo: false
         });
     });
-</script>
-
-<script>
-let authMode = "login";
-
-/* Navbar swap */
-function setLoggedIn(username) {
-    const el = document.getElementById("authArea");
-    el.innerHTML = `${username} | <span style="cursor:pointer;">Logout</span>`;
-    el.onclick = null;
-    el.querySelector("span").onclick = logout;
-}
-
-/* Logged-out state */
-function setLoggedOut() {
-    const el = document.getElementById("authArea");
-    el.textContent = "Log In";
-    el.onclick = openAuth;
-}
-
-/* Restore session */
-function restoreAuthState() {
-    fetch("/me")
-        .then(r => r.json())
-        .then(data => {
-            if (data.username) {
-                setLoggedIn(data.username);
-            } else {
-                setLoggedOut();
-            }
-        });
-}
-
-function syncAuthUI() {
-    document.getElementById("authTitle").innerText =
-        authMode === "login" ? "Log In" : "Sign Up";
-
-    document.getElementById("authToggleText").innerText =
-        authMode === "login" ? "No account?" : "Already have an account?";
-
-    document.querySelector("#authModal a").innerText =
-        authMode === "login" ? "Sign up" : "Log in";
-}
-
-function openAuth() {
-    authMode = "login";   // ✅ always start in login mode
-    syncAuthUI();         // ✅ update title + text
-
-    const modal = document.getElementById("authModal");
-    modal.style.display = "block";
-    requestAnimationFrame(() => modal.classList.add("show"));
-}
-
-/* Close auth modal */
-function closeAuth() {
-    const modal = document.getElementById("authModal");
-    modal.classList.remove("show");
-    setTimeout(() => modal.style.display = "none", 400);
-}
-
-function toggleAuthMode() {
-    authMode = authMode === "login" ? "signup" : "login";
-    syncAuthUI();
-}
-
-async function submitAuth(e) {
-    e.preventDefault();
-
-    const email = document.getElementById("auth-username").value.trim();
-    const password = document.getElementById("auth-password").value;
-
-    clearAuthError();
-
-    // Validate password length on signup
-    if (authMode === "signup" && password.length < 6) {
-        showAuthError("❌ Password must be at least 6 characters");
-        return;
-    }
-
-    const res = await fetch(authMode === "signup" ? "/signup" : "/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: email, password })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-        showAuthError(
-            data.msg || data.error_description || data.error || "Authentication failed"
-        );
-        return;
-    }
-
-    // ✅ Close auth modal
-    closeAuth();
-
-    // ✅ Restore navbar state
-    restoreAuthState();
-
-    // ✅ Optional success message
-    showModal("✅ Logged in successfully!", "✔️");
-}
-
-function showAuthError(msg) {
-    const el = document.getElementById("authError");
-    el.innerText = msg;
-    el.style.display = "block";
-}
-
-function clearAuthError() {
-    const el = document.getElementById("authError");
-    el.innerText = "";
-    el.style.display = "none";
-}
-
-/* Logout */
-function logout() {
-    fetch("/logout", { method: "POST" })
-        .then(() => {
-            setLoggedOut();
-            showModal("👋 Logged out", "ℹ️");
-        });
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-    restoreAuthState();
-});
-
-/* Close auth modal when clicking outside */
-window.addEventListener("click", function (event) {
-    const modal = document.getElementById("authModal");
-    if (event.target === modal) {
-        closeAuth();
-    }
-});
-    
 </script>
 
 <!-- 100% privacy-first analytics -->
