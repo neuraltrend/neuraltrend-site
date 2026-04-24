@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory, session
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from datetime import datetime, date, timedelta
 from dateutil.relativedelta import relativedelta  # pip install python-dateutil
 import yfinance as yf
@@ -8,17 +8,11 @@ import os
 import time
 import json
 from functools import lru_cache
-from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
-import requests
-
 
 app = Flask(__name__)
 
 # 🔐 REQUIRED FOR SESSIONS
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-fallback")
-SUPABASE_URL = os.environ["SUPABASE_URL"]
-SUPABASE_KEY = os.environ["SUPABASE_ANON_KEY"]
 
 # 🔒 Cookie security (recommended)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
@@ -31,16 +25,6 @@ CSV_PATH = os.path.join(BASE_DIR, "data", "epoch_index-USD.csv")
 
 # Ensure folder/file exist
 os.makedirs(DATA_DIR, exist_ok=True)
-
-def supabase_auth(endpoint, payload):
-    return requests.post(
-        f"{SUPABASE_URL}/auth/v1/{endpoint}",
-        headers={
-            "apikey": SUPABASE_KEY,
-            "Content-Type": "application/json"
-        },
-        json=payload
-    )
 
 def parse_duration(duration: str):
     """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
@@ -184,69 +168,6 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
 @app.route("/")
 def index():
     return render_template("index.html")
-
-@app.route("/signup", methods=["POST"])
-def signup():
-    data = request.get_json()
-
-    r = supabase_auth("signup", {
-        "email": data["username"],
-        "password": data["password"]
-    })
-
-    if not r.ok:
-        # 🔥 Pass Supabase error THROUGH, unchanged
-        return jsonify(r.json()), r.status_code
-
-    auth = r.json()
-    session["access_token"] = auth["access_token"]
-
-    return jsonify(username=auth["user"]["email"])
-
-@app.route("/login", methods=["POST"])
-def login():
-    data = request.get_json()
-
-    r = supabase_auth("token?grant_type=password", {
-        "email": data["username"],
-        "password": data["password"]
-    })
-
-    if not r.ok:
-        # 🔥 DO NOT overwrite Supabase errors
-        return jsonify(r.json()), r.status_code
-
-    auth = r.json()
-    session["access_token"] = auth["access_token"]
-
-    return jsonify(username=auth["user"]["email"])
-
-@app.route("/logout", methods=["POST"])
-def logout():
-    session.pop("access_token", None)
-    return jsonify(success=True)
-
-@app.route("/me")
-def me():
-    access_token = session.get("access_token")
-    if not access_token:
-        return jsonify(username=None)
-
-    headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {access_token}"
-    }
-
-    r = requests.get(
-        f"{SUPABASE_URL}/auth/v1/user",
-        headers=headers
-    )
-
-    if r.status_code == 200:
-        user = r.json()
-        return jsonify(username=user["email"])
-
-    return jsonify(username=None)
 
 @app.route("/data")
 def data():
