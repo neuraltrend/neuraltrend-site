@@ -17,17 +17,15 @@ app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-fallback")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+# 🔒 Cookie security (recommended)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = True  # important on Render HTTPS
 
 db.init_app(app)
 bcrypt.init_app(app)
 login_manager.init_app(app)
 login_manager.login_view = "login"
-
-# 🔒 Cookie security (recommended)
-app.config["SESSION_COOKIE_HTTPONLY"] = True
-app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 # Data path
 DATA_DIR = os.path.join(app.root_path, 'data')
@@ -223,26 +221,21 @@ def login():
     password = data.get("password")
 
     if not email or not password:
-        return jsonify({
-            "error": "Email and password required"
-        }), 400
+        return jsonify({"error": "Email and password required"}), 400
 
     user = User.query.filter_by(email=email).first()
 
     if not user:
-        return jsonify({
-            "error": "User not found"
-        }), 404
+        return jsonify({"error": "User not found"}), 404
 
     if not bcrypt.check_password_hash(user.password_hash, password):
-        return jsonify({
-            "error": "Incorrect password"
-        }), 401
+        return jsonify({"error": "Invalid password"}), 401
 
-    login_user(user)
+    login_user(user)  # 🔑 THIS creates the session
 
     return jsonify({
-        "message": "Login successful",
+        "message": "Logged in successfully",
+        "user_id": user.id,
         "email": user.email
     })
 
@@ -250,20 +243,14 @@ def login():
 @login_required
 def logout():
     logout_user()
-
-    return jsonify({
-        "message": "Logged out successfully"
-    })
+    return jsonify({"message": "Logged out"})
 
 @app.route("/me")
+@login_required
 def me():
-    if current_user.is_authenticated:
-        return jsonify({
-            "email": current_user.email
-        })
-
     return jsonify({
-        "email": None
+        "id": current_user.id,
+        "email": current_user.email
     })
 
 @app.route("/")
