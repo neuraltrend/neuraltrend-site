@@ -171,6 +171,11 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
 # Routes
 # --------------------
 
+@app.route("/create-db")
+def create_db():
+    db.create_all()
+    return "Database created!"
+
 @app.route("/")
 def index():
     return render_template("index.html")
