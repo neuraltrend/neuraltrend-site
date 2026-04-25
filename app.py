@@ -9,6 +9,9 @@ import time
 import json
 from functools import lru_cache
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+from flask_bcrypt import Bcrypt
+from models import User
 
 app = Flask(__name__)
 
@@ -16,6 +19,11 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
 
 # 🔐 REQUIRED FOR SESSIONS
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-fallback")
@@ -31,6 +39,10 @@ CSV_PATH = os.path.join(BASE_DIR, "data", "epoch_index-USD.csv")
 
 # Ensure folder/file exist
 os.makedirs(DATA_DIR, exist_ok=True)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 def parse_duration(duration: str):
     """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
@@ -171,10 +183,39 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
 # Routes
 # --------------------
 
-@app.route("/create-db")
-def create_db():
-    db.create_all()
-    return "Database created!"
+# @app.route("/create-db")
+# def create_db():
+#     db.create_all()
+#     return "Database created!"
+
+@app.route("/signup", methods=["POST"])
+def signup():
+    data = request.get_json()
+
+    email = data.get("email")
+    password = data.get("password")
+
+    if not email or not password:
+        return jsonify({"error": "Email and password required"}), 400
+
+    existing_user = User.query.filter_by(email=email).first()
+
+    if existing_user:
+        return jsonify({"error": "User already exists"}), 400
+
+    hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
+
+    new_user = User(
+        email=email,
+        password_hash=hashed_password
+    )
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Account created successfully"
+    })
 
 @app.route("/")
 def index():
