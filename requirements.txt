@@ -2,10 +2,14 @@ Flask==2.3.2
 gunicorn>=22.0.0
 setuptools
 yfinance
-
-Flask-Login
-Flask-Bcrypt
-Flask-SQLAlchemy
-psycopg2-binary
 requests>=2.31.0
 
+Flask-SQLAlchemy
+Flask-Login
+Flask-Bcrypt
+psycopg2-binary
+itsdangerous
+python-dotenv
+python-dateutil
+pandas
+numpy
