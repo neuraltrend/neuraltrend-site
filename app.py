@@ -8,6 +8,7 @@ import os
 import time
 import json
 from functools import lru_cache
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
