@@ -180,6 +180,12 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
 # Routes
 # --------------------
 
+@app.route("/init-db")
+def init_db():
+    with app.app_context():
+        db.create_all()
+    return "DB initialized"
+
 @app.route("/signup", methods=["POST"])
 def signup():
     data = request.get_json()
