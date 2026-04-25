@@ -1,32 +1,29 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
-from datetime import datetime, date, timedelta
-from dateutil.relativedelta import relativedelta  # pip install python-dateutil
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 import yfinance as yf
 import pandas as pd
 import numpy as np
 import os
-import time
-import json
 from functools import lru_cache
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
-from flask_bcrypt import Bcrypt
+from extensions import db, bcrypt, login_manager
 from models import User
 
 app = Flask(__name__)
 
+# 🔐 REQUIRED FOR SESSIONS
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-fallback")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
-login_manager = LoginManager()
+db.init_app(app)
+bcrypt.init_app(app)
 login_manager.init_app(app)
-login_manager.login_view = "login"
 
-# 🔐 REQUIRED FOR SESSIONS
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-fallback")
+# login_manager.login_view = "login"
 
 # 🔒 Cookie security (recommended)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
