@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import yfinance as yf
@@ -22,8 +23,7 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 db.init_app(app)
 bcrypt.init_app(app)
 login_manager.init_app(app)
-
-# login_manager.login_view = "login"
+login_manager.login_view = "login"
 
 # 🔒 Cookie security (recommended)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
@@ -180,11 +180,6 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
 # Routes
 # --------------------
 
-# @app.route("/create-db")
-# def create_db():
-#     db.create_all()
-#     return "Database created!"
-
 @app.route("/signup", methods=["POST"])
 def signup():
     data = request.get_json()
@@ -212,6 +207,57 @@ def signup():
 
     return jsonify({
         "message": "Account created successfully"
+    })
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+
+    email = data.get("email")
+    password = data.get("password")
+
+    if not email or not password:
+        return jsonify({
+            "error": "Email and password required"
+        }), 400
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        return jsonify({
+            "error": "User not found"
+        }), 404
+
+    if not bcrypt.check_password_hash(user.password_hash, password):
+        return jsonify({
+            "error": "Incorrect password"
+        }), 401
+
+    login_user(user)
+
+    return jsonify({
+        "message": "Login successful",
+        "email": user.email
+    })
+
+@app.route("/logout", methods=["POST"])
+@login_required
+def logout():
+    logout_user()
+
+    return jsonify({
+        "message": "Logged out successfully"
+    })
+
+@app.route("/me")
+def me():
+    if current_user.is_authenticated:
+        return jsonify({
+            "email": current_user.email
+        })
+
+    return jsonify({
+        "email": None
     })
 
 @app.route("/")
