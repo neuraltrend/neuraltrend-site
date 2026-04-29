@@ -1493,6 +1493,24 @@
     <a href="/privacy">Privacy Notice</a>
 </div>
 
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+
+    <span class="close-btn">&times;</span>
+
+    <h3>Login / Signup</h3>
+
+    <input type="email" id="emailInput" placeholder="Email">
+    <input type="password" id="passwordInput" placeholder="Password">
+
+    <button id="signupBtn">Sign up</button>
+    <button id="signinBtn">Login</button>
+
+    <p id="authMessage"></p>
+
+  </div>
+</div>
+
 <script>
     
 let equityChart = null;
@@ -2432,14 +2450,12 @@ fetch("/data")
 const loginBtn = document.getElementById("login-btn");
 const loginModal = document.getElementById("login-modal");
 const closeModal = document.getElementById("close-modal");
-
 const signupBtn = document.getElementById("signup-btn");
 const signinBtn = document.getElementById("signin-btn");
-
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
 const authMessage = document.getElementById("auth-message");
 const userArea = document.getElementById("user-area");
+const emailInput = document.getElementById("emailInput");
+const passwordInput = document.getElementById("passwordInput");
 
 // ------------------
 // Open modal
