@@ -184,9 +184,44 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
 #         db.create_all()
 #     return "DB initialized"
 
+# @app.route("/signup", methods=["POST"])
+# def signup():
+#     data = request.get_json()
+
+#     email = data.get("email")
+#     password = data.get("password")
+
+#     if not email or not password:
+#         return jsonify({"error": "Email and password required"}), 400
+
+#     existing_user = User.query.filter_by(email=email).first()
+
+#     if existing_user:
+#         return jsonify({"error": "User already exists"}), 400
+
+#     hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
+
+#     new_user = User(
+#         email=email,
+#         password_hash=hashed_password
+#     )
+
+#     db.session.add(new_user)
+#     db.session.commit()
+
+#     return jsonify({
+#         "message": "Account created successfully"
+#     })
+
 @app.route("/signup", methods=["POST"])
 def signup():
-    data = request.get_json()
+    print("RAW:", request.data)
+    print("JSON:", request.get_json(silent=True))
+    
+    data = request.get_json(silent=True)
+
+    if not data:
+        return jsonify({"error": "No JSON received"}), 400
 
     email = data.get("email")
     password = data.get("password")
@@ -209,9 +244,7 @@ def signup():
     db.session.add(new_user)
     db.session.commit()
 
-    return jsonify({
-        "message": "Account created successfully"
-    })
+    return jsonify({"message": "Account created successfully"})
 
 @app.route("/login", methods=["POST"])
 def login():
