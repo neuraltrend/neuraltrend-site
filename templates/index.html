@@ -2430,5 +2430,122 @@ fetch("/data")
     </div>
 </div>
 
+<script>
+const loginBtn = document.getElementById("login-btn");
+const loginModal = document.getElementById("login-modal");
+const closeModal = document.getElementById("close-modal");
+
+const signupBtn = document.getElementById("signup-btn");
+const signinBtn = document.getElementById("signin-btn");
+
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const authMessage = document.getElementById("auth-message");
+const userArea = document.getElementById("user-area");
+
+// ------------------
+// Open modal
+// ------------------
+loginBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    loginModal.style.display = "flex";
+});
+
+// ------------------
+// Close modal
+// ------------------
+closeModal.addEventListener("click", function() {
+    loginModal.style.display = "none";
+});
+
+window.addEventListener("click", function(e) {
+    if (e.target === loginModal) {
+        loginModal.style.display = "none";
+    }
+});
+
+// ------------------
+// Signup
+// ------------------
+signupBtn.addEventListener("click", async function() {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+
+    const response = await fetch("/signup", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            email: email,
+            password: password
+        })
+    });
+
+    const data = await response.json();
+    authMessage.innerText = data.message || data.error;
+});
+
+// ------------------
+// Login
+// ------------------
+signinBtn.addEventListener("click", async function() {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+
+    const response = await fetch("/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            email: email,
+            password: password
+        })
+    });
+
+    const data = await response.json();
+
+    if (data.message) {
+        authMessage.innerText = data.message;
+        loginModal.style.display = "none";
+        checkUser();
+    } else {
+        authMessage.innerText = data.error;
+    }
+});
+
+// ------------------
+// Logout
+// ------------------
+async function logout() {
+    await fetch("/logout", {
+        method: "POST"
+    });
+
+    userArea.innerHTML = `<a href="#" id="login-btn">Login</a>`;
+    location.reload();
+}
+
+// ------------------
+// Check current user
+// ------------------
+async function checkUser() {
+    const response = await fetch("/me");
+    const data = await response.json();
+
+    if (data.email) {
+        userArea.innerHTML = `
+            <span>${data.email}</span>
+            |
+            <a href="#" onclick="logout()">Logout</a>
+        `;
+    }
+}
+
+// Run on page load
+checkUser();
+</script>
+
 </body>
 </html>
