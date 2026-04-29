@@ -2500,14 +2500,24 @@ signupBtn.addEventListener("click", async function() {
     const email = emailInput.value;
     const password = passwordInput.value;
 
+    // const response = await fetch("/signup", {
+    //     method: "POST",
+    //     headers: {
+    //         "Content-Type": "application/json"
+    //     },
+    //     body: JSON.stringify({
+    //         email: email,
+    //         password: password
+    //     })
+    // });
     const response = await fetch("/signup", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            email: email,
-            password: password
+            email: emailInput.value.trim(),
+            password: passwordInput.value
         })
     });
 
