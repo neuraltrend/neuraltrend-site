@@ -2429,33 +2429,19 @@ fetch("/data")
 <!-- 100% privacy-first analytics -->
 <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
 
-<!-- Login Modal -->
-<div id="login-modal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" id="close-modal">&times;</span>
-
-        <h2>Login</h2>
-
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="password" placeholder="Password">
-
-        <button id="signup-btn">Create Account</button>
-        <button id="signin-btn">Login</button>
-
-        <p id="auth-message"></p>
-    </div>
-</div>
-
 <script>
 const loginBtn = document.getElementById("login-btn");
-const loginModal = document.getElementById("login-modal");
-const closeModal = document.getElementById("close-modal");
-const signupBtn = document.getElementById("signup-btn");
-const signinBtn = document.getElementById("signin-btn");
-const authMessage = document.getElementById("auth-message");
-const userArea = document.getElementById("user-area");
+const loginModal = document.getElementById("loginModal"); // FIXED
+const closeModal = document.querySelector(".close-btn");
+
+const signupBtn = document.getElementById("signupBtn");
+const signinBtn = document.getElementById("signinBtn");
+
 const emailInput = document.getElementById("emailInput");
 const passwordInput = document.getElementById("passwordInput");
+
+const authMessage = document.getElementById("authMessage");
+const userArea = document.getElementById("user-area");
 
 // ------------------
 // Open modal
@@ -2464,13 +2450,17 @@ const passwordInput = document.getElementById("passwordInput");
 //     e.preventDefault();
 //     loginModal.style.display = "flex";
 // });
-document.addEventListener("click", function(e) {
-    if (e.target && e.target.id === "login-btn") {
-        e.preventDefault();
-        loginModal.style.display = "flex";
-        loginModal.style.opacity = "1";
-    }
+// document.addEventListener("click", function(e) {
+loginBtn.addEventListener("click", function(e) {
+    e.preventDefault();
+    loginModal.style.display = "flex";
 });
+//     if (e.target && e.target.id === "login-btn") {
+//         e.preventDefault();
+//         loginModal.style.display = "flex";
+//         loginModal.style.opacity = "1";
+//     }
+// });
 
 // ------------------
 // Close modal
