@@ -241,10 +241,18 @@ def signup():
         password_hash=hashed_password
     )
 
+    # after creating user
     db.session.add(new_user)
     db.session.commit()
+    
+    login_user(new_user)  # 🔑 AUTO LOGIN
+    
+    return jsonify({
+        "message": "Account created successfully",
+        "email": new_user.email
+    })
 
-    return jsonify({"message": "Account created successfully"})
+    # return jsonify({"message": "Account created successfully"})
 
 @app.route("/login", methods=["POST"])
 def login():
