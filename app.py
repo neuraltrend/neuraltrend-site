@@ -245,12 +245,23 @@ def logout():
     logout_user()
     return jsonify({"message": "Logged out"})
 
+# @app.route("/me")
+# @login_required
+# def me():
+#     return jsonify({
+#         "id": current_user.id,
+#         "email": current_user.email
+#     })
+
 @app.route("/me")
-@login_required
 def me():
+    if current_user.is_authenticated:
+        return jsonify({
+            "email": current_user.email
+        })
+
     return jsonify({
-        "id": current_user.id,
-        "email": current_user.email
+        "email": None
     })
 
 @app.route("/")
