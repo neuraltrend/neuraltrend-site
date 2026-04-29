@@ -2502,20 +2502,29 @@ window.addEventListener("click", function(e) {
 //     const data = await response.json();
 //     authMessage.innerText = data.message || data.error;
 // });
-signupBtn.addEventListener("click", async function() {
-    const email = emailInput.value;
-    const password = passwordInput.value;
+    
+// signupBtn.addEventListener("click", async function() {
+//     const email = emailInput.value;
+//     const password = passwordInput.value;
 
-    // const response = await fetch("/signup", {
-    //     method: "POST",
-    //     headers: {
-    //         "Content-Type": "application/json"
-    //     },
-    //     body: JSON.stringify({
-    //         email: email,
-    //         password: password
-    //     })
-    // });
+//     const response = await fetch("/signup", {
+//         method: "POST",
+//         headers: {
+//             "Content-Type": "application/json"
+//         },
+//         body: JSON.stringify({
+//             email: emailInput.value.trim(),
+//             password: passwordInput.value
+//         })
+//     });
+
+//     const data = await response.json();
+
+//     console.log("SIGNUP RESPONSE:", data);
+//     authMessage.innerText = data.message || data.error;
+// });
+
+signupBtn.addEventListener("click", async function() {
     const response = await fetch("/signup", {
         method: "POST",
         headers: {
@@ -2528,9 +2537,22 @@ signupBtn.addEventListener("click", async function() {
     });
 
     const data = await response.json();
-
-    console.log("SIGNUP RESPONSE:", data);
     authMessage.innerText = data.message || data.error;
+
+    if (data.email) {
+        // 🔑 CLOSE MODAL
+        loginModal.style.opacity = "0";
+        setTimeout(() => {
+            loginModal.style.display = "none";
+        }, 300);
+
+        // 🔑 UPDATE NAVBAR IMMEDIATELY
+        userArea.innerHTML = `
+            <span>${data.email}</span>
+            |
+            <a href="#" onclick="logout()">Logout</a>
+        `;
+    }
 });
 
 // ------------------
