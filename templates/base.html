@@ -1,1 +1,1672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9633315289535323"
+     crossorigin="anonymous"></script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>NeuralTrend</title>
+    
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Plotly CDN (include once per page, ideally in <head>) -->
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    
+    <style>
+        :root {
+            --nav-height: 110px; /* adjust if needed */
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+        }
 
+        /* Navbar container */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1a7d9c;
+            padding: 10px 30px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            z-index: 1000;
+        }
+
+        /* Logo styling */
+        .navbar .logo img {
+            height: 100px;
+        }
+
+        /* Links container */
+        .navbar .nav-links {
+            display: flex;
+        }
+
+        /* Links styling */
+        .navbar .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            margin-left: 5px;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Hover effect */
+        .navbar .nav-links a:hover {
+            background-color: #575757;
+        }
+        
+
+        .user-menu {
+            position: relative;
+            cursor: pointer;
+        }
+
+        /* User pill */
+        .user-pill {
+            background: white;
+            color: #1a7d9c;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .user-pill:hover {
+            background: #f0f0f0;
+        }
+        
+        /* Arrow */
+        .user-pill .arrow {
+            font-size: 10px;
+        }
+        
+        /* Dropdown */
+        .dropdown {
+            position: absolute;
+            right: 0;
+            top: 120%;
+            background: white;
+            border-radius: 8px;
+            min-width: 120px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        /* Dropdown item */
+        .dropdown div {
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .dropdown div:hover {
+            background: #f2f2f2;
+        }
+        
+        /* .dropdown {
+            position: absolute;
+            right: 0;
+            top: 130%;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 6px;
+            min-width: 120px;
+        } */
+        
+        /* .dropdown div {
+            padding: 10px;
+        } */
+        
+        /* .dropdown div:hover {
+            background: #222;
+        } */
+
+        /* Main content pushed down below navbar */
+        main {
+            padding-top: calc(var(--nav-height) + 20px);
+            padding-left: 30px; /* added left padding */
+        }
+
+        .product-box {
+            background-color: #f9f9f9; /* very light gray — you can use your own color */
+            padding: 20px;
+            border-radius: 8px; /* optional, for rounded edges */
+            box-shadow: 0 0 10px rgba(0,0,0,0.05); /* optional, soft shadow */
+        }
+
+        .three-blocks {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin: 20px;
+        }
+
+        .block {
+            background-color: #f9f9f9; /* Light gray box */
+            border-radius: 8px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .block-title {
+            background-color: #e3e3e3; /* Title background */
+            padding: 10px;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .block-chart {
+            flex: 1;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            min-height: 300px; /* adjust chart height */
+        
+            /* Center widget content */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .block-bottom {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .block-img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+        }
+                
+        .tradingview-widget-copyright {
+            font-size: 10px !important;       /* smaller font */
+            color: #666 !important;           /* subtle gray color */
+            text-align: center !important;    /* center the text */
+            padding-top: 5px !important;      /* some spacing from widget */
+            font-family: Arial, sans-serif !important;
+            user-select: none;                /* prevent selection if you want */
+            opacity: 0.7;                    /* slight transparency */
+        }
+        
+        /* Make the form layout two rows: title row and inputs row */
+        #backtest-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #signal-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* First row (title) */
+        .trade-form h3 {
+            margin: 0;
+            text-align: center;
+        }
+        
+        /* Second row (all inputs in one line) */
+        .form-row {
+            display: flex;
+            flex-wrap: wrap; /* Wrap on smaller screens */
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        /* Make labels and inputs stay together */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        /* Reduce input width so they fit in one line */
+        .form-group input,
+        .form-group select {
+            width: 145px;
+        }
+        
+        #backtest-form label {
+            margin: 0 5px 0 0; /* small space after label */
+        }
+
+        #backtest-form input,
+        #backtest-form select,
+        #backtest-form button {
+            margin: 0 10px 0 0;
+        }
+        
+        #backtest-form button {
+            white-space: nowrap; /* prevents breaking button text */
+        }
+        
+        /* Make form labels bigger */
+        label {
+            font-size: 15px;
+        }
+        
+        /* Make inputs bigger (both text & number/date selectors) */
+        input, select, textarea, button {
+            font-size: 15px;   /* text inside box */
+            padding: 8px 10px; /* a bit more padding for comfort */
+        }
+        
+        /* Make placeholder text bigger */
+        input::placeholder, textarea::placeholder {
+            font-size: 15px;
+        }
+
+        /* Optional: make the "Run Backtest" button match */
+        button {
+            font-size: 15px;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+
+        /* Results section */
+        .results-section {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px auto;
+            width: 90%;
+            max-width: 1200px;
+            border: 1px solid #e0e0e0;
+        }
+        #results p {
+            color: #000000;
+            font-size: 20px;
+            line-height: 1.6;
+        }
+
+        /* Smooth fade transition */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: block;
+            opacity: 1;
+        }
+    
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .close-btn {
+            float: right;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Icons */
+        #modal-icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        .success-icon { color: #2ecc71; }
+        .error-icon { color: #e74c3c; }
+
+        /* Animation */
+        @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+        
+        .close-btn:hover { color: #000; }
+
+        /* Auth area container */
+        .auth-area {
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Login button */
+        #login-btn {
+            background: white;
+            color: #1a7d9c;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 2px solid white;
+        }
+        
+        /* Hover effect */
+        #login-btn:hover {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        /* Footer styling */
+        .footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 14px;
+            background-color: #f2f2f2;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        
+        .footer a {
+            color: black;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Layout for Contact + Follow Us */
+        /* Main layout: Contact Us + Follow Us side by side */
+        #contact-section {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 20px auto;
+            flex-wrap: wrap; /* Makes it responsive on small screens */
+        }
+        
+        /* Shared box styling */
+        .contact-box, .follow-box {
+            flex: 1;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            min-width: 300px; /* Prevents boxes from shrinking too much */
+        }
+
+        /* Headings */
+        .contact-box h2, .follow-box h2 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        /* Contact form styles */
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .contact-form label {
+            font-weight: bold;
+        }
+        
+        .contact-form input,
+        .contact-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .contact-form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .contact-form button {
+            background-color: #0077B5;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .contact-form button:hover {
+            background-color: #005f87;
+        }
+        
+        /* Follow Us buttons */
+        .social-btn {
+            display: block;
+            padding: 12px 15px;
+            margin: 10px 0;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .social-btn i {
+            margin-right: 10px;
+        }
+
+        /* Brand colors */
+        .social-btn.linkedin { background-color: #0077B5; }
+        .social-btn.twitter { background-color: #1DA1F2; }
+        .social-btn.facebook { background-color: #1877F2; }
+        .social-btn.instagram { background-color: #E1306C; }
+        
+        
+        /* Hover effect for Follow Us buttons */
+        .social-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+    </style>
+
+</head>
+<body>
+
+    <!-- Navigation bar -->
+    <div class="navbar">
+        <div class="logo">
+            <a href="https://neuraltrend.org">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="My Logo">
+            </a>
+        </div>
+    
+        <!-- LEFT: nav links -->
+        <div class="nav-links">
+            <a href="https://neuraltrend.org">Home</a>
+            <a href="https://github.com/neuraltrend/">Sample Algorithms</a>
+            <a href="/market">Market Insight</a>
+            <a href="/knowledge">Knowledge Hub</a>
+            <a href="mailto:contact@neuraltrend.org">Contact</a>
+        </div>
+    
+        <!-- RIGHT: login area -->
+        <div class="auth-area">
+            <span id="user-area">
+                <a href="#" id="login-btn">Login</a>
+            </span>
+        </div>
+    </div>
+
+    <!-- ✅ PAGE CONTENT -->
+    {% block content %}{% endblock %}
+
+    <!-- Footer -->
+    <div class="footer">
+        <a href="/privacy">Privacy Notice</a>
+    </div>
+
+    <!-- ✅ LOGIN MODAL -->    
+    <div id="loginModal" class="modal">
+      <div class="modal-content">
+    
+        <span class="close-btn">&times;</span>
+    
+        <h3>Login / Signup</h3>
+    
+        <input type="email" id="emailInput" placeholder="Email">
+        <input type="password" id="passwordInput" placeholder="Password">
+    
+        <button id="signupBtn">Sign up</button>
+        <button id="signinBtn">Login</button>
+    
+        <p id="authMessage"></p>
+    
+      </div>
+    </div>
+
+    <!-- ✅ SCRIPT -->
+    <script>
+    
+    let equityChart = null;
+        
+    document.getElementById('backtest-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+    
+        const formData = new FormData(this);
+        fetch('/backtest', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            renderResults(data);
+        })
+        .catch(error => console.error('Error:', error));
+    });
+    
+    function renderResults({
+        ticker, final_value, final_value_epoch, profit_factor, profit_factor_epoch, sharpe_ratio,
+        equity_curve, epoch_equity_curve, dates,
+        ticker_2, final_value_2, profit_factor_2, sharpe_ratio_2,
+        equity_curve_2, buy_dates, buy_prices, sell_dates, sell_prices
+    }) {
+        const resultsDiv = document.getElementById('results');
+    
+        let ticker1Stats = `
+            <div>
+                <h3>${ticker}</h3>
+                <p>Final Value EpochSignaler: $${final_value_epoch.toFixed(2)}</p>
+                <p>Final Value Buy&Hold: $${final_value.toFixed(2)}</p>
+                <p>Profit Factor EpochSignaler: ${profit_factor_epoch}</p>
+                <p>Profit Factor Buy&Hold: ${profit_factor}</p>
+            </div>
+        `;
+    
+        let ticker2Stats = '';
+        if (ticker_2) {
+            ticker2Stats = `
+                <div>
+                    <h3>${ticker_2}</h3>
+                    <p>Final Value Buy&Hold: $${final_value_2.toFixed(2)}</p>
+                    <p>Profit Factor Buy&Hold: ${profit_factor_2}</p>
+                </div>
+            `;
+        }
+    
+        resultsDiv.innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr ${ticker_2 ? '1fr' : ''}; gap: 20px; align-items: start;">
+                ${ticker1Stats}
+                ${ticker2Stats}
+            </div>
+            <canvas id="equity-chart" width="600" height="400"></canvas>
+        `;
+    
+        const ctx = document.getElementById('equity-chart').getContext('2d');
+    
+        // --- Compute dynamic offset for markers ---
+        const equity_min = Math.min(...epoch_equity_curve);
+        const equity_max = Math.max(...epoch_equity_curve);
+        const offset = (equity_max - equity_min) * 0.04; // 4% of range
+    
+        const adjustedBuySignals = dates.map((d, i) => buy_dates.includes(d) ? epoch_equity_curve[i] - offset : null);
+        const adjustedSellSignals = dates.map((d, i) => sell_dates.includes(d) ? epoch_equity_curve[i] + offset : null);
+    
+        const datasets = [
+            {
+                label: `${ticker} EpochSignaler Equity Curve`,
+                data: epoch_equity_curve,
+                borderColor: 'blue',
+                pointStyle: 'line',
+                pointRadius: 0,   // <-- remove circle markers
+                fill: false,
+                backgroundColor: 'blue',
+            },
+            {
+                label: `${ticker} Buy&Hold Equity Curve`,
+                data: equity_curve,
+                borderColor: 'purple',
+                pointStyle: 'line',
+                borderDash: [5, 5],
+                pointRadius: 0,   // <-- remove circle markers
+                fill: false,
+                backgroundColor: 'green',
+            },
+            {
+                label: 'Buy Signal',
+                data: adjustedBuySignals,
+                pointStyle: 'triangle',
+                pointRadius: 10,
+                backgroundColor: 'green',
+                showLine: false
+            },
+            {
+                label: 'Sell Signal',
+                data: adjustedSellSignals,
+                pointStyle: 'triangle',
+                rotation: 180,
+                pointRadius: 10,
+                backgroundColor: 'red',
+                showLine: false
+            }
+        ];
+    
+        if (equity_curve_2 && equity_curve_2.length > 0) {
+            datasets.push({
+                label: `${ticker_2} Buy&Hold Equity Curve`,
+                data: equity_curve_2,
+                pointStyle: 'line',
+                borderColor: 'darkgray',
+                pointRadius: 0,   // <-- remove circle markers
+                fill: false
+            });
+        }
+    
+        // new Chart(ctx, {
+        if (equityChart) {
+            equityChart.destroy();
+        }
+        
+        equityChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: datasets
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        labels: { usePointStyle: true }  // match triangle markers
+                    }
+                },
+                scales: {
+                    x: { display: true, title: { display: true, text: 'Date' } },
+                    y: { display: true, title: { display: true, text: 'Equity ($)' } }
+                }
+            }
+        });
+    }
+        
+    </script>
+    
+    <script>
+    /* ===============================
+       1. HELPERS
+    ================================ */
+    
+    let allSignals = [];
+    let defaultOrder = [];
+    let assetTypeFilter = "crypto";
+    let isLogScale = false;
+    
+    let signalFilters = {
+        today_signal: null,
+        yesterday_signal: null,
+        last_week_signal: null,
+        last_month_signal: null
+    };
+    
+    function applyAllFilters() {
+    
+        let filtered = [...defaultOrder];
+    
+        // 1️⃣ Search filter
+        const query = document.getElementById('ticker-search').value.toLowerCase();
+        if (query) {
+            filtered = filtered.filter(item =>
+                item.ticker.toLowerCase().includes(query)
+            );
+        }
+    
+        // 2️⃣ Asset type filter
+        if (assetTypeFilter !== "all") {
+        
+            filtered = filtered.filter(item => {
+        
+                const isCrypto = item.ticker.endsWith("-USD");
+        
+                if (assetTypeFilter === "crypto") return isCrypto;
+                if (assetTypeFilter === "stock") return !isCrypto;
+        
+                return true;
+            });
+        }
+    
+        // 2️⃣ Signal filters (AND logic)
+        Object.keys(signalFilters).forEach(key => {
+            const val = signalFilters[key];
+            if (val !== null) {
+                filtered = filtered.filter(item => item[key] === val);
+            }
+        });
+    
+        // 3️⃣ Sorting
+        if (currentSort.key) {
+            filtered.sort((a, b) => {
+                let valA = a[currentSort.key] ?? 0;
+                let valB = b[currentSort.key] ?? 0;
+                return (valA - valB) * currentSort.direction;
+            });
+        }
+    
+        allSignals = filtered;
+        renderBoard(filtered);
+    }
+    
+    function formatSignal(signal) {
+        if (signal === 1) {
+            return `<span style="color: green; font-weight: bold;">▲ BUY</span>`;
+        } else if (signal === -1) {
+            return `<span style="color: red; font-weight: bold;">▼ SELL</span>`;
+        } else {
+            return `<span style="color: gray;">--- HOLD</span>`;
+        }
+    }
+    
+    function formatPercent(value) {
+        if (value === null || value === undefined) return "-";
+        return (value * 100).toFixed(1) + "%";
+    }
+    
+    function formatMultiple(value) {
+        if (value === null || value === undefined) return "-";
+        return value.toFixed(2) + "×";
+    }
+    
+    let currentSort = {
+        key: null,
+        direction: 1   // 1 = ascending, -1 = descending
+    };
+    
+    function sortBy(key) {
+    
+        if (currentSort.key !== key) {
+            currentSort.key = key;
+            currentSort.direction = 1;
+        }
+        else {
+            if (currentSort.direction === 1) {
+                currentSort.direction = -1;
+            }
+            else {
+                currentSort.key = null;
+                currentSort.direction = 1;
+                updateSortIndicators();
+                applyAllFilters();
+                return;
+            }
+        }
+    
+        updateSortIndicators();
+        applyAllFilters();
+    }
+    
+    function updateSortIndicators() {
+    
+        const buyHoldEl = document.getElementById("buy-hold-sort-indicator");
+        const strategyEl = document.getElementById("strategy-sort-indicator");
+        const outperformanceEl = document.getElementById("outperformance-sort-indicator");
+    
+        if (!buyHoldEl || !strategyEl || !outperformanceEl) return;
+    
+        // Default state
+        buyHoldEl.innerHTML = "—";
+        strategyEl.innerHTML = "—";
+        outperformanceEl.innerHTML = "—";
+    
+        if (!currentSort.key) return;
+    
+        const arrow = currentSort.direction === 1 ? "▲" : "▼";
+    
+        if (currentSort.key === "buy_hold_annual_return") {
+            buyHoldEl.innerHTML = arrow;
+        }
+    
+        if (currentSort.key === "strategy_annual_return") {
+            strategyEl.innerHTML = arrow;
+        }
+    
+        if (currentSort.key === "outperformance") {
+            outperformanceEl.innerHTML = arrow;
+        }
+    }
+    
+    function renderBoard(data) {
+        board.innerHTML = data.map(item => `
+            <div
+                onclick="loadTicker('${item.ticker}')"
+                style="
+                    display: grid;
+                    grid-template-columns: 160px 100px 100px 100px 100px 140px 160px 120px;
+                    align-items: center;
+                    padding: 6px 10px;
+                    border-bottom: 1px solid #eee;
+                    cursor: pointer;
+                    box-sizing: border-box;
+                    width: 100%;
+                "
+            >
+                <div>${item.ticker}</div>
+                <div style="text-align:left;">${formatSignal(item.today_signal)}</div>
+                <div style="text-align:left;">${formatSignal(item.yesterday_signal)}</div>
+                <div style="text-align:left;">${formatSignal(item.last_week_signal)}</div>
+                <div style="text-align:left;">${formatSignal(item.last_month_signal)}</div>
+                <div style="text-align:right;">${formatPercent(item.buy_hold_annual_return)}</div>
+                <div style="text-align:right;">${formatPercent(item.strategy_annual_return)}</div>
+                <div style="text-align:right;">${formatMultiple(item.outperformance)}</div>
+            </div>
+        `).join('');
+    }
+    
+    /* ===============================
+       2. QUICK SIGNAL BOARD (AUTO LOAD)
+    ================================ */
+    
+    const board = document.getElementById('signal-board');
+    
+    board.innerHTML = `
+        <div style="text-align:center; color:#888; padding:20px;">
+            Loading signals…
+        </div>
+    `;
+    
+    function loadSummary() {
+        const duration = document.getElementById('period-select').value; // e.g., '1w', '1mo', '1y'
+    
+        fetch(`/signals/summary?duration=${duration}&_=${Date.now()}`)
+            .then(r => r.json())
+            .then(data => {
+                allSignals = data;
+                defaultOrder = [...data];
+                updateSortIndicators();
+                applyAllFilters();
+            
+                // 🔥 Auto-load BTC-USD preview only once
+                if (!currentTicker) {
+                    const btcExists = data.find(item => item.ticker === "BTC-USD");
+                    if (btcExists) {
+                        loadTicker("BTC-USD");
+                    }
+                }
+            })
+            .catch(err => {
+                board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
+                console.error(err);
+            });
+    }
+    
+    // Load on page start
+    loadSummary();
+    
+    document.querySelectorAll('.signal-filter').forEach(select => {
+        select.addEventListener('change', function() {
+            const key = this.dataset.key;
+            const value = this.value;
+    
+            signalFilters[key] = value === "" ? null : parseInt(value);
+    
+            applyAllFilters();
+        });
+    });
+    
+    document.getElementById('period-select')
+        .addEventListener('change', function() {
+    
+            board.innerHTML = `
+                <div style="text-align:center; color:#888; padding:20px;">
+                    Updating period…
+                </div>
+            `;
+    
+            loadSummary();
+    
+            // 🔥 If a ticker is already selected, update its chart too
+            if (currentTicker) {
+                loadTicker(currentTicker);
+            }
+        });
+    
+    document.getElementById('ticker-search')
+        .addEventListener('input', function() {
+            applyAllFilters();
+        });
+    
+    document.getElementById('asset-type-filter')
+        .addEventListener('change', function() {
+    
+            assetTypeFilter = this.value;
+            applyAllFilters();
+        });
+    
+    document.getElementById("reset-signal-board")
+        .addEventListener("click", function () {
+    
+            // Reset signal filters
+            signalFilters = {
+                today_signal: null,
+                yesterday_signal: null,
+                last_week_signal: null,
+                last_month_signal: null
+            };
+    
+            // Reset dropdown UI
+            document.querySelectorAll(".signal-filter").forEach(select => {
+                select.value = "";
+            });
+    
+            // ✅ RESET SEARCH BAR
+            document.getElementById("ticker-search").value = "";
+            document.getElementById("ticker-search").blur();
+    
+            // Reset sorting
+            currentSort = {
+                key: null,
+                direction: 1
+            };
+    
+            updateSortIndicators();
+    
+            // Reapply filters
+            applyAllFilters();
+        });
+    
+    /* ===============================
+       3. LOAD TICKER FROM BOARD CLICK
+    ================================ */
+    
+    let currentTicker = null;
+    let previewChart = null;   // 🔥 prevents duplicate charts
+    
+    function loadTicker(ticker) {
+    
+        currentTicker = ticker;
+    
+        const duration = document.getElementById('period-select').value;
+    
+        const formData = new FormData();
+        formData.append('ticker', ticker);
+        formData.append('duration', duration);
+    
+        // 2️⃣ Load equity preview (UNDER BOARD)
+        fetch('/equity', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(renderEquityPreview);
+    }
+    
+    /* ===============================
+       4. EXISTING FORM SUBMIT (STILL WORKS)
+    ================================ */
+    
+    const signalForm = document.getElementById('signal-form');
+    if (signalForm) {
+        signalForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+    
+            const formData = new FormData(this);
+    
+            fetch('/signals', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(renderSignals);
+        });
+    }
+    
+    /* ===============================
+       5. RENDER DETAILED SIGNALS
+    ================================ */
+    
+    function renderSignals({
+        ticker,
+        today_signal,
+        yesterday_signal,
+        last_week_signal,
+        last_month_signal,
+        buy_hold_annual_return,
+        strategy_annual_return,
+        outperformance
+    }) {
+        const signalsDiv = document.getElementById('signals');
+    
+        signalsDiv.innerHTML = `
+            <div>
+                <h3>${ticker}</h3>
+    
+                <div style="
+                    display: grid;
+                    grid-template-columns: 160px 100px 100px 100px 100px 140px 160px 120px;
+                    align-items: center;
+                    box-sizing: border-box;
+                    width: 100%;
+                ">
+                    <div><strong>${ticker}</strong></div>
+                    <div style="text-align:left;">Today: ${formatSignal(today_signal)}</div>
+                    <div style="text-align:left;">Yesterday: ${formatSignal(yesterday_signal)}</div>
+                    <div style="text-align:left;">Last Week: ${formatSignal(last_week_signal)}</div>
+                    <div style="text-align:left;">Last Month: ${formatSignal(last_month_signal)}</div>
+                    <div style="text-align:right;">Buy&Hold Return: ${formatPercent(buy_hold_annual_return)}</div>
+                    <div style="text-align:right;">EpochSignaler Return: ${formatPercent(strategy_annual_return)}</div>
+                    <div style="text-align:right;">Outperformance${formatMultiple(outperformance)}</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    const signalMarkerPlugin = {
+        id: "signalMarkerPlugin",
+        afterDatasetsDraw(chart) {
+    
+            const { ctx } = chart;
+    
+            chart.data.datasets.forEach((dataset, datasetIndex) => {
+    
+                if (!dataset.isSignal) return;
+    
+                const meta = chart.getDatasetMeta(datasetIndex);
+    
+                meta.data.forEach(point => {
+    
+                    if (!point || point.skip) return;
+    
+                    const x = point.x;
+                    const y = point.y;
+    
+                    const offset = dataset.offsetPx || 0;
+    
+                    ctx.save();
+    
+                    ctx.translate(x, y + offset);
+    
+                    ctx.beginPath();
+    
+                    if (dataset.direction === "buy") {
+                        // Up triangle
+                        ctx.moveTo(0, -8);
+                        ctx.lineTo(6, 6);
+                        ctx.lineTo(-6, 6);
+                    } else {
+                        // Down triangle
+                        ctx.moveTo(0, 8);
+                        ctx.lineTo(6, -6);
+                        ctx.lineTo(-6, -6);
+                    }
+    
+                    ctx.closePath();
+                    ctx.fillStyle = dataset.color;
+                    ctx.fill();
+    
+                    ctx.restore();
+                });
+            });
+        }
+    };
+    
+    Chart.register(signalMarkerPlugin);
+    
+    function renderEquityPreview(data) {
+    
+        const container = document.getElementById("equity-preview-container");
+        const chartDiv = document.getElementById("equity-preview-chart");
+    
+        container.style.display = "block";
+        document.getElementById("preview-title").innerText =
+            `${data.ticker} — Equity Preview`;
+    
+        chartDiv.innerHTML = `
+            <canvas id="previewChartCanvas"></canvas>
+        `;
+        const ctx = document.getElementById("previewChartCanvas").getContext("2d");
+    
+        if (previewChart) {
+            previewChart.destroy();
+        }
+    
+        const equity = data.epoch_equity_curve;
+        const buyHold = data.equity_curve;
+        const dates = data.dates;
+        const buy_dates = data.buy_dates;
+        const sell_dates = data.sell_dates;
+    
+        // 🔥 Dynamic offset (same as backtest)
+        const equity_min = Math.min(...equity);
+        const equity_max = Math.max(...equity);
+        const offset = (equity_max - equity_min) * 0.04;
+    
+        const buySignals = dates.map((d, i) =>
+        buy_dates.includes(d) ? equity[i] : null
+        );
+        
+        const sellSignals = dates.map((d, i) =>
+            sell_dates.includes(d) ? equity[i] : null
+        );
+    
+        previewChart = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: dates,
+                datasets: [
+                    {
+                        label: "EpochSignaler",
+                        data: equity,
+                        borderColor: "blue",
+                        pointStyle: "line",     // 👈 ADD THIS
+                        pointRadius: 0,
+                        fill: false
+                    },
+                    {
+                        label: "Buy & Hold",
+                        data: buyHold,
+                        borderColor: "purple",
+                        borderDash: [5, 5],
+                        pointStyle: "line",     // 👈 ADD THIS
+                        pointRadius: 0,
+                        fill: false
+                    },
+                    {
+                        label: "Buy Signal",
+                        data: buySignals,
+                        showLine: false,
+                        pointRadius: 0,
+                        pointStyle: "triangle",      // 👈 ADD THIS
+                        backgroundColor: "green",    // 👈 ADD THIS
+                        borderColor: "green",        // 👈 ADD THIS
+                        isSignal: true,
+                        direction: "buy",
+                        color: "green",
+                        offsetPx: 11
+                    },
+                    {
+                        label: "Sell Signal",
+                        data: sellSignals,
+                        showLine: false,
+                        pointRadius: 0,
+                        pointStyle: "triangle",      // 👈 ADD THIS
+                        rotation: 180,               // 👈 ADD THIS
+                        backgroundColor: "red",      // 👈 ADD THIS
+                        borderColor: "red",          // 👈 ADD THIS
+                        isSignal: true,
+                        direction: "sell",
+                        color: "red",
+                        offsetPx: -10
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,   // 🔥 THIS FIXES OVERFLOW
+                plugins: {
+                    legend: {
+                        position: "top",   // keep at top
+                        align: "end",      // 🔥 move to right
+                        labels: { usePointStyle: true }  // match backtest style
+                    }
+                },
+                scales: {
+                    x: { display: true },
+                    y: { 
+                        display: true,
+                        type: isLogScale ? "logarithmic" : "linear"
+                    }
+                }
+            }
+        });
+    
+        const toggleBtn = document.getElementById("scale-toggle-btn");
+        
+        toggleBtn.innerText = isLogScale
+            ? "Normal Scale"
+            : "Log Scale";
+    }
+    
+    // Global delegated click handler
+    document.addEventListener("click", function (e) {
+    
+        const btn = e.target.closest("#scale-toggle-btn");
+    
+        if (btn) {
+    
+            console.log("BUTTON CLICKED");
+    
+            if (!previewChart) return;
+    
+            isLogScale = !isLogScale;
+    
+            btn.innerText = isLogScale
+                ? "Normal Scale"
+                : "Log Scale";
+    
+            previewChart.options.scales.y.type =
+                isLogScale ? "logarithmic" : "linear";
+    
+            previewChart.update();
+        }
+    });
+    
+    // Load default ticker
+    setTimeout(() => {
+        loadTicker("BTC-USD");
+    }, 200);
+        
+    </script>
+    
+    <script>
+    function showModal(message, iconHTML) {
+        const modal = document.getElementById("customModal");
+        const modalMessage = document.getElementById("modal-message");
+        const modalIcon = document.getElementById("modal-icon");
+    
+        modalMessage.textContent = message;
+        modalIcon.innerHTML = iconHTML || "";
+    
+        modal.classList.add("show");
+    
+        // Auto-close after 3 seconds with fade-out
+        setTimeout(() => {
+            modal.classList.remove("show");
+            setTimeout(() => {
+                modal.style.display = "none";
+            }, 400); // match transition time
+        }, 3000);
+    
+        modal.style.display = "block";
+    }
+    
+    // Manual close
+    const closeBtn = document.querySelector(".close-btn");
+    if (closeBtn) {
+        closeBtn.addEventListener("click", function () {
+            const modal = document.getElementById("customModal");
+            modal.classList.remove("show");
+            setTimeout(() => modal.style.display = "none", 400);
+        });
+    }
+    
+    // Click outside to close
+    window.addEventListener("click", function (event) {
+        const modal = document.getElementById("customModal");
+        if (event.target === modal) {
+            modal.classList.remove("show");
+            setTimeout(() => modal.style.display = "none", 400);
+        }
+    });
+    
+    // Form Validation
+    
+    const backtestForm = document.getElementById("backtest-form");
+    if (backtestForm) {
+        backtestForm.addEventListener("submit", function(event) {
+            const startDate = new Date(document.getElementById("start").value);
+            // const endDate = new Date(document.getElementById("end").value);
+            const today = new Date();
+            startDate.setHours(0,0,0,0);
+            today.setHours(0,0,0,0);
+        
+            // if (startDate > endDate) {
+            //     showModal("❌ Start Date cannot be after End Date.", "Error!");
+            //     event.preventDefault();
+            //     return;
+            // }
+        
+            if (startDate >= today) {
+                showModal("❌ Start Date cannot be in the future.", "Error!");
+                event.preventDefault();
+                return;
+            }
+        
+            // If passes validation
+            showModal("✅ Backtest started successfully!", "Success!");
+        });
+    }
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        const startInput = document.getElementById("start");
+    
+        // 🔧 Set how many days before today should be the latest selectable
+        const x = 0; // example: today - 2 days
+    
+        // Calculate (today - x days)
+        const maxDateObj = new Date();
+        maxDateObj.setDate(maxDateObj.getDate() - x);
+    
+        // Format to yyyy-mm-dd for input[type=date]
+        const yyyy = maxDateObj.getFullYear();
+        const mm = String(maxDateObj.getMonth() + 1).padStart(2, "0");
+        const dd = String(maxDateObj.getDate()).padStart(2, "0");
+    
+        const maxDate = `${yyyy}-${mm}-${dd}`;
+    
+        // Apply restriction
+        startInput.setAttribute("max", maxDate);
+        // setLoggedOut();
+    });
+        
+    </script>
+    
+    <script>
+    fetch("/data")
+        .then(response => response.json())
+        .then(data => {
+    
+            const trace = {
+                x: data.dates,
+                y: data.index,
+                type: "scatter",
+                mode: "lines",
+                name: "Index",
+                line: { width: 2 }
+            };
+    
+            const layout = {
+                title: {
+                    text: "AltIndexer",
+                    x: 0.5
+                },
+    
+                xaxis: {
+                    title: "Date",
+                    range: [
+                        new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
+                        new Date()
+                    ],
+                    rangeselector: {
+                        buttons: [
+                            {count: 7, label: "1W", step: "day", stepmode: "backward"},
+                            {count: 1, label: "1M", step: "month", stepmode: "backward"},
+                            {count: 3, label: "3M", step: "month", stepmode: "backward"},
+                            {count: 6, label: "6M", step: "month", stepmode: "backward"},
+                            {count: 1, label: "1Y", step: "year", stepmode: "backward"},
+                            {count: 3, label: "3Y", step: "year", stepmode: "backward"},
+                            {count: 5, label: "5Y", step: "year", stepmode: "backward"},
+                            {step: "all", label: "ALL"}
+                        ]
+                    },
+                    type: "date"
+                },
+    
+                yaxis: {
+                    title: "Index",
+                    zeroline: true,
+                    range: [-1, 1]   // keeps zones stable
+                },
+    
+                /* 🔹 NEW: background zones */
+                shapes: [
+                    {
+                        type: "rect",
+                        xref: "paper",
+                        yref: "y",
+                        x0: 0,
+                        x1: 1,
+                        y0: 0,
+                        y1: 1,
+                        fillcolor: "rgba(34, 197, 94, 0.12)",
+                        line: { width: 0 },
+                        layer: "below"
+                    },
+                    {
+                        type: "rect",
+                        xref: "paper",
+                        yref: "y",
+                        x0: 0,
+                        x1: 1,
+                        y0: -1,
+                        y1: 0,
+                        fillcolor: "rgba(239, 68, 68, 0.12)",
+                        line: { width: 0 },
+                        layer: "below"
+                    }
+                ],
+    
+                /* 🔹 NEW: zone labels */
+                annotations: [
+                    {
+                        xref: "paper",
+                        yref: "y",
+                        x: 0.5,
+                        y: 0.5,
+                        text: "Buy Zone",
+                        showarrow: false,
+                        font: {
+                            size: 40,
+                            color: "rgba(200, 200, 200, 0.6)"
+                        }
+                    },
+                    {
+                        xref: "paper",
+                        yref: "y",
+                        x: 0.5,
+                        y: -0.5,
+                        text: "Sell Zone",
+                        showarrow: false,
+                        font: {
+                            size: 40,
+                            color: "rgba(200, 200, 200, 0.6)"
+                        }
+                    }
+                ],
+    
+                template: "plotly_dark",
+                hovermode: "x unified",
+                margin: { t: 60, l: 50, r: 30, b: 50 }
+            };
+    
+            Plotly.newPlot("epoch-index-chart", [trace], layout, {
+                responsive: true,
+                displaylogo: false
+            });
+        });
+    </script>
+    
+    <!-- 100% privacy-first analytics -->
+    <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+    
+    <script>
+    // const loginBtn = document.getElementById("login-btn");
+    const loginModal = document.getElementById("loginModal"); // FIXED
+    const closeModal = document.querySelector(".close-btn");
+    
+    const signupBtn = document.getElementById("signupBtn");
+    const signinBtn = document.getElementById("signinBtn");
+    
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    
+    const authMessage = document.getElementById("authMessage");
+    const userArea = document.getElementById("user-area");
+    
+    // ------------------
+    // Open modal
+    // ------------------
+    // loginBtn.addEventListener("click", function(e) {
+    //     e.preventDefault();
+    //     loginModal.style.display = "flex";
+    // });
+    
+    // ------------------
+    // Close modal
+    // ------------------
+    closeModal.addEventListener("click", function() {
+        loginModal.style.opacity = "0";
+        setTimeout(() => {
+            loginModal.style.display = "none";
+        }, 300);
+    });
+    
+    window.addEventListener("click", function(e) {
+        if (e.target === loginModal) {
+            loginModal.style.opacity = "0";
+            setTimeout(() => {
+                loginModal.style.display = "none";
+            }, 300);
+        }
+    });
+    
+    signupBtn.addEventListener("click", async function() {
+        const response = await fetch("/signup", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email: emailInput.value.trim(),
+                password: passwordInput.value
+            })
+        });
+    
+        const data = await response.json();
+        authMessage.innerText = data.message || data.error;
+    
+        // if (data.email) {
+        //     // 🔑 CLOSE MODAL
+        //     loginModal.style.opacity = "0";
+        //     setTimeout(() => {
+        //         loginModal.style.display = "none";
+        //     }, 300);
+    
+        //     // 🔑 UPDATE NAVBAR IMMEDIATELY
+        //     userArea.innerHTML = `
+        //         <span>${data.email}</span>
+        //         |
+        //         <a href="#" onclick="logout()">Logout</a>
+        //     `;
+        // }
+        if (data.message) {
+            loginModal.style.opacity = "0";
+            setTimeout(() => {
+                loginModal.style.display = "none";
+            }, 300);
+        
+            await checkUser();  // 🔑 this handles UI properly
+        }
+    });
+    
+    // ------------------
+    // Login
+    // ------------------
+    signinBtn.addEventListener("click", async function() {
+        const email = emailInput.value;
+        const password = passwordInput.value;
+    
+        const response = await fetch("/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email: emailInput.value.trim(),
+                password: passwordInput.value
+            })
+        });
+    
+        const data = await response.json();
+    
+        if (data.message) {
+            authMessage.innerText = data.message;
+            loginModal.style.opacity = "0";
+            setTimeout(() => {
+                loginModal.style.display = "none";
+            }, 300);
+            await checkUser();
+        } else {
+            authMessage.innerText = data.error;
+        }
+    });
+    
+    // ------------------
+    // Logout
+    // ------------------
+    async function logout() {
+        await fetch("/logout", {
+            method: "POST"
+        });
+    
+        userArea.innerHTML = `<a href="#" id="login-btn">Login</a>`;
+        location.reload();
+    }
+    
+    // ------------------
+    // Check current user
+    // ------------------
+    // async function checkUser() {
+    //     const response = await fetch("/me");
+    //     const data = await response.json();
+    
+    //     if (data.email) {
+    //         userArea.innerHTML = `
+    //             <span>${data.email}</span>
+    //             |
+    //             <a href="#" onclick="logout()">Logout</a>
+    //         `;
+    //     }
+    // }
+    
+    async function checkUser() {
+        const response = await fetch("/me");
+        const data = await response.json();
+    
+        if (data.email) {
+            userArea.innerHTML = `
+                <div class="user-menu" id="userMenu">
+                    <div class="user-pill">
+                        ${data.email}
+                        <span class="arrow">▼</span>
+                    </div>
+    
+                    <div class="dropdown" id="dropdownMenu" style="display:none;">
+                        <div onclick="logout()">Logout</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // 🔑 reset to login button if not authenticated
+            userArea.innerHTML = `<a href="#" id="login-btn">Login</a>`;
+        }
+    }
+    
+    document.addEventListener("click", function(e) {
+    
+        // ✅ Handle Login button (works even after re-render)
+        if (e.target && e.target.id === "login-btn") {
+            e.preventDefault();
+            loginModal.style.display = "flex";
+            loginModal.style.opacity = "1";
+            return;
+        }
+    
+        // ✅ Dropdown logic
+        const menu = document.getElementById("userMenu");
+        const dropdown = document.getElementById("dropdownMenu");
+    
+        if (!menu || !dropdown) return;
+    
+        const pill = menu.querySelector(".user-pill");
+    
+        if (pill && pill.contains(e.target)) {
+            dropdown.style.display =
+                dropdown.style.display === "block" ? "none" : "block";
+        } else {
+            dropdown.style.display = "none";
+        }
+    });
+    
+    // Run on page load
+    checkUser();
+    </script>
+
+</body>
+</html>
