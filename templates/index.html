@@ -457,24 +457,6 @@
     </div>
 </div>
 
-<!-- Navigation bar -->
-<!-- <div class="navbar">
-    <div class="logo">
-        <a href="https://neuraltrend.org">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="My Logo">
-        </a>
-    </div>
-
-    <!-- LEFT: nav links -->
-    <!-- <div class="nav-links">
-        <a href="https://neuraltrend.org">Home</a>
-        <a href="https://github.com/neuraltrend/">Sample Algorithms</a>
-        <a href="/market">Market Insight</a>
-        <a href="/knowledge">Knowledge Hub</a>
-        <a href="mailto:contact@neuraltrend.org">Contact</a>
-    </div>
-</div> --> -->
-
 <main>
     <h1>NeuralTrend</h1>
     <p>Building advanced AI to deliver actionable insights across cryptocurrency and traditional markets (for informational purposes only — not financial advice).</p>
@@ -1228,15 +1210,6 @@
         
             <div id="results"></div>
         </section>
-
-        <!-- Custom Modal -->
-        <!-- <div id="customModal" class="modal">
-            <div class="modal-content">
-                <span class="close-btn">&times;</span>
-                <div id="modal-icon"></div>
-                <p id="modal-message"></p>
-            </div>
-        </div> -->
 
         </div>
 
@@ -2446,21 +2419,10 @@ const userArea = document.getElementById("user-area");
 // ------------------
 // Open modal
 // ------------------
-// loginBtn.addEventListener("click", function(e) {
-//     e.preventDefault();
-//     loginModal.style.display = "flex";
-// });
-// document.addEventListener("click", function(e) {
 loginBtn.addEventListener("click", function(e) {
     e.preventDefault();
     loginModal.style.display = "flex";
 });
-//     if (e.target && e.target.id === "login-btn") {
-//         e.preventDefault();
-//         loginModal.style.display = "flex";
-//         loginModal.style.opacity = "1";
-//     }
-// });
 
 // ------------------
 // Close modal
@@ -2480,49 +2442,6 @@ window.addEventListener("click", function(e) {
         }, 300);
     }
 });
-
-// ------------------
-// Signup
-// ------------------
-// signupBtn.addEventListener("click", async function() {
-//     const email = emailInput.value;
-//     const password = passwordInput.value;
-
-//     const response = await fetch("/signup", {
-//         method: "POST",
-//         headers: {
-//             "Content-Type": "application/json"
-//         },
-//         body: JSON.stringify({
-//             email: email,
-//             password: password
-//         })
-//     });
-
-//     const data = await response.json();
-//     authMessage.innerText = data.message || data.error;
-// });
-    
-// signupBtn.addEventListener("click", async function() {
-//     const email = emailInput.value;
-//     const password = passwordInput.value;
-
-//     const response = await fetch("/signup", {
-//         method: "POST",
-//         headers: {
-//             "Content-Type": "application/json"
-//         },
-//         body: JSON.stringify({
-//             email: emailInput.value.trim(),
-//             password: passwordInput.value
-//         })
-//     });
-
-//     const data = await response.json();
-
-//     console.log("SIGNUP RESPONSE:", data);
-//     authMessage.innerText = data.message || data.error;
-// });
 
 signupBtn.addEventListener("click", async function() {
     const response = await fetch("/signup", {
