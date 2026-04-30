@@ -2475,7 +2475,7 @@ fetch("/data")
 <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
 
 <script>
-const loginBtn = document.getElementById("login-btn");
+// const loginBtn = document.getElementById("login-btn");
 const loginModal = document.getElementById("loginModal"); // FIXED
 const closeModal = document.querySelector(".close-btn");
 
@@ -2491,10 +2491,10 @@ const userArea = document.getElementById("user-area");
 // ------------------
 // Open modal
 // ------------------
-loginBtn.addEventListener("click", function(e) {
-    e.preventDefault();
-    loginModal.style.display = "flex";
-});
+// loginBtn.addEventListener("click", function(e) {
+//     e.preventDefault();
+//     loginModal.style.display = "flex";
+// });
 
 // ------------------
 // Close modal
@@ -2567,8 +2567,8 @@ signinBtn.addEventListener("click", async function() {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            email: email,
-            password: password
+            email: emailInput.value.trim(),
+            password: passwordInput.value
         })
     });
 
@@ -2580,7 +2580,7 @@ signinBtn.addEventListener("click", async function() {
         setTimeout(() => {
             loginModal.style.display = "none";
         }, 300);
-        checkUser();
+        await checkUser();
     } else {
         authMessage.innerText = data.error;
     }
@@ -2638,6 +2638,16 @@ async function checkUser() {
 }
 
 document.addEventListener("click", function(e) {
+
+    // ✅ Handle Login button (works even after re-render)
+    if (e.target && e.target.id === "login-btn") {
+        e.preventDefault();
+        loginModal.style.display = "flex";
+        loginModal.style.opacity = "1";
+        return;
+    }
+
+    // ✅ Dropdown logic
     const menu = document.getElementById("userMenu");
     const dropdown = document.getElementById("dropdownMenu");
 
@@ -2645,7 +2655,6 @@ document.addEventListener("click", function(e) {
 
     const pill = menu.querySelector(".user-pill");
 
-    // Toggle only when clicking the pill
     if (pill && pill.contains(e.target)) {
         dropdown.style.display =
             dropdown.style.display === "block" ? "none" : "block";
