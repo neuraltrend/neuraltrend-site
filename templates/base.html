@@ -1515,7 +1515,7 @@
             }, 300);
         }
     });
-    
+
     signupBtn.addEventListener("click", async function() {
         const response = await fetch("/signup", {
             method: "POST",
@@ -1529,29 +1529,20 @@
         });
     
         const data = await response.json();
-        authMessage.innerText = data.message || data.error;
     
-        // if (data.email) {
-        //     // 🔑 CLOSE MODAL
-        //     loginModal.style.opacity = "0";
-        //     setTimeout(() => {
-        //         loginModal.style.display = "none";
-        //     }, 300);
-    
-        //     // 🔑 UPDATE NAVBAR IMMEDIATELY
-        //     userArea.innerHTML = `
-        //         <span>${data.email}</span>
-        //         |
-        //         <a href="#" onclick="logout()">Logout</a>
-        //     `;
-        // }
         if (data.message) {
-            loginModal.style.opacity = "0";
+            authMessage.innerText = "Check your email to verify your account.";
+    
+            // Close modal after short delay (better UX)
             setTimeout(() => {
-                loginModal.style.display = "none";
-            }, 300);
-        
-            await checkUser();  // 🔑 this handles UI properly
+                loginModal.style.opacity = "0";
+                setTimeout(() => {
+                    loginModal.style.display = "none";
+                }, 300);
+            }, 1500);
+    
+        } else {
+            authMessage.innerText = data.error;
         }
     });
     
