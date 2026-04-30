@@ -9,8 +9,22 @@ import os
 from functools import lru_cache
 from extensions import db, bcrypt, login_manager
 from models import User
+from itsdangerous import URLSafeTimedSerializer
+from flask_mail import Mail, Message
 
 app = Flask(__name__)
+
+serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
+
+app.config.update(
+    MAIL_SERVER="smtp.gmail.com",
+    MAIL_PORT=587,
+    MAIL_USE_TLS=True,
+    MAIL_USERNAME=os.environ.get("EMAIL_USER"),
+    MAIL_PASSWORD=os.environ.get("EMAIL_PASS"),
+)
+
+mail = Mail(app)
 
 # 🔐 REQUIRED FOR SESSIONS
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-fallback")
@@ -38,6 +52,41 @@ os.makedirs(DATA_DIR, exist_ok=True)
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+def generate_verification_token(email):
+    return serializer.dumps(email, salt="email-confirm")
+
+def confirm_verification_token(token, expiration=3600):
+    try:
+        email = serializer.loads(
+            token,
+            salt="email-confirm",
+            max_age=expiration
+        )
+    except Exception:
+        return None
+    return email
+
+def send_verification_email(user_email):
+    token = generate_verification_token(user_email)
+
+    verify_url = f"https://neuraltrend.org/verify/{token}"
+
+    msg = Message(
+        subject="Verify your NeuralTrend account",
+        sender=app.config["MAIL_USERNAME"],
+        recipients=[user_email]
+    )
+
+    msg.body = f"""
+    Click the link to verify your account:
+
+    {verify_url}
+
+    If you didn’t sign up, ignore this email.
+    """
+
+    mail.send(msg)
 
 def parse_duration(duration: str):
     """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
@@ -209,21 +258,53 @@ def signup():
 
     new_user = User(
         email=email,
-        password_hash=hashed_password
+        password_hash=hashed_password,
+        is_verified=False
     )
-
-    # after creating user
+    
     db.session.add(new_user)
     db.session.commit()
     
-    login_user(new_user)  # 🔑 AUTO LOGIN
+    send_verification_email(email)
     
     return jsonify({
-        "message": "Account created successfully",
-        "email": new_user.email
+        "message": "Account created. Please check your email to verify."
     })
 
+    # new_user = User(
+    #     email=email,
+    #     password_hash=hashed_password
+    # )
+
+    # # after creating user
+    # db.session.add(new_user)
+    # db.session.commit()
+    
+    # login_user(new_user)  # 🔑 AUTO LOGIN
+    
+    # return jsonify({
+    #     "message": "Account created successfully",
+    #     "email": new_user.email
+    # })
+
     # return jsonify({"message": "Account created successfully"})
+
+@app.route("/verify/<token>")
+def verify_email(token):
+    email = confirm_verification_token(token)
+
+    if not email:
+        return "Verification link expired or invalid."
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        return "User not found."
+
+    user.is_verified = True
+    db.session.commit()
+
+    return "Email verified successfully! You can now log in."
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -242,6 +323,9 @@ def login():
 
     if not bcrypt.check_password_hash(user.password_hash, password):
         return jsonify({"error": "Invalid password"}), 401
+
+    if not user.is_verified:
+        return jsonify({"error": "Please verify your email first"}), 403
 
     login_user(user)  # 🔑 THIS creates the session
 
