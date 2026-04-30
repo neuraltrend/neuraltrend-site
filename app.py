@@ -14,7 +14,12 @@ from flask_mail import Mail, Message
 
 app = Flask(__name__)
 
-serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
+# ✅ SET CONFIG FIRST
+secret = os.environ.get("SECRET_KEY")
+if not secret:
+    raise RuntimeError("SECRET_KEY not set!")
+
+app.config["SECRET_KEY"] = secret
 
 app.config.update(
     MAIL_SERVER="smtp.gmail.com",
@@ -27,7 +32,6 @@ app.config.update(
 mail = Mail(app)
 
 # 🔐 REQUIRED FOR SESSIONS
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-fallback")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -53,12 +57,15 @@ os.makedirs(DATA_DIR, exist_ok=True)
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+def get_serializer():
+    return URLSafeTimedSerializer(app.config["SECRET_KEY"])
+
 def generate_verification_token(email):
-    return serializer.dumps(email, salt="email-confirm")
+    return get_serializer().dumps(email, salt="email-confirm")
 
 def confirm_verification_token(token, expiration=3600):
     try:
-        email = serializer.loads(
+        email = get_serializer().loads(
             token,
             salt="email-confirm",
             max_age=expiration
