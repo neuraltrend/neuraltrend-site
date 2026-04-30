@@ -7,9 +7,11 @@ requests>=2.31.0
 Flask-SQLAlchemy
 Flask-Login
 Flask-Bcrypt
+Flask-Mail
 psycopg2-binary
 itsdangerous
 python-dotenv
 python-dateutil
 pandas
 numpy
+
