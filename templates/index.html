@@ -76,8 +76,54 @@
             position: relative;
             cursor: pointer;
         }
+
+        /* User pill */
+        .user-pill {
+            background: white;
+            color: #1a7d9c;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
         
+        .user-pill:hover {
+            background: #f0f0f0;
+        }
+        
+        /* Arrow */
+        .user-pill .arrow {
+            font-size: 10px;
+        }
+        
+        /* Dropdown */
         .dropdown {
+            position: absolute;
+            right: 0;
+            top: 120%;
+            background: white;
+            border-radius: 8px;
+            min-width: 120px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        /* Dropdown item */
+        .dropdown div {
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .dropdown div:hover {
+            background: #f2f2f2;
+        }
+        
+        /* .dropdown {
             position: absolute;
             right: 0;
             top: 130%;
@@ -85,15 +131,15 @@
             border: 1px solid #333;
             border-radius: 6px;
             min-width: 120px;
-        }
+        } */
         
-        .dropdown div {
+        /* .dropdown div {
             padding: 10px;
-        }
+        } */
         
-        .dropdown div:hover {
+        /* .dropdown div:hover {
             background: #222;
-        }
+        } */
 
         /* Main content pushed down below navbar */
         main {
@@ -2484,19 +2530,27 @@ signupBtn.addEventListener("click", async function() {
     const data = await response.json();
     authMessage.innerText = data.message || data.error;
 
-    if (data.email) {
-        // 🔑 CLOSE MODAL
+    // if (data.email) {
+    //     // 🔑 CLOSE MODAL
+    //     loginModal.style.opacity = "0";
+    //     setTimeout(() => {
+    //         loginModal.style.display = "none";
+    //     }, 300);
+
+    //     // 🔑 UPDATE NAVBAR IMMEDIATELY
+    //     userArea.innerHTML = `
+    //         <span>${data.email}</span>
+    //         |
+    //         <a href="#" onclick="logout()">Logout</a>
+    //     `;
+    // }
+    if (data.message) {
         loginModal.style.opacity = "0";
         setTimeout(() => {
             loginModal.style.display = "none";
         }, 300);
-
-        // 🔑 UPDATE NAVBAR IMMEDIATELY
-        userArea.innerHTML = `
-            <span>${data.email}</span>
-            |
-            <a href="#" onclick="logout()">Logout</a>
-        `;
+    
+        await checkUser();  // 🔑 this handles UI properly
     }
 });
 
@@ -2547,18 +2601,58 @@ async function logout() {
 // ------------------
 // Check current user
 // ------------------
+// async function checkUser() {
+//     const response = await fetch("/me");
+//     const data = await response.json();
+
+//     if (data.email) {
+//         userArea.innerHTML = `
+//             <span>${data.email}</span>
+//             |
+//             <a href="#" onclick="logout()">Logout</a>
+//         `;
+//     }
+// }
+
 async function checkUser() {
     const response = await fetch("/me");
     const data = await response.json();
 
     if (data.email) {
         userArea.innerHTML = `
-            <span>${data.email}</span>
-            |
-            <a href="#" onclick="logout()">Logout</a>
+            <div class="user-menu" id="userMenu">
+                <div class="user-pill">
+                    ${data.email}
+                    <span class="arrow">▼</span>
+                </div>
+
+                <div class="dropdown" id="dropdownMenu" style="display:none;">
+                    <div onclick="logout()">Logout</div>
+                </div>
+            </div>
         `;
+    } else {
+        // 🔑 reset to login button if not authenticated
+        userArea.innerHTML = `<a href="#" id="login-btn">Login</a>`;
     }
 }
+
+document.addEventListener("click", function(e) {
+    const menu = document.getElementById("userMenu");
+    const dropdown = document.getElementById("dropdownMenu");
+
+    if (!menu || !dropdown) return;
+
+    const pill = menu.querySelector(".user-pill");
+
+    // Toggle only when clicking the pill
+    if (pill && pill.contains(e.target)) {
+        dropdown.style.display =
+            dropdown.style.display === "block" ? "none" : "block";
+    } else {
+        dropdown.style.display = "none";
+    }
+});
 
 // Run on page load
 checkUser();
