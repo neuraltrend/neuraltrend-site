@@ -1490,14 +1490,6 @@
     const userArea = document.getElementById("user-area");
     
     // ------------------
-    // Open modal
-    // ------------------
-    // loginBtn.addEventListener("click", function(e) {
-    //     e.preventDefault();
-    //     loginModal.style.display = "flex";
-    // });
-    
-    // ------------------
     // Close modal
     // ------------------
     closeModal.addEventListener("click", function() {
@@ -1610,37 +1602,11 @@
     // ------------------
     // Check current user
     // ------------------
-    // async function checkUser() {
-    //     const response = await fetch("/me");
-    //     const data = await response.json();
-    
-    //     if (data.email) {
-    //         userArea.innerHTML = `
-    //             <span>${data.email}</span>
-    //             |
-    //             <a href="#" onclick="logout()">Logout</a>
-    //         `;
-    //     }
-    // }
-    
     async function checkUser() {
         const response = await fetch("/me");
         const data = await response.json();
     
         if (data.email) {
-            // userArea.innerHTML = `
-            //     <div class="user-menu" id="userMenu">
-            //         <div class="user-pill">
-            //             ${data.email}
-            //             <span class="arrow">▼</span>
-            //         </div>
-    
-            //         <div class="dropdown" id="dropdownMenu" style="display:none;">
-            //             <div onclick="logout()">Logout</div>
-            //         </div>
-            //     </div>
-            // `;
-
             userArea.innerHTML = `
                 <div class="user-menu" id="userMenu">
                     <div class="user-pill">
