@@ -252,11 +252,6 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
 #         db.create_all()
 #     return "DB initialized"
 
-@app.route("/request-delete-account", methods=["POST"])
-@login_required
-def request_delete_account():
-    print("DELETE REQUEST HIT")  # 🔥 ADD THIS FIRST LINE
-
 @app.route("/signup", methods=["POST"])
 def signup():
     print("RAW:", request.data)
@@ -361,6 +356,7 @@ def me():
 @app.route("/request-delete-account", methods=["POST"])
 @login_required
 def request_delete_account():
+    print("DELETE REQUEST HIT")  # 🔥 ADD THIS FIRST LINE
     user = current_user
 
     token = generate_delete_token(user.email)
