@@ -95,6 +95,27 @@ def send_verification_email(user_email):
 
     mail.send(msg)
 
+@app.route("/delete-test-user")
+def delete_test_user():
+    key = request.args.get("key")
+    if key != "moji-joon":
+        return "Unauthorized", 403
+
+    email = request.args.get("email")   # 👈 ADD THIS HERE
+
+    if not email:
+        return "Email required", 400
+
+    user = User.query.filter_by(email=email).first()  # 👈 USE IT HERE
+
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        return f"Deleted {email}"
+
+    return "User not found"
+# https://neuraltrend.org/delete-test-user?key=moji-joon&email=test@test.com
+
 def parse_duration(duration: str):
     """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
     s = duration.strip().lower()
