@@ -371,22 +371,26 @@ def request_password_reset():
     email = data.get("email")
 
     user = User.query.filter_by(email=email).first()
-    if not user:
-        return jsonify({"message": "If account exists, email sent"})  # avoid leaking existence
 
-    token = generate_reset_token(email)
-    reset_url = f"https://neuraltrend.org/reset-password/{token}"
+    if user:
+        token = generate_reset_token(email)
+        reset_url = f"https://neuraltrend.org/reset-password/{token}"
 
-    msg = Message(
-        subject="Reset your password",
-        sender=app.config["MAIL_USERNAME"],
-        recipients=[email]
-    )
+        msg = Message(
+            subject="Reset your password",
+            sender=app.config["MAIL_USERNAME"],
+            recipients=[email]
+        )
 
-    msg.body = f"Click to reset password:\n\n{reset_url}\n\nExpires in 1 hour."
+        msg.body = f"Reset your password:\n\n{reset_url}"
 
-    mail.send(msg)
+        try:
+            mail.send(msg)
+            print("RESET EMAIL SENT:", email)
+        except Exception as e:
+            print("EMAIL ERROR:", str(e))
 
+    # Always return same message
     return jsonify({"message": "If account exists, email sent"})
 
 @app.route("/reset-password/<token>", methods=["GET", "POST"])
