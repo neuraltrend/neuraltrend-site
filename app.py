@@ -89,11 +89,13 @@ def send_verification_email(user_email):
     Click the link to verify your account:
 
     {verify_url}
-
-    If you didn’t sign up, ignore this email.
     """
 
-    mail.send(msg)
+    try:
+        mail.send(msg)
+        print("Verification email sent to:", user_email)
+    except Exception as e:
+        print("EMAIL ERROR (verify):", str(e))
 
 # @app.route("/delete-test-user")
 # def delete_test_user():
@@ -412,8 +414,17 @@ def request_delete_account():
     This link expires in 1 hour.
     """
 
-    mail.send(msg)
+    # mail.send(msg)
 
+    # return jsonify({"message": "Deletion confirmation email sent"})
+
+    try:
+        mail.send(msg)
+        print("Delete email sent to:", user.email)
+    except Exception as e:
+        print("EMAIL ERROR (delete):", str(e))
+        return jsonify({"error": "Email failed"}), 500
+    
     return jsonify({"message": "Deletion confirmation email sent"})
 
 @app.route("/confirm-delete/<token>")
@@ -428,10 +439,29 @@ def confirm_delete(token):
     if not user:
         return "User not found"
 
+    logout_user()  # 🔑 IMPORTANT FIX
+
     db.session.delete(user)
     db.session.commit()
 
     return "Your account has been permanently deleted"
+
+# @app.route("/confirm-delete/<token>")
+# def confirm_delete(token):
+#     email = confirm_delete_token(token)
+
+#     if not email:
+#         return "Invalid or expired link"
+
+#     user = User.query.filter_by(email=email).first()
+
+#     if not user:
+#         return "User not found"
+
+#     db.session.delete(user)
+#     db.session.commit()
+
+#     return "Your account has been permanently deleted"
 
 @app.route("/")
 def index():
