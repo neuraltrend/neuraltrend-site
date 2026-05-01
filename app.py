@@ -461,14 +461,15 @@ def confirm_delete(token):
 
     return "Your account has been permanently deleted"
 
-@app.route("/force_delete_user")
-def force_delete_user():
-    user = User.query.filter_by(email="mojtaba.forqani@yahoo.com").first()
-    if user:
-        db.session.delete(user)
-        db.session.commit()
-        return "Deleted"
-    return "User not found"
+# @app.route("/force_delete_user")
+# def force_delete_user():
+#     user = User.query.filter_by(email="x@x.com").first()
+#     if user:
+#         db.session.delete(user)
+#         db.session.commit()
+#         return "Deleted"
+#     return "User not found"
+
 # https://neuraltrend.org/force_delete_user
 
 @app.route("/")
