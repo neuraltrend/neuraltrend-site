@@ -97,12 +97,23 @@ def send_verification_email(user_email):
     except Exception as e:
         print("EMAIL ERROR (verify):", str(e))
 
+# def generate_delete_token(email):
+#     return serializer.dumps(email, salt="delete-account")
+
+# def confirm_delete_token(token, expiration=3600):
+#     try:
+#         email = serializer.loads(token, salt="delete-account", max_age=expiration)
+#     except Exception:
+#         return None
+#     return email
+
 def generate_delete_token(email):
-    return serializer.dumps(email, salt="delete-account")
+    return get_serializer().dumps(email, salt="delete-account")
+
 
 def confirm_delete_token(token, expiration=3600):
     try:
-        email = serializer.loads(token, salt="delete-account", max_age=expiration)
+        email = get_serializer().loads(token, salt="delete-account", max_age=expiration)
     except Exception:
         return None
     return email
