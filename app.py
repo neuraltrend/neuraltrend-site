@@ -95,26 +95,36 @@ def send_verification_email(user_email):
 
     mail.send(msg)
 
-@app.route("/delete-test-user")
-def delete_test_user():
-    key = request.args.get("key")
-    if key != "moji-joon":
-        return "Unauthorized", 403
+# @app.route("/delete-test-user")
+# def delete_test_user():
+#     key = request.args.get("key")
+#     if key != "moji-joon":
+#         return "Unauthorized", 403
 
-    email = request.args.get("email")   # 👈 ADD THIS HERE
+#     email = request.args.get("email")   # 👈 ADD THIS HERE
 
-    if not email:
-        return "Email required", 400
+#     if not email:
+#         return "Email required", 400
 
-    user = User.query.filter_by(email=email).first()  # 👈 USE IT HERE
+#     user = User.query.filter_by(email=email).first()  # 👈 USE IT HERE
 
-    if user:
-        db.session.delete(user)
-        db.session.commit()
-        return f"Deleted {email}"
+#     if user:
+#         db.session.delete(user)
+#         db.session.commit()
+#         return f"Deleted {email}"
 
-    return "User not found"
-# https://neuraltrend.org/delete-test-user?key=moji-joon&email=test@test.com
+#     return "User not found"
+# # https://neuraltrend.org/delete-test-user?key=moji-joon&email=test@test.com
+
+def generate_delete_token(email):
+    return serializer.dumps(email, salt="delete-account")
+
+def confirm_delete_token(token, expiration=3600):
+    try:
+        email = serializer.loads(token, salt="delete-account", max_age=expiration)
+    except Exception:
+        return None
+    return email
 
 def parse_duration(duration: str):
     """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
@@ -379,6 +389,49 @@ def me():
     return jsonify({
         "email": None
     })
+
+@app.route("/request-delete-account", methods=["POST"])
+@login_required
+def request_delete_account():
+    user = current_user
+
+    token = generate_delete_token(user.email)
+    delete_url = f"https://neuraltrend.org/confirm-delete/{token}"
+
+    msg = Message(
+        subject="Confirm account deletion",
+        sender=app.config["MAIL_USERNAME"],
+        recipients=[user.email]
+    )
+
+    msg.body = f"""
+    Click the link below to permanently delete your account:
+
+    {delete_url}
+
+    This link expires in 1 hour.
+    """
+
+    mail.send(msg)
+
+    return jsonify({"message": "Deletion confirmation email sent"})
+
+@app.route("/confirm-delete/<token>")
+def confirm_delete(token):
+    email = confirm_delete_token(token)
+
+    if not email:
+        return "Invalid or expired link"
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        return "User not found"
+
+    db.session.delete(user)
+    db.session.commit()
+
+    return "Your account has been permanently deleted"
 
 @app.route("/")
 def index():
