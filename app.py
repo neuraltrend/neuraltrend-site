@@ -97,6 +97,20 @@ def send_verification_email(user_email):
     except Exception as e:
         print("EMAIL ERROR (verify):", str(e))
 
+def generate_reset_token(email):
+    return get_serializer().dumps(email, salt="password-reset")
+
+def confirm_reset_token(token, expiration=3600):
+    try:
+        email = get_serializer().loads(
+            token,
+            salt="password-reset",
+            max_age=expiration
+        )
+    except Exception:
+        return None
+    return email
+
 def generate_delete_token(email):
     return get_serializer().dumps(email, salt="delete-account")
 
@@ -350,6 +364,48 @@ def me():
     return jsonify({
         "email": None
     })
+
+@app.route("/request-password-reset", methods=["POST"])
+def request_password_reset():
+    data = request.get_json()
+    email = data.get("email")
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({"message": "If account exists, email sent"})  # avoid leaking existence
+
+    token = generate_reset_token(email)
+    reset_url = f"https://neuraltrend.org/reset-password/{token}"
+
+    msg = Message(
+        subject="Reset your password",
+        sender=app.config["MAIL_USERNAME"],
+        recipients=[email]
+    )
+
+    msg.body = f"Click to reset password:\n\n{reset_url}\n\nExpires in 1 hour."
+
+    mail.send(msg)
+
+    return jsonify({"message": "If account exists, email sent"})
+
+@app.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    email = confirm_reset_token(token)
+
+    if not email:
+        return "Invalid or expired link"
+
+    if request.method == "POST":
+        new_password = request.form.get("password")
+
+        user = User.query.filter_by(email=email).first()
+        user.password_hash = bcrypt.generate_password_hash(new_password).decode("utf-8")
+
+        db.session.commit()
+        return "Password updated successfully"
+
+    return render_template("reset_password.html")
 
 @app.route("/request-delete-account", methods=["POST"])
 @login_required
