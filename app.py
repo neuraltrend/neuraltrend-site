@@ -97,27 +97,6 @@ def send_verification_email(user_email):
     except Exception as e:
         print("EMAIL ERROR (verify):", str(e))
 
-# @app.route("/delete-test-user")
-# def delete_test_user():
-#     key = request.args.get("key")
-#     if key != "moji-joon":
-#         return "Unauthorized", 403
-
-#     email = request.args.get("email")   # 👈 ADD THIS HERE
-
-#     if not email:
-#         return "Email required", 400
-
-#     user = User.query.filter_by(email=email).first()  # 👈 USE IT HERE
-
-#     if user:
-#         db.session.delete(user)
-#         db.session.commit()
-#         return f"Deleted {email}"
-
-#     return "User not found"
-# # https://neuraltrend.org/delete-test-user?key=moji-joon&email=test@test.com
-
 def generate_delete_token(email):
     return serializer.dumps(email, salt="delete-account")
 
@@ -273,6 +252,11 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
 #         db.create_all()
 #     return "DB initialized"
 
+@app.route("/request-delete-account", methods=["POST"])
+@login_required
+def request_delete_account():
+    print("DELETE REQUEST HIT")  # 🔥 ADD THIS FIRST LINE
+
 @app.route("/signup", methods=["POST"])
 def signup():
     print("RAW:", request.data)
@@ -310,24 +294,6 @@ def signup():
     return jsonify({
         "message": "Account created. Please check your email to verify."
     })
-
-    # new_user = User(
-    #     email=email,
-    #     password_hash=hashed_password
-    # )
-
-    # # after creating user
-    # db.session.add(new_user)
-    # db.session.commit()
-    
-    # login_user(new_user)  # 🔑 AUTO LOGIN
-    
-    # return jsonify({
-    #     "message": "Account created successfully",
-    #     "email": new_user.email
-    # })
-
-    # return jsonify({"message": "Account created successfully"})
 
 @app.route("/verify/<token>")
 def verify_email(token):
@@ -414,10 +380,6 @@ def request_delete_account():
     This link expires in 1 hour.
     """
 
-    # mail.send(msg)
-
-    # return jsonify({"message": "Deletion confirmation email sent"})
-
     try:
         mail.send(msg)
         print("Delete email sent to:", user.email)
@@ -445,23 +407,6 @@ def confirm_delete(token):
     db.session.commit()
 
     return "Your account has been permanently deleted"
-
-# @app.route("/confirm-delete/<token>")
-# def confirm_delete(token):
-#     email = confirm_delete_token(token)
-
-#     if not email:
-#         return "Invalid or expired link"
-
-#     user = User.query.filter_by(email=email).first()
-
-#     if not user:
-#         return "User not found"
-
-#     db.session.delete(user)
-#     db.session.commit()
-
-#     return "Your account has been permanently deleted"
 
 @app.route("/")
 def index():
