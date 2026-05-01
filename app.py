@@ -461,7 +461,7 @@ def confirm_delete(token):
 
     return "Your account has been permanently deleted"
 
-@app.route("/delete-test-user")
+@app.route("/force_delete_user")
 def force_delete_user():
     user = User.query.filter_by(email="mojtaba.forqani@yahoo.com").first()
     if user:
