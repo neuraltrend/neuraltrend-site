@@ -97,19 +97,8 @@ def send_verification_email(user_email):
     except Exception as e:
         print("EMAIL ERROR (verify):", str(e))
 
-# def generate_delete_token(email):
-#     return serializer.dumps(email, salt="delete-account")
-
-# def confirm_delete_token(token, expiration=3600):
-#     try:
-#         email = serializer.loads(token, salt="delete-account", max_age=expiration)
-#     except Exception:
-#         return None
-#     return email
-
 def generate_delete_token(email):
     return get_serializer().dumps(email, salt="delete-account")
-
 
 def confirm_delete_token(token, expiration=3600):
     try:
@@ -265,8 +254,6 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
 
 @app.route("/signup", methods=["POST"])
 def signup():
-    print("RAW:", request.data)
-    print("JSON:", request.get_json(silent=True))
     
     data = request.get_json(silent=True)
 
@@ -367,7 +354,6 @@ def me():
 @app.route("/request-delete-account", methods=["POST"])
 @login_required
 def request_delete_account():
-    print("DELETE REQUEST HIT")  # 🔥 ADD THIS FIRST LINE
     user = current_user
 
     token = generate_delete_token(user.email)
@@ -786,5 +772,4 @@ def signals_summary():
 
     csv_version = get_csv_version()
     results = compute_signals_summary_cached(csv_version, period_days)
-    print("duration received:", duration_str, "-> period_days:", period_days)
     return jsonify(results)
