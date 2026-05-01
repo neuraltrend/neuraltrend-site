@@ -526,10 +526,14 @@
         <span class="close-btn">&times;</span>
     
         <h3>Login / Signup</h3>
-    
+
         <input type="email" id="emailInput" placeholder="Email">
         <input type="password" id="passwordInput" placeholder="Password">
-    
+        
+        <a href="#" id="forgot-password" style="display:block; margin:10px 0;">
+            Forgot password?
+        </a>
+        
         <button id="signupBtn">Sign up</button>
         <button id="signinBtn">Login</button>
     
@@ -1563,6 +1567,27 @@
         userArea.innerHTML = `<a href="#" id="login-btn">Login</a>`;
         location.reload();
     }
+
+    // ------------------
+    // Password Reset
+    // ------------------
+    document.addEventListener("click", async function(e) {
+        if (e.target && e.target.id === "forgot-password") {
+            e.preventDefault();
+    
+            const email = prompt("Enter your email:");
+            if (!email) return;
+    
+            const res = await fetch("/request-password-reset", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ email })
+            });
+    
+            const data = await res.json();
+            alert(data.message);
+        }
+    });
 
     // ------------------
     // Delete Account
