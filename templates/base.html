@@ -1589,6 +1589,23 @@
         userArea.innerHTML = `<a href="#" id="login-btn">Login</a>`;
         location.reload();
     }
+
+    // ------------------
+    // Delete Account
+    // ------------------
+    async function deleteAccount() {
+        const confirmDelete = confirm("Are you sure you want to permanently delete your account?");
+    
+        if (!confirmDelete) return;
+    
+        const response = await fetch("/request-delete-account", {
+            method: "POST"
+        });
+    
+        const data = await response.json();
+    
+        alert(data.message);
+    }
     
     // ------------------
     // Check current user
@@ -1611,15 +1628,29 @@
         const data = await response.json();
     
         if (data.email) {
+            // userArea.innerHTML = `
+            //     <div class="user-menu" id="userMenu">
+            //         <div class="user-pill">
+            //             ${data.email}
+            //             <span class="arrow">▼</span>
+            //         </div>
+    
+            //         <div class="dropdown" id="dropdownMenu" style="display:none;">
+            //             <div onclick="logout()">Logout</div>
+            //         </div>
+            //     </div>
+            // `;
+
             userArea.innerHTML = `
                 <div class="user-menu" id="userMenu">
                     <div class="user-pill">
                         ${data.email}
                         <span class="arrow">▼</span>
                     </div>
-    
+            
                     <div class="dropdown" id="dropdownMenu" style="display:none;">
                         <div onclick="logout()">Logout</div>
+                        <div onclick="deleteAccount()" style="color:red;">Delete Account</div>
                     </div>
                 </div>
             `;
