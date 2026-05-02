@@ -398,18 +398,42 @@ def reset_password(token):
     email = confirm_reset_token(token)
 
     if not email:
-        return "Invalid or expired link"
+        return "Invalid or expired token"
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return "User not found"
 
     if request.method == "POST":
         new_password = request.form.get("password")
 
-        user = User.query.filter_by(email=email).first()
-        user.password_hash = bcrypt.generate_password_hash(new_password).decode("utf-8")
+        if not new_password:
+            return "Password required"
 
+        user.password_hash = bcrypt.generate_password_hash(new_password).decode("utf-8")
         db.session.commit()
-        return "Password updated successfully"
+
+        return "Password reset successful! You can now log in."
 
     return render_template("reset_password.html")
+
+# @app.route("/reset-password/<token>", methods=["GET", "POST"])
+# def reset_password(token):
+#     email = confirm_reset_token(token)
+
+#     if not email:
+#         return "Invalid or expired link"
+
+#     if request.method == "POST":
+#         new_password = request.form.get("password")
+
+#         user = User.query.filter_by(email=email).first()
+#         user.password_hash = bcrypt.generate_password_hash(new_password).decode("utf-8")
+
+#         db.session.commit()
+#         return "Password updated successfully"
+
+#     return render_template("reset_password.html")
 
 @app.route("/request-delete-account", methods=["POST"])
 @login_required
