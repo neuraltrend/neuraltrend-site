@@ -8,6 +8,7 @@ Flask-SQLAlchemy
 Flask-Login
 Flask-Bcrypt
 Flask-Mail
+Flask-Limiter
 psycopg2-binary
 itsdangerous
 python-dotenv
