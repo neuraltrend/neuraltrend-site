@@ -11,8 +11,21 @@ from extensions import db, bcrypt, login_manager
 from models import User
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Mail, Message
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
+
+# ✅ Fix proxy handling (Render-safe)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+
+# ✅ Rate limiter
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"]
+)
 
 # ✅ SET CONFIG FIRST
 secret = os.environ.get("SECRET_KEY")
@@ -56,6 +69,12 @@ os.makedirs(DATA_DIR, exist_ok=True)
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+    
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify({
+        "error": "Too many requests. Please slow down and try again shortly."
+    }), 429
 
 def get_serializer():
     return URLSafeTimedSerializer(app.config["SECRET_KEY"])
@@ -267,8 +286,8 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
 #     return "DB initialized"
 
 @app.route("/signup", methods=["POST"])
-def signup():
-    
+@limiter.limit("3 per minute")
+def signup():    
     data = request.get_json(silent=True)
 
     if not data:
@@ -320,6 +339,7 @@ def verify_email(token):
     return "Email verified successfully! You can now log in."
 
 @app.route("/login", methods=["POST"])
+@limiter.limit("5 per minute")
 def login():
     data = request.get_json()
 
@@ -366,6 +386,7 @@ def me():
     })
 
 @app.route("/request-password-reset", methods=["POST"])
+@limiter.limit("3 per minute")
 def request_password_reset():
     data = request.get_json()
     email = data.get("email")
@@ -437,6 +458,7 @@ def reset_password(token):
 
 @app.route("/request-delete-account", methods=["POST"])
 @login_required
+@limiter.limit("2 per minute")
 def request_delete_account():
     user = current_user
 
