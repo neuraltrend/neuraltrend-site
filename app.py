@@ -354,16 +354,38 @@ def login():
 
     user = User.query.filter_by(email=email).first()
 
+    # 🔒 Prevent user enumeration
     if not user:
-        return jsonify({"error": "User not found"}), 404
+        return jsonify({"error": "Invalid email or password"}), 401
 
+    # 🔒 Check lockout
+    if user.locked_until and user.locked_until > datetime.utcnow():
+        return jsonify({
+            "error": "Account locked. Try again later."
+        }), 403
+
+    # 🔒 Check password
     if not bcrypt.check_password_hash(user.password_hash, password):
-        return jsonify({"error": "Invalid password"}), 401
+        user.failed_attempts += 1
 
+        if user.failed_attempts >= 5:
+            user.locked_until = datetime.utcnow() + timedelta(minutes=15)
+            user.failed_attempts = 0
+
+        db.session.commit()
+
+        return jsonify({"error": "Invalid email or password"}), 401
+
+    # ✅ Successful login → reset counters
+    user.failed_attempts = 0
+    user.locked_until = None
+    db.session.commit()
+
+    # 🔒 Require verification
     if not user.is_verified:
         return jsonify({"error": "Please verify your email first"}), 403
 
-    login_user(user)  # 🔑 THIS creates the session
+    login_user(user)
 
     return jsonify({
         "message": "Logged in successfully",
