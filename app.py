@@ -116,6 +116,9 @@ def send_verification_email(user_email):
     except Exception as e:
         print("EMAIL ERROR (verify):", str(e))
 
+def normalize_email(email):
+    return email.strip().lower()
+
 def generate_reset_token(email):
     return get_serializer().dumps(email, salt="password-reset")
 
@@ -293,7 +296,7 @@ def signup():
     if not data:
         return jsonify({"error": "No JSON received"}), 400
 
-    email = data.get("email")
+    email = normalize_email(data.get("email"))
     password = data.get("password")
 
     if not email or not password:
@@ -343,7 +346,7 @@ def verify_email(token):
 def login():
     data = request.get_json()
 
-    email = data.get("email")
+    email = normalize_email(data.get("email"))
     password = data.get("password")
 
     if not email or not password:
@@ -389,7 +392,7 @@ def me():
 @limiter.limit("3 per minute")
 def request_password_reset():
     data = request.get_json()
-    email = data.get("email")
+    email = normalize_email(data.get("email"))
 
     user = User.query.filter_by(email=email).first()
 
