@@ -15,4 +15,5 @@ python-dotenv
 python-dateutil
 pandas
 numpy
+redis
 
