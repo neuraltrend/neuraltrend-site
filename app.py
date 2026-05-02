@@ -21,9 +21,16 @@ app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
 # ✅ Rate limiter
+# limiter = Limiter(
+#     get_remote_address,
+#     app=app,
+#     default_limits=["200 per day", "50 per hour"]
+# )
+
 limiter = Limiter(
-    get_remote_address,
+    key_func=get_remote_address,
     app=app,
+    storage_uri=os.environ.get("REDIS_URL"),  # 🔑 important
     default_limits=["200 per day", "50 per hour"]
 )
 
