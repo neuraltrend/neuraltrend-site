@@ -20,13 +20,6 @@ app = Flask(__name__)
 # ✅ Fix proxy handling (Render-safe)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
-# ✅ Rate limiter
-# limiter = Limiter(
-#     get_remote_address,
-#     app=app,
-#     default_limits=["200 per day", "50 per hour"]
-# )
-
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
@@ -469,24 +462,6 @@ def reset_password(token):
         return "Password reset successful! You can now log in."
 
     return render_template("reset_password.html")
-
-# @app.route("/reset-password/<token>", methods=["GET", "POST"])
-# def reset_password(token):
-#     email = confirm_reset_token(token)
-
-#     if not email:
-#         return "Invalid or expired link"
-
-#     if request.method == "POST":
-#         new_password = request.form.get("password")
-
-#         user = User.query.filter_by(email=email).first()
-#         user.password_hash = bcrypt.generate_password_hash(new_password).decode("utf-8")
-
-#         db.session.commit()
-#         return "Password updated successfully"
-
-#     return render_template("reset_password.html")
 
 @app.route("/request-delete-account", methods=["POST"])
 @login_required
