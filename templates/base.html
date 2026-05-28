@@ -19,6 +19,16 @@
     <style>
         :root {
             --nav-height: 110px; /* adjust if needed */
+        
+            --nt-positive: #16A34A;       /* green */
+            --nt-negative: #DC2626;       /* red */
+            --nt-neutral: #64748B;        /* slate gray */
+            --nt-dark: #0F172A;
+            --nt-blue: #2563EB;
+            --nt-purple: #9333EA;
+            --nt-selected-row: #EAF6FF;
+            --nt-row-hover: #F8FAFC;
+            --nt-border: #E2E8F0;
         }
         * {
             box-sizing: border-box;
@@ -496,6 +506,89 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
+        /* ===============================
+           NeuralTrend color system
+           Step 1: table + signal colors
+        ================================ */
+        
+        /* Signal badges */
+        .signal-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 68px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+        }
+        
+        .signal-buy {
+            color: var(--nt-positive);
+            background: rgba(22, 163, 74, 0.10);
+            border: 1px solid rgba(22, 163, 74, 0.22);
+        }
+        
+        .signal-sell {
+            color: var(--nt-negative);
+            background: rgba(220, 38, 38, 0.10);
+            border: 1px solid rgba(220, 38, 38, 0.22);
+        }
+        
+        .signal-hold {
+            color: var(--nt-neutral);
+            background: rgba(100, 116, 139, 0.10);
+            border: 1px solid rgba(100, 116, 139, 0.18);
+        }
+        
+        /* Return values */
+        .return-value {
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .return-positive {
+            color: var(--nt-positive);
+        }
+        
+        .return-negative {
+            color: var(--nt-negative);
+        }
+        
+        .return-neutral {
+            color: var(--nt-neutral);
+        }
+        
+        /* Signal board rows */
+        .signal-row {
+            transition: background 0.15s ease;
+        }
+        
+        .signal-row:hover {
+            background: var(--nt-row-hover);
+        }
+        
+        .signal-row.selected {
+            background: var(--nt-selected-row);
+        }
+        
+        .signal-ticker {
+            font-weight: 700;
+            color: var(--nt-dark);
+        }
+        
+        .signal-cell-right {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .signal-cell-left {
+            text-align: left;
+        }
+
     </style>
 
 </head>
@@ -628,28 +721,31 @@
             {
                 label: `${ticker} EpochSignaler Equity Curve`,
                 data: epoch_equity_curve,
-                borderColor: 'blue',
+                borderColor: NT_COLORS.chartAI,
+                backgroundColor: NT_COLORS.chartAI,
                 pointStyle: 'line',
-                pointRadius: 0,   // <-- remove circle markers
-                fill: false,
-                backgroundColor: 'blue',
+                pointRadius: 0,
+                borderWidth: 2,
+                fill: false
             },
             {
                 label: `${ticker} Buy&Hold Equity Curve`,
                 data: equity_curve,
-                borderColor: 'purple',
+                borderColor: NT_COLORS.chartBuyHold,
+                backgroundColor: NT_COLORS.chartBuyHold,
                 pointStyle: 'line',
                 borderDash: [5, 5],
-                pointRadius: 0,   // <-- remove circle markers
-                fill: false,
-                backgroundColor: 'green',
+                pointRadius: 0,
+                borderWidth: 2,
+                fill: false
             },
             {
                 label: 'Buy Signal',
                 data: adjustedBuySignals,
                 pointStyle: 'triangle',
                 pointRadius: 10,
-                backgroundColor: 'green',
+                backgroundColor: NT_COLORS.buy,
+                borderColor: NT_COLORS.buy,
                 showLine: false
             },
             {
@@ -658,7 +754,8 @@
                 pointStyle: 'triangle',
                 rotation: 180,
                 pointRadius: 10,
-                backgroundColor: 'red',
+                backgroundColor: NT_COLORS.sell,
+                borderColor: NT_COLORS.sell,
                 showLine: false
             }
         ];
@@ -710,6 +807,18 @@
     let defaultOrder = [];
     let assetTypeFilter = "crypto";
     let isLogScale = false;
+    let equityChart = null;
+
+    const NT_COLORS = {
+        positive: "#16A34A",
+        negative: "#DC2626",
+        neutral: "#64748B",
+        dark: "#0F172A",
+        chartAI: "#2563EB",
+        chartBuyHold: "#9333EA",
+        buy: "#16A34A",
+        sell: "#DC2626"
+    };
     
     let signalFilters = {
         today_signal: null,
@@ -765,24 +874,68 @@
         renderBoard(filtered);
     }
     
+    function getReturnClass(value) {
+        if (value === null || value === undefined || Number.isNaN(value)) {
+            return "return-neutral";
+        }
+    
+        if (value > 0) return "return-positive";
+        if (value < 0) return "return-negative";
+    
+        return "return-neutral";
+    }
+    
+    function getOutperformanceClass(value) {
+        if (value === null || value === undefined || Number.isNaN(value)) {
+            return "return-neutral";
+        }
+    
+        // For outperformance multiple:
+        // > 1 means AI strategy performed better than buy & hold
+        // < 1 means AI strategy underperformed buy & hold
+        if (value > 1) return "return-positive";
+        if (value < 1) return "return-negative";
+    
+        return "return-neutral";
+    }
+    
     function formatSignal(signal) {
         if (signal === 1) {
-            return `<span style="color: green; font-weight: bold;">▲ BUY</span>`;
-        } else if (signal === -1) {
-            return `<span style="color: red; font-weight: bold;">▼ SELL</span>`;
-        } else {
-            return `<span style="color: gray;">--- HOLD</span>`;
+            return `<span class="signal-badge signal-buy">▲ BUY</span>`;
         }
+    
+        if (signal === -1) {
+            return `<span class="signal-badge signal-sell">▼ SELL</span>`;
+        }
+    
+        return `<span class="signal-badge signal-hold">— HOLD</span>`;
     }
     
     function formatPercent(value) {
-        if (value === null || value === undefined) return "-";
-        return (value * 100).toFixed(1) + "%";
+        if (value === null || value === undefined || Number.isNaN(value)) {
+            return `<span class="return-value return-neutral">—</span>`;
+        }
+    
+        const percent = value * 100;
+        const sign = percent > 0 ? "+" : "";
+    
+        return `
+            <span class="return-value ${getReturnClass(value)}">
+                ${sign}${percent.toFixed(1)}%
+            </span>
+        `;
     }
     
     function formatMultiple(value) {
-        if (value === null || value === undefined) return "-";
-        return value.toFixed(2) + "×";
+        if (value === null || value === undefined || Number.isNaN(value)) {
+            return `<span class="return-value return-neutral">—</span>`;
+        }
+    
+        return `
+            <span class="return-value ${getOutperformanceClass(value)}">
+                ${value.toFixed(2)}×
+            </span>
+        `;
     }
     
     let currentSort = {
@@ -846,28 +999,42 @@
     function renderBoard(data) {
         board.innerHTML = data.map(item => `
             <div
+                class="signal-row"
+                data-ticker="${item.ticker}"
                 onclick="loadTicker('${item.ticker}')"
                 style="
                     display: grid;
                     grid-template-columns: 160px 100px 100px 100px 100px 140px 160px 120px;
                     align-items: center;
-                    padding: 6px 10px;
+                    padding: 7px 10px;
                     border-bottom: 1px solid #eee;
                     cursor: pointer;
                     box-sizing: border-box;
                     width: 100%;
                 "
             >
-                <div>${item.ticker}</div>
-                <div style="text-align:left;">${formatSignal(item.today_signal)}</div>
-                <div style="text-align:left;">${formatSignal(item.yesterday_signal)}</div>
-                <div style="text-align:left;">${formatSignal(item.last_week_signal)}</div>
-                <div style="text-align:left;">${formatSignal(item.last_month_signal)}</div>
-                <div style="text-align:right;">${formatPercent(item.buy_hold_annual_return)}</div>
-                <div style="text-align:right;">${formatPercent(item.strategy_annual_return)}</div>
-                <div style="text-align:right;">${formatMultiple(item.outperformance)}</div>
+                <div class="signal-ticker">${item.ticker}</div>
+    
+                <div class="signal-cell-left">${formatSignal(item.today_signal)}</div>
+                <div class="signal-cell-left">${formatSignal(item.yesterday_signal)}</div>
+                <div class="signal-cell-left">${formatSignal(item.last_week_signal)}</div>
+                <div class="signal-cell-left">${formatSignal(item.last_month_signal)}</div>
+    
+                <div class="signal-cell-right">${formatPercent(item.buy_hold_annual_return)}</div>
+                <div class="signal-cell-right">${formatPercent(item.strategy_annual_return)}</div>
+                <div class="signal-cell-right">${formatMultiple(item.outperformance)}</div>
             </div>
         `).join('');
+    
+        highlightSelectedTicker();
+    }
+
+    function highlightSelectedTicker() {
+        if (!currentTicker) return;
+    
+        document.querySelectorAll("#signal-board .signal-row").forEach(row => {
+            row.classList.toggle("selected", row.dataset.ticker === currentTicker);
+        });
     }
     
     /* ===============================
@@ -992,6 +1159,7 @@
     function loadTicker(ticker) {
     
         currentTicker = ticker;
+        highlightSelectedTicker();
     
         const duration = document.getElementById('period-select').value;
     
@@ -1164,18 +1332,22 @@
                     {
                         label: "EpochSignaler",
                         data: equity,
-                        borderColor: "blue",
-                        pointStyle: "line",     // 👈 ADD THIS
+                        borderColor: NT_COLORS.chartAI,
+                        backgroundColor: NT_COLORS.chartAI,
+                        pointStyle: "line",
                         pointRadius: 0,
+                        borderWidth: 2,
                         fill: false
                     },
                     {
                         label: "Buy & Hold",
                         data: buyHold,
-                        borderColor: "purple",
+                        borderColor: NT_COLORS.chartBuyHold,
+                        backgroundColor: NT_COLORS.chartBuyHold,
                         borderDash: [5, 5],
-                        pointStyle: "line",     // 👈 ADD THIS
+                        pointStyle: "line",
                         pointRadius: 0,
+                        borderWidth: 2,
                         fill: false
                     },
                     {
@@ -1183,12 +1355,12 @@
                         data: buySignals,
                         showLine: false,
                         pointRadius: 0,
-                        pointStyle: "triangle",      // 👈 ADD THIS
-                        backgroundColor: "green",    // 👈 ADD THIS
-                        borderColor: "green",        // 👈 ADD THIS
+                        pointStyle: "triangle",
+                        backgroundColor: NT_COLORS.buy,
+                        borderColor: NT_COLORS.buy,
                         isSignal: true,
                         direction: "buy",
-                        color: "green",
+                        color: NT_COLORS.buy,
                         offsetPx: 11
                     },
                     {
@@ -1196,13 +1368,13 @@
                         data: sellSignals,
                         showLine: false,
                         pointRadius: 0,
-                        pointStyle: "triangle",      // 👈 ADD THIS
-                        rotation: 180,               // 👈 ADD THIS
-                        backgroundColor: "red",      // 👈 ADD THIS
-                        borderColor: "red",          // 👈 ADD THIS
+                        pointStyle: "triangle",
+                        rotation: 180,
+                        backgroundColor: NT_COLORS.sell,
+                        borderColor: NT_COLORS.sell,
                         isSignal: true,
                         direction: "sell",
-                        color: "red",
+                        color: NT_COLORS.sell,
                         offsetPx: -10
                     }
                 ]
