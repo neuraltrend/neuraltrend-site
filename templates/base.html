@@ -507,6 +507,57 @@
         }
 
         /* ===============================
+           Return horizon segmented buttons
+        ================================ */
+        
+        .nt-period-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .nt-period-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--nt-dark);
+            white-space: nowrap;
+        }
+        
+        .nt-period-pills {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px;
+            background: #F1F5F9;
+            border: 1px solid var(--nt-border);
+            border-radius: 999px;
+        }
+        
+        .period-pill {
+            border: none;
+            background: transparent;
+            color: var(--nt-neutral);
+            font-size: 12px;
+            font-weight: 800;
+            padding: 7px 11px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .period-pill:hover {
+            background: #E2E8F0;
+            color: var(--nt-dark);
+        }
+        
+        .period-pill.active {
+            background: var(--nt-blue);
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+        }
+
+        /* ===============================
            NeuralTrend color system
            Step 1: table + signal colors
         ================================ */
@@ -1296,6 +1347,44 @@
                 loadTicker(currentTicker);
             }
         });
+
+    /* ===============================
+       Return horizon pill buttons
+    ================================ */
+    
+    function syncPeriodPills() {
+        const select = document.getElementById("period-select");
+        if (!select) return;
+    
+        document.querySelectorAll(".period-pill").forEach(btn => {
+            const isActive = btn.dataset.value === select.value;
+            btn.classList.toggle("active", isActive);
+            btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+    }
+    
+    document.querySelectorAll(".period-pill").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const select = document.getElementById("period-select");
+            if (!select) return;
+    
+            const newValue = this.dataset.value;
+    
+            if (select.value === newValue) {
+                return;
+            }
+    
+            select.value = newValue;
+            syncPeriodPills();
+    
+            // Trigger your existing period-select change logic:
+            // reload signal summary, update selected asset, update chart.
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+    });
+    
+    // Initial visual sync on page load
+    syncPeriodPills();
     
     document.getElementById('ticker-search')
         .addEventListener('input', function() {
