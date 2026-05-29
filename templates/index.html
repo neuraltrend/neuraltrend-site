@@ -34,6 +34,75 @@
                         ">
                             EpochSignaler (Basic) Signal Overview
                         </h3>
+
+                        <!-- SELECTED ASSET PERFORMANCE CARDS -->
+                        <div id="selected-performance-panel" class="nt-performance-panel">
+                        
+                            <div class="nt-selected-meta">
+                                Selected Asset:
+                                <span id="metric-selected-ticker">BTC-USD</span>
+                                &nbsp; | &nbsp;
+                                Time Horizon:
+                                <span id="metric-selected-horizon">5Y</span>
+                            </div>
+                        
+                            <div class="nt-metric-grid">
+                        
+                                <div class="nt-metric-card">
+                                    <div class="nt-card-icon nt-icon-blue">↗</div>
+                                    <div>
+                                        <div class="nt-metric-label">
+                                            AI Strategy Return (<span class="metric-horizon-text">5Y</span>)
+                                        </div>
+                                        <div id="metric-strategy-return" class="nt-metric-value return-neutral">—</div>
+                                        <div id="metric-strategy-sub" class="nt-metric-sub">
+                                            Normalized $1 → —
+                                        </div>
+                                    </div>
+                                </div>
+                        
+                                <div class="nt-metric-card">
+                                    <div class="nt-card-icon nt-icon-purple">↗</div>
+                                    <div>
+                                        <div class="nt-metric-label">
+                                            Buy & Hold Return (<span class="metric-horizon-text">5Y</span>)
+                                        </div>
+                                        <div id="metric-buyhold-return" class="nt-metric-value return-neutral">—</div>
+                                        <div id="metric-buyhold-sub" class="nt-metric-sub">
+                                            Normalized $1 → —
+                                        </div>
+                                    </div>
+                                </div>
+                        
+                                <div class="nt-metric-card">
+                                    <div class="nt-card-icon nt-icon-green">⚖</div>
+                                    <div>
+                                        <div class="nt-metric-label">
+                                            AI vs Buy & Hold (<span class="metric-horizon-text">5Y</span>)
+                                        </div>
+                                        <div id="metric-outperformance" class="nt-metric-value return-neutral">—</div>
+                                        <div class="nt-metric-sub">
+                                            Outperformance
+                                        </div>
+                                    </div>
+                                </div>
+                        
+                                <div class="nt-metric-card">
+                                    <div class="nt-card-icon nt-icon-neutral">◎</div>
+                                    <div>
+                                        <div class="nt-metric-label">Today’s Signal</div>
+                                        <div id="metric-today-signal" class="nt-signal-value">
+                                            <span class="signal-badge signal-hold">— HOLD</span>
+                                        </div>
+                                        <div class="nt-metric-sub" id="metric-signal-sub">
+                                            Neutral
+                                        </div>
+                                    </div>
+                                </div>
+                        
+                            </div>
+                        </div>
+                        <!-- SELECTED ASSET PERFORMANCE CARDS END -->
                 
                         <!-- CONTROL PANEL -->
                         <div style="
