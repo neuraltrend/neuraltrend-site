@@ -199,33 +199,25 @@
                                 
                                 </div>
 
-                                <!-- ASSET TYPE FILTER -->
-                                <div style="display:flex; align-items:center; gap:6px;">
+                                <!-- ASSET TYPE BUTTONS -->
+                                <div class="nt-asset-control">
                                 
-                                    <span style="
-                                        font-size: 14px;
-                                        font-weight: 500;
-                                        color: #555;
-                                    ">
+                                    <span class="nt-asset-label">
                                         Asset Type:
                                     </span>
                                 
-                                    <select 
-                                        id="asset-type-filter"
-                                        style="
-                                            padding: 8px 10px;
-                                            border-radius: 6px;
-                                            border: 1px solid #d0d7e2;
-                                            font-size: 14px;
-                                            background: #fff;
-                                            cursor: pointer;
-                                            outline: none;
-                                        "
-                                    >
+                                    <!-- Keep this hidden select because existing JS already depends on #asset-type-filter -->
+                                    <select id="asset-type-filter" style="display:none;">
                                         <option value="all">All Assets</option>
                                         <option value="crypto" selected>Crypto Only</option>
                                         <option value="stock">Stocks Only</option>
                                     </select>
+                                
+                                    <div id="asset-pill-group" class="nt-asset-pills" role="group" aria-label="Asset type">
+                                        <button type="button" class="asset-pill" data-value="all">All</button>
+                                        <button type="button" class="asset-pill active" data-value="crypto">Crypto</button>
+                                        <button type="button" class="asset-pill" data-value="stock">Stocks</button>
+                                    </div>
                                 
                                 </div>
 
