@@ -692,6 +692,87 @@
         }
 
         /* ===============================
+           Signal table header filters
+        ================================ */
+        
+        .nt-signal-table-card {
+            border: 1px solid var(--nt-border);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+            background: #ffffff;
+        }
+        
+        .nt-signal-header {
+            display: grid;
+            grid-template-columns: 160px 100px 100px 100px 100px 140px 160px 120px;
+            align-items: center;
+            gap: 0;
+            padding: 11px 12px;
+            border-bottom: 1px solid var(--nt-border);
+            background: #F8FAFC;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--nt-dark);
+            white-space: nowrap;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        
+        .nt-header-title {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .nt-header-right {
+            text-align: right;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .nt-header-right:hover {
+            color: var(--nt-blue);
+        }
+        
+        .nt-sort-indicator {
+            display: inline-block;
+            margin-top: 5px;
+            min-width: 18px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-signal-filter-select {
+            width: 86px;
+            padding: 4px 7px;
+            border-radius: 999px;
+            border: 1px solid var(--nt-border);
+            background: #ffffff;
+            color: var(--nt-neutral);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            outline: none;
+        }
+        
+        .nt-signal-filter-select:hover {
+            border-color: var(--nt-blue);
+            color: var(--nt-dark);
+        }
+        
+        .nt-signal-filter-select:focus {
+            border-color: var(--nt-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+        
+        .nt-filter-active {
+            border-color: var(--nt-blue) !important;
+            color: var(--nt-blue) !important;
+            background: rgba(37, 99, 235, 0.07) !important;
+        }
+
+        /* ===============================
            Selected asset performance cards
         ================================ */
         
@@ -1378,6 +1459,8 @@
     
             signalFilters[key] = value === "" ? null : parseInt(value);
     
+            this.classList.toggle("nt-filter-active", value !== "");
+    
             applyAllFilters();
         });
     });
@@ -1500,6 +1583,7 @@
             // Reset dropdown UI
             document.querySelectorAll(".signal-filter").forEach(select => {
                 select.value = "";
+                select.classList.remove("nt-filter-active");
             });
     
             // ✅ RESET SEARCH BAR
