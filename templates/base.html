@@ -589,6 +589,115 @@
             text-align: left;
         }
 
+        /* ===============================
+           Selected asset performance cards
+        ================================ */
+        
+        .nt-performance-panel {
+            width: 100%;
+            margin: 0 0 18px 0;
+        }
+        
+        .nt-selected-meta {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--nt-dark);
+            margin-bottom: 12px;
+        }
+        
+        .nt-selected-meta span {
+            color: var(--nt-blue);
+            font-weight: 800;
+        }
+        
+        .nt-metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+        
+        .nt-metric-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-height: 92px;
+            padding: 18px 20px;
+            background: #ffffff;
+            border: 1px solid var(--nt-border);
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+        }
+        
+        .nt-card-icon {
+            width: 48px;
+            height: 48px;
+            flex: 0 0 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 800;
+        }
+        
+        .nt-icon-blue {
+            color: var(--nt-blue);
+            background: rgba(37, 99, 235, 0.10);
+        }
+        
+        .nt-icon-purple {
+            color: var(--nt-purple);
+            background: rgba(147, 51, 234, 0.10);
+        }
+        
+        .nt-icon-green {
+            color: var(--nt-positive);
+            background: rgba(22, 163, 74, 0.10);
+        }
+        
+        .nt-icon-neutral {
+            color: var(--nt-neutral);
+            background: rgba(100, 116, 139, 0.12);
+        }
+        
+        .nt-metric-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--nt-dark);
+            margin-bottom: 5px;
+        }
+        
+        .nt-metric-value {
+            font-size: 26px;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+        
+        .nt-metric-sub {
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-signal-value .signal-badge {
+            min-width: 92px;
+            padding: 6px 12px;
+            font-size: 15px;
+        }
+        
+        /* Responsive behavior */
+        @media (max-width: 1000px) {
+            .nt-metric-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .nt-metric-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
     </style>
 
 </head>
@@ -936,6 +1045,87 @@
             </span>
         `;
     }
+
+    function durationLabel(value) {
+        const labels = {
+            "1w": "1W",
+            "1mo": "1M",
+            "3mo": "3M",
+            "6mo": "6M",
+            "1y": "1Y",
+            "3y": "3Y",
+            "5y": "5Y",
+            "10y": "10Y",
+            "1yr": "1Y",
+            "3yr": "3Y",
+            "5yr": "5Y"
+        };
+    
+        return labels[value] || value.toUpperCase();
+    }
+    
+    function normalizedDollarText(returnValue) {
+        if (returnValue === null || returnValue === undefined || Number.isNaN(returnValue)) {
+            return "Normalized $1 → —";
+        }
+    
+        const finalValue = 1 + returnValue;
+    
+        return "Normalized $1 → $" + finalValue.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+    
+    function signalSubText(signal) {
+        if (signal === 1) return "Bullish";
+        if (signal === -1) return "Bearish";
+        return "Neutral";
+    }
+    
+    function updateSelectedPerformanceCards(ticker) {
+        const panel = document.getElementById("selected-performance-panel");
+        if (!panel) return;
+    
+        const selectedTicker = ticker || currentTicker || "BTC-USD";
+    
+        const item =
+            defaultOrder.find(row => row.ticker === selectedTicker) ||
+            allSignals.find(row => row.ticker === selectedTicker);
+    
+        if (!item) return;
+    
+        const duration = document.getElementById("period-select")?.value || "5y";
+        const horizon = durationLabel(duration);
+    
+        document.getElementById("metric-selected-ticker").textContent = item.ticker;
+        document.getElementById("metric-selected-horizon").textContent = horizon;
+    
+        document.querySelectorAll(".metric-horizon-text").forEach(el => {
+            el.textContent = horizon;
+        });
+    
+        document.getElementById("metric-strategy-return").innerHTML =
+            formatPercent(item.strategy_annual_return);
+    
+        document.getElementById("metric-buyhold-return").innerHTML =
+            formatPercent(item.buy_hold_annual_return);
+    
+        document.getElementById("metric-outperformance").innerHTML =
+            formatMultiple(item.outperformance);
+    
+        document.getElementById("metric-today-signal").innerHTML =
+            formatSignal(item.today_signal);
+    
+        document.getElementById("metric-strategy-sub").textContent =
+            normalizedDollarText(item.strategy_annual_return);
+    
+        document.getElementById("metric-buyhold-sub").textContent =
+            normalizedDollarText(item.buy_hold_annual_return);
+    
+        document.getElementById("metric-signal-sub").textContent =
+            signalSubText(item.today_signal);
+    }
     
     let currentSort = {
         key: null,
@@ -1056,15 +1246,18 @@
             .then(data => {
                 allSignals = data;
                 defaultOrder = [...data];
+            
                 updateSortIndicators();
                 applyAllFilters();
             
-                // 🔥 Auto-load BTC-USD preview only once
+                // Auto-load BTC-USD preview only once
                 if (!currentTicker) {
                     const btcExists = data.find(item => item.ticker === "BTC-USD");
                     if (btcExists) {
                         loadTicker("BTC-USD");
                     }
+                } else {
+                    updateSelectedPerformanceCards(currentTicker);
                 }
             })
             .catch(err => {
@@ -1158,7 +1351,9 @@
     function loadTicker(ticker) {
     
         currentTicker = ticker;
+        
         highlightSelectedTicker();
+        updateSelectedPerformanceCards(ticker);
     
         const duration = document.getElementById('period-select').value;
     
