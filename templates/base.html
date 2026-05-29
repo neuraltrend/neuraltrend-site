@@ -773,6 +773,68 @@
         }
 
         /* ===============================
+           Performance assumptions bar
+        ================================ */
+        
+        .nt-assumptions-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin: 14px 0 14px 0;
+            padding: 12px 14px;
+            background: #F8FAFC;
+            border: 1px solid var(--nt-border);
+            border-radius: 14px;
+            color: var(--nt-dark);
+        }
+        
+        .nt-assumptions-left {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .nt-assumption-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(37, 99, 235, 0.10);
+            color: var(--nt-blue);
+            font-weight: 900;
+        }
+        
+        .nt-assumption-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            background: #ffffff;
+            border: 1px solid var(--nt-border);
+            color: var(--nt-neutral);
+            font-size: 12px;
+            font-weight: 700;
+        }
+        
+        .nt-assumption-pill strong {
+            color: var(--nt-dark);
+        }
+        
+        .nt-assumptions-note {
+            font-size: 12px;
+            color: var(--nt-neutral);
+            font-weight: 600;
+        }
+
+        /* ===============================
            Selected asset performance cards
         ================================ */
         
@@ -1163,6 +1225,7 @@
     
         allSignals = filtered;
         renderBoard(filtered);
+        updateAssumptionsBar(filtered.length);
     }
     
     function getReturnClass(value) {
@@ -1245,6 +1308,22 @@
         };
     
         return labels[value] || value.toUpperCase();
+    }
+
+    function updateAssumptionsBar(count) {
+        const horizonEl = document.getElementById("assumption-horizon");
+        const countEl = document.getElementById("assumption-asset-count");
+    
+        const duration = document.getElementById("period-select")?.value || "5y";
+    
+        if (horizonEl) {
+            horizonEl.textContent = durationLabel(duration);
+        }
+    
+        if (countEl) {
+            const safeCount = Number.isFinite(count) ? count : allSignals.length;
+            countEl.textContent = safeCount.toString();
+        }
     }
     
     function normalizedDollarText(returnValue) {
@@ -1480,6 +1559,7 @@
             if (currentTicker) {
                 loadTicker(currentTicker);
             }
+            updateAssumptionsBar();
         });
 
     /* ===============================
