@@ -246,92 +246,79 @@
                         </div>
                 
                         <!-- SIGNAL TABLE CARD -->
-                        <div style="
-                            border: 1px solid #ddd;
-                            border-radius: 8px;
-                            overflow: hidden;
-                            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-                        ">
+                        <div class="nt-signal-table-card">
                 
                             <!-- HEADER -->
-                            <div style="
-                                 display: grid;
-                                 grid-template-columns: 160px 100px 100px 100px 100px 140px 160px 120px;
-                                 font-weight: 600;
-                                 font-size: 13px;
-                                 padding: 10px 12px;
-                                 border-bottom: 1px solid #e5e5e5;
-                                 background: #f3f5f8;
-                                 white-space: nowrap;
-                                 box-sizing: border-box;
-                                 width: 100%;
-                            ">
-                                <div>Ticker</div>
-                                
-                                <div style="text-align:left;">
-                                    Today<br>
-                                    <select class="signal-filter" data-key="today_signal" style="font-size:10px;">
-                                        <option value="">All Signals</option>
+                            <div class="nt-signal-header">
+                            
+                                <div>
+                                    Ticker
+                                </div>
+                            
+                                <div>
+                                    <span class="nt-header-title">Today</span>
+                                    <select class="signal-filter nt-signal-filter-select" data-key="today_signal">
+                                        <option value="">All</option>
                                         <option value="1">BUY</option>
                                         <option value="0">HOLD</option>
                                         <option value="-1">SELL</option>
                                     </select>
                                 </div>
-                                
-                                <div style="text-align:left;">
-                                    Yesterday<br>
-                                    <select class="signal-filter" data-key="yesterday_signal" style="font-size:10px;">
-                                        <option value="">All Signals</option>
+                            
+                                <div>
+                                    <span class="nt-header-title">Yesterday</span>
+                                    <select class="signal-filter nt-signal-filter-select" data-key="yesterday_signal">
+                                        <option value="">All</option>
                                         <option value="1">BUY</option>
                                         <option value="0">HOLD</option>
                                         <option value="-1">SELL</option>
                                     </select>
                                 </div>
-                                
-                                <div style="text-align:left;">
-                                    Last Week<br>
-                                    <select class="signal-filter" data-key="last_week_signal" style="font-size:10px;">
-                                        <option value="">All Signals</option>
+                            
+                                <div>
+                                    <span class="nt-header-title">Last Week</span>
+                                    <select class="signal-filter nt-signal-filter-select" data-key="last_week_signal">
+                                        <option value="">All</option>
                                         <option value="1">BUY</option>
                                         <option value="0">HOLD</option>
                                         <option value="-1">SELL</option>
                                     </select>
                                 </div>
-                                
-                                <div style="text-align:left;">
-                                    Last Month<br>
-                                    <select class="signal-filter" data-key="last_month_signal" style="font-size:10px;">
-                                        <option value="">All Signals</option>
+                            
+                                <div>
+                                    <span class="nt-header-title">Last Month</span>
+                                    <select class="signal-filter nt-signal-filter-select" data-key="last_month_signal">
+                                        <option value="">All</option>
                                         <option value="1">BUY</option>
                                         <option value="0">HOLD</option>
                                         <option value="-1">SELL</option>
                                     </select>
                                 </div>
-
+                            
                                 <div 
-                                    style="text-align:right; cursor:pointer;"
+                                    class="nt-header-right"
                                     onclick="sortBy('buy_hold_annual_return')"
                                 >
-                                    Buy&Hold Return<br>
-                                    <span id="buy-hold-sort-indicator" style="font-size:11px; font-weight:500; color:#666;">—</span>
+                                    Buy & Hold Return<br>
+                                    <span id="buy-hold-sort-indicator" class="nt-sort-indicator">—</span>
                                 </div>
-                                
+                            
                                 <div 
-                                    style="text-align:right; cursor:pointer;"
+                                    class="nt-header-right"
                                     onclick="sortBy('strategy_annual_return')"
                                 >
-                                    EpochSignaler Return<br>
-                                    <span id="strategy-sort-indicator" style="font-size:11px; font-weight:500; color:#666;">—</span>
+                                    AI Strategy Return<br>
+                                    <span id="strategy-sort-indicator" class="nt-sort-indicator">—</span>
                                 </div>
-
+                            
                                 <div 
-                                    style="text-align:right; cursor:pointer;"
+                                    class="nt-header-right"
                                     onclick="sortBy('outperformance')"
                                 >
-                                    Outperformance<br>
-                                    <span id="outperformance-sort-indicator" style="font-size:11px; font-weight:500; color:#666;">—</span>
+                                    AI vs Buy & Hold<br>
+                                    <span id="outperformance-sort-indicator" class="nt-sort-indicator">—</span>
                                 </div>
-
+                            
                             </div>
                             
                             <!-- BODY -->
