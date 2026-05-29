@@ -641,6 +641,57 @@
         }
 
         /* ===============================
+           Asset type segmented buttons
+        ================================ */
+        
+        .nt-asset-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .nt-asset-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--nt-dark);
+            white-space: nowrap;
+        }
+        
+        .nt-asset-pills {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px;
+            background: #F1F5F9;
+            border: 1px solid var(--nt-border);
+            border-radius: 999px;
+        }
+        
+        .asset-pill {
+            border: none;
+            background: transparent;
+            color: var(--nt-neutral);
+            font-size: 12px;
+            font-weight: 800;
+            padding: 7px 12px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .asset-pill:hover {
+            background: #E2E8F0;
+            color: var(--nt-dark);
+        }
+        
+        .asset-pill.active {
+            background: var(--nt-dark);
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.22);
+        }
+
+        /* ===============================
            Selected asset performance cards
         ================================ */
         
@@ -1397,6 +1448,43 @@
             assetTypeFilter = this.value;
             applyAllFilters();
         });
+
+    /* ===============================
+       Asset type pill buttons
+    ================================ */
+    
+    function syncAssetPills() {
+        const select = document.getElementById("asset-type-filter");
+        if (!select) return;
+    
+        document.querySelectorAll(".asset-pill").forEach(btn => {
+            const isActive = btn.dataset.value === select.value;
+            btn.classList.toggle("active", isActive);
+            btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+    }
+    
+    document.querySelectorAll(".asset-pill").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const select = document.getElementById("asset-type-filter");
+            if (!select) return;
+    
+            const newValue = this.dataset.value;
+    
+            if (select.value === newValue) {
+                return;
+            }
+    
+            select.value = newValue;
+            syncAssetPills();
+    
+            // Trigger your existing asset filter logic
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+    });
+    
+    // Initial visual sync
+    syncAssetPills();
     
     document.getElementById("reset-signal-board")
         .addEventListener("click", function () {
@@ -1425,6 +1513,16 @@
             };
     
             updateSortIndicators();
+
+            // Reset asset type to default: Crypto
+            assetTypeFilter = "crypto";
+            
+            const assetSelect = document.getElementById("asset-type-filter");
+            if (assetSelect) {
+                assetSelect.value = "crypto";
+            }
+            
+            syncAssetPills();
     
             // Reapply filters
             applyAllFilters();
