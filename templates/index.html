@@ -103,147 +103,101 @@
                             </div>
                         </div>
                         <!-- SELECTED ASSET PERFORMANCE CARDS END -->
-                
+
                         <!-- CONTROL PANEL -->
-                        <div style="
-                            margin-bottom: 20px;
-                            padding: 16px;
-                            background: #f7f9fc;
-                            border-radius: 10px;
-                            border: 1px solid #e3e8f3;
-                            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-                        ">
-                
-                            <!-- Label -->
-                            <div style="
-                                font-size: 13px;
-                                font-weight: 600;
-                                margin-bottom: 10px;
-                                color: #444;
-                            ">
-                                🔎 Filter & Compare Performance
+                        <div class="nt-controls-card">
+                        
+                            <div class="nt-controls-top">
+                                <div>
+                                    <div class="nt-section-eyebrow">Signal Board</div>
+                                    <h4 class="nt-controls-title">Filter & compare performance</h4>
+                                    <p class="nt-controls-subtitle">
+                                        Search assets, choose a return horizon, and filter by asset type.
+                                    </p>
+                                </div>
+                        
+                                <button id="reset-signal-board" class="nt-reset-btn" type="button">
+                                    Reset board
+                                </button>
                             </div>
-                
-                            <!-- Filters Row -->
-                            <div style="
-                                display: flex;
-                                gap: 14px;
-                                align-items: center;
-                                flex-wrap: wrap;
-                            ">
-                
+                        
+                            <div class="nt-controls-grid">
+                        
                                 <!-- SEARCH -->
-                                <div style="position: relative; width: 380px;">
-                
-                                    <span style="
-                                        position: absolute;
-                                        left: 12px;
-                                        top: 50%;
-                                        transform: translateY(-50%);
-                                        font-size: 14px;
-                                        color: #999;
-                                        pointer-events: none;
-                                    ">
-                                        🔍
-                                    </span>
-                
-                                    <input 
-                                        type="text" 
-                                        id="ticker-search" 
-                                        placeholder="Search ticker (e.g. BTC, AAPL...)"
-                                        onfocus="this.style.borderColor='#5b7cff'; this.style.background='#fff';"
-                                        onblur="this.style.borderColor='#d0d7e2'; this.style.background='#f8f9fb';"
-                                        style="
-                                            width: 100%;
-                                            padding: 8px 12px 8px 34px;
-                                            border-radius: 6px;
-                                            border: 1px solid #d0d7e2;
-                                            font-size: 14px;
-                                            box-sizing: border-box;
-                                            background: #f8f9fb;
-                                            outline: none;
-                                            transition: all 0.15s ease;
-                                        "
-                                    >
+                                <div class="nt-control-group">
+                                    <label class="nt-control-label" for="ticker-search">
+                                        Search ticker
+                                    </label>
+                        
+                                    <div class="nt-search-shell">
+                                        <span class="nt-search-icon">🔍</span>
+                        
+                                        <input 
+                                            type="text" 
+                                            id="ticker-search" 
+                                            class="nt-search-input"
+                                            placeholder="Search BTC, ETH, AAPL, NVDA..."
+                                        >
+                                    </div>
                                 </div>
-                
+                        
                                 <!-- PERIOD / RETURN HORIZON BUTTONS -->
-                                <div class="nt-period-control">
-                                
-                                    <span class="nt-period-label">
-                                        Return Horizon:
-                                    </span>
-                                
-                                    <!-- Keep this hidden select because existing JS already depends on #period-select -->
-                                    <select id="period-select" style="display:none;">
-                                        <option value="1w">1W</option>
-                                        <option value="1mo">1M</option>
-                                        <option value="3mo">3M</option>
-                                        <option value="6mo">6M</option>
-                                        <option value="1y">1Y</option>
-                                        <option value="3y">3Y</option>
-                                        <option value="5y" selected>5Y</option>
-                                        <option value="10y">10Y</option>
-                                    </select>
-                                
-                                    <div id="period-pill-group" class="nt-period-pills" role="group" aria-label="Return horizon">
-                                        <button type="button" class="period-pill" data-value="1w">1W</button>
-                                        <button type="button" class="period-pill" data-value="1mo">1M</button>
-                                        <button type="button" class="period-pill" data-value="3mo">3M</button>
-                                        <button type="button" class="period-pill" data-value="6mo">6M</button>
-                                        <button type="button" class="period-pill" data-value="1y">1Y</button>
-                                        <button type="button" class="period-pill" data-value="3y">3Y</button>
-                                        <button type="button" class="period-pill active" data-value="5y">5Y</button>
-                                        <button type="button" class="period-pill" data-value="10y">10Y</button>
+                                <div class="nt-control-group">
+                                    <span class="nt-control-label">Return Horizon</span>
+                        
+                                    <div class="nt-period-control">
+                        
+                                        <!-- Keep this hidden select because existing JS depends on #period-select -->
+                                        <select id="period-select" style="display:none;">
+                                            <option value="1w">1W</option>
+                                            <option value="1mo">1M</option>
+                                            <option value="3mo">3M</option>
+                                            <option value="6mo">6M</option>
+                                            <option value="1y">1Y</option>
+                                            <option value="3y">3Y</option>
+                                            <option value="5y" selected>5Y</option>
+                                            <option value="10y">10Y</option>
+                                        </select>
+                        
+                                        <div id="period-pill-group" class="nt-period-pills" role="group" aria-label="Return horizon">
+                                            <button type="button" class="period-pill" data-value="1w">1W</button>
+                                            <button type="button" class="period-pill" data-value="1mo">1M</button>
+                                            <button type="button" class="period-pill" data-value="3mo">3M</button>
+                                            <button type="button" class="period-pill" data-value="6mo">6M</button>
+                                            <button type="button" class="period-pill" data-value="1y">1Y</button>
+                                            <button type="button" class="period-pill" data-value="3y">3Y</button>
+                                            <button type="button" class="period-pill active" data-value="5y">5Y</button>
+                                            <button type="button" class="period-pill" data-value="10y">10Y</button>
+                                        </div>
+                        
                                     </div>
-                                
                                 </div>
-
+                        
                                 <!-- ASSET TYPE BUTTONS -->
-                                <div class="nt-asset-control">
-                                
-                                    <span class="nt-asset-label">
-                                        Asset Type:
-                                    </span>
-                                
-                                    <!-- Keep this hidden select because existing JS already depends on #asset-type-filter -->
-                                    <select id="asset-type-filter" style="display:none;">
-                                        <option value="all">All Assets</option>
-                                        <option value="crypto" selected>Crypto Only</option>
-                                        <option value="stock">Stocks Only</option>
-                                    </select>
-                                
-                                    <div id="asset-pill-group" class="nt-asset-pills" role="group" aria-label="Asset type">
-                                        <button type="button" class="asset-pill" data-value="all">All</button>
-                                        <button type="button" class="asset-pill active" data-value="crypto">Crypto</button>
-                                        <button type="button" class="asset-pill" data-value="stock">Stocks</button>
+                                <div class="nt-control-group">
+                                    <span class="nt-control-label">Asset Type</span>
+                        
+                                    <div class="nt-asset-control">
+                        
+                                        <!-- Keep this hidden select because existing JS depends on #asset-type-filter -->
+                                        <select id="asset-type-filter" style="display:none;">
+                                            <option value="all">All Assets</option>
+                                            <option value="crypto" selected>Crypto Only</option>
+                                            <option value="stock">Stocks Only</option>
+                                        </select>
+                        
+                                        <div id="asset-pill-group" class="nt-asset-pills" role="group" aria-label="Asset type">
+                                            <button type="button" class="asset-pill" data-value="all">All</button>
+                                            <button type="button" class="asset-pill active" data-value="crypto">Crypto</button>
+                                            <button type="button" class="asset-pill" data-value="stock">Stocks</button>
+                                        </div>
+                        
                                     </div>
-                                
                                 </div>
-
-                                <!-- RESET FILTER BUTTON -->
-                                <div style="margin-left:auto;">
-                                    <button 
-                                        id="reset-signal-board"
-                                        style="
-                                            padding: 8px 14px;
-                                            border-radius: 6px;
-                                            border: 1px solid #d0d7e2;
-                                            background: #ffffff;
-                                            cursor: pointer;
-                                            font-size: 13px;
-                                            font-weight: 500;
-                                            transition: all 0.15s ease;
-                                        "
-                                        onmouseover="this.style.background='#f3f6ff'"
-                                        onmouseout="this.style.background='#fff'"
-                                    >
-                                        Reset Signal Board
-                                    </button>
-                                </div>
-                
+                        
                             </div>
                         </div>
+                        <!-- CONTROL PANEL END -->
 
                         <!-- PERFORMANCE ASSUMPTIONS BAR -->
                         <div class="nt-assumptions-bar">
