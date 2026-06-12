@@ -837,7 +837,7 @@ def compute_signals_summary_cached(csv_version, period_days):
                "ACH-USD", "ADA-USD", "AERO-USD", "AEVO-USD", "AGI-USD", "AIOZ-USD", "AIT-USD", "AITECH-USD", "AIXBT-USD", "AKT-USD", "ALEPH-USD",
                "ALGO-USD", "ALI-USD", "ALPH-USD", "ALT-USD", "ALU-USD", "ALVA-USD", "AMP-USD", 'AMZN', "ANKR-USD", "ANON-USD", "ANYONE-USD", "APT-USD",
                "APU-USD", "AR-USD", "ARB-USD", "ARC-USD", "ASML", "ASTR-USD", "ATLAS-USD", "ATOM-USD", "AURY-USD", "AUTOS-USD", "AVAX-USD", 'AVGO', 
-               "AXL-USD", "AXS-USD", "BAG-USD", "BAI-USD", "BAL-USD", "BAND-USD", "BANANA-USD", "BASEDAI-USD", "BAZED-USD", "BCB-USD", "BCUBE-USD",
+               "AXL-USD", "AXS-USD", "BAI-USD", "BAL-USD", "BAND-USD", "BANANA-USD", "BASEDAI-USD", "BAZED-USD", "BCB-USD", "BCUBE-USD",
                "BCUT-USD", "BEAM-USD", "BGB-USD", "BIGTIME-USD", "BLUR-USD", "BNB-USD", "BNT-USD", "BONK-USD", "BRETT-USD", 'BRKB', "BXBT-USD", 
                "BYTES-USD", "CELO-USD", "CERE-USD", "CETUS-USD", "CFG-USD", "CGPT-USD", "CHAPZ-USD", "CHAT-USD", "CHEX-USD", "CHZ-USD", "COMAI-USD", 
                "COMP-USD", "COST", "COTI-USD", "CPOOL-USD", "CREDI-USD", "CREO-USD", "CRO-USD", "CROWN-USD", "CRU-USD", "CRV-USD", "CTC-USD", "CVC-USD",
