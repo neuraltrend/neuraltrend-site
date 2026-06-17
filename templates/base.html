@@ -983,6 +983,130 @@
         }
 
         /* ===============================
+           Equity preview chart card
+        ================================ */
+        
+        .nt-preview-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 18px;
+        }
+        
+        .nt-preview-card {
+            width: 1100px;
+            background: #ffffff;
+            border: 1px solid var(--nt-border);
+            border-radius: 18px;
+            box-shadow: 0 2px 14px rgba(15, 23, 42, 0.07);
+            padding: 18px;
+        }
+        
+        .nt-preview-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 12px;
+        }
+        
+        .nt-preview-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 850;
+            color: var(--nt-dark);
+        }
+        
+        .nt-preview-subtitle {
+            margin: 5px 0 0 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-preview-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .nt-preview-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            background: #F8FAFC;
+            border: 1px solid var(--nt-border);
+            color: var(--nt-neutral);
+            font-size: 12px;
+            font-weight: 700;
+        }
+        
+        .nt-preview-chip strong {
+            color: var(--nt-dark);
+        }
+        
+        .nt-preview-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .nt-scale-btn {
+            border: 1px solid var(--nt-border);
+            background: #ffffff;
+            color: var(--nt-dark);
+            border-radius: 999px;
+            padding: 9px 13px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .nt-scale-btn:hover {
+            background: #F1F5F9;
+            border-color: #CBD5E1;
+        }
+        
+        .nt-preview-chart {
+            height: 430px;
+            width: 100%;
+            position: relative;
+            border-radius: 14px;
+            border: 1px solid var(--nt-border);
+            background: #ffffff;
+            padding: 10px;
+        }
+        
+        @media (max-width: 1150px) {
+            .nt-preview-card {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 700px) {
+            .nt-preview-header {
+                flex-direction: column;
+            }
+        
+            .nt-preview-actions {
+                width: 100%;
+            }
+        
+            .nt-scale-btn {
+                width: 100%;
+            }
+        
+            .nt-preview-chart {
+                height: 320px;
+            }
+        }
+
+        /* ===============================
            Selected asset performance cards
         ================================ */
         
@@ -1986,8 +2110,27 @@
         const chartDiv = document.getElementById("equity-preview-chart");
     
         container.style.display = "block";
+
+        const currentDuration = document.getElementById("period-select")?.value || "5y";
+        const currentHorizonLabel = durationLabel(currentDuration);
+        
         document.getElementById("preview-title").innerText =
             `${data.ticker} — Equity Preview`;
+        
+        const previewTickerEl = document.getElementById("preview-selected-ticker");
+        if (previewTickerEl) {
+            previewTickerEl.textContent = data.ticker;
+        }
+        
+        const previewHorizonEl = document.getElementById("preview-horizon-label");
+        if (previewHorizonEl) {
+            previewHorizonEl.textContent = currentHorizonLabel;
+        }
+        
+        const previewScaleModeEl = document.getElementById("preview-scale-mode");
+        if (previewScaleModeEl) {
+            previewScaleModeEl.textContent = isLogScale ? "Log" : "Linear";
+        }
     
         chartDiv.innerHTML = `
             <canvas id="previewChartCanvas"></canvas>
@@ -2101,26 +2244,27 @@
     
     // Global delegated click handler
     document.addEventListener("click", function (e) {
-    
+
         const btn = e.target.closest("#scale-toggle-btn");
     
-        if (btn) {
+        if (!btn) return;
+        if (!previewChart) return;
     
-            console.log("BUTTON CLICKED");
+        isLogScale = !isLogScale;
     
-            if (!previewChart) return;
+        btn.innerText = isLogScale
+            ? "Normal Scale"
+            : "Log Scale";
     
-            isLogScale = !isLogScale;
-    
-            btn.innerText = isLogScale
-                ? "Normal Scale"
-                : "Log Scale";
-    
-            previewChart.options.scales.y.type =
-                isLogScale ? "logarithmic" : "linear";
-    
-            previewChart.update();
+        const previewScaleModeEl = document.getElementById("preview-scale-mode");
+        if (previewScaleModeEl) {
+            previewScaleModeEl.textContent = isLogScale ? "Log" : "Linear";
         }
+    
+        previewChart.options.scales.y.type =
+            isLogScale ? "logarithmic" : "linear";
+    
+        previewChart.update();
     });
     
     // Load default ticker
