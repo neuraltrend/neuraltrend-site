@@ -1215,6 +1215,127 @@
             }
         }
 
+        /* ===============================
+           Backtest simulation card
+        ================================ */
+        
+        .nt-backtest-section {
+            background: #ffffff;
+            border: 1px solid var(--nt-border);
+            border-radius: 18px;
+            box-shadow: 0 2px 14px rgba(15, 23, 42, 0.07);
+            padding: 20px;
+        }
+        
+        .nt-backtest-section #backtest-form {
+            align-items: stretch;
+            width: 100%;
+        }
+        
+        .nt-backtest-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+        
+        .nt-backtest-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 850;
+            color: var(--nt-dark);
+        }
+        
+        .nt-backtest-subtitle {
+            margin: 5px 0 0 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-backtest-section .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+            gap: 14px;
+            align-items: end;
+            justify-content: stretch;
+        }
+        
+        .nt-backtest-section .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            align-items: stretch;
+        }
+        
+        .nt-backtest-section label {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--nt-dark);
+        }
+        
+        .nt-backtest-section input,
+        .nt-backtest-section select {
+            width: 100%;
+            height: 42px;
+            border-radius: 12px;
+            border: 1px solid var(--nt-border);
+            background: #F8FAFC;
+            color: var(--nt-dark);
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 10px;
+            outline: none;
+            transition: all 0.15s ease;
+        }
+        
+        .nt-backtest-section input:hover,
+        .nt-backtest-section select:hover {
+            background: #ffffff;
+            border-color: #CBD5E1;
+        }
+        
+        .nt-backtest-section input:focus,
+        .nt-backtest-section select:focus {
+            background: #ffffff;
+            border-color: var(--nt-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+        
+        .nt-run-backtest-btn {
+            width: 100%;
+            height: 42px;
+            border: none;
+            border-radius: 12px;
+            background: var(--nt-blue);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 850;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .nt-run-backtest-btn:hover {
+            background: #1D4ED8;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+        
+        .nt-backtest-note {
+            margin-top: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-backtest-section #results:not(:empty) {
+            margin-top: 18px;
+            padding: 16px;
+            border: 1px solid var(--nt-border);
+            border-radius: 14px;
+            background: #F8FAFC;
+        }
+
     </style>
 
 </head>
@@ -1451,6 +1572,18 @@
         last_week_signal: null,
         last_month_signal: null
     };
+
+    function syncBacktestTicker(ticker) {
+        const tickerSelect = document.getElementById("ticker");
+        if (!tickerSelect || !ticker) return;
+    
+        const optionExists = Array.from(tickerSelect.options)
+            .some(option => option.value === ticker);
+    
+        if (optionExists) {
+            tickerSelect.value = ticker;
+        }
+    }
     
     function applyAllFilters() {
     
@@ -1977,6 +2110,7 @@
         
         highlightSelectedTicker();
         updateSelectedPerformanceCards(ticker);
+        syncBacktestTicker(ticker);
     
         const duration = document.getElementById('period-select').value;
     
