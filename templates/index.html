@@ -381,9 +381,17 @@
         </section>
 
         <!-- Backtest Simulation -->
-        <section class="results-section">
+        <section class="results-section nt-backtest-section">
             <form id="backtest-form" class="trade-form">
-                <h3>EpochSignaler (Basic) Backtest Simulation</h3>
+                <div class="nt-backtest-header">
+                    <div>
+                        <div class="nt-section-eyebrow">Backtest Simulation</div>
+                        <h3 class="nt-backtest-title">EpochSignaler Backtest</h3>
+                        <p class="nt-backtest-subtitle">
+                            Test the selected asset with custom cash, duration, and signal-based position sizing.
+                        </p>
+                    </div>
+                </div>
         
                 <div class="form-row">
                     <div class="form-group">
@@ -717,7 +725,7 @@
         
                     <div class="form-group">
                         <label for="cash">Initial Cash:</label>
-                        <input type="number" id="cash" name="cash" required />
+                        <input type="number" id="cash" name="cash" value="10000" min="1" step="100" required />
                     </div>
 
                     <div class="form-group">
@@ -751,7 +759,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="dca_pct">DCA In/Out Percentage:</label>
+                        <label for="dca_pct">Position Size per Signal:</label>
                         <select id="dca_pct" name="dca_pct" required>
                             <option value="100_pct">100%</option>
                         </select>
@@ -768,9 +776,14 @@
                     </div> -->
         
                     <div class="form-group" style="align-self: flex-end;">
-                        <button type="submit">Run Backtest</button>
+                        <button type="submit" class="nt-run-backtest-btn">Run Backtest</button>
                     </div>
                 </div>
+
+                <p class="nt-backtest-note">
+                    Backtest uses the selected asset, initial cash, duration, and current signal logic. 
+                    Position size is currently fixed at 100% in/out.
+                </p>
             </form>
         
             <div id="results"></div>
