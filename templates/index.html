@@ -324,63 +324,58 @@
                 </div>
                 <!-- QUICK SIGNAL BOARD END -->
 
-                <!-- 🔥 Equity Preview Section -->
-                <div id="equity-preview-wrapper"                    
-                     style="
-                        width: 100%;
-                        display: flex;
-                        justify-content: center;
-                        margin-top: 0px;
-                     ">
-                    <div id="equity-preview-container"
-                         style="
-                            display: none;
-                            width: 1100px;
-                         ">
-
-                        <div style="
-                            position: relative;
-                            display: flex;
-                            align-items: center;
-                            height: 40px;
-                            z-index: 5;
-                        ">
-                            <button id="scale-toggle-btn"
-                                style="
-                                    position: relative;
-                                    z-index: 9999;
-                                    padding:4px 10px;
-                                    font-size:12px;
-                                    cursor:pointer;
-                                    border-radius:6px;
-                                    border:1px solid #ccc;
-                                    background:white;
-                                ">
-                                Log Scale
-                            </button>
-                        
-                            <h3 id="preview-title"
-                                style="
-                                    position:absolute;
-                                    left:50%;
-                                    transform:translateX(-50%);
-                                    margin:0;
-                                    font-weight:600;
-                                ">
-                            </h3>
+                <!-- EQUITY PREVIEW SECTION -->
+                <div id="equity-preview-wrapper" class="nt-preview-wrapper">
+                
+                    <div id="equity-preview-container" class="nt-preview-card" style="display: none;">
+                
+                        <div class="nt-preview-header">
+                
+                            <div>
+                                <div class="nt-section-eyebrow">Equity Preview</div>
+                
+                                <h3 id="preview-title" class="nt-preview-title">
+                                    BTC-USD — Equity Preview
+                                </h3>
+                
+                                <p class="nt-preview-subtitle">
+                                    Compare AI strategy equity versus buy & hold for the selected asset.
+                                </p>
+                
+                                <div class="nt-preview-meta">
+                                    <span class="nt-preview-chip">
+                                        Asset: <strong id="preview-selected-ticker">BTC-USD</strong>
+                                    </span>
+                
+                                    <span class="nt-preview-chip">
+                                        Horizon: <strong id="preview-horizon-label">5Y</strong>
+                                    </span>
+                
+                                    <span class="nt-preview-chip">
+                                        Scale: <strong id="preview-scale-mode">Linear</strong>
+                                    </span>
+                
+                                    <span class="nt-preview-chip">
+                                        Equity base: <strong>$1 normalized</strong>
+                                    </span>
+                                </div>
+                            </div>
+                
+                            <div class="nt-preview-actions">
+                                <button id="scale-toggle-btn" class="nt-scale-btn" type="button">
+                                    Log Scale
+                                </button>
+                            </div>
+                
                         </div>
-                        
-                        <div id="equity-preview-chart"
-                             style="
-                                height:500px;
-                                width:100%;
-                                position:relative;
-                                z-index:1;
-                             ">
+                
+                        <div id="equity-preview-chart" class="nt-preview-chart">
+                            <!-- chart injected by JS -->
                         </div>
                 
                     </div>
                 </div>
+                <!-- EQUITY PREVIEW SECTION END -->
         
             <div id="signals"></div>
         </section>
