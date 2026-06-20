@@ -167,6 +167,29 @@ def duration_to_days(duration_str: str):
     else:
         raise ValueError(f"Unsupported delta type: {type(delta)}")
 
+def parse_position_fraction(value):
+    """
+    Converts values like '100_pct', '50_pct', '25_pct', '100%', or '50'
+    into decimal fractions: 1.0, 0.5, 0.25.
+    """
+    if value is None:
+        return 1.0
+
+    s = str(value).strip().lower()
+    s = s.replace("_pct", "")
+    s = s.replace("pct", "")
+    s = s.replace("%", "")
+
+    try:
+        pct = float(s)
+    except ValueError:
+        raise ValueError(f"Unsupported position size: {value}")
+
+    if pct <= 0 or pct > 100:
+        raise ValueError("Position size must be greater than 0 and less than or equal to 100.")
+
+    return pct / 100.0
+
 def get_csv_version():
     """
     Returns a version number that changes whenever any CSV changes.
@@ -561,7 +584,15 @@ def backtest():
     ticker = request.form['ticker']
     start_date = request.form['start']
     duration = request.form["duration"]    # e.g. '1mo','3mo','6mo','1yr'
-    ticker_2=[]
+    ticker_2 = []
+    
+    # Position size per signal: 100%, 50%, 25%, etc.
+    try:
+        position_fraction = parse_position_fraction(
+            request.form.get("dca_pct", "100_pct")
+        )
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
     # Parse dates
     start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
@@ -592,23 +623,40 @@ def backtest():
     signals_df = signals_df.dropna()
 
     cash = initial_cash
-    position = 0
+    position = 0.0
     equity_curve = []
-
+    
     for date, row in signals_df.iterrows():
         price = row['Close']
         signal = row['epoch_signal']
-
-        if signal == 1 and cash > 0:  # Buy
-            position = cash / price
-            cash = 0
-        elif signal == -1 and position > 0:  # Sell
-            cash = position * price
-            position = 0
-
+    
+        # BUY signal:
+        # Invest a percentage of available cash.
+        # 100% = use all cash
+        # 50% = use half of remaining cash
+        # 25% = use one quarter of remaining cash
+        if signal == 1 and cash > 0:
+            cash_to_invest = cash * position_fraction
+            shares_to_buy = cash_to_invest / price
+    
+            position += shares_to_buy
+            cash -= cash_to_invest
+    
+        # SELL signal:
+        # Sell a percentage of current position.
+        # 100% = sell all holdings
+        # 50% = sell half of current holdings
+        # 25% = sell one quarter of current holdings
+        elif signal == -1 and position > 0:
+            shares_to_sell = position * position_fraction
+            cash_from_sale = shares_to_sell * price
+    
+            position -= shares_to_sell
+            cash += cash_from_sale
+    
         equity = cash + position * price
         equity_curve.append((date, equity))
-
+        
     eq_df = pd.DataFrame(equity_curve, columns=['Date', 'Equity']).set_index('Date')
 
      # --- Extract buy/sell points ---
@@ -661,6 +709,7 @@ def backtest():
 
     results = {
         'ticker': ticker,
+        'position_size_pct': position_fraction * 100,
         'final_value': final_value,
         'final_value_epoch': float(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()[-1]),
         'profit_factor': profit_factor,
