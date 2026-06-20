@@ -507,6 +507,47 @@
         }
 
         /* ===============================
+           Consistent section title alignment
+        ================================ */
+        
+        .nt-page-header {
+            width: 100%;
+            margin: 0 0 18px 0;
+            text-align: left;
+        }
+        
+        .nt-page-title {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 850;
+            color: var(--nt-dark);
+            text-align: left;
+        }
+        
+        /* Override older centered form-title rules */
+        .nt-backtest-section .nt-backtest-header {
+            justify-content: flex-start;
+            text-align: left;
+            width: 100%;
+        }
+        
+        .nt-backtest-section .nt-backtest-title {
+            text-align: left !important;
+        }
+        
+        .nt-backtest-section .trade-form h3 {
+            text-align: left !important;
+        }
+        
+        .nt-backtest-section #backtest-form {
+            align-items: stretch !important;
+        }
+        
+        .nt-backtest-section .form-row {
+            justify-content: stretch !important;
+        }
+
+        /* ===============================
            Return horizon segmented buttons
         ================================ */
         
