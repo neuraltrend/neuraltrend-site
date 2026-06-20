@@ -42,7 +42,7 @@
                                 Selected Asset:
                                 <span id="metric-selected-ticker">BTC-USD</span>
                                 &nbsp; | &nbsp;
-                                Time Horizon:
+                                Return Horizon:
                                 <span id="metric-selected-horizon">5Y</span>
                             </div>
                         
@@ -117,7 +117,7 @@
                                 </div>
                         
                                 <button id="reset-signal-board" class="nt-reset-btn" type="button">
-                                    Reset board
+                                    Reset Board
                                 </button>
                             </div>
                         
@@ -208,13 +208,13 @@
                                 <span class="nt-assumption-pill">
                                     Equity base: <strong>Normalized $1</strong>
                                 </span>
-                        
+
                                 <span class="nt-assumption-pill">
-                                    Signal mode: <strong>100% in/out</strong>
+                                    Position Size: <strong>100% in/out</strong>
                                 </span>
-                        
+                                
                                 <span class="nt-assumption-pill">
-                                    Horizon: <strong id="assumption-horizon">5Y</strong>
+                                    Return Horizon: <strong id="assumption-horizon">5Y</strong>
                                 </span>
                         
                                 <span class="nt-assumption-pill">
@@ -283,7 +283,7 @@
                                     class="nt-header-right"
                                     onclick="sortBy('buy_hold_annual_return')"
                                 >
-                                    Buy & Hold Return<br>
+                                    Buy & Hold Return (<span class="metric-horizon-text">5Y</span>)<br>
                                     <span id="buy-hold-sort-indicator" class="nt-sort-indicator">—</span>
                                 </div>
                             
@@ -291,7 +291,7 @@
                                     class="nt-header-right"
                                     onclick="sortBy('strategy_annual_return')"
                                 >
-                                    AI Strategy Return<br>
+                                    AI Strategy Return (<span class="metric-horizon-text">5Y</span>)<br>
                                     <span id="strategy-sort-indicator" class="nt-sort-indicator">—</span>
                                 </div>
                             
@@ -299,7 +299,7 @@
                                     class="nt-header-right"
                                     onclick="sortBy('outperformance')"
                                 >
-                                    AI vs Buy & Hold<br>
+                                    AI vs Buy & Hold (<span class="metric-horizon-text">5Y</span>)<br>
                                     <span id="outperformance-sort-indicator" class="nt-sort-indicator">—</span>
                                 </div>
                             
@@ -339,7 +339,7 @@
                                 </h3>
                 
                                 <p class="nt-preview-subtitle">
-                                    Compare AI strategy equity versus buy & hold for the selected asset.
+                                    Compare AI strategy equity vs. buy-and-hold for the selected asset.
                                 </p>
                 
                                 <div class="nt-preview-meta">
@@ -348,7 +348,7 @@
                                     </span>
                 
                                     <span class="nt-preview-chip">
-                                        Horizon: <strong id="preview-horizon-label">5Y</strong>
+                                        Return Horizon: <strong id="preview-horizon-label">5Y</strong>
                                     </span>
                 
                                     <span class="nt-preview-chip">
@@ -356,7 +356,7 @@
                                     </span>
                 
                                     <span class="nt-preview-chip">
-                                        Equity base: <strong>$1 normalized</strong>
+                                        Equity Base: <strong>$1 normalized</strong>
                                     </span>
                                 </div>
                             </div>
