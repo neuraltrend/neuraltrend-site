@@ -760,6 +760,8 @@
                         <label for="dca_pct">Position Size per Signal:</label>
                         <select id="dca_pct" name="dca_pct" required>
                             <option value="100_pct">100%</option>
+                            <option value="50_pct">50%</option>
+                            <option value="25_pct">25%</option>
                         </select>
                     </div>
         
@@ -780,7 +782,7 @@
 
                 <p class="nt-backtest-note">
                     Backtest uses the selected asset, initial cash, duration, and current signal logic. 
-                    Position size is currently fixed at 100% in/out.
+                    Position size controls how much available cash is used on BUY signals and how much current position is sold on SELL signals.
                 </p>
             </form>
         
