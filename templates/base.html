@@ -1514,6 +1514,36 @@
             background: #F8FAFC;
         }
 
+        .nt-backtest-chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .nt-backtest-chart-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 650px) {
+            .nt-backtest-chart-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        
+            .nt-backtest-chart-actions {
+                width: 100%;
+            }
+        
+            .nt-backtest-chart-actions .nt-scale-btn {
+                width: 100%;
+            }
+        }
+
     </style>
 
 </head>
@@ -1579,6 +1609,8 @@
     <script>
     
     let equityChart = null;
+
+    window.backtestLogScale = window.backtestLogScale || false;
         
     document.getElementById('backtest-form').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -1704,13 +1736,30 @@
                 </div>
         
                 <div class="nt-backtest-chart-card">
-                    <div class="nt-backtest-chart-title">
-                        Equity Curve: AI Strategy vs Buy & Hold
+
+                    <div class="nt-backtest-chart-header">
+                        <div class="nt-backtest-chart-title">
+                            Equity Curve: AI Strategy vs Buy & Hold
+                        </div>
+                
+                        <div class="nt-backtest-chart-actions">
+                            <span class="nt-result-pill">
+                                Scale: 
+                                <strong id="backtest-scale-mode">
+                                    ${window.backtestLogScale ? "Log" : "Linear"}
+                                </strong>
+                            </span>
+                
+                            <button id="backtest-scale-toggle-btn" class="nt-scale-btn" type="button">
+                                ${window.backtestLogScale ? "Normal Scale" : "Log Scale"}
+                            </button>
+                        </div>
                     </div>
-        
+                
                     <div class="nt-backtest-chart-shell">
                         <canvas id="equity-chart"></canvas>
                     </div>
+                
                 </div>
         
             </div>
@@ -1800,8 +1849,15 @@
                     }
                 },
                 scales: {
-                    x: { display: true, title: { display: true, text: 'Date' } },
-                    y: { display: true, title: { display: true, text: 'Equity ($)' } }
+                    x: { 
+                        display: true, 
+                        title: { display: true, text: 'Date' } 
+                    },
+                    y: { 
+                        display: true,
+                        type: window.backtestLogScale ? "logarithmic" : "linear",
+                        title: { display: true, text: 'Equity ($)' } 
+                    }
                 }
             }
         });
@@ -2663,6 +2719,35 @@
             isLogScale ? "logarithmic" : "linear";
     
         previewChart.update();
+    });
+
+    document.addEventListener("click", function (e) {
+
+        const btn = e.target.closest("#backtest-scale-toggle-btn");
+    
+        if (!btn) return;
+    
+        const chart =
+            window.equityChart ||
+            (typeof equityChart !== "undefined" ? equityChart : null);
+    
+        if (!chart) return;
+    
+        window.backtestLogScale = !window.backtestLogScale;
+    
+        btn.innerText = window.backtestLogScale
+            ? "Normal Scale"
+            : "Log Scale";
+    
+        const scaleModeEl = document.getElementById("backtest-scale-mode");
+        if (scaleModeEl) {
+            scaleModeEl.textContent = window.backtestLogScale ? "Log" : "Linear";
+        }
+    
+        chart.options.scales.y.type =
+            window.backtestLogScale ? "logarithmic" : "linear";
+    
+        chart.update();
     });
     
     // Load default ticker
