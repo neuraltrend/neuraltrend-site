@@ -560,6 +560,131 @@
         }
 
         /* ===============================
+           Backtest results cards
+        ================================ */
+        
+        .nt-backtest-results {
+            margin-top: 18px;
+        }
+        
+        .nt-backtest-results-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+        
+        .nt-backtest-results-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 850;
+            color: var(--nt-dark);
+        }
+        
+        .nt-backtest-results-subtitle {
+            margin: 4px 0 0 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-result-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #ffffff;
+            border: 1px solid var(--nt-border);
+            color: var(--nt-neutral);
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        
+        .nt-result-pill strong {
+            color: var(--nt-dark);
+        }
+        
+        .nt-backtest-results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+        
+        .nt-result-card {
+            background: #ffffff;
+            border: 1px solid var(--nt-border);
+            border-radius: 14px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+        }
+        
+        .nt-result-label {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--nt-neutral);
+            margin-bottom: 7px;
+        }
+        
+        .nt-result-value {
+            font-size: 24px;
+            font-weight: 850;
+            color: var(--nt-dark);
+            line-height: 1.1;
+        }
+        
+        .nt-result-sub {
+            margin-top: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-backtest-chart-card {
+            margin-top: 14px;
+            background: #ffffff;
+            border: 1px solid var(--nt-border);
+            border-radius: 14px;
+            padding: 14px;
+        }
+        
+        .nt-backtest-chart-title {
+            font-size: 14px;
+            font-weight: 850;
+            color: var(--nt-dark);
+            margin-bottom: 10px;
+        }
+        
+        .nt-backtest-chart-shell {
+            height: 430px;
+            width: 100%;
+            position: relative;
+        }
+        
+        @media (max-width: 900px) {
+            .nt-backtest-results-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .nt-backtest-results-header {
+                flex-direction: column;
+            }
+        
+            .nt-backtest-results-grid {
+                grid-template-columns: 1fr;
+            }
+        
+            .nt-backtest-chart-shell {
+                height: 320px;
+            }
+        }
+
+        /* ===============================
            Return horizon segmented buttons
         ================================ */
         
@@ -1469,42 +1594,126 @@
         })
         .catch(error => console.error('Error:', error));
     });
+
+    function formatBacktestCurrency(value) {
+        if (value === null || value === undefined || Number.isNaN(value)) {
+            return "—";
+        }
     
+        return "$" + Number(value).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+    
+    function formatBacktestReturnFromFactor(factor) {
+        if (factor === null || factor === undefined || Number.isNaN(factor)) {
+            return `<span class="return-value return-neutral">—</span>`;
+        }
+    
+        const returnValue = factor - 1;
+        const percent = returnValue * 100;
+        const sign = percent > 0 ? "+" : "";
+    
+        let cls = "return-neutral";
+        if (returnValue > 0) cls = "return-positive";
+        if (returnValue < 0) cls = "return-negative";
+    
+        return `
+            <span class="return-value ${cls}">
+                ${sign}${percent.toFixed(1)}%
+            </span>
+        `;
+    }
+    
+    function formatBacktestNumber(value, decimals = 2) {
+        if (value === null || value === undefined || Number.isNaN(value)) {
+            return "—";
+        }
+    
+        return Number(value).toFixed(decimals);
+    }
+
     function renderResults({
         ticker, final_value, final_value_epoch, profit_factor, profit_factor_epoch, sharpe_ratio,
+        position_size_pct = 100,
         equity_curve, epoch_equity_curve, dates,
         ticker_2, final_value_2, profit_factor_2, sharpe_ratio_2,
         equity_curve_2, buy_dates, buy_prices, sell_dates, sell_prices
     }) {
         const resultsDiv = document.getElementById('results');
     
-        let ticker1Stats = `
-            <div>
-                <h3>${ticker}</h3>
-                <p>Final Value EpochSignaler: $${final_value_epoch.toFixed(2)}</p>
-                <p>Final Value Buy&Hold: $${final_value.toFixed(2)}</p>
-                <p>Profit Factor EpochSignaler: ${profit_factor_epoch}</p>
-                <p>Profit Factor Buy&Hold: ${profit_factor}</p>
-            </div>
-        `;
-    
-        let ticker2Stats = '';
-        if (ticker_2) {
-            ticker2Stats = `
-                <div>
-                    <h3>${ticker_2}</h3>
-                    <p>Final Value Buy&Hold: $${final_value_2.toFixed(2)}</p>
-                    <p>Profit Factor Buy&Hold: ${profit_factor_2}</p>
-                </div>
-            `;
-        }
-    
+        const aiReturnHTML = formatBacktestReturnFromFactor(profit_factor_epoch);
+        const buyHoldReturnHTML = formatBacktestReturnFromFactor(profit_factor);
+        
         resultsDiv.innerHTML = `
-            <div style="display: grid; grid-template-columns: 1fr ${ticker_2 ? '1fr' : ''}; gap: 20px; align-items: start;">
-                ${ticker1Stats}
-                ${ticker2Stats}
+            <div class="nt-backtest-results">
+        
+                <div class="nt-backtest-results-header">
+                    <div>
+                        <div class="nt-section-eyebrow">Backtest Results</div>
+                        <h3 class="nt-backtest-results-title">${ticker} Backtest Results</h3>
+                        <p class="nt-backtest-results-subtitle">
+                            AI strategy performance compared with buy & hold.
+                        </p>
+                    </div>
+        
+                    <span class="nt-result-pill">
+                        Position Size: <strong>${formatBacktestNumber(position_size_pct, 0)}%</strong>
+                    </span>
+                </div>
+        
+                <div class="nt-backtest-results-grid">
+        
+                    <div class="nt-result-card">
+                        <div class="nt-result-label">AI Strategy Final Value</div>
+                        <div class="nt-result-value">${formatBacktestCurrency(final_value_epoch)}</div>
+                        <div class="nt-result-sub">EpochSignaler result</div>
+                    </div>
+        
+                    <div class="nt-result-card">
+                        <div class="nt-result-label">Buy & Hold Final Value</div>
+                        <div class="nt-result-value">${formatBacktestCurrency(final_value)}</div>
+                        <div class="nt-result-sub">Benchmark result</div>
+                    </div>
+        
+                    <div class="nt-result-card">
+                        <div class="nt-result-label">Sharpe Ratio</div>
+                        <div class="nt-result-value">${formatBacktestNumber(sharpe_ratio, 2)}</div>
+                        <div class="nt-result-sub">Based on selected period</div>
+                    </div>
+        
+                    <div class="nt-result-card">
+                        <div class="nt-result-label">AI Strategy Return</div>
+                        <div class="nt-result-value">${aiReturnHTML}</div>
+                        <div class="nt-result-sub">Compared to initial cash</div>
+                    </div>
+        
+                    <div class="nt-result-card">
+                        <div class="nt-result-label">Buy & Hold Return</div>
+                        <div class="nt-result-value">${buyHoldReturnHTML}</div>
+                        <div class="nt-result-sub">Compared to initial cash</div>
+                    </div>
+        
+                    <div class="nt-result-card">
+                        <div class="nt-result-label">Position Size</div>
+                        <div class="nt-result-value">${formatBacktestNumber(position_size_pct, 0)}%</div>
+                        <div class="nt-result-sub">Applied per BUY/SELL signal</div>
+                    </div>
+        
+                </div>
+        
+                <div class="nt-backtest-chart-card">
+                    <div class="nt-backtest-chart-title">
+                        Equity Curve: AI Strategy vs Buy & Hold
+                    </div>
+        
+                    <div class="nt-backtest-chart-shell">
+                        <canvas id="equity-chart"></canvas>
+                    </div>
+                </div>
+        
             </div>
-            <canvas id="equity-chart" width="600" height="400"></canvas>
         `;
     
         const ctx = document.getElementById('equity-chart').getContext('2d');
@@ -1583,6 +1792,8 @@
                 datasets: datasets
             },
             options: {
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         labels: { usePointStyle: true }  // match triangle markers
