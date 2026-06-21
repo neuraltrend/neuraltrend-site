@@ -560,6 +560,104 @@
         }
 
         /* ===============================
+           Current view / active filters row
+        ================================ */
+        
+        .nt-active-filter-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin: 12px 0 14px 0;
+            padding: 11px 13px;
+            background: #ffffff;
+            border: 1px solid var(--nt-border);
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+        }
+        
+        .nt-active-filter-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .nt-active-filter-label {
+            font-size: 12px;
+            font-weight: 850;
+            color: var(--nt-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        
+        .nt-active-filter-chips {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+        
+        .nt-active-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            background: #F8FAFC;
+            border: 1px solid var(--nt-border);
+            color: var(--nt-neutral);
+            font-size: 12px;
+            font-weight: 750;
+        }
+        
+        .nt-active-chip.chip-buy {
+            color: var(--nt-positive);
+            background: rgba(22, 163, 74, 0.08);
+            border-color: rgba(22, 163, 74, 0.20);
+        }
+        
+        .nt-active-chip.chip-sell {
+            color: var(--nt-negative);
+            background: rgba(220, 38, 38, 0.08);
+            border-color: rgba(220, 38, 38, 0.20);
+        }
+        
+        .nt-active-chip.chip-hold {
+            color: var(--nt-neutral);
+            background: rgba(100, 116, 139, 0.08);
+            border-color: rgba(100, 116, 139, 0.20);
+        }
+        
+        .nt-active-clear-btn {
+            border: none;
+            background: transparent;
+            color: var(--nt-blue);
+            font-size: 12px;
+            font-weight: 850;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 999px;
+            transition: all 0.15s ease;
+        }
+        
+        .nt-active-clear-btn:hover {
+            background: rgba(37, 99, 235, 0.08);
+        }
+        
+        @media (max-width: 700px) {
+            .nt-active-filter-row {
+                align-items: flex-start;
+            }
+        
+            .nt-active-clear-btn {
+                width: 100%;
+                text-align: left;
+            }
+        }
+
+        /* ===============================
            Backtest results cards
         ================================ */
         
@@ -1893,6 +1991,111 @@
         last_month_signal: null
     };
 
+    function escapeHTML(value) {
+        return String(value).replace(/[&<>"']/g, function (char) {
+            return {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            }[char];
+        });
+    }
+    
+    function plainSignalText(value) {
+        if (value === 1) return "BUY";
+        if (value === -1) return "SELL";
+        return "HOLD";
+    }
+    
+    function signalChipClass(value) {
+        if (value === 1) return "chip-buy";
+        if (value === -1) return "chip-sell";
+        return "chip-hold";
+    }
+    
+    function assetTypeLabel(value) {
+        if (value === "all") return "All Assets";
+        if (value === "crypto") return "Crypto";
+        if (value === "stock") return "Stocks";
+        return value;
+    }
+    
+    function sortLabel(key) {
+        if (key === "buy_hold_annual_return") return "Buy & Hold Return";
+        if (key === "strategy_annual_return") return "AI Strategy Return";
+        if (key === "outperformance") return "AI vs Buy & Hold";
+        return "";
+    }
+    
+    function updateActiveFilterChips(count) {
+        const row = document.getElementById("active-filter-row");
+        const chipsContainer = document.getElementById("active-filter-chips");
+    
+        if (!row || !chipsContainer) return;
+    
+        const chips = [];
+    
+        const duration = document.getElementById("period-select")?.value || "5y";
+        chips.push({
+            label: `Return Horizon: ${durationLabel(duration)}`,
+            className: ""
+        });
+    
+        chips.push({
+            label: `Asset Type: ${assetTypeLabel(assetTypeFilter)}`,
+            className: ""
+        });
+    
+        const visibleCount = Number.isFinite(count) ? count : allSignals.length;
+        chips.push({
+            label: `Assets Shown: ${visibleCount}`,
+            className: ""
+        });
+    
+        const searchQuery = document.getElementById("ticker-search")?.value.trim();
+        if (searchQuery) {
+            chips.push({
+                label: `Search: ${searchQuery}`,
+                className: ""
+            });
+        }
+    
+        const signalLabels = {
+            today_signal: "Today",
+            yesterday_signal: "Yesterday",
+            last_week_signal: "Last Week",
+            last_month_signal: "Last Month"
+        };
+    
+        Object.keys(signalFilters).forEach(key => {
+            const value = signalFilters[key];
+    
+            if (value !== null) {
+                chips.push({
+                    label: `${signalLabels[key]}: ${plainSignalText(value)}`,
+                    className: signalChipClass(value)
+                });
+            }
+        });
+    
+        if (currentSort.key) {
+            const direction = currentSort.direction === 1 ? "Ascending" : "Descending";
+    
+            chips.push({
+                label: `Sort: ${sortLabel(currentSort.key)} (${direction})`,
+                className: ""
+            });
+        }
+    
+        chipsContainer.innerHTML = chips.map(chip => `
+            <span class="nt-active-chip ${chip.className}">
+                ${escapeHTML(chip.label)}
+            </span>
+        `).join("");
+    }
+
     function syncBacktestTicker(ticker) {
         const tickerSelect = document.getElementById("ticker");
         if (!tickerSelect || !ticker) return;
@@ -1947,10 +2150,11 @@
                 return (valA - valB) * currentSort.direction;
             });
         }
-    
+
         allSignals = filtered;
         renderBoard(filtered);
         updateAssumptionsBar(filtered.length);
+        updateActiveFilterChips(filtered.length);
     }
     
     function getReturnClass(value) {
@@ -2416,6 +2620,18 @@
             // Reapply filters
             applyAllFilters();
         });
+
+    document.addEventListener("click", function (e) {
+        const btn = e.target.closest("#active-filter-clear");
+    
+        if (!btn) return;
+    
+        const resetBtn = document.getElementById("reset-signal-board");
+    
+        if (resetBtn) {
+            resetBtn.click();
+        }
+    });
     
     /* ===============================
        3. LOAD TICKER FROM BOARD CLICK
