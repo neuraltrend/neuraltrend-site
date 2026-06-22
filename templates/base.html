@@ -1991,6 +1991,70 @@
         last_month_signal: null
     };
 
+    function clearSignalBoardFilters() {
+
+        // Reset signal filter state
+        signalFilters = {
+            today_signal: null,
+            yesterday_signal: null,
+            last_week_signal: null,
+            last_month_signal: null
+        };
+    
+        // Reset signal filter dropdowns
+        document.querySelectorAll(".signal-filter").forEach(select => {
+            select.value = "";
+            select.classList.remove("nt-filter-active");
+        });
+    
+        // Reset search bar
+        const searchInput = document.getElementById("ticker-search");
+        if (searchInput) {
+            searchInput.value = "";
+            searchInput.blur();
+        }
+    
+        // Reset sorting
+        currentSort = {
+            key: null,
+            direction: 1
+        };
+    
+        updateSortIndicators();
+    
+        // Reset asset type to Crypto
+        assetTypeFilter = "crypto";
+    
+        const assetSelect = document.getElementById("asset-type-filter");
+        if (assetSelect) {
+            assetSelect.value = "crypto";
+        }
+    
+        if (typeof syncAssetPills === "function") {
+            syncAssetPills();
+        }
+    
+        // Reset return horizon to 5Y
+        const periodSelect = document.getElementById("period-select");
+        const horizonChanged = periodSelect && periodSelect.value !== "5y";
+    
+        if (periodSelect) {
+            periodSelect.value = "5y";
+        }
+    
+        if (typeof syncPeriodPills === "function") {
+            syncPeriodPills();
+        }
+    
+        // If horizon changed, reload data for 5Y.
+        // Otherwise, just reapply local filters.
+        if (horizonChanged && periodSelect) {
+            periodSelect.dispatchEvent(new Event("change", { bubbles: true }));
+        } else {
+            applyAllFilters();
+        }
+    }
+
     function escapeHTML(value) {
         return String(value).replace(/[&<>"']/g, function (char) {
             return {
@@ -2580,45 +2644,7 @@
     
     document.getElementById("reset-signal-board")
         .addEventListener("click", function () {
-    
-            // Reset signal filters
-            signalFilters = {
-                today_signal: null,
-                yesterday_signal: null,
-                last_week_signal: null,
-                last_month_signal: null
-            };
-    
-            // Reset dropdown UI
-            document.querySelectorAll(".signal-filter").forEach(select => {
-                select.value = "";
-                select.classList.remove("nt-filter-active");
-            });
-    
-            // ✅ RESET SEARCH BAR
-            document.getElementById("ticker-search").value = "";
-            document.getElementById("ticker-search").blur();
-    
-            // Reset sorting
-            currentSort = {
-                key: null,
-                direction: 1
-            };
-    
-            updateSortIndicators();
-
-            // Reset asset type to default: Crypto
-            assetTypeFilter = "crypto";
-            
-            const assetSelect = document.getElementById("asset-type-filter");
-            if (assetSelect) {
-                assetSelect.value = "crypto";
-            }
-            
-            syncAssetPills();
-    
-            // Reapply filters
-            applyAllFilters();
+            clearSignalBoardFilters();
         });
 
     document.addEventListener("click", function (e) {
@@ -2626,11 +2652,7 @@
     
         if (!btn) return;
     
-        const resetBtn = document.getElementById("reset-signal-board");
-    
-        if (resetBtn) {
-            resetBtn.click();
-        }
+        clearSignalBoardFilters();
     });
     
     /* ===============================
