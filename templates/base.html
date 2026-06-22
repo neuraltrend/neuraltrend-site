@@ -590,7 +590,7 @@
             text-transform: uppercase;
             letter-spacing: 0.04em;
         }
-        
+    
         .nt-active-filter-chips {
             display: flex;
             align-items: center;
@@ -609,6 +609,12 @@
             color: var(--nt-neutral);
             font-size: 12px;
             font-weight: 750;
+        }
+
+        .nt-active-chip.chip-assumption {
+            color: var(--nt-dark);
+            background: rgba(37, 99, 235, 0.06);
+            border-color: rgba(37, 99, 235, 0.16);
         }
         
         .nt-active-chip.chip-buy {
@@ -2116,6 +2122,11 @@
             label: `Assets Shown: ${visibleCount}`,
             className: ""
         });
+
+        chips.push({
+            label: "Assumptions: $1 normalized · 100% in/out · costs included",
+            className: "chip-assumption"
+        });
     
         const searchQuery = document.getElementById("ticker-search")?.value.trim();
         if (searchQuery) {
@@ -2305,6 +2316,9 @@
     function updateAssumptionsBar(count) {
         const horizonEl = document.getElementById("assumption-horizon");
         const countEl = document.getElementById("assumption-asset-count");
+    
+        // If the separate assumptions bar was removed, do nothing.
+        if (!horizonEl && !countEl) return;
     
         const duration = document.getElementById("period-select")?.value || "5y";
     
