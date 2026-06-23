@@ -519,6 +519,127 @@
         }
 
         /* ===============================
+           Models section layout
+        ================================ */
+        
+        .nt-models-section {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 36px 24px 60px 24px;
+        }
+        
+        .nt-models-header {
+            margin-bottom: 18px;
+        }
+        
+        .nt-models-kicker {
+            font-size: 12px;
+            font-weight: 850;
+            color: var(--nt-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+        }
+        
+        .nt-models-title {
+            margin: 0;
+            font-size: 30px;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-models-subtitle {
+            max-width: 760px;
+            margin: 8px 0 0 0;
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--nt-neutral);
+            font-weight: 600;
+        }
+        
+        .nt-model-tabs {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 18px 0 22px 0;
+        }
+        
+        .nt-model-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--nt-border);
+            background: #ffffff;
+            color: var(--nt-dark);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 850;
+            transition: all 0.15s ease;
+        }
+        
+        .nt-model-tab:hover {
+            background: #F1F5F9;
+            border-color: #CBD5E1;
+        }
+        
+        .nt-model-tab.active {
+            background: var(--nt-dark);
+            border-color: var(--nt-dark);
+            color: #ffffff;
+        }
+        
+        .nt-models-container {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+        
+        .nt-model-panel {
+            background: #ffffff;
+            border: 1px solid var(--nt-border);
+            border-radius: 18px;
+            box-shadow: 0 2px 14px rgba(15, 23, 42, 0.06);
+            padding: 22px;
+            scroll-margin-top: calc(var(--nav-height) + 20px);
+        }
+        
+        .nt-model-panel-header {
+            margin-bottom: 18px;
+        }
+        
+        .nt-model-panel-title {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-model-panel-description {
+            margin: 8px 0 0 0;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--nt-neutral);
+            font-weight: 600;
+        }
+        
+        @media (max-width: 700px) {
+            .nt-models-section {
+                padding: 28px 14px 50px 14px;
+            }
+        
+            .nt-models-title {
+                font-size: 24px;
+            }
+        
+            .nt-model-panel {
+                padding: 16px;
+            }
+        }
+
+        /* ===============================
            Consistent section title alignment
         ================================ */
         
