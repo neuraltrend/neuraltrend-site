@@ -1768,6 +1768,135 @@
             }
         }
 
+        /* ===============================
+           Model tabs: show one model at a time
+        ================================ */
+        
+        .nt-model-tabs {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 18px 0 22px 0;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        
+        .nt-model-tab {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 9px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--nt-border);
+            background: #ffffff;
+            color: var(--nt-dark);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 850;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            flex: 0 0 auto;
+        }
+        
+        .nt-model-tab:hover {
+            background: #F1F5F9;
+            border-color: #CBD5E1;
+        }
+        
+        .nt-model-tab.active {
+            background: var(--nt-dark);
+            border-color: var(--nt-dark);
+            color: #ffffff;
+        }
+        
+        /* Hide inactive model panels */
+        .nt-model-panel {
+            display: none;
+            background: #ffffff;
+            border: 1px solid var(--nt-border);
+            border-radius: 18px;
+            box-shadow: 0 2px 14px rgba(15, 23, 42, 0.06);
+            padding: 22px;
+            overflow: hidden;
+        }
+        
+        .nt-model-panel.nt-model-panel-active {
+            display: block;
+        }
+
+        /* ===============================
+           Prevent content overflow in model cards
+        ================================ */
+        
+        .nt-model-panel,
+        .nt-model-panel *,
+        .nt-controls-card,
+        .nt-metric-card,
+        .nt-preview-card,
+        .nt-backtest-section,
+        .nt-signal-table-card {
+            min-width: 0;
+            box-sizing: border-box;
+        }
+        
+        .nt-model-panel p,
+        .nt-model-panel-description,
+        .nt-controls-subtitle,
+        .nt-preview-subtitle,
+        .nt-backtest-subtitle,
+        .nt-backtest-note {
+            overflow-wrap: break-word;
+            word-break: normal;
+        }
+        
+        .nt-model-panel .results-section {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            box-sizing: border-box;
+        }
+        
+        #equity-preview-container,
+        .nt-preview-card {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        
+        #equity-preview-chart,
+        .nt-preview-chart,
+        .nt-backtest-chart-shell {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        
+        .nt-metric-grid {
+            width: 100%;
+        }
+        
+        .nt-controls-grid {
+            width: 100%;
+        }
+        
+        .nt-signal-table-card {
+            width: 100%;
+        }
+        
+        /* Keep large dashboard pieces from breaking the model card */
+        @media (max-width: 1200px) {
+            .nt-metric-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        
+        @media (max-width: 700px) {
+            .nt-metric-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
     </style>
 
 </head>
@@ -3211,6 +3340,35 @@
         startInput.setAttribute("max", maxDate);
         // setLoggedOut();
     });
+
+    /* ===============================
+       Model tab behavior
+    ================================ */
+    
+    function setActiveModelPanel(panelId) {
+        const targetPanel = document.getElementById(panelId);
+        if (!targetPanel) return;
+    
+        document.querySelectorAll(".nt-model-tab").forEach(tab => {
+            const isActive = tab.dataset.modelTarget === panelId;
+            tab.classList.toggle("active", isActive);
+            tab.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+    
+        document.querySelectorAll(".nt-model-panel").forEach(panel => {
+            panel.classList.toggle("nt-model-panel-active", panel.id === panelId);
+        });
+    }
+    
+    document.querySelectorAll(".nt-model-tab").forEach(tab => {
+        tab.addEventListener("click", function () {
+            const panelId = this.dataset.modelTarget;
+            setActiveModelPanel(panelId);
+        });
+    });
+    
+    // Default active model
+    setActiveModelPanel("epochsignaler-section");
         
     </script>
     
