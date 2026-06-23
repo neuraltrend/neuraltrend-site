@@ -1897,6 +1897,241 @@
             }
         }
 
+        /* ===============================
+           Typography hierarchy cleanup
+           Keeps page cleaner and less crowded
+        ================================ */
+        
+        /* Global page tuning */
+        body {
+            font-size: 16px;
+            color: var(--nt-dark);
+        }
+        
+        /* Main page content */
+        main {
+            padding-top: calc(var(--nav-height) + 32px);
+            padding-left: 30px;
+            padding-right: 30px;
+        }
+        
+        /* Top site title: NeuralTrend */
+        main > h1 {
+            margin: 0 0 12px 0;
+            font-size: 30px;
+            line-height: 1.15;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        main > p {
+            max-width: 960px;
+            margin: 0 0 34px 0;
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--nt-dark);
+            font-weight: 500;
+        }
+        
+        /* Models section should not compete with main NeuralTrend title */
+        .nt-models-section {
+            padding-top: 16px;
+        }
+        
+        .nt-models-header {
+            margin-bottom: 16px;
+        }
+        
+        .nt-models-kicker,
+        .nt-section-eyebrow {
+            font-size: 11px;
+            line-height: 1.2;
+            font-weight: 850;
+            letter-spacing: 0.055em;
+            text-transform: uppercase;
+            color: var(--nt-blue);
+        }
+        
+        .nt-models-title {
+            margin: 0;
+            font-size: 24px;
+            line-height: 1.2;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-models-subtitle {
+            max-width: 720px;
+            margin: 7px 0 0 0;
+            font-size: 14px;
+            line-height: 1.55;
+            color: var(--nt-neutral);
+            font-weight: 600;
+        }
+        
+        /* Model card title */
+        .nt-model-panel-title {
+            margin: 0;
+            font-size: 21px;
+            line-height: 1.25;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-model-panel-description {
+            margin: 7px 0 0 0;
+            font-size: 13px;
+            line-height: 1.55;
+            color: var(--nt-neutral);
+            font-weight: 600;
+        }
+        
+        /* Dashboard main title inside EpochSignaler card */
+        .nt-page-title {
+            margin: 0;
+            font-size: 21px;
+            line-height: 1.25;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        /* Selected asset meta line */
+        .nt-selected-meta {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--nt-dark);
+            margin-bottom: 11px;
+        }
+        
+        /* Metric cards */
+        .nt-metric-label {
+            font-size: 12px;
+            line-height: 1.25;
+            font-weight: 800;
+            color: var(--nt-dark);
+            margin-bottom: 5px;
+        }
+        
+        .nt-metric-value {
+            font-size: 23px;
+            line-height: 1.1;
+            font-weight: 900;
+        }
+        
+        .nt-metric-sub {
+            margin-top: 5px;
+            font-size: 11px;
+            line-height: 1.35;
+            color: var(--nt-neutral);
+        }
+        
+        /* Signal board control title */
+        .nt-controls-title {
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.25;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-controls-subtitle {
+            margin: 4px 0 0 0;
+            font-size: 12px;
+            line-height: 1.45;
+            color: var(--nt-neutral);
+            font-weight: 600;
+        }
+        
+        /* Equity preview */
+        .nt-preview-title {
+            margin: 0;
+            font-size: 18px;
+            line-height: 1.25;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-preview-subtitle {
+            margin: 5px 0 0 0;
+            font-size: 12px;
+            line-height: 1.45;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        /* Backtest */
+        .nt-backtest-title {
+            margin: 0;
+            font-size: 18px;
+            line-height: 1.25;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-backtest-subtitle {
+            margin: 5px 0 0 0;
+            font-size: 12px;
+            line-height: 1.45;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        /* Backtest results */
+        .nt-backtest-results-title {
+            margin: 0;
+            font-size: 17px;
+            line-height: 1.25;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-backtest-results-subtitle {
+            margin: 4px 0 0 0;
+            font-size: 12px;
+            line-height: 1.45;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        /* Table text should remain compact */
+        .nt-signal-header {
+            font-size: 12px;
+        }
+        
+        .signal-row {
+            font-size: 13px;
+        }
+        
+        .signal-badge {
+            font-size: 11px;
+        }
+        
+        /* Keep forms compact */
+        .nt-control-label,
+        .nt-backtest-section label {
+            font-size: 11px;
+            font-weight: 850;
+        }
+        
+        /* Responsive */
+        @media (max-width: 700px) {
+            main > h1 {
+                font-size: 26px;
+            }
+        
+            .nt-models-title {
+                font-size: 21px;
+            }
+        
+            .nt-page-title {
+                font-size: 19px;
+            }
+        
+            .nt-metric-value {
+                font-size: 21px;
+            }
+        }
+
     </style>
 
 </head>
