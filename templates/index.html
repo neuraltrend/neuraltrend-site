@@ -22,16 +22,24 @@
             </p>
         </div>
     
-        <div class="nt-model-tabs">
-            <a href="#epochsignaler-section" class="nt-model-tab active">EpochSignaler</a>
-            <a href="#altindexer-section" class="nt-model-tab">AltIndexer</a>
-            <a href="#epochforecaster-section" class="nt-model-tab">EpochForecaster</a>
+        <div class="nt-model-tabs" role="tablist" aria-label="NeuralTrend models">
+            <button type="button" class="nt-model-tab active" data-model-target="epochsignaler-section">
+                EpochSignaler
+            </button>
+        
+            <button type="button" class="nt-model-tab" data-model-target="altindexer-section">
+                AltIndexer
+            </button>
+        
+            <button type="button" class="nt-model-tab" data-model-target="epochforecaster-section">
+                EpochForecaster
+            </button>
         </div>
     
         <div class="nt-models-container">
         
         <!-- EpochSignaler -->
-        <div id="epochsignaler-section" class="nt-model-panel">
+        <div id="epochsignaler-section" class="nt-model-panel nt-model-panel-active">
         
             <div class="nt-model-panel-header">
                 <h3 class="nt-model-panel-title">EpochSignaler</h3>
