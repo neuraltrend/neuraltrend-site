@@ -7,17 +7,38 @@
     <h1>NeuralTrend</h1>
     <p>Building advanced AI to deliver actionable insights across cryptocurrency and traditional markets (for informational purposes only — not financial advice).</p>
 
-    <!-- Products Section --> 
-    <section id="products" style="padding: 40px 30px;">
-        <h2>Models</h2>
-        <div class="product-box">
+    <!-- Models Section --> 
+    <section id="products" class="nt-models-section">
+    
+        <div class="nt-models-header">
+            <div class="nt-models-kicker">Models</div>
+    
+            <h2 class="nt-models-title">
+                AI-Powered Market Intelligence
+            </h2>
+    
+            <p class="nt-models-subtitle">
+                Explore NeuralTrend models for signal generation, altcoin-season analysis, and multi-day market forecasting.
+            </p>
+        </div>
+    
+        <div class="nt-model-tabs">
+            <a href="#epochsignaler-section" class="nt-model-tab active">EpochSignaler</a>
+            <a href="#altindexer-section" class="nt-model-tab">AltIndexer</a>
+            <a href="#epochforecaster-section" class="nt-model-tab">EpochForecaster</a>
+        </div>
+    
+        <div class="nt-models-container">
         
         <!-- EpochSignaler -->
-        <div style="margin-bottom: 60px;">
-            <h3>EpochSignaler</h3>
-            <p>
-                An AI-based algorithm for crypto and traditional assets analytics signal.
-            </p>
+        <div id="epochsignaler-section" class="nt-model-panel">
+        
+            <div class="nt-model-panel-header">
+                <h3 class="nt-model-panel-title">EpochSignaler</h3>
+                <p class="nt-model-panel-description">
+                    An AI-based model for crypto and traditional asset signal analytics.
+                </p>
+            </div>
 
         <!-- Trade Signal -->
         <section class="results-section">
@@ -778,12 +799,15 @@
         <div style="height: 20px;"></div>
 
         <!-- AltIndexer -->
-        <div>
-            <h3>AltIndexer</h3>
-            <p>
-                AltIndexer is an AI-based model for Altcoin-season prediction. Unlike traditional Alt-Index which is based on past 90-days performance of altcoins, 
-                AltIndexer is a forward-looking index based on number of altcoins that are currently in either buy or sell zone, calculated in real-time (daily).
-            </p>
+        <div id="altindexer-section" class="nt-model-panel">
+        
+            <div class="nt-model-panel-header">
+                <h3 class="nt-model-panel-title">AltIndexer</h3>
+                <p class="nt-model-panel-description">
+                    AltIndexer is an AI-based model for altcoin-season prediction. Unlike traditional altcoin indexes based on past 90-day performance, 
+                    AltIndexer is a forward-looking index based on the number of altcoins currently in buy or sell zones, calculated daily.
+                </p>
+            </div>
         
             <!-- AltIndexer Interactive Chart -->
             <div style="text-align: center; margin-top: 30px;">
@@ -802,11 +826,15 @@
         <div style="height: 20px;"></div>
 
         <!-- EpochForecaster -->
-        <div>
-            <h3>EpochForecaster</h3>
-            <p>
-                EpochForecaster is an AI-based (LSTM) algorithm that provides multi-day price forecast for BTC-USD. Signal and other assets coming soon...(Q2 2026)
-            </p>
+        <div id="epochforecaster-section" class="nt-model-panel">
+        
+            <div class="nt-model-panel-header">
+                <h3 class="nt-model-panel-title">EpochForecaster</h3>
+                <p class="nt-model-panel-description">
+                    EpochForecaster is an AI-based LSTM model that provides multi-day price forecasts for BTC-USD. 
+                    Signals and additional assets are planned for future releases.
+                </p>
+            </div>
 
             <!-- EpochForecaster Image -->
             <div style="text-align: center; margin-top: 20px;">
