@@ -29,21 +29,35 @@
             </p>
         </div>
     
-        <div class="nt-model-tabs" role="tablist" aria-label="NeuralTrend models">
-            <button type="button" class="nt-model-tab active" data-model-target="epochsignaler-section">
-                EpochSignaler
-            </button>
-        
-            <button type="button" class="nt-model-tab" data-model-target="altindexer-section">
-                AltIndexer
-            </button>
-        
-            <button type="button" class="nt-model-tab" data-model-target="epochforecaster-section">
-                EpochForecaster
-            </button>
-        </div>
+        <div class="nt-model-layout">
+
+        <aside class="nt-model-sidebar">
+            <div class="nt-model-sidebar-card">
+                <h3 class="nt-model-sidebar-title">Select Model</h3>
     
-        <div class="nt-models-container">
+                <div class="nt-model-tabs" role="tablist" aria-label="NeuralTrend models">
+    
+                    <button type="button" class="nt-model-tab active" data-model-target="epochsignaler-section">
+                        <span class="nt-model-tab-name">EpochSignaler</span>
+                        <span class="nt-model-tab-desc">Signals for crypto and traditional assets</span>
+                    </button>
+    
+                    <button type="button" class="nt-model-tab" data-model-target="altindexer-section">
+                        <span class="nt-model-tab-name">AltIndexer</span>
+                        <span class="nt-model-tab-desc">Forward-looking altcoin season indicator</span>
+                    </button>
+    
+                    <button type="button" class="nt-model-tab" data-model-target="epochforecaster-section">
+                        <span class="nt-model-tab-name">EpochForecaster</span>
+                        <span class="nt-model-tab-desc">Multi-day BTC forecasting model</span>
+                    </button>
+    
+                </div>
+            </div>
+        </aside>
+    
+        <div class="nt-model-content">
+            <div class="nt-models-container">
         
         <!-- EpochSignaler -->
         <div id="epochsignaler-section" class="nt-model-panel nt-model-panel-active">
@@ -858,7 +872,9 @@
             <div style="text-align: center; margin-top: 20px;">
                 <img src="{{ url_for('static', filename='epoch_forecaster_2.png') }}" alt="EpochForecaster" style="max-width: 80%; height: auto;">
             </div>
+            </div>
         </div>
+    </div>
     </section>
 
     <section id="contact-section">
