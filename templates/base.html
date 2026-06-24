@@ -2132,6 +2132,78 @@
             }
         }
 
+        /* ===============================
+           Page width and alignment cleanup
+        ================================ */
+        
+        .nt-page-container {
+            width: min(1280px, calc(100vw - 64px));
+            margin: 0 auto;
+        }
+        
+        /* Remove old inconsistent left spacing from main */
+        main {
+            padding-top: calc(var(--nav-height) + 32px);
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+        
+        /* Top intro section */
+        .nt-site-intro {
+            margin-bottom: 28px;
+        }
+        
+        .nt-site-title {
+            margin: 0 0 10px 0;
+            font-size: 30px;
+            line-height: 1.15;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-site-subtitle {
+            max-width: 980px;
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--nt-dark);
+            font-weight: 500;
+        }
+        
+        /* Make models section use the same page width */
+        .nt-models-section {
+            width: 100%;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 16px 0 60px 0 !important;
+        }
+        
+        /* Make model cards use available width cleanly */
+        .nt-models-container {
+            width: 100%;
+        }
+        
+        .nt-model-panel {
+            width: 100%;
+        }
+        
+        /* Large dashboard pieces should fill the card */
+        .results-section {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        
+        /* On smaller screens, keep breathing room */
+        @media (max-width: 700px) {
+            .nt-page-container {
+                width: min(100%, calc(100vw - 28px));
+            }
+        
+            .nt-site-title {
+                font-size: 26px;
+            }
+        }
+
     </style>
 
 </head>
