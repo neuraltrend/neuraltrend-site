@@ -4221,28 +4221,6 @@
             setActiveModelPanel(panelId);
         });
     });
-
-    document.addEventListener("click", function (e) {
-        const link = e.target.closest("[data-model-link]");
-    
-        if (!link) return;
-    
-        e.preventDefault();
-    
-        const panelId = link.dataset.modelLink;
-    
-        if (typeof setActiveModelPanel === "function") {
-            setActiveModelPanel(panelId);
-        }
-    
-        const panel = document.getElementById(panelId);
-        if (panel) {
-            panel.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        }
-    });
     
     // Default active model
     setActiveModelPanel("epochsignaler-section");
