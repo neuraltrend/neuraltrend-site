@@ -2349,6 +2349,71 @@
             }
         }
 
+        /* ===============================
+           Model summary cards
+        ================================ */
+        
+        .nt-model-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin: 16px 0 20px 0;
+        }
+        
+        .nt-model-summary-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 13px 14px;
+            border: 1px solid var(--nt-border);
+            border-radius: 14px;
+            background: #F8FAFC;
+            min-width: 0;
+        }
+        
+        .nt-model-summary-icon {
+            width: 34px;
+            height: 34px;
+            flex: 0 0 34px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(37, 99, 235, 0.10);
+            color: var(--nt-blue);
+            font-size: 16px;
+            font-weight: 900;
+        }
+        
+        .nt-model-summary-label {
+            font-size: 11px;
+            line-height: 1.25;
+            font-weight: 850;
+            color: var(--nt-neutral);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 4px;
+        }
+        
+        .nt-model-summary-value {
+            font-size: 13px;
+            line-height: 1.35;
+            font-weight: 850;
+            color: var(--nt-dark);
+        }
+        
+        @media (max-width: 1050px) {
+            .nt-model-summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .nt-model-summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
     </style>
 
 </head>
