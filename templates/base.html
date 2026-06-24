@@ -2752,6 +2752,222 @@
             }
         }
 
+        /* ===============================
+           Contact / Follow section with form
+        ================================ */
+        
+        .nt-contact-section {
+            margin: 34px 0 54px 0;
+        }
+        
+        .nt-contact-card {
+            display: grid;
+            grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+            gap: 24px;
+            align-items: stretch;
+            padding: 26px;
+            border-radius: 22px;
+            background: #ffffff;
+            border: 1px solid var(--nt-border);
+            box-shadow: 0 2px 14px rgba(15, 23, 42, 0.06);
+        }
+        
+        .nt-contact-kicker {
+            font-size: 11px;
+            line-height: 1.2;
+            font-weight: 850;
+            letter-spacing: 0.055em;
+            text-transform: uppercase;
+            color: var(--nt-blue);
+            margin-bottom: 8px;
+        }
+        
+        .nt-contact-title {
+            margin: 0;
+            font-size: 22px;
+            line-height: 1.25;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-contact-subtitle {
+            margin: 8px 0 0 0;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--nt-neutral);
+            font-weight: 600;
+        }
+        
+        .nt-social-links {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 18px;
+        }
+        
+        .nt-social-link {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-height: 42px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid var(--nt-border);
+            background: #F8FAFC;
+            color: var(--nt-dark);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 850;
+            transition: all 0.15s ease;
+        }
+        
+        .nt-social-link:hover {
+            background: #EFF6FF;
+            border-color: rgba(37, 99, 235, 0.28);
+            color: var(--nt-blue);
+            transform: translateY(-1px);
+        }
+        
+        .nt-social-icon {
+            width: 26px;
+            height: 26px;
+            flex: 0 0 26px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(37, 99, 235, 0.10);
+            color: var(--nt-blue);
+            font-size: 11px;
+            font-weight: 900;
+        }
+        
+        .nt-contact-note {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid var(--nt-border);
+            font-size: 12px;
+            line-height: 1.55;
+            color: var(--nt-neutral);
+            font-weight: 600;
+        }
+        
+        /* Contact form box */
+        .nt-contact-form-box {
+            padding: 20px;
+            border-radius: 18px;
+            background: #F8FAFC;
+            border: 1px solid var(--nt-border);
+        }
+        
+        .nt-contact-form-title {
+            margin: 0 0 4px 0;
+            font-size: 17px;
+            line-height: 1.25;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-contact-form-subtitle {
+            margin: 0 0 16px 0;
+            font-size: 12px;
+            line-height: 1.45;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .nt-contact-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .nt-contact-field label {
+            font-size: 11px;
+            font-weight: 850;
+            color: var(--nt-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.035em;
+        }
+        
+        .nt-contact-field input,
+        .nt-contact-field textarea {
+            width: 100%;
+            border: 1px solid var(--nt-border);
+            border-radius: 12px;
+            background: #ffffff;
+            color: var(--nt-dark);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 11px 12px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        
+        .nt-contact-field textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .nt-contact-field input:focus,
+        .nt-contact-field textarea:focus {
+            border-color: rgba(37, 99, 235, 0.55);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+        }
+        
+        .nt-contact-submit {
+            margin-top: 4px;
+            border: none;
+            border-radius: 999px;
+            background: var(--nt-dark);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 900;
+            padding: 11px 16px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .nt-contact-submit:hover {
+            transform: translateY(-1px);
+            background: #020617;
+        }
+        
+        .nt-contact-footer-line {
+            margin-top: 18px;
+            font-size: 12px;
+            color: var(--nt-neutral);
+            font-weight: 600;
+        }
+        
+        @media (max-width: 900px) {
+            .nt-contact-card {
+                grid-template-columns: 1fr;
+                padding: 22px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .nt-contact-card {
+                padding: 18px;
+                border-radius: 18px;
+            }
+        
+            .nt-social-links {
+                grid-template-columns: 1fr;
+            }
+        
+            .nt-contact-title {
+                font-size: 19px;
+            }
+        }
+
     </style>
 
 </head>
