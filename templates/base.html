@@ -3154,6 +3154,58 @@
             }
         }
 
+        /* ===============================
+           Model sidebar status badges
+        ================================ */
+        
+        .nt-model-tab-top {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        
+        .nt-model-status-badge {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3px 7px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            font-size: 10px;
+            line-height: 1.1;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+        
+        .nt-model-status-badge.badge-live {
+            color: var(--nt-positive);
+            background: rgba(22, 163, 74, 0.10);
+            border-color: rgba(22, 163, 74, 0.20);
+        }
+        
+        .nt-model-status-badge.badge-preview {
+            color: var(--nt-blue);
+            background: rgba(37, 99, 235, 0.10);
+            border-color: rgba(37, 99, 235, 0.20);
+        }
+        
+        .nt-model-status-badge.badge-dev {
+            color: #D97706;
+            background: rgba(217, 119, 6, 0.10);
+            border-color: rgba(217, 119, 6, 0.22);
+        }
+        
+        /* When tab is active, keep badge visible on dark background */
+        .nt-model-tab.active .nt-model-status-badge {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.16);
+            border-color: rgba(255, 255, 255, 0.24);
+        }
+
     </style>
 
 </head>
