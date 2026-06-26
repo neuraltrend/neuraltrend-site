@@ -303,6 +303,332 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
     return output
 
 # --------------------
+# Live simulation helpers
+# --------------------
+
+def is_crypto_ticker(ticker: str) -> bool:
+    return str(ticker).upper().endswith("-USD")
+
+
+def get_asset_type(ticker: str) -> str:
+    return "crypto" if is_crypto_ticker(ticker) else "stock"
+
+
+def get_transaction_cost_rate(ticker: str) -> float:
+    """
+    Same transaction-cost logic used by EpochSignaler:
+    crypto = 1% per side
+    stock = 0.1% per side
+    """
+    return 0.01 if is_crypto_ticker(ticker) else 0.001
+
+
+def load_epoch_csv_for_ticker(ticker: str) -> pd.DataFrame:
+    """
+    Loads the local epoch CSV for a ticker.
+    Example:
+    BTC-USD -> data/epoch_BTC.csv
+    ETH-USD -> data/epoch_ETH.csv
+    AAPL -> data/epoch_AAPL.csv
+    """
+    base_symbol = ticker.split("-")[0]
+    csv_filename = f"epoch_{base_symbol}.csv"
+    csv_path = os.path.join(app.root_path, "data", csv_filename)
+
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(f"No CSV found for {ticker}: {csv_filename}")
+
+    df = pd.read_csv(
+        csv_path,
+        usecols=["Date", "Close", "epoch_signal"],
+        parse_dates=["Date"]
+    )
+
+    df["Close"] = pd.to_numeric(df["Close"], errors="coerce")
+    df["epoch_signal"] = pd.to_numeric(df["epoch_signal"], errors="coerce")
+
+    df = df.dropna(subset=["Date", "Close", "epoch_signal"]).copy()
+    df = df.sort_values("Date")
+    df.set_index("Date", inplace=True)
+
+    if len(df) < 1:
+        raise ValueError(f"CSV for {ticker} has no valid rows.")
+
+    return df
+
+
+def normalize_live_quantity_for_buy(ticker, raw_quantity, price, cash_allocation, transaction_cost_rate):
+    """
+    Crypto: fractional quantity allowed.
+    Stock: whole shares only. Round to nearest integer, but never exceed available allocation.
+    """
+    if is_crypto_ticker(ticker):
+        return float(raw_quantity)
+
+    quantity = int(round(raw_quantity))
+
+    while quantity > 0:
+        gross_amount = quantity * price
+        transaction_cost = gross_amount * transaction_cost_rate
+        total_needed = gross_amount + transaction_cost
+
+        if total_needed <= cash_allocation + 1e-9:
+            return float(quantity)
+
+        quantity -= 1
+
+    return 0.0
+
+
+def normalize_live_quantity_for_sell(ticker, raw_quantity, current_position):
+    """
+    Crypto: fractional sell allowed.
+    Stock: whole-share sell only.
+    """
+    if current_position <= 0:
+        return 0.0
+
+    if is_crypto_ticker(ticker):
+        return float(min(raw_quantity, current_position))
+
+    quantity = int(round(raw_quantity))
+    quantity = min(quantity, int(current_position))
+
+    if quantity < 1:
+        return 0.0
+
+    return float(quantity)
+
+
+def get_latest_equity_point(simulation_id):
+    return (
+        LiveSimulationEquity.query
+        .filter_by(simulation_id=simulation_id)
+        .order_by(LiveSimulationEquity.equity_date.desc())
+        .first()
+    )
+
+
+def live_simulation_summary(sim):
+    latest = get_latest_equity_point(sim.id)
+
+    strategy_value = latest.strategy_value if latest else sim.initial_cash
+    benchmark_value = latest.benchmark_value if latest else sim.initial_cash
+
+    strategy_return = (
+        (strategy_value / sim.initial_cash) - 1
+        if sim.initial_cash else 0.0
+    )
+
+    benchmark_return = (
+        (benchmark_value / sim.initial_cash) - 1
+        if sim.initial_cash else 0.0
+    )
+
+    outperformance = (
+        strategy_value / benchmark_value
+        if benchmark_value and benchmark_value != 0 else None
+    )
+
+    trade_count = LiveSimulationTrade.query.filter_by(
+        simulation_id=sim.id
+    ).count()
+
+    data = sim.to_dict()
+    data.update({
+        "latest_strategy_value": strategy_value,
+        "latest_benchmark_value": benchmark_value,
+        "strategy_return": strategy_return,
+        "benchmark_return": benchmark_return,
+        "outperformance": outperformance,
+        "trade_count": trade_count,
+        "latest_equity_date": latest.equity_date.isoformat() if latest else None,
+    })
+
+    return data
+
+
+def live_simulation_detail(sim):
+    equity_points = (
+        LiveSimulationEquity.query
+        .filter_by(simulation_id=sim.id)
+        .order_by(LiveSimulationEquity.equity_date.asc())
+        .all()
+    )
+
+    trades = (
+        LiveSimulationTrade.query
+        .filter_by(simulation_id=sim.id)
+        .order_by(LiveSimulationTrade.trade_date.asc(), LiveSimulationTrade.id.asc())
+        .all()
+    )
+
+    summary = live_simulation_summary(sim)
+
+    summary.update({
+        "dates": [p.equity_date.isoformat() for p in equity_points],
+        "strategy_curve": [p.strategy_value for p in equity_points],
+        "benchmark_curve": [p.benchmark_value for p in equity_points],
+        "signals": [p.signal for p in equity_points],
+        "close_prices": [p.close_price for p in equity_points],
+        "trades": [t.to_dict() for t in trades],
+    })
+
+    return summary
+
+
+def update_live_simulation_from_csv(sim):
+    """
+    Reads fresh CSV rows and updates one simulation from its last processed date.
+
+    Logic:
+    - If never processed, process rows from start_date onward.
+    - If already processed, process only rows after last_processed_date.
+    - BUY: invest selected % of available cash.
+    - SELL: sell selected % of current position.
+    - HOLD: do nothing.
+    """
+    if sim.status != "active":
+        return sim
+
+    df = load_epoch_csv_for_ticker(sim.ticker)
+
+    if sim.last_processed_date:
+        new_rows = df[df.index.date > sim.last_processed_date]
+    else:
+        new_rows = df[df.index.date >= sim.start_date]
+
+    if new_rows.empty:
+        return sim
+
+    position_fraction = sim.position_size_pct / 100.0
+    transaction_cost_rate = sim.transaction_cost_rate
+
+    for date_index, row in new_rows.iterrows():
+        equity_date = date_index.date()
+        price = float(row["Close"])
+        signal = int(row["epoch_signal"])
+
+        trade_executed = False
+
+        # --------------------
+        # BUY
+        # --------------------
+        if signal == 1 and sim.cash_balance > 0:
+            cash_allocation = sim.cash_balance * position_fraction
+
+            # Treat cash_allocation as total cash used, including transaction cost.
+            gross_buy_budget = cash_allocation / (1 + transaction_cost_rate)
+            raw_quantity = gross_buy_budget / price
+
+            quantity = normalize_live_quantity_for_buy(
+                ticker=sim.ticker,
+                raw_quantity=raw_quantity,
+                price=price,
+                cash_allocation=cash_allocation,
+                transaction_cost_rate=transaction_cost_rate
+            )
+
+            if quantity > 0:
+                gross_amount = quantity * price
+                transaction_cost = gross_amount * transaction_cost_rate
+                total_cash_used = gross_amount + transaction_cost
+
+                if total_cash_used <= sim.cash_balance + 1e-9:
+                    sim.position_quantity += quantity
+                    sim.cash_balance -= total_cash_used
+
+                    db.session.add(LiveSimulationTrade(
+                        simulation_id=sim.id,
+                        trade_date=equity_date,
+                        ticker=sim.ticker,
+                        signal=1,
+                        price=price,
+                        quantity=quantity,
+                        gross_amount=gross_amount,
+                        transaction_cost=transaction_cost,
+                        cash_after=sim.cash_balance,
+                        position_after=sim.position_quantity
+                    ))
+
+                    trade_executed = True
+
+        # --------------------
+        # SELL
+        # --------------------
+        elif signal == -1 and sim.position_quantity > 0:
+            raw_quantity = sim.position_quantity * position_fraction
+
+            quantity = normalize_live_quantity_for_sell(
+                ticker=sim.ticker,
+                raw_quantity=raw_quantity,
+                current_position=sim.position_quantity
+            )
+
+            if quantity > 0:
+                gross_amount = quantity * price
+                transaction_cost = gross_amount * transaction_cost_rate
+                net_cash_received = gross_amount - transaction_cost
+
+                sim.position_quantity -= quantity
+
+                if sim.position_quantity < 1e-12:
+                    sim.position_quantity = 0.0
+
+                sim.cash_balance += net_cash_received
+
+                db.session.add(LiveSimulationTrade(
+                    simulation_id=sim.id,
+                    trade_date=equity_date,
+                    ticker=sim.ticker,
+                    signal=-1,
+                    price=price,
+                    quantity=quantity,
+                    gross_amount=gross_amount,
+                    transaction_cost=transaction_cost,
+                    cash_after=sim.cash_balance,
+                    position_after=sim.position_quantity
+                ))
+
+                trade_executed = True
+
+        # --------------------
+        # Daily equity point
+        # --------------------
+        strategy_value = sim.cash_balance + (sim.position_quantity * price)
+        benchmark_value = sim.benchmark_quantity * price
+
+        existing_point = LiveSimulationEquity.query.filter_by(
+            simulation_id=sim.id,
+            equity_date=equity_date
+        ).first()
+
+        if existing_point:
+            existing_point.signal = signal
+            existing_point.close_price = price
+            existing_point.cash_balance = sim.cash_balance
+            existing_point.position_quantity = sim.position_quantity
+            existing_point.strategy_value = strategy_value
+            existing_point.benchmark_value = benchmark_value
+        else:
+            db.session.add(LiveSimulationEquity(
+                simulation_id=sim.id,
+                equity_date=equity_date,
+                ticker=sim.ticker,
+                signal=signal,
+                close_price=price,
+                cash_balance=sim.cash_balance,
+                position_quantity=sim.position_quantity,
+                strategy_value=strategy_value,
+                benchmark_value=benchmark_value
+            ))
+
+        sim.last_processed_date = equity_date
+
+    db.session.commit()
+    return sim
+
+# --------------------
 # Routes
 # --------------------
 
@@ -443,6 +769,164 @@ def me():
 
     return jsonify({
         "email": None
+    })
+
+# --------------------
+# Live simulation API
+# --------------------
+
+@app.route("/live-simulations", methods=["GET"])
+@login_required
+def list_live_simulations():
+    sims = (
+        LiveSimulation.query
+        .filter_by(user_id=current_user.id, status="active")
+        .order_by(LiveSimulation.created_at.desc())
+        .all()
+    )
+
+    for sim in sims:
+        try:
+            update_live_simulation_from_csv(sim)
+        except Exception as e:
+            print(f"Live simulation update error for sim {sim.id}:", str(e))
+
+    sims = (
+        LiveSimulation.query
+        .filter_by(user_id=current_user.id, status="active")
+        .order_by(LiveSimulation.created_at.desc())
+        .all()
+    )
+
+    return jsonify({
+        "limit": LIVE_SIMULATION_LIMIT,
+        "count": len(sims),
+        "simulations": [live_simulation_summary(sim) for sim in sims]
+    })
+
+@app.route("/live-simulations", methods=["POST"])
+@login_required
+def create_live_simulation():
+    data = request.get_json(silent=True) or {}
+
+    ticker = str(data.get("ticker", "BTC-USD")).strip().upper()
+    name = str(data.get("name", "")).strip()
+
+    try:
+        initial_cash = float(data.get("initial_cash", 10000))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Initial cash must be a valid number."}), 400
+
+    if initial_cash <= 0:
+        return jsonify({"error": "Initial cash must be greater than zero."}), 400
+
+    try:
+        position_fraction = parse_position_fraction(
+            data.get("position_size_pct", 100)
+        )
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+    position_size_pct = position_fraction * 100
+
+    active_count = LiveSimulation.query.filter_by(
+        user_id=current_user.id,
+        status="active"
+    ).count()
+
+    if active_count >= LIVE_SIMULATION_LIMIT:
+        return jsonify({
+            "error": f"Simulation limit reached. Current limit is {LIVE_SIMULATION_LIMIT}."
+        }), 403
+
+    try:
+        df = load_epoch_csv_for_ticker(ticker)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+    latest_date = df.index.max().date()
+    latest_price = float(df.loc[df.index.max(), "Close"])
+
+    transaction_cost_rate = get_transaction_cost_rate(ticker)
+    asset_type = get_asset_type(ticker)
+
+    # Buy & Hold benchmark:
+    # invest initial cash at the start date, including entry transaction cost.
+    benchmark_gross_budget = initial_cash / (1 + transaction_cost_rate)
+    benchmark_quantity = benchmark_gross_budget / latest_price
+
+    if not name:
+        name = f"{ticker} {position_size_pct:.0f}% Live Simulation"
+
+    sim = LiveSimulation(
+        user_id=current_user.id,
+        name=name,
+        ticker=ticker,
+        asset_type=asset_type,
+        initial_cash=initial_cash,
+        cash_balance=initial_cash,
+        position_quantity=0.0,
+        position_size_pct=position_size_pct,
+        transaction_cost_rate=transaction_cost_rate,
+        benchmark_quantity=benchmark_quantity,
+        start_date=latest_date,
+        last_processed_date=None,
+        status="active"
+    )
+
+    db.session.add(sim)
+    db.session.commit()
+
+    try:
+        update_live_simulation_from_csv(sim)
+    except Exception as e:
+        print("Live simulation initial update error:", str(e))
+        return jsonify({
+            "error": "Simulation created, but initial update failed.",
+            "details": str(e)
+        }), 500
+
+    return jsonify({
+        "message": "Live simulation created.",
+        "simulation": live_simulation_detail(sim)
+    }), 201
+
+@app.route("/live-simulations/<int:simulation_id>", methods=["GET"])
+@login_required
+def get_live_simulation(simulation_id):
+    sim = LiveSimulation.query.filter_by(
+        id=simulation_id,
+        user_id=current_user.id
+    ).first()
+
+    if not sim:
+        return jsonify({"error": "Simulation not found."}), 404
+
+    try:
+        update_live_simulation_from_csv(sim)
+    except Exception as e:
+        print(f"Live simulation update error for sim {sim.id}:", str(e))
+
+    return jsonify({
+        "simulation": live_simulation_detail(sim)
+    })
+
+@app.route("/live-simulations/<int:simulation_id>", methods=["DELETE"])
+@login_required
+def delete_live_simulation(simulation_id):
+    sim = LiveSimulation.query.filter_by(
+        id=simulation_id,
+        user_id=current_user.id
+    ).first()
+
+    if not sim:
+        return jsonify({"error": "Simulation not found."}), 404
+
+    db.session.delete(sim)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Simulation deleted."
     })
 
 @app.route("/request-password-reset", methods=["POST"])
