@@ -882,7 +882,7 @@
             <div id="results"></div>
         </section>
 
-        <!-- Live Portfolio Simulation Preview -->
+        <!-- Live Portfolio Simulation -->
         <section class="nt-live-sim-section" id="live-simulation-preview">
         
             <div class="nt-live-sim-header">
@@ -894,122 +894,180 @@
                     </h3>
         
                     <p class="nt-live-sim-subtitle">
-                        Start a saved paper simulation with initial cash, position sizing, and selected assets. 
-                        As new daily signals arrive, the portfolio can update automatically and compare performance against buy-and-hold.
+                        Create independent paper simulations for individual assets. Each simulation tracks its own cash, position size, trades, strategy equity, and buy-and-hold benchmark.
                     </p>
                 </div>
         
                 <div class="nt-live-sim-badge">
                     <span class="nt-live-sim-dot"></span>
-                    Planned Feature
+                    Live Beta
                 </div>
             </div>
         
             <div class="nt-live-sim-layout">
         
+                <!-- CREATE SIMULATION -->
                 <div class="nt-live-sim-card">
                     <h4 class="nt-live-sim-card-title">
-                        Simulation setup preview
+                        Create new simulation
                     </h4>
         
-                    <div class="nt-live-sim-form-grid">
+                    <form id="live-sim-form" class="nt-live-sim-form">
         
-                        <div class="nt-live-sim-field">
-                            <label for="live-sim-name">Simulation Name</label>
-                            <input id="live-sim-name" type="text" value="My EpochSignaler Simulation" disabled>
+                        <div class="nt-live-sim-form-grid">
+        
+                            <div class="nt-live-sim-field">
+                                <label for="live-sim-name">Simulation Name</label>
+                                <input 
+                                    id="live-sim-name" 
+                                    name="name"
+                                    type="text" 
+                                    value="BTC 50% Live Simulation"
+                                >
+                            </div>
+        
+                            <div class="nt-live-sim-field">
+                                <label for="live-sim-ticker">Ticker</label>
+                                <input 
+                                    id="live-sim-ticker" 
+                                    name="ticker"
+                                    type="text" 
+                                    value="BTC-USD"
+                                    placeholder="BTC-USD, ETH-USD, AAPL..."
+                                    required
+                                >
+                            </div>
+        
+                            <div class="nt-live-sim-field">
+                                <label for="live-sim-cash">Initial Cash</label>
+                                <input 
+                                    id="live-sim-cash" 
+                                    name="initial_cash"
+                                    type="number" 
+                                    value="10000"
+                                    min="1"
+                                    step="1"
+                                    required
+                                >
+                            </div>
+        
+                            <div class="nt-live-sim-field">
+                                <label for="live-sim-position">Position Size per Signal</label>
+                                <select id="live-sim-position" name="position_size_pct" required>
+                                    <option value="100">100%</option>
+                                    <option value="50" selected>50%</option>
+                                    <option value="25">25%</option>
+                                </select>
+                            </div>
+        
+                            <div class="nt-live-sim-field">
+                                <label>Start Date</label>
+                                <input type="text" value="Latest available CSV date" disabled>
+                            </div>
+        
+                            <div class="nt-live-sim-field">
+                                <label>Benchmark</label>
+                                <input type="text" value="Buy & Hold from activation date" disabled>
+                            </div>
+        
                         </div>
         
-                        <div class="nt-live-sim-field">
-                            <label for="live-sim-cash">Initial Cash</label>
-                            <input id="live-sim-cash" type="number" value="10000" disabled>
+                        <div class="nt-live-sim-actions">
+                            <button type="submit" class="nt-live-sim-btn nt-live-sim-btn-active">
+                                Create Simulation
+                            </button>
+        
+                            <span id="live-sim-message" class="nt-live-sim-small-note">
+                                Login is required to create and track live simulations.
+                            </span>
                         </div>
         
-                        <div class="nt-live-sim-field">
-                            <label for="live-sim-universe">Asset Universe</label>
-                            <select id="live-sim-universe" disabled>
-                                <option>Crypto assets</option>
-                                <option>Traditional assets</option>
-                                <option>Crypto + traditional assets</option>
-                            </select>
-                        </div>
-        
-                        <div class="nt-live-sim-field">
-                            <label for="live-sim-position">Position Size per Signal</label>
-                            <select id="live-sim-position" disabled>
-                                <option>100%</option>
-                                <option>50%</option>
-                                <option>25%</option>
-                            </select>
-                        </div>
-        
-                        <div class="nt-live-sim-field">
-                            <label for="live-sim-start">Start Date</label>
-                            <input id="live-sim-start" type="text" value="From activation date" disabled>
-                        </div>
-        
-                        <div class="nt-live-sim-field">
-                            <label for="live-sim-benchmark">Benchmark</label>
-                            <select id="live-sim-benchmark" disabled>
-                                <option>Buy & Hold comparison</option>
-                            </select>
-                        </div>
-        
-                    </div>
-        
-                    <div class="nt-live-sim-actions">
-                        <button type="button" class="nt-live-sim-btn" disabled>
-                            Create Simulation
-                        </button>
-        
-                        <span class="nt-live-sim-small-note">
-                            This preview will become available after user accounts and saved simulations are added.
-                        </span>
-                    </div>
+                    </form>
                 </div>
         
+                <!-- SIMULATION LIST -->
                 <aside class="nt-live-sim-card">
                     <h4 class="nt-live-sim-card-title">
-                        How it will work
+                        My simulations
                     </h4>
         
-                    <div class="nt-live-sim-step-list">
+                    <div id="live-sim-limit" class="nt-live-sim-small-note">
+                        Loading simulations...
+                    </div>
         
-                        <div class="nt-live-sim-step">
-                            <div class="nt-live-sim-step-num">1</div>
-                            <div>
-                                <div class="nt-live-sim-step-title">Create a paper portfolio</div>
-                                <div class="nt-live-sim-step-text">
-                                    Choose initial cash, asset universe, and position size.
-                                </div>
-                            </div>
-                        </div>
-        
-                        <div class="nt-live-sim-step">
-                            <div class="nt-live-sim-step-num">2</div>
-                            <div>
-                                <div class="nt-live-sim-step-title">Apply daily signals</div>
-                                <div class="nt-live-sim-step-text">
-                                    BUY, HOLD, and SELL signals update cash, positions, and trade history.
-                                </div>
-                            </div>
-                        </div>
-        
-                        <div class="nt-live-sim-step">
-                            <div class="nt-live-sim-step-num">3</div>
-                            <div>
-                                <div class="nt-live-sim-step-title">Track equity over time</div>
-                                <div class="nt-live-sim-step-text">
-                                    Compare live paper performance against a buy-and-hold benchmark.
-                                </div>
-                            </div>
-                        </div>
-        
+                    <div id="live-sim-list" class="nt-live-sim-list">
+                        <!-- simulation cards injected by JS -->
                     </div>
         
                     <div class="nt-live-sim-warning">
-                        Planned as a paper simulation only. It will not place trades and should not be interpreted as investment advice.
+                        Paper simulation only. It does not place trades and should not be interpreted as investment advice.
                     </div>
                 </aside>
+        
+            </div>
+        
+            <!-- SELECTED SIMULATION DETAIL -->
+            <div id="live-sim-dashboard" class="nt-live-sim-dashboard" style="display: none;">
+        
+                <div class="nt-live-sim-dashboard-header">
+                    <div>
+                        <div class="nt-section-eyebrow">Selected Simulation</div>
+                        <h4 id="live-sim-detail-title" class="nt-live-sim-dashboard-title">
+                            —
+                        </h4>
+                        <p id="live-sim-detail-subtitle" class="nt-live-sim-dashboard-subtitle">
+                            —
+                        </p>
+                    </div>
+                </div>
+        
+                <div class="nt-live-sim-metric-grid">
+        
+                    <div class="nt-live-sim-metric-card">
+                        <div class="nt-live-sim-metric-label">Strategy Value</div>
+                        <div id="live-sim-strategy-value" class="nt-live-sim-metric-value">—</div>
+                        <div id="live-sim-strategy-return" class="nt-live-sim-metric-sub">—</div>
+                    </div>
+        
+                    <div class="nt-live-sim-metric-card">
+                        <div class="nt-live-sim-metric-label">Buy & Hold Value</div>
+                        <div id="live-sim-benchmark-value" class="nt-live-sim-metric-value">—</div>
+                        <div id="live-sim-benchmark-return" class="nt-live-sim-metric-sub">—</div>
+                    </div>
+        
+                    <div class="nt-live-sim-metric-card">
+                        <div class="nt-live-sim-metric-label">Cash Balance</div>
+                        <div id="live-sim-cash-balance" class="nt-live-sim-metric-value">—</div>
+                        <div id="live-sim-position-quantity" class="nt-live-sim-metric-sub">—</div>
+                    </div>
+        
+                    <div class="nt-live-sim-metric-card">
+                        <div class="nt-live-sim-metric-label">Trades</div>
+                        <div id="live-sim-trade-count" class="nt-live-sim-metric-value">—</div>
+                        <div id="live-sim-last-date" class="nt-live-sim-metric-sub">—</div>
+                    </div>
+        
+                </div>
+        
+                <div class="nt-live-sim-chart-card">
+                    <div class="nt-live-sim-chart-title">
+                        Live Equity Curve: Strategy vs Buy & Hold
+                    </div>
+        
+                    <div class="nt-live-sim-chart-shell">
+                        <canvas id="live-sim-chart"></canvas>
+                    </div>
+                </div>
+        
+                <div class="nt-live-sim-trades-card">
+                    <div class="nt-live-sim-chart-title">
+                        Trade History
+                    </div>
+        
+                    <div id="live-sim-trades-table" class="nt-live-sim-trades-table">
+                        <!-- trades injected by JS -->
+                    </div>
+                </div>
         
             </div>
         
