@@ -859,7 +859,17 @@ def create_live_simulation():
     # Buy & Hold benchmark:
     # invest initial cash at the start date, including entry transaction cost.
     benchmark_gross_budget = initial_cash / (1 + transaction_cost_rate)
-    benchmark_quantity = benchmark_gross_budget / latest_price
+    
+    if is_crypto_ticker(ticker):
+        benchmark_quantity = benchmark_gross_budget / latest_price
+    else:
+        # Stocks: whole-share benchmark only.
+        benchmark_quantity = float(int(benchmark_gross_budget / latest_price))
+    
+        if benchmark_quantity < 1:
+            return jsonify({
+                "error": "Initial cash is too small to buy at least one whole share for the buy-and-hold benchmark."
+            }), 400
 
     if not name:
         name = f"{ticker} {position_size_pct:.0f}% Live Simulation"
