@@ -312,16 +312,16 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
 #         db.create_all()
 #     return "DB initialized"
 
-@app.route("/admin/init-live-sim-tables/<token>")
-def init_live_sim_tables(token):
-    expected_token = os.environ.get("ADMIN_INIT_TOKEN")
+# @app.route("/admin/init-live-sim-tables/<token>")
+# def init_live_sim_tables(token):
+#     expected_token = os.environ.get("ADMIN_INIT_TOKEN")
 
-    if not expected_token or token != expected_token:
-        return "Unauthorized", 403
+#     if not expected_token or token != expected_token:
+#         return "Unauthorized", 403
 
-    db.create_all()
+#     db.create_all()
 
-    return "Live simulation tables initialized."
+#     return "Live simulation tables initialized."
 
 @app.route("/signup", methods=["POST"])
 @limiter.limit("3 per minute")
