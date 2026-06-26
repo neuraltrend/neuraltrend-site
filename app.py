@@ -8,7 +8,7 @@ import numpy as np
 import os
 from functools import lru_cache
 from extensions import db, bcrypt, login_manager
-from models import User
+from models import User, LiveSimulation, LiveSimulationTrade, LiveSimulationEquity
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Mail, Message
 from flask_limiter import Limiter
@@ -205,6 +205,7 @@ def get_csv_version():
     return max(mtimes) if mtimes else 0
 
 cache = {}  # simple in-memory cache per ticker
+LIVE_SIMULATION_LIMIT = 100
 
 def compute_signals_for_ticker(ticker, period_days=365*10):
     cache_key = (ticker, period_days)
@@ -310,6 +311,17 @@ def compute_signals_for_ticker(ticker, period_days=365*10):
 #     with app.app_context():
 #         db.create_all()
 #     return "DB initialized"
+
+@app.route("/admin/init-live-sim-tables/<token>")
+def init_live_sim_tables(token):
+    expected_token = os.environ.get("ADMIN_INIT_TOKEN")
+
+    if not expected_token or token != expected_token:
+        return "Unauthorized", 403
+
+    db.create_all()
+
+    return "Live simulation tables initialized."
 
 @app.route("/signup", methods=["POST"])
 @limiter.limit("3 per minute")
