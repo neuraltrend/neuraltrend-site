@@ -3435,6 +3435,240 @@
             }
         }
 
+        /* ===============================
+           Live simulation active UI
+        ================================ */
+        
+        .nt-live-sim-btn-active {
+            cursor: pointer;
+            opacity: 1;
+        }
+        
+        .nt-live-sim-btn-active:hover {
+            background: #020617;
+            transform: translateY(-1px);
+        }
+        
+        .nt-live-sim-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 14px;
+            max-height: 360px;
+            overflow-y: auto;
+        }
+        
+        .nt-live-sim-item {
+            width: 100%;
+            border: 1px solid var(--nt-border);
+            border-radius: 14px;
+            background: #ffffff;
+            padding: 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .nt-live-sim-item:hover {
+            border-color: rgba(37, 99, 235, 0.28);
+            background: #EFF6FF;
+        }
+        
+        .nt-live-sim-item.active {
+            border-color: rgba(37, 99, 235, 0.45);
+            background: rgba(37, 99, 235, 0.07);
+        }
+        
+        .nt-live-sim-item-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        
+        .nt-live-sim-item-name {
+            font-size: 13px;
+            line-height: 1.3;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-live-sim-item-meta {
+            margin-top: 4px;
+            font-size: 12px;
+            line-height: 1.45;
+            color: var(--nt-neutral);
+            font-weight: 650;
+        }
+        
+        .nt-live-sim-item-value {
+            margin-top: 7px;
+            font-size: 12px;
+            font-weight: 850;
+        }
+        
+        .nt-live-sim-delete {
+            border: none;
+            background: rgba(220, 38, 38, 0.08);
+            color: var(--nt-negative);
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 850;
+            padding: 5px 8px;
+            cursor: pointer;
+        }
+        
+        .nt-live-sim-delete:hover {
+            background: rgba(220, 38, 38, 0.14);
+        }
+        
+        .nt-live-sim-dashboard {
+            margin-top: 18px;
+            border: 1px solid var(--nt-border);
+            border-radius: 18px;
+            background: #ffffff;
+            box-shadow: 0 2px 14px rgba(15, 23, 42, 0.06);
+            padding: 18px;
+        }
+        
+        .nt-live-sim-dashboard-header {
+            margin-bottom: 14px;
+        }
+        
+        .nt-live-sim-dashboard-title {
+            margin: 0;
+            font-size: 18px;
+            line-height: 1.25;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-live-sim-dashboard-subtitle {
+            margin: 5px 0 0 0;
+            font-size: 12px;
+            line-height: 1.5;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-live-sim-metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .nt-live-sim-metric-card {
+            border: 1px solid var(--nt-border);
+            border-radius: 14px;
+            background: #F8FAFC;
+            padding: 14px;
+            min-width: 0;
+        }
+        
+        .nt-live-sim-metric-label {
+            font-size: 11px;
+            font-weight: 850;
+            color: var(--nt-neutral);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 6px;
+        }
+        
+        .nt-live-sim-metric-value {
+            font-size: 22px;
+            line-height: 1.1;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-live-sim-metric-sub {
+            margin-top: 6px;
+            font-size: 12px;
+            line-height: 1.4;
+            font-weight: 650;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-live-sim-chart-card,
+        .nt-live-sim-trades-card {
+            border: 1px solid var(--nt-border);
+            border-radius: 14px;
+            background: #ffffff;
+            padding: 14px;
+            margin-top: 14px;
+        }
+        
+        .nt-live-sim-chart-title {
+            font-size: 14px;
+            line-height: 1.25;
+            font-weight: 900;
+            color: var(--nt-dark);
+            margin-bottom: 10px;
+        }
+        
+        .nt-live-sim-chart-shell {
+            height: 380px;
+            width: 100%;
+            position: relative;
+        }
+        
+        .nt-live-sim-trades-table {
+            max-height: 260px;
+            overflow-y: auto;
+        }
+        
+        .nt-live-trade-row {
+            display: grid;
+            grid-template-columns: 100px 80px repeat(4, minmax(0, 1fr));
+            gap: 8px;
+            align-items: center;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--nt-border);
+            font-size: 12px;
+            font-weight: 650;
+            color: var(--nt-dark);
+        }
+        
+        .nt-live-trade-row.header {
+            color: var(--nt-neutral);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.035em;
+            font-weight: 850;
+        }
+        
+        .nt-live-trade-buy {
+            color: var(--nt-positive);
+            font-weight: 900;
+        }
+        
+        .nt-live-trade-sell {
+            color: var(--nt-negative);
+            font-weight: 900;
+        }
+        
+        @media (max-width: 1000px) {
+            .nt-live-sim-metric-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        
+            .nt-live-trade-row {
+                grid-template-columns: 90px 70px repeat(2, minmax(0, 1fr));
+                overflow-x: auto;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .nt-live-sim-metric-grid {
+                grid-template-columns: 1fr;
+            }
+        
+            .nt-live-sim-chart-shell {
+                height: 300px;
+            }
+        }
+
     </style>
 
 </head>
@@ -4726,6 +4960,390 @@
             ? "Normal Scale"
             : "Log Scale";
     }
+
+    /* ===============================
+       Live Simulation UI
+    ================================ */
+    
+    let liveSimChart = null;
+    let selectedLiveSimulationId = null;
+    
+    function liveSimMoney(value) {
+        if (value === null || value === undefined || Number.isNaN(Number(value))) {
+            return "—";
+        }
+    
+        return "$" + Number(value).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+    
+    function liveSimPercent(value) {
+        if (value === null || value === undefined || Number.isNaN(Number(value))) {
+            return "—";
+        }
+    
+        const pct = Number(value) * 100;
+        const sign = pct > 0 ? "+" : "";
+    
+        return `${sign}${pct.toFixed(2)}%`;
+    }
+    
+    function liveSimReturnClass(value) {
+        if (value === null || value === undefined || Number.isNaN(Number(value))) {
+            return "return-neutral";
+        }
+    
+        if (Number(value) > 0) return "return-positive";
+        if (Number(value) < 0) return "return-negative";
+        return "return-neutral";
+    }
+    
+    function setLiveSimMessage(message, isError = false) {
+        const el = document.getElementById("live-sim-message");
+        if (!el) return;
+    
+        el.textContent = message;
+        el.style.color = isError ? "var(--nt-negative)" : "var(--nt-neutral)";
+    }
+    
+    async function liveSimFetchJSON(url, options = {}) {
+        const response = await fetch(url, options);
+        const text = await response.text();
+    
+        let data = null;
+    
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            throw new Error(`Unexpected server response (${response.status}).`);
+        }
+    
+        if (!response.ok) {
+            throw new Error(data.error || `Request failed (${response.status}).`);
+        }
+    
+        return data;
+    }
+    
+    async function loadLiveSimulations() {
+        const listEl = document.getElementById("live-sim-list");
+        const limitEl = document.getElementById("live-sim-limit");
+    
+        if (!listEl || !limitEl) return;
+    
+        try {
+            const data = await liveSimFetchJSON("/live-simulations");
+    
+            limitEl.textContent = `${data.count} of ${data.limit} simulations used.`;
+    
+            renderLiveSimulationList(data.simulations || []);
+    
+            if (data.simulations && data.simulations.length > 0) {
+                const selectedExists = data.simulations.some(sim => sim.id === selectedLiveSimulationId);
+                const targetId = selectedExists ? selectedLiveSimulationId : data.simulations[0].id;
+                await selectLiveSimulation(targetId);
+            } else {
+                document.getElementById("live-sim-dashboard").style.display = "none";
+            }
+    
+        } catch (error) {
+            limitEl.textContent = "Login required to view saved simulations.";
+            listEl.innerHTML = "";
+            setLiveSimMessage(error.message, true);
+        }
+    }
+    
+    function renderLiveSimulationList(simulations) {
+        const listEl = document.getElementById("live-sim-list");
+        if (!listEl) return;
+    
+        if (!simulations.length) {
+            listEl.innerHTML = `
+                <div class="nt-live-sim-small-note">
+                    No live simulations yet. Create your first one above.
+                </div>
+            `;
+            return;
+        }
+    
+        listEl.innerHTML = simulations.map(sim => {
+            const activeClass = sim.id === selectedLiveSimulationId ? "active" : "";
+            const retClass = liveSimReturnClass(sim.strategy_return);
+    
+            return `
+                <div class="nt-live-sim-item ${activeClass}" data-live-sim-id="${sim.id}">
+                    <div class="nt-live-sim-item-top">
+                        <div>
+                            <div class="nt-live-sim-item-name">${escapeHTML(sim.name)}</div>
+                            <div class="nt-live-sim-item-meta">
+                                ${escapeHTML(sim.ticker)} · ${Number(sim.position_size_pct).toFixed(0)}% per signal
+                            </div>
+                        </div>
+    
+                        <button 
+                            type="button" 
+                            class="nt-live-sim-delete" 
+                            data-delete-live-sim-id="${sim.id}"
+                        >
+                            Delete
+                        </button>
+                    </div>
+    
+                    <div class="nt-live-sim-item-value ${retClass}">
+                        Strategy: ${liveSimMoney(sim.latest_strategy_value)} 
+                        (${liveSimPercent(sim.strategy_return)})
+                    </div>
+                </div>
+            `;
+        }).join("");
+    
+        document.querySelectorAll("[data-live-sim-id]").forEach(card => {
+            card.addEventListener("click", function () {
+                const simId = Number(this.dataset.liveSimId);
+                selectLiveSimulation(simId);
+            });
+        });
+    
+        document.querySelectorAll("[data-delete-live-sim-id]").forEach(btn => {
+            btn.addEventListener("click", async function (e) {
+                e.stopPropagation();
+    
+                const simId = Number(this.dataset.deleteLiveSimId);
+                const ok = confirm("Delete this live simulation?");
+    
+                if (!ok) return;
+    
+                try {
+                    await liveSimFetchJSON(`/live-simulations/${simId}`, {
+                        method: "DELETE"
+                    });
+    
+                    if (selectedLiveSimulationId === simId) {
+                        selectedLiveSimulationId = null;
+                    }
+    
+                    await loadLiveSimulations();
+    
+                } catch (error) {
+                    setLiveSimMessage(error.message, true);
+                }
+            });
+        });
+    }
+    
+    async function selectLiveSimulation(simId) {
+        selectedLiveSimulationId = simId;
+    
+        try {
+            const data = await liveSimFetchJSON(`/live-simulations/${simId}`);
+            renderLiveSimulationDetail(data.simulation);
+    
+            document.querySelectorAll(".nt-live-sim-item").forEach(card => {
+                card.classList.toggle(
+                    "active",
+                    Number(card.dataset.liveSimId) === simId
+                );
+            });
+    
+        } catch (error) {
+            setLiveSimMessage(error.message, true);
+        }
+    }
+    
+    function renderLiveSimulationDetail(sim) {
+        const dashboard = document.getElementById("live-sim-dashboard");
+        if (!dashboard) return;
+    
+        dashboard.style.display = "block";
+    
+        document.getElementById("live-sim-detail-title").textContent =
+            `${sim.name}`;
+    
+        document.getElementById("live-sim-detail-subtitle").textContent =
+            `${sim.ticker} · ${Number(sim.position_size_pct).toFixed(0)}% position size · Started ${sim.start_date}`;
+    
+        document.getElementById("live-sim-strategy-value").textContent =
+            liveSimMoney(sim.latest_strategy_value);
+    
+        document.getElementById("live-sim-benchmark-value").textContent =
+            liveSimMoney(sim.latest_benchmark_value);
+    
+        document.getElementById("live-sim-cash-balance").textContent =
+            liveSimMoney(sim.cash_balance);
+    
+        document.getElementById("live-sim-position-quantity").textContent =
+            `Position: ${Number(sim.position_quantity).toLocaleString(undefined, {
+                maximumFractionDigits: 8
+            })}`;
+    
+        document.getElementById("live-sim-trade-count").textContent =
+            String(sim.trade_count || 0);
+    
+        document.getElementById("live-sim-last-date").textContent =
+            sim.latest_equity_date ? `Last update: ${sim.latest_equity_date}` : "No equity points yet";
+    
+        const strategyReturnEl = document.getElementById("live-sim-strategy-return");
+        strategyReturnEl.textContent = `Return: ${liveSimPercent(sim.strategy_return)}`;
+        strategyReturnEl.className = `nt-live-sim-metric-sub ${liveSimReturnClass(sim.strategy_return)}`;
+    
+        const benchmarkReturnEl = document.getElementById("live-sim-benchmark-return");
+        benchmarkReturnEl.textContent = `Return: ${liveSimPercent(sim.benchmark_return)}`;
+        benchmarkReturnEl.className = `nt-live-sim-metric-sub ${liveSimReturnClass(sim.benchmark_return)}`;
+    
+        renderLiveSimulationChart(sim);
+        renderLiveSimulationTrades(sim.trades || []);
+    }
+    
+    function renderLiveSimulationChart(sim) {
+        const canvas = document.getElementById("live-sim-chart");
+        if (!canvas) return;
+    
+        const ctx = canvas.getContext("2d");
+    
+        if (liveSimChart) {
+            liveSimChart.destroy();
+        }
+    
+        const colors = typeof NT_COLORS !== "undefined"
+            ? NT_COLORS
+            : {
+                chartAI: "#2563EB",
+                chartBuyHold: "#9333EA"
+            };
+    
+        liveSimChart = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: sim.dates || [],
+                datasets: [
+                    {
+                        label: `${sim.ticker} Live Strategy`,
+                        data: sim.strategy_curve || [],
+                        borderColor: colors.chartAI,
+                        backgroundColor: colors.chartAI,
+                        pointRadius: 2,
+                        borderWidth: 2,
+                        fill: false
+                    },
+                    {
+                        label: `${sim.ticker} Buy & Hold`,
+                        data: sim.benchmark_curve || [],
+                        borderColor: colors.chartBuyHold,
+                        backgroundColor: colors.chartBuyHold,
+                        borderDash: [5, 5],
+                        pointRadius: 2,
+                        borderWidth: 2,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            usePointStyle: true
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: "Date"
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: "Equity ($)"
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function renderLiveSimulationTrades(trades) {
+        const table = document.getElementById("live-sim-trades-table");
+        if (!table) return;
+    
+        if (!trades.length) {
+            table.innerHTML = `
+                <div class="nt-live-sim-small-note">
+                    No BUY/SELL trades yet. HOLD days do not create trades.
+                </div>
+            `;
+            return;
+        }
+    
+        table.innerHTML = `
+            <div class="nt-live-trade-row header">
+                <div>Date</div>
+                <div>Signal</div>
+                <div>Price</div>
+                <div>Quantity</div>
+                <div>Cost</div>
+                <div>Cash After</div>
+            </div>
+    
+            ${trades.slice().reverse().map(trade => {
+                const signalText = trade.signal === 1 ? "BUY" : "SELL";
+                const signalClass = trade.signal === 1 ? "nt-live-trade-buy" : "nt-live-trade-sell";
+    
+                return `
+                    <div class="nt-live-trade-row">
+                        <div>${escapeHTML(trade.trade_date)}</div>
+                        <div class="${signalClass}">${signalText}</div>
+                        <div>${liveSimMoney(trade.price)}</div>
+                        <div>${Number(trade.quantity).toLocaleString(undefined, {
+                            maximumFractionDigits: 8
+                        })}</div>
+                        <div>${liveSimMoney(trade.transaction_cost)}</div>
+                        <div>${liveSimMoney(trade.cash_after)}</div>
+                    </div>
+                `;
+            }).join("")}
+        `;
+    }
+    
+    document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
+        e.preventDefault();
+    
+        const payload = {
+            name: document.getElementById("live-sim-name").value.trim(),
+            ticker: document.getElementById("live-sim-ticker").value.trim(),
+            initial_cash: Number(document.getElementById("live-sim-cash").value),
+            position_size_pct: Number(document.getElementById("live-sim-position").value)
+        };
+    
+        setLiveSimMessage("Creating simulation...");
+    
+        try {
+            const data = await liveSimFetchJSON("/live-simulations", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+    
+            selectedLiveSimulationId = data.simulation.id;
+            setLiveSimMessage("Simulation created successfully.");
+            await loadLiveSimulations();
+    
+        } catch (error) {
+            setLiveSimMessage(error.message, true);
+        }
+    });
+    
+    // Auto-load saved simulations when page loads.
+    loadLiveSimulations();
     
     // Global delegated click handler
     document.addEventListener("click", function (e) {
