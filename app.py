@@ -58,6 +58,12 @@ bcrypt.init_app(app)
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
+@login_manager.unauthorized_handler
+def unauthorized():
+    return jsonify({
+        "error": "Login required"
+    }), 401
+
 # Data path
 DATA_DIR = os.path.join(app.root_path, 'data')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
