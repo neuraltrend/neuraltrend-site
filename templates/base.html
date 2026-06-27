@@ -3807,6 +3807,43 @@
             background: rgba(100, 116, 139, 0.10);
         }
 
+        /* ===============================
+           Live simulation refresh button
+        ================================ */
+        
+        .nt-live-sim-list-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .nt-live-sim-refresh-btn {
+            border: 1px solid rgba(37, 99, 235, 0.22);
+            background: #ffffff;
+            color: var(--nt-blue);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 12px;
+            line-height: 1;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        
+        .nt-live-sim-refresh-btn:hover {
+            background: var(--nt-blue);
+            color: #ffffff;
+        }
+        
+        .nt-live-sim-refresh-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+            transform: none;
+        }
+
     </style>
 
 </head>
@@ -5211,8 +5248,16 @@
     async function loadLiveSimulations() {
         const listEl = document.getElementById("live-sim-list");
         const limitEl = document.getElementById("live-sim-limit");
+        const refreshBtn = document.getElementById("live-sim-refresh-btn");
     
         if (!listEl || !limitEl) return;
+    
+        if (refreshBtn) {
+            refreshBtn.disabled = true;
+            refreshBtn.textContent = "Refreshing...";
+        }
+    
+        setLiveSimRefreshStatus("Checking latest saved simulations...");
     
         try {
             const data = await liveSimFetchJSON("/live-simulations");
@@ -5230,11 +5275,19 @@
             } else {
                 document.getElementById("live-sim-dashboard").style.display = "none";
             }
+
+            setLiveSimRefreshStatus(`Last refreshed at ${liveSimRefreshTimestamp()}.`);
     
         } catch (error) {
             limitEl.textContent = "Login required to view saved simulations.";
             listEl.innerHTML = "";
             setLiveSimMessage(error.message, true);
+            setLiveSimRefreshStatus("Could not refresh simulations.");
+        } finally {
+            if (refreshBtn) {
+                refreshBtn.disabled = false;
+                refreshBtn.textContent = "Refresh";
+            }
         }
     }
     
@@ -5616,6 +5669,22 @@
     
         return `Vs B&H: ${sign}${liveSimMoney(alphaValue)} (${liveSimPercent(alphaPct)})`;
     }
+
+    function setLiveSimRefreshStatus(message) {
+        const el = document.getElementById("live-sim-refresh-status");
+        if (!el) return;
+    
+        el.textContent = message;
+    }
+    
+    function liveSimRefreshTimestamp() {
+        const now = new Date();
+    
+        return now.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -5712,6 +5781,12 @@
         if (selectedTickerLabel) {
             selectedTickerLabel.textContent = this.value.trim() || "—";
         }
+    });
+
+    document.getElementById("live-sim-refresh-btn")?.addEventListener("click", async function () {
+        setLiveSimMessage("Refreshing simulations from latest available CSV data...");
+        await loadLiveSimulations();
+        setLiveSimMessage("Simulations refreshed.");
     });
     
     // Auto-load saved simulations when page loads.
