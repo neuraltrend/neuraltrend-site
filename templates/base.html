@@ -4203,6 +4203,36 @@
             tickerSelect.value = ticker;
         }
     }
+
+    function defaultLiveSimulationName(ticker) {
+        const positionSelect = document.getElementById("live-sim-position");
+        const positionPct = positionSelect ? positionSelect.value : "50";
+    
+        return `${ticker} ${positionPct}% Live Simulation`;
+    }
+    
+    function syncLiveSimulationTicker(ticker) {
+        if (!ticker) return;
+    
+        const tickerInput = document.getElementById("live-sim-ticker");
+        const nameInput = document.getElementById("live-sim-name");
+    
+        if (tickerInput) {
+            tickerInput.value = ticker;
+        }
+    
+        if (nameInput) {
+            const shouldAutoUpdateName =
+                !nameInput.value.trim() ||
+                nameInput.dataset.autoName === "true" ||
+                nameInput.value.includes("Live Simulation");
+    
+            if (shouldAutoUpdateName) {
+                nameInput.value = defaultLiveSimulationName(ticker);
+                nameInput.dataset.autoName = "true";
+            }
+        }
+    }
     
     function applyAllFilters() {
     
@@ -4690,12 +4720,13 @@
     let previewChart = null;   // 🔥 prevents duplicate charts
     
     function loadTicker(ticker) {
-    
+
         currentTicker = ticker;
-        
+
         highlightSelectedTicker();
         updateSelectedPerformanceCards(ticker);
         syncBacktestTicker(ticker);
+        syncLiveSimulationTicker(ticker);
     
         const duration = document.getElementById('period-select').value;
     
@@ -5347,8 +5378,25 @@
             setLiveSimMessage(error.message, true);
         }
     });
+
+    document.getElementById("live-sim-position")?.addEventListener("change", function () {
+        const tickerInput = document.getElementById("live-sim-ticker");
+        const nameInput = document.getElementById("live-sim-name");
+    
+        if (!tickerInput || !nameInput) return;
+    
+        if (nameInput.dataset.autoName === "true" || nameInput.value.includes("Live Simulation")) {
+            nameInput.value = defaultLiveSimulationName(tickerInput.value || "BTC-USD");
+            nameInput.dataset.autoName = "true";
+        }
+    });
+
+    document.getElementById("live-sim-name")?.addEventListener("input", function () {
+        this.dataset.autoName = "false";
+    });
     
     // Auto-load saved simulations when page loads.
+    syncLiveSimulationTicker(currentTicker || "BTC-USD");
     loadLiveSimulations();
     
     // Global delegated click handler
