@@ -3883,6 +3883,70 @@
             background: var(--nt-negative);
         }
 
+        /* ===============================
+           Live simulation latest signal badge
+        ================================ */
+        
+        .nt-live-sim-signal-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-wrap: wrap;
+            margin-top: 7px;
+        }
+        
+        .nt-live-sim-signal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 5px 9px;
+            font-size: 11px;
+            line-height: 1.2;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.035em;
+        }
+        
+        .nt-live-sim-signal-badge::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: currentColor;
+        }
+        
+        .nt-live-sim-signal-badge.buy {
+            color: var(--nt-positive);
+            background: rgba(22, 163, 74, 0.10);
+        }
+        
+        .nt-live-sim-signal-badge.sell {
+            color: var(--nt-negative);
+            background: rgba(220, 38, 38, 0.10);
+        }
+        
+        .nt-live-sim-signal-badge.hold {
+            color: var(--nt-neutral);
+            background: rgba(100, 116, 139, 0.12);
+        }
+        
+        .nt-live-sim-signal-badge.unknown {
+            color: var(--nt-neutral);
+            background: rgba(100, 116, 139, 0.08);
+        }
+        
+        .nt-live-sim-signal-price {
+            font-size: 11px;
+            line-height: 1.35;
+            font-weight: 750;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-live-sim-detail-signal-wrap {
+            margin-top: 8px;
+        }
+
     </style>
 
 </head>
@@ -5363,7 +5427,9 @@
                             <div class="nt-live-sim-item-meta">
                                 ${escapeHTML(sim.ticker)} · ${Number(sim.position_size_pct).toFixed(0)}% per signal · ${escapeHTML(sim.asset_type || "")}
                             </div>
-
+                            
+                            ${liveSimLatestSignalHTML(sim)}
+                            
                             ${liveSimCsvStatusHTML(sim)}
                         </div>
     
@@ -5479,6 +5545,11 @@
     
         document.getElementById("live-sim-detail-subtitle").textContent =
             `${sim.ticker} · ${Number(sim.position_size_pct).toFixed(0)}% position size · Started ${sim.start_date} · CSV through ${sim.latest_csv_date || "—"}`;
+
+        const detailSignalWrap = document.getElementById("live-sim-detail-signal-wrap");
+            if (detailSignalWrap) {
+                detailSignalWrap.innerHTML = liveSimLatestSignalHTML(sim);
+            }
     
         document.getElementById("live-sim-strategy-value").textContent =
             liveSimMoney(sim.latest_strategy_value);
@@ -5742,6 +5813,66 @@
             <div class="nt-live-sim-csv-status ${statusClass}">
                 <span class="nt-live-sim-csv-dot"></span>
                 <span>${escapeHTML(label)}</span>
+            </div>
+        `;
+    }
+
+    function liveSimSignalInfo(signal) {
+        const value = Number(signal);
+    
+        if (value === 1) {
+            return {
+                label: "BUY",
+                className: "buy"
+            };
+        }
+    
+        if (value === -1) {
+            return {
+                label: "SELL",
+                className: "sell"
+            };
+        }
+    
+        if (value === 0) {
+            return {
+                label: "HOLD",
+                className: "hold"
+            };
+        }
+    
+        return {
+            label: "—",
+            className: "unknown"
+        };
+    }
+    
+    function liveSimSignalBadgeHTML(signal) {
+        const info = liveSimSignalInfo(signal);
+    
+        return `
+            <span class="nt-live-sim-signal-badge ${info.className}">
+                ${info.label}
+            </span>
+        `;
+    }
+    
+    function liveSimLatestSignalHTML(sim) {
+        const closePrice = sim.latest_close_price
+            ? liveSimMoney(sim.latest_close_price)
+            : "—";
+    
+        const signalDate =
+            sim.latest_equity_date ||
+            sim.last_processed_date ||
+            "—";
+    
+        return `
+            <div class="nt-live-sim-signal-row">
+                ${liveSimSignalBadgeHTML(sim.latest_signal)}
+                <span class="nt-live-sim-signal-price">
+                    Latest signal · ${escapeHTML(signalDate)} · Close ${closePrice}
+                </span>
             </div>
         `;
     }
