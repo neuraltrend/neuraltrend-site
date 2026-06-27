@@ -1328,7 +1328,7 @@ def equity():
     # ---------------------------------------------------
     # Transaction cost
     # ---------------------------------------------------
-    transaction_cost = 0.01 if ticker.endswith("-USD") else 0.001
+    transaction_cost = get_transaction_cost_rate(ticker)
 
     # ---------------------------------------------------
     # Strategy Simulation (start cash = 1)
@@ -1358,10 +1358,17 @@ def equity():
         epoch_equity_curve[-1] = cash
 
     # ---------------------------------------------------
-    # Buy & Hold Curve (start = 1)
+    # Buy & Hold Curve (start = 1, entry cost included)
     # ---------------------------------------------------
-    prices = signals_df['Close'].to_numpy()
-    buy_hold_curve = (prices / prices[0]).tolist()
+    prices = signals_df['Close'].to_numpy().astype(float)
+    
+    first_price = float(prices[0])
+    
+    # Treat the initial $1 as total cash used, including entry transaction cost.
+    benchmark_gross_budget = 1.0 / (1 + transaction_cost)
+    benchmark_quantity = benchmark_gross_budget / first_price
+    
+    buy_hold_curve = (prices * benchmark_quantity).tolist()
 
     # ---------------------------------------------------
     # Buy/Sell markers
@@ -1392,6 +1399,7 @@ def equity():
 
     results = {
         'ticker': ticker,
+        'transaction_cost_rate': transaction_cost,
         'final_value': final_value_bh,
         'final_value_epoch': final_value_epoch,
         'profit_factor': final_value_bh,
