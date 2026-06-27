@@ -1012,10 +1012,27 @@
         
                 <!-- SIMULATION LIST -->
                 <aside class="nt-live-sim-card">
-                    <h4 class="nt-live-sim-card-title">
-                        My simulations
-                    </h4>
-        
+
+                    <div class="nt-live-sim-list-header">
+                        <div>
+                            <h4 class="nt-live-sim-card-title">
+                                My simulations
+                            </h4>
+                
+                            <div id="live-sim-refresh-status" class="nt-live-sim-small-note">
+                                Auto-updates when this panel loads.
+                            </div>
+                        </div>
+                
+                        <button 
+                            type="button" 
+                            id="live-sim-refresh-btn" 
+                            class="nt-live-sim-refresh-btn"
+                        >
+                            Refresh
+                        </button>
+                    </div>
+                
                     <div id="live-sim-limit" class="nt-live-sim-small-note">
                         Loading simulations...
                     </div>
