@@ -3727,6 +3727,86 @@
             color: #ffffff;
         }
 
+        /* ===============================
+           Live simulation richer cards
+        ================================ */
+        
+        .nt-live-sim-card-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .nt-live-sim-card-metric {
+            border: 1px solid var(--nt-border);
+            border-radius: 11px;
+            background: #F8FAFC;
+            padding: 8px;
+            min-width: 0;
+        }
+        
+        .nt-live-sim-card-metric-label {
+            font-size: 10px;
+            line-height: 1.2;
+            font-weight: 850;
+            color: var(--nt-neutral);
+            text-transform: uppercase;
+            letter-spacing: 0.035em;
+            margin-bottom: 4px;
+        }
+        
+        .nt-live-sim-card-metric-value {
+            font-size: 13px;
+            line-height: 1.2;
+            font-weight: 900;
+            color: var(--nt-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .nt-live-sim-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid var(--nt-border);
+        }
+        
+        .nt-live-sim-card-updated {
+            font-size: 11px;
+            line-height: 1.35;
+            font-weight: 700;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-live-sim-alpha-pill {
+            border-radius: 999px;
+            padding: 5px 8px;
+            font-size: 11px;
+            line-height: 1.2;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        
+        .nt-live-sim-alpha-pill.positive {
+            color: var(--nt-positive);
+            background: rgba(22, 163, 74, 0.10);
+        }
+        
+        .nt-live-sim-alpha-pill.negative {
+            color: var(--nt-negative);
+            background: rgba(220, 38, 38, 0.10);
+        }
+        
+        .nt-live-sim-alpha-pill.neutral {
+            color: var(--nt-neutral);
+            background: rgba(100, 116, 139, 0.10);
+        }
+
     </style>
 
 </head>
@@ -5173,7 +5253,15 @@
     
         listEl.innerHTML = simulations.map(sim => {
             const activeClass = sim.id === selectedLiveSimulationId ? "active" : "";
-            const retClass = liveSimReturnClass(sim.strategy_return);
+    
+            const strategyReturnClass = liveSimReturnClass(sim.strategy_return);
+            const benchmarkReturnClass = liveSimReturnClass(sim.benchmark_return);
+    
+            const alphaValue = liveSimAlphaValue(sim);
+            const alphaClass = liveSimAlphaClass(alphaValue);
+            const alphaLabel = liveSimAlphaLabel(sim);
+    
+            const latestDate = sim.latest_equity_date || sim.last_processed_date || "—";
     
             return `
                 <div class="nt-live-sim-item ${activeClass}" data-live-sim-id="${sim.id}">
@@ -5181,7 +5269,7 @@
                         <div>
                             <div class="nt-live-sim-item-name">${escapeHTML(sim.name)}</div>
                             <div class="nt-live-sim-item-meta">
-                                ${escapeHTML(sim.ticker)} · ${Number(sim.position_size_pct).toFixed(0)}% per signal
+                                ${escapeHTML(sim.ticker)} · ${Number(sim.position_size_pct).toFixed(0)}% per signal · ${escapeHTML(sim.asset_type || "")}
                             </div>
                         </div>
     
@@ -5194,9 +5282,40 @@
                         </button>
                     </div>
     
-                    <div class="nt-live-sim-item-value ${retClass}">
-                        Strategy: ${liveSimMoney(sim.latest_strategy_value)} 
-                        (${liveSimPercent(sim.strategy_return)})
+                    <div class="nt-live-sim-card-metrics">
+                        <div class="nt-live-sim-card-metric">
+                            <div class="nt-live-sim-card-metric-label">
+                                Strategy
+                            </div>
+                            <div class="nt-live-sim-card-metric-value">
+                                ${liveSimMoney(sim.latest_strategy_value)}
+                            </div>
+                            <div class="nt-live-sim-item-meta ${strategyReturnClass}">
+                                ${liveSimPercent(sim.strategy_return)}
+                            </div>
+                        </div>
+    
+                        <div class="nt-live-sim-card-metric">
+                            <div class="nt-live-sim-card-metric-label">
+                                Buy & Hold
+                            </div>
+                            <div class="nt-live-sim-card-metric-value">
+                                ${liveSimMoney(sim.latest_benchmark_value)}
+                            </div>
+                            <div class="nt-live-sim-item-meta ${benchmarkReturnClass}">
+                                ${liveSimPercent(sim.benchmark_return)}
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="nt-live-sim-card-footer">
+                        <div class="nt-live-sim-card-updated">
+                            Updated: ${escapeHTML(latestDate)}
+                        </div>
+    
+                        <div class="nt-live-sim-alpha-pill ${alphaClass}">
+                            ${alphaLabel}
+                        </div>
                     </div>
                 </div>
             `;
@@ -5451,6 +5570,51 @@
     
             return sameTicker && samePosition;
         });
+    }
+
+    function liveSimAlphaValue(sim) {
+        const strategy = Number(sim.latest_strategy_value);
+        const benchmark = Number(sim.latest_benchmark_value);
+    
+        if (Number.isNaN(strategy) || Number.isNaN(benchmark)) {
+            return null;
+        }
+    
+        return strategy - benchmark;
+    }
+    
+    function liveSimAlphaPercent(sim) {
+        const strategy = Number(sim.latest_strategy_value);
+        const benchmark = Number(sim.latest_benchmark_value);
+    
+        if (Number.isNaN(strategy) || Number.isNaN(benchmark) || benchmark === 0) {
+            return null;
+        }
+    
+        return (strategy / benchmark) - 1;
+    }
+    
+    function liveSimAlphaClass(value) {
+        if (value === null || value === undefined || Number.isNaN(Number(value))) {
+            return "neutral";
+        }
+    
+        if (Number(value) > 0) return "positive";
+        if (Number(value) < 0) return "negative";
+        return "neutral";
+    }
+    
+    function liveSimAlphaLabel(sim) {
+        const alphaValue = liveSimAlphaValue(sim);
+        const alphaPct = liveSimAlphaPercent(sim);
+    
+        if (alphaValue === null || alphaPct === null) {
+            return "Vs B&H: —";
+        }
+    
+        const sign = alphaValue > 0 ? "+" : "";
+    
+        return `Vs B&H: ${sign}${liveSimMoney(alphaValue)} (${liveSimPercent(alphaPct)})`;
     }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
