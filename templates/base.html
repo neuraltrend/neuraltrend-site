@@ -3793,7 +3793,7 @@
 
     function renderResults({
         ticker, final_value, final_value_epoch, profit_factor, profit_factor_epoch, sharpe_ratio,
-        position_size_pct = 100,
+        position_size_pct = 100, transaction_cost_rate = 0,
         equity_curve, epoch_equity_curve, dates,
         ticker_2, final_value_2, profit_factor_2, sharpe_ratio_2,
         equity_curve_2, buy_dates, buy_prices, sell_dates, sell_prices
@@ -3811,7 +3811,7 @@
                         <div class="nt-section-eyebrow">Backtest Results</div>
                         <h3 class="nt-backtest-results-title">${ticker} Backtest Results</h3>
                         <p class="nt-backtest-results-subtitle">
-                            AI strategy performance compared with buy & hold.
+                            AI strategy performance compared with buy & hold. Transaction cost: ${(transaction_cost_rate * 100).toFixed(2)}% per trade.
                         </p>
                     </div>
         
