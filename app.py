@@ -417,7 +417,8 @@ def get_latest_equity_point(simulation_id):
 
 def live_simulation_summary(sim):
     latest = get_latest_equity_point(sim.id)
-
+    latest_csv_date = get_latest_csv_date_for_ticker(sim.ticker)
+    
     strategy_value = latest.strategy_value if latest else sim.initial_cash
     benchmark_value = latest.benchmark_value if latest else sim.initial_cash
 
@@ -449,6 +450,11 @@ def live_simulation_summary(sim):
         "outperformance": outperformance,
         "trade_count": trade_count,
         "latest_equity_date": latest.equity_date.isoformat() if latest else None,
+        "latest_csv_date": latest_csv_date.isoformat() if latest_csv_date else None,
+        "is_current_with_csv": (
+            sim.last_processed_date == latest_csv_date
+            if sim.last_processed_date and latest_csv_date else False
+        ),
     })
 
     return data
@@ -633,6 +639,14 @@ def update_live_simulation_from_csv(sim):
 
     db.session.commit()
     return sim
+
+def get_latest_csv_date_for_ticker(ticker):
+    try:
+        df = load_epoch_csv_for_ticker(ticker)
+        return df.index.max().date()
+    except Exception as e:
+        print(f"Could not read latest CSV date for {ticker}:", str(e))
+        return None
 
 # --------------------
 # Routes
