@@ -3844,6 +3844,45 @@
             transform: none;
         }
 
+        /* ===============================
+           Live simulation CSV status
+        ================================ */
+        
+        .nt-live-sim-csv-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+            font-size: 11px;
+            line-height: 1.35;
+            font-weight: 800;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-live-sim-csv-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: var(--nt-neutral);
+            flex-shrink: 0;
+        }
+        
+        .nt-live-sim-csv-status.current {
+            color: var(--nt-positive);
+        }
+        
+        .nt-live-sim-csv-status.current .nt-live-sim-csv-dot {
+            background: var(--nt-positive);
+        }
+        
+        .nt-live-sim-csv-status.stale {
+            color: var(--nt-negative);
+        }
+        
+        .nt-live-sim-csv-status.stale .nt-live-sim-csv-dot {
+            background: var(--nt-negative);
+        }
+
     </style>
 
 </head>
@@ -5324,6 +5363,8 @@
                             <div class="nt-live-sim-item-meta">
                                 ${escapeHTML(sim.ticker)} · ${Number(sim.position_size_pct).toFixed(0)}% per signal · ${escapeHTML(sim.asset_type || "")}
                             </div>
+
+                            ${liveSimCsvStatusHTML(sim)}
                         </div>
     
                         <button 
@@ -5437,7 +5478,7 @@
             `${sim.name}`;
     
         document.getElementById("live-sim-detail-subtitle").textContent =
-            `${sim.ticker} · ${Number(sim.position_size_pct).toFixed(0)}% position size · Started ${sim.start_date}`;
+            `${sim.ticker} · ${Number(sim.position_size_pct).toFixed(0)}% position size · Started ${sim.start_date} · CSV through ${sim.latest_csv_date || "—"}`;
     
         document.getElementById("live-sim-strategy-value").textContent =
             liveSimMoney(sim.latest_strategy_value);
@@ -5684,6 +5725,25 @@
             hour: "2-digit",
             minute: "2-digit"
         });
+    }
+
+    function liveSimCsvStatusHTML(sim) {
+        const isCurrent = Boolean(sim.is_current_with_csv);
+        const statusClass = isCurrent ? "current" : "stale";
+    
+        const latestCsvDate = sim.latest_csv_date || "—";
+        const processedDate = sim.last_processed_date || sim.latest_equity_date || "—";
+    
+        const label = isCurrent
+            ? `CSV current · through ${latestCsvDate}`
+            : `Needs refresh · processed ${processedDate}, CSV ${latestCsvDate}`;
+    
+        return `
+            <div class="nt-live-sim-csv-status ${statusClass}">
+                <span class="nt-live-sim-csv-dot"></span>
+                <span>${escapeHTML(label)}</span>
+            </div>
+        `;
     }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
