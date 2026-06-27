@@ -1130,42 +1130,72 @@ def backtest():
     df_filtered.set_index('Date', inplace=True)
     signals_df=df_filtered
     
-    # Convert Close to float explicitly
+    # Convert Close and signal to numeric explicitly
     signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
-    signals_df = signals_df.dropna()
-
+    signals_df['epoch_signal'] = pd.to_numeric(signals_df['epoch_signal'], errors='coerce')
+    signals_df = signals_df.dropna(subset=['Close', 'epoch_signal'])
+    
+    # Same transaction-cost rule used by EpochSignaler/live simulation
+    transaction_cost = get_transaction_cost_rate(ticker)
+    
     cash = initial_cash
     position = 0.0
     equity_curve = []
     
     for date, row in signals_df.iterrows():
-        price = row['Close']
-        signal = row['epoch_signal']
+        price = float(row['Close'])
+        signal = int(row['epoch_signal'])
     
         # BUY signal:
-        # Invest a percentage of available cash.
-        # 100% = use all cash
-        # 50% = use half of remaining cash
-        # 25% = use one quarter of remaining cash
+        # Invest selected % of available cash, including transaction cost.
         if signal == 1 and cash > 0:
-            cash_to_invest = cash * position_fraction
-            shares_to_buy = cash_to_invest / price
+            cash_allocation = cash * position_fraction
     
-            position += shares_to_buy
-            cash -= cash_to_invest
+            # Treat cash_allocation as total cash used, including transaction cost.
+            gross_buy_budget = cash_allocation / (1 + transaction_cost)
+            raw_quantity = gross_buy_budget / price
+    
+            shares_to_buy = normalize_live_quantity_for_buy(
+                ticker=ticker,
+                raw_quantity=raw_quantity,
+                price=price,
+                cash_allocation=cash_allocation,
+                transaction_cost_rate=transaction_cost
+            )
+    
+            if shares_to_buy > 0:
+                gross_amount = shares_to_buy * price
+                fee = gross_amount * transaction_cost
+                total_cash_used = gross_amount + fee
+    
+                if total_cash_used <= cash + 1e-9:
+                    position += shares_to_buy
+                    cash -= total_cash_used
     
         # SELL signal:
-        # Sell a percentage of current position.
-        # 100% = sell all holdings
-        # 50% = sell half of current holdings
-        # 25% = sell one quarter of current holdings
+        # Sell selected % of current position, subtracting transaction cost.
         elif signal == -1 and position > 0:
-            shares_to_sell = position * position_fraction
-            cash_from_sale = shares_to_sell * price
+            raw_quantity = position * position_fraction
     
-            position -= shares_to_sell
-            cash += cash_from_sale
+            shares_to_sell = normalize_live_quantity_for_sell(
+                ticker=ticker,
+                raw_quantity=raw_quantity,
+                current_position=position
+            )
     
+            if shares_to_sell > 0:
+                gross_amount = shares_to_sell * price
+                fee = gross_amount * transaction_cost
+                net_cash_received = gross_amount - fee
+    
+                position -= shares_to_sell
+    
+                if position < 1e-12:
+                    position = 0.0
+    
+                cash += net_cash_received
+    
+        # Mark-to-market equity after today's action
         equity = cash + position * price
         equity_curve.append((date, equity))
         
@@ -1177,11 +1207,20 @@ def backtest():
     buy_prices = eq_df.loc[buy_dates, 'Equity']
     sell_prices = eq_df.loc[sell_dates, 'Equity']
 
-    equity_curve = signals_df['Close'].to_numpy().flatten().astype(float).tolist()
-    equity_curve_start=equity_curve[0]
-    equity_curve = np.array(equity_curve)  # convert list to numpy array
-    equity_curve = equity_curve / equity_curve[0] * initial_cash
-    equity_curve = equity_curve.tolist()
+    # Buy & Hold benchmark with entry transaction cost included
+    prices = signals_df['Close'].to_numpy().flatten().astype(float)
+    
+    first_price = float(prices[0])
+    
+    benchmark_gross_budget = initial_cash / (1 + transaction_cost)
+    
+    if is_crypto_ticker(ticker):
+        benchmark_quantity = benchmark_gross_budget / first_price
+    else:
+        benchmark_quantity = float(int(benchmark_gross_budget / first_price))
+    
+    equity_curve = (prices * benchmark_quantity).tolist()
+    
     final_value = float(equity_curve[-1])
     profit_factor = float(final_value / initial_cash)
 
@@ -1222,6 +1261,7 @@ def backtest():
     results = {
         'ticker': ticker,
         'position_size_pct': position_fraction * 100,
+        'transaction_cost_rate': transaction_cost,
         'final_value': final_value,
         'final_value_epoch': float(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()[-1]),
         'profit_factor': profit_factor,
