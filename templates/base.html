@@ -5189,7 +5189,7 @@
         strategyReturnEl.className = `nt-live-sim-metric-sub ${liveSimReturnClass(sim.strategy_return)}`;
     
         const benchmarkReturnEl = document.getElementById("live-sim-benchmark-return");
-        benchmarkReturnEl.textContent = `Return: ${liveSimPercent(sim.benchmark_return)}`;
+        benchmarkReturnEl.textContent = `Return: ${liveSimPercent(sim.benchmark_return)} · entry cost included`;
         benchmarkReturnEl.className = `nt-live-sim-metric-sub ${liveSimReturnClass(sim.benchmark_return)}`;
     
         renderLiveSimulationChart(sim);
