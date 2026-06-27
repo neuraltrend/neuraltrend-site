@@ -5067,6 +5067,7 @@
     
     let liveSimChart = null;
     let selectedLiveSimulationId = null;
+    let liveSimulationsCache = [];
     
     function liveSimMoney(value) {
         if (value === null || value === undefined || Number.isNaN(Number(value))) {
@@ -5135,10 +5136,12 @@
     
         try {
             const data = await liveSimFetchJSON("/live-simulations");
-    
+
+            liveSimulationsCache = data.simulations || [];
+            
             limitEl.textContent = `${data.count} of ${data.limit} simulations used.`;
-    
-            renderLiveSimulationList(data.simulations || []);
+            
+            renderLiveSimulationList(liveSimulationsCache);
     
             if (data.simulations && data.simulations.length > 0) {
                 const selectedExists = data.simulations.some(sim => sim.id === selectedLiveSimulationId);
@@ -5411,6 +5414,44 @@
             }).join("")}
         `;
     }
+
+    function normalizeLiveSimTickerForCompare(ticker) {
+        return String(ticker || "").trim().toUpperCase();
+    }
+    
+    function findDuplicateLiveSimulation(payload) {
+        const ticker = normalizeLiveSimTickerForCompare(payload.ticker);
+        const positionSize = Number(payload.position_size_pct);
+        const initialCash = Number(payload.initial_cash);
+    
+        return liveSimulationsCache.find(sim => {
+            const sameTicker =
+                normalizeLiveSimTickerForCompare(sim.ticker) === ticker;
+    
+            const samePosition =
+                Number(sim.position_size_pct) === positionSize;
+    
+            const sameCash =
+                Number(sim.initial_cash) === initialCash;
+    
+            return sameTicker && samePosition && sameCash;
+        });
+    }
+    
+    function findSimilarLiveSimulation(payload) {
+        const ticker = normalizeLiveSimTickerForCompare(payload.ticker);
+        const positionSize = Number(payload.position_size_pct);
+    
+        return liveSimulationsCache.find(sim => {
+            const sameTicker =
+                normalizeLiveSimTickerForCompare(sim.ticker) === ticker;
+    
+            const samePosition =
+                Number(sim.position_size_pct) === positionSize;
+    
+            return sameTicker && samePosition;
+        });
+    }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -5421,6 +5462,38 @@
             initial_cash: Number(document.getElementById("live-sim-cash").value),
             position_size_pct: Number(document.getElementById("live-sim-position").value)
         };
+    
+        const duplicate = findDuplicateLiveSimulation(payload);
+    
+        if (duplicate) {
+            const ok = confirm(
+                `You already have an identical simulation:\n\n` +
+                `${duplicate.name}\n` +
+                `${duplicate.ticker} · ${Number(duplicate.position_size_pct).toFixed(0)}% · ${liveSimMoney(duplicate.initial_cash)}\n\n` +
+                `Create another one anyway?`
+            );
+    
+            if (!ok) {
+                setLiveSimMessage("Simulation creation cancelled. Existing simulation kept.");
+                return;
+            }
+        } else {
+            const similar = findSimilarLiveSimulation(payload);
+    
+            if (similar) {
+                const ok = confirm(
+                    `You already have a similar simulation:\n\n` +
+                    `${similar.name}\n` +
+                    `${similar.ticker} · ${Number(similar.position_size_pct).toFixed(0)}% position size\n\n` +
+                    `The new one has a different initial cash or name. Create it anyway?`
+                );
+    
+                if (!ok) {
+                    setLiveSimMessage("Simulation creation cancelled. Existing simulation kept.");
+                    return;
+                }
+            }
+        }
     
         setLiveSimMessage("Creating simulation...");
     
