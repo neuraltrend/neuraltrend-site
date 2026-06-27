@@ -4850,6 +4850,12 @@
         if (previewScaleModeEl) {
             previewScaleModeEl.textContent = isLogScale ? "Log" : "Linear";
         }
+
+        const previewCostLabelEl = document.getElementById("preview-cost-label");
+        if (previewCostLabelEl) {
+            const costPct = Number(data.transaction_cost_rate || 0) * 100;
+            previewCostLabelEl.textContent = `${costPct.toFixed(2)}% per trade`;
+        }
     
         chartDiv.innerHTML = `
             <canvas id="previewChartCanvas"></canvas>
