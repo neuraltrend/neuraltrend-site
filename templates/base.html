@@ -3947,6 +3947,34 @@
             margin-top: 8px;
         }
 
+        /* ===============================
+           Live simulation created highlight
+        ================================ */
+        
+        .nt-live-sim-item.just-created {
+            border-color: rgba(22, 163, 74, 0.65);
+            background: rgba(22, 163, 74, 0.08);
+            box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.10);
+            animation: ntLiveSimCreatedPulse 1.8s ease-out;
+        }
+        
+        @keyframes ntLiveSimCreatedPulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.28);
+            }
+        
+            40% {
+                transform: scale(1.015);
+                box-shadow: 0 0 0 8px rgba(22, 163, 74, 0.13);
+            }
+        
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.10);
+            }
+        }
+
     </style>
 
 </head>
@@ -5284,9 +5312,10 @@
     /* ===============================
        Live Simulation UI
     ================================ */
-    
+
     let liveSimChart = null;
     let selectedLiveSimulationId = null;
+    let recentlyCreatedLiveSimulationId = null;
     let liveSimulationsCache = [];
     
     function liveSimMoney(value) {
@@ -5409,6 +5438,7 @@
     
         listEl.innerHTML = simulations.map(sim => {
             const activeClass = sim.id === selectedLiveSimulationId ? "active" : "";
+            const createdClass = sim.id === recentlyCreatedLiveSimulationId ? "just-created" : "";
     
             const strategyReturnClass = liveSimReturnClass(sim.strategy_return);
             const benchmarkReturnClass = liveSimReturnClass(sim.benchmark_return);
@@ -5420,7 +5450,7 @@
             const latestDate = sim.latest_equity_date || sim.last_processed_date || "—";
     
             return `
-                <div class="nt-live-sim-item ${activeClass}" data-live-sim-id="${sim.id}">
+                <div class="nt-live-sim-item ${activeClass} ${createdClass}" data-live-sim-id="${sim.id}">
                     <div class="nt-live-sim-item-top">
                         <div>
                             <div class="nt-live-sim-item-name">${escapeHTML(sim.name)}</div>
@@ -5513,6 +5543,8 @@
                 }
             });
         });
+
+        scrollToRecentlyCreatedSimulation();
     }
     
     async function selectLiveSimulation(simId) {
@@ -5876,6 +5908,26 @@
             </div>
         `;
     }
+
+    function scrollToRecentlyCreatedSimulation() {
+        if (!recentlyCreatedLiveSimulationId) return;
+    
+        const card = document.querySelector(
+            `[data-live-sim-id="${recentlyCreatedLiveSimulationId}"]`
+        );
+    
+        if (!card) return;
+    
+        card.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest"
+        });
+    
+        setTimeout(() => {
+            card.classList.remove("just-created");
+            recentlyCreatedLiveSimulationId = null;
+        }, 2200);
+    }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -5929,9 +5981,12 @@
                 },
                 body: JSON.stringify(payload)
             });
-    
+
             selectedLiveSimulationId = data.simulation.id;
-            setLiveSimMessage("Simulation created successfully.");
+            recentlyCreatedLiveSimulationId = data.simulation.id;
+            
+            setLiveSimMessage("Simulation created successfully. New card highlighted below.");
+            
             await loadLiveSimulations();
     
         } catch (error) {
