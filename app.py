@@ -450,6 +450,8 @@ def live_simulation_summary(sim):
         "outperformance": outperformance,
         "trade_count": trade_count,
         "latest_equity_date": latest.equity_date.isoformat() if latest else None,
+        "latest_signal": int(latest.signal) if latest else None,
+        "latest_close_price": float(latest.close_price) if latest else None,
         "latest_csv_date": latest_csv_date.isoformat() if latest_csv_date else None,
         "is_current_with_csv": (
             sim.last_processed_date == latest_csv_date
