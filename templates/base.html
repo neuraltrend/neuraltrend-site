@@ -3975,6 +3975,74 @@
             }
         }
 
+        /* ===============================
+           Live simulation logged-out state
+        ================================ */
+        
+        .nt-live-sim-auth-empty {
+            border: 1px dashed rgba(37, 99, 235, 0.35);
+            background: rgba(37, 99, 235, 0.045);
+            border-radius: 16px;
+            padding: 18px;
+            margin-top: 14px;
+        }
+        
+        .nt-live-sim-auth-kicker {
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--nt-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.055em;
+            margin-bottom: 6px;
+        }
+        
+        .nt-live-sim-auth-title {
+            font-size: 16px;
+            line-height: 1.25;
+            font-weight: 900;
+            color: var(--nt-dark);
+            margin-bottom: 7px;
+        }
+        
+        .nt-live-sim-auth-text {
+            font-size: 13px;
+            line-height: 1.55;
+            font-weight: 600;
+            color: var(--nt-neutral);
+            margin-bottom: 12px;
+        }
+        
+        .nt-live-sim-auth-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .nt-live-sim-auth-btn {
+            border: none;
+            border-radius: 999px;
+            background: var(--nt-dark);
+            color: #ffffff;
+            padding: 9px 13px;
+            font-size: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .nt-live-sim-auth-btn:hover {
+            background: var(--nt-blue);
+            transform: translateY(-1px);
+        }
+        
+        .nt-live-sim-auth-note {
+            font-size: 11px;
+            line-height: 1.4;
+            font-weight: 700;
+            color: var(--nt-neutral);
+        }
+
     </style>
 
 </head>
@@ -5411,10 +5479,17 @@
             setLiveSimRefreshStatus(`Last refreshed at ${liveSimRefreshTimestamp()}.`);
     
         } catch (error) {
-            limitEl.textContent = "Login required to view saved simulations.";
-            listEl.innerHTML = "";
-            setLiveSimMessage(error.message, true);
-            setLiveSimRefreshStatus("Could not refresh simulations.");
+            if (isLiveSimLoginError(error)) {
+                renderLiveSimulationLoggedOutState();
+                setLiveSimMessage("Log in or sign up to create and save live simulations.");
+                setLiveSimRefreshStatus("Login required to load saved simulations.");
+            } else {
+                limitEl.textContent = "Could not load simulations.";
+                listEl.innerHTML = "";
+                setLiveSimMessage(error.message, true);
+                setLiveSimRefreshStatus("Could not refresh simulations.");
+            }
+        
         } finally {
             if (refreshBtn) {
                 refreshBtn.disabled = false;
@@ -5928,6 +6003,82 @@
             recentlyCreatedLiveSimulationId = null;
         }, 2200);
     }
+
+    function openNeuralTrendLoginModal() {
+        const loginModal = document.getElementById("loginModal");
+        const emailInput = document.getElementById("emailInput");
+    
+        if (!loginModal) return;
+    
+        loginModal.style.display = "flex";
+    
+        requestAnimationFrame(() => {
+            loginModal.style.opacity = "1";
+        });
+    
+        if (emailInput) {
+            setTimeout(() => emailInput.focus(), 120);
+        }
+    }
+    
+    function isLiveSimLoginError(error) {
+        const message = String(error?.message || "").toLowerCase();
+    
+        return (
+            message.includes("login required") ||
+            message.includes("401") ||
+            message.includes("unauthorized")
+        );
+    }
+    
+    function renderLiveSimulationLoggedOutState() {
+        const listEl = document.getElementById("live-sim-list");
+        const limitEl = document.getElementById("live-sim-limit");
+        const dashboard = document.getElementById("live-sim-dashboard");
+    
+        liveSimulationsCache = [];
+        selectedLiveSimulationId = null;
+    
+        if (limitEl) {
+            limitEl.textContent = "Sign in to save and track live simulations.";
+        }
+    
+        if (dashboard) {
+            dashboard.style.display = "none";
+        }
+    
+        if (!listEl) return;
+    
+        listEl.innerHTML = `
+            <div class="nt-live-sim-auth-empty">
+                <div class="nt-live-sim-auth-kicker">
+                    Account required
+                </div>
+    
+                <div class="nt-live-sim-auth-title">
+                    Log in to create live paper simulations
+                </div>
+    
+                <div class="nt-live-sim-auth-text">
+                    Your live simulations are saved to your account, so each portfolio can keep its own cash balance, position size, trades, equity curve, and buy-and-hold benchmark.
+                </div>
+    
+                <div class="nt-live-sim-auth-actions">
+                    <button 
+                        type="button" 
+                        id="live-sim-login-action" 
+                        class="nt-live-sim-auth-btn"
+                    >
+                        Log in / Sign up
+                    </button>
+    
+                    <span class="nt-live-sim-auth-note">
+                        Paper simulation only. No trades are placed.
+                    </span>
+                </div>
+            </div>
+        `;
+    }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -5990,7 +6141,13 @@
             await loadLiveSimulations();
     
         } catch (error) {
-            setLiveSimMessage(error.message, true);
+            if (isLiveSimLoginError(error)) {
+                renderLiveSimulationLoggedOutState();
+                setLiveSimMessage("Please log in or sign up before creating a live simulation.", true);
+                openNeuralTrendLoginModal();
+            } else {
+                setLiveSimMessage(error.message, true);
+            }
         }
     });
 
@@ -6033,6 +6190,13 @@
         setLiveSimMessage("Refreshing simulations from latest available CSV data...");
         await loadLiveSimulations();
         setLiveSimMessage("Simulations refreshed.");
+    });
+
+    document.addEventListener("click", function (e) {
+        if (e.target && e.target.id === "live-sim-login-action") {
+            e.preventDefault();
+            openNeuralTrendLoginModal();
+        }
     });
     
     // Auto-load saved simulations when page loads.
@@ -6430,6 +6594,10 @@
                 loginModal.style.display = "none";
             }, 300);
             await checkUser();
+
+            if (typeof loadLiveSimulations === "function") {
+                await loadLiveSimulations();
+            }
         } else {
             authMessage.innerText = data.error;
         }
