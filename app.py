@@ -961,6 +961,34 @@ def delete_live_simulation(simulation_id):
         "message": "Simulation deleted."
     })
 
+@app.route("/live-simulations/<int:simulation_id>", methods=["PATCH"])
+@login_required
+def rename_live_simulation(simulation_id):
+    sim = LiveSimulation.query.filter_by(
+        id=simulation_id,
+        user_id=current_user.id
+    ).first()
+
+    if not sim:
+        return jsonify({"error": "Simulation not found."}), 404
+
+    data = request.get_json(silent=True) or {}
+    new_name = str(data.get("name", "")).strip()
+
+    if not new_name:
+        return jsonify({"error": "Simulation name cannot be empty."}), 400
+
+    if len(new_name) > 120:
+        return jsonify({"error": "Simulation name must be 120 characters or fewer."}), 400
+
+    sim.name = new_name
+    db.session.commit()
+
+    return jsonify({
+        "message": "Simulation renamed.",
+        "simulation": live_simulation_summary(sim)
+    })
+
 @app.route("/request-password-reset", methods=["POST"])
 @limiter.limit("3 per minute")
 def request_password_reset():
