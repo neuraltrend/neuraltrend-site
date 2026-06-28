@@ -971,16 +971,6 @@
                                 </select>
                             </div>
         
-                            <div class="nt-live-sim-field">
-                                <label>Start Date</label>
-                                <input type="text" value="Latest available CSV date" disabled>
-                            </div>
-        
-                            <div class="nt-live-sim-field">
-                                <label>Benchmark</label>
-                                <input type="text" value="Buy & Hold from activation date" disabled>
-                            </div>
-        
                         </div>
         
                         <div class="nt-live-sim-actions">
@@ -1118,18 +1108,18 @@
                                 Crypto allows fractional positions. Stocks use whole-share quantities.
                             </div>
                         </div>
-            
+                        
                         <div class="nt-live-sim-assumption-item">
-                            <div class="nt-live-sim-assumption-label">Update Rule</div>
+                            <div class="nt-live-sim-assumption-label">Start & Benchmark</div>
                             <div class="nt-live-sim-assumption-text">
-                                Simulations update from the latest deployed CSV data when the panel loads or when Refresh is clicked.
+                                Each simulation starts from the latest available CSV date at creation. The benchmark is Buy & Hold from the same start date, with transaction cost included.
                             </div>
                         </div>
             
                     </div>
             
                     <div class="nt-live-sim-assumption-warning">
-                        Paper simulation only. It does not place trades, connect to an exchange, or provide investment advice.
+                        Paper simulation only. Simulations update from the latest deployed CSV data when the panel loads or when Refresh is clicked. It does not place trades, connect to an exchange, or provide investment advice.
                     </div>
                 </details>
             
