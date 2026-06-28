@@ -4049,39 +4049,30 @@
         ================================ */
         
         .nt-live-sim-layout {
-            grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+            grid-template-columns: minmax(340px, 480px) minmax(420px, 1fr);
             align-items: start;
         }
         
-        /* Keep the create form clean inside the narrower column */
         .nt-live-sim-layout > .nt-live-sim-card:first-child .nt-live-sim-form-grid {
             grid-template-columns: 1fr;
         }
         
-        /* Give the simulations panel more breathing room */
         .nt-live-sim-layout > .nt-live-sim-card:nth-child(2) {
             min-width: 0;
         }
         
-        /* Make saved simulation cards less cramped */
         .nt-live-sim-layout > .nt-live-sim-card:nth-child(2) .nt-live-sim-list {
             max-height: 520px;
         }
         
-        /* On medium screens, keep a useful two-column layout a bit longer */
         @media (max-width: 1050px) {
             .nt-live-sim-layout {
-                grid-template-columns: minmax(300px, 390px) minmax(0, 1fr);
+                grid-template-columns: minmax(320px, 430px) minmax(360px, 1fr);
             }
         }
         
-        /* On smaller screens, stack them */
         @media (max-width: 850px) {
             .nt-live-sim-layout {
-                grid-template-columns: 1fr;
-            }
-        
-            .nt-live-sim-layout > .nt-live-sim-card:first-child .nt-live-sim-form-grid {
                 grid-template-columns: 1fr;
             }
         }
