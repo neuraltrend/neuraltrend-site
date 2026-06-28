@@ -4246,6 +4246,32 @@
             color: var(--nt-neutral);
         }
 
+        /* ===============================
+           Live simulation card actions
+        ================================ */
+        
+        .nt-live-sim-card-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        
+        .nt-live-sim-edit {
+            border: none;
+            background: rgba(37, 99, 235, 0.08);
+            color: var(--nt-blue);
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 850;
+            padding: 5px 8px;
+            cursor: pointer;
+        }
+        
+        .nt-live-sim-edit:hover {
+            background: rgba(37, 99, 235, 0.14);
+        }
+
     </style>
 
 </head>
@@ -5740,13 +5766,24 @@
                             ${liveSimCsvStatusHTML(sim)}
                         </div>
     
-                        <button 
-                            type="button" 
-                            class="nt-live-sim-delete" 
-                            data-delete-live-sim-id="${sim.id}"
-                        >
-                            Delete
-                        </button>
+                        <div class="nt-live-sim-card-actions">
+                            <button 
+                                type="button" 
+                                class="nt-live-sim-edit" 
+                                data-rename-live-sim-id="${sim.id}"
+                                data-current-live-sim-name="${escapeHTML(sim.name)}"
+                            >
+                                Rename
+                            </button>
+                        
+                            <button 
+                                type="button" 
+                                class="nt-live-sim-delete" 
+                                data-delete-live-sim-id="${sim.id}"
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </div>
     
                     <div class="nt-live-sim-card-metrics">
@@ -5792,6 +5829,17 @@
             card.addEventListener("click", function () {
                 const simId = Number(this.dataset.liveSimId);
                 selectLiveSimulation(simId);
+            });
+        });
+
+        document.querySelectorAll("[data-rename-live-sim-id]").forEach(btn => {
+            btn.addEventListener("click", async function (e) {
+                e.stopPropagation();
+        
+                const simId = Number(this.dataset.renameLiveSimId);
+                const currentName = this.dataset.currentLiveSimName || "";
+        
+                await renameLiveSimulation(simId, currentName);
             });
         });
     
@@ -6494,6 +6542,46 @@
         });
     
         updateLiveSimTickerSelectionUI(select.value || "BTC-USD", true);
+    }
+
+    async function renameLiveSimulation(simId, currentName) {
+        const newName = prompt("Rename simulation:", currentName || "");
+    
+        if (newName === null) {
+            return;
+        }
+    
+        const cleanName = newName.trim();
+    
+        if (!cleanName) {
+            setLiveSimMessage("Simulation name cannot be empty.", true);
+            return;
+        }
+    
+        if (cleanName.length > 120) {
+            setLiveSimMessage("Simulation name must be 120 characters or fewer.", true);
+            return;
+        }
+    
+        try {
+            await liveSimFetchJSON(`/live-simulations/${simId}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: cleanName
+                })
+            });
+    
+            setLiveSimMessage("Simulation renamed successfully.");
+            selectedLiveSimulationId = simId;
+    
+            await loadLiveSimulations();
+    
+        } catch (error) {
+            setLiveSimMessage(error.message, true);
+        }
     }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
