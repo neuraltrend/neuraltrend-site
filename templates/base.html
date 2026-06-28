@@ -4050,7 +4050,7 @@
         
         .nt-live-sim-layout {
             grid-template-columns: minmax(360px, 520px) minmax(420px, 1fr);
-            align-items: start;
+            align-items: stretch;
         }
         
         .nt-live-sim-layout > .nt-live-sim-card:first-child .nt-live-sim-form-grid {
@@ -4075,6 +4075,31 @@
             .nt-live-sim-layout {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* ===============================
+           Equal height live simulation cards
+        ================================ */
+        
+        .nt-live-sim-layout {
+            align-items: stretch;
+        }
+        
+        /* Make both top cards stretch to the same row height */
+        .nt-live-sim-layout > .nt-live-sim-card {
+            height: 100%;
+        }
+        
+        /* Keep each card content organized vertically */
+        .nt-live-sim-layout > .nt-live-sim-card:first-child,
+        .nt-live-sim-layout > .nt-live-sim-card:nth-child(2) {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Let the simulations list use available height cleanly */
+        .nt-live-sim-layout > .nt-live-sim-card:nth-child(2) .nt-live-sim-list {
+            flex: 1;
         }
 
     </style>
