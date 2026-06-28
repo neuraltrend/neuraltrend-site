@@ -5386,6 +5386,9 @@
     let recentlyCreatedLiveSimulationId = null;
     let liveSimulationsCache = [];
     
+    let liveSimLoggedIn = false;
+    let liveSimUserEmail = null;
+    
     function liveSimMoney(value) {
         if (value === null || value === undefined || Number.isNaN(Number(value))) {
             return "—";
@@ -5417,11 +5420,12 @@
         if (Number(value) < 0) return "return-negative";
         return "return-neutral";
     }
-    
+
     function setLiveSimMessage(message, isError = false) {
         const el = document.getElementById("live-sim-message");
         if (!el) return;
     
+        el.dataset.userEdited = "true";
         el.textContent = message;
         el.style.color = isError ? "var(--nt-negative)" : "var(--nt-neutral)";
     }
@@ -6079,9 +6083,63 @@
             </div>
         `;
     }
+
+    function applyLiveSimAuthState(isLoggedIn, email = null) {
+        liveSimLoggedIn = Boolean(isLoggedIn);
+        liveSimUserEmail = email || null;
+    
+        const submitBtn = document.getElementById("live-sim-submit-btn");
+    
+        if (submitBtn) {
+            submitBtn.textContent = liveSimLoggedIn
+                ? "Create Simulation"
+                : "Log in to Create";
+        }
+    
+        const messageEl = document.getElementById("live-sim-message");
+    
+        if (messageEl && !messageEl.dataset.userEdited) {
+            messageEl.textContent = liveSimLoggedIn
+                ? `Signed in as ${liveSimUserEmail}. Simulations are saved to your account.`
+                : "Login is required to create and track live simulations.";
+    
+            messageEl.style.color = "var(--nt-neutral)";
+        }
+    }
+    
+    async function refreshLiveSimAuthState() {
+        try {
+            const response = await fetch("/me", {
+                cache: "no-store"
+            });
+    
+            const data = await response.json();
+    
+            if (data && data.email) {
+                applyLiveSimAuthState(true, data.email);
+                return true;
+            }
+    
+            applyLiveSimAuthState(false, null);
+            return false;
+    
+        } catch (error) {
+            applyLiveSimAuthState(false, null);
+            return false;
+        }
+    }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
         e.preventDefault();
+    
+        const isLoggedInNow = await refreshLiveSimAuthState();
+    
+        if (!isLoggedInNow) {
+            renderLiveSimulationLoggedOutState();
+            setLiveSimMessage("Please log in or sign up before creating a live simulation.", true);
+            openNeuralTrendLoginModal();
+            return;
+        }
     
         const payload = {
             name: document.getElementById("live-sim-name").value.trim(),
@@ -6201,6 +6259,7 @@
     
     // Auto-load saved simulations when page loads.
     syncLiveSimulationTicker(currentTicker || "BTC-USD");
+    refreshLiveSimAuthState();
     loadLiveSimulations();
     
     // Global delegated click handler
@@ -6595,6 +6654,10 @@
             }, 300);
             await checkUser();
 
+            if (typeof refreshLiveSimAuthState === "function") {
+                await refreshLiveSimAuthState();
+            }
+            
             if (typeof loadLiveSimulations === "function") {
                 await loadLiveSimulations();
             }
