@@ -4102,6 +4102,115 @@
             flex: 1;
         }
 
+        /* ===============================
+           Live simulation assumptions
+        ================================ */
+        
+        .nt-live-sim-assumptions {
+            margin-top: 14px;
+            border: 1px solid var(--nt-border);
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.045);
+            overflow: hidden;
+        }
+        
+        .nt-live-sim-assumptions summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 13px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 13px;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-live-sim-assumptions summary::-webkit-details-marker {
+            display: none;
+        }
+        
+        .nt-live-sim-assumptions summary span::before {
+            content: "▸";
+            display: inline-block;
+            margin-right: 7px;
+            color: var(--nt-blue);
+            transition: transform 0.15s ease;
+        }
+        
+        .nt-live-sim-assumptions[open] summary span::before {
+            transform: rotate(90deg);
+        }
+        
+        .nt-live-sim-assumptions summary strong {
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--nt-blue);
+            background: rgba(37, 99, 235, 0.08);
+            border-radius: 999px;
+            padding: 6px 9px;
+            white-space: nowrap;
+        }
+        
+        .nt-live-sim-assumption-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            padding: 0 15px 14px 15px;
+        }
+        
+        .nt-live-sim-assumption-item {
+            border: 1px solid var(--nt-border);
+            border-radius: 13px;
+            background: #F8FAFC;
+            padding: 11px;
+        }
+        
+        .nt-live-sim-assumption-label {
+            font-size: 11px;
+            line-height: 1.2;
+            font-weight: 900;
+            color: var(--nt-dark);
+            margin-bottom: 6px;
+        }
+        
+        .nt-live-sim-assumption-text {
+            font-size: 12px;
+            line-height: 1.45;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-live-sim-assumption-warning {
+            margin: 0 15px 15px 15px;
+            padding: 10px 11px;
+            border-radius: 12px;
+            background: rgba(245, 158, 11, 0.09);
+            color: #92400E;
+            font-size: 12px;
+            line-height: 1.45;
+            font-weight: 750;
+        }
+        
+        @media (max-width: 1000px) {
+            .nt-live-sim-assumption-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .nt-live-sim-assumptions summary {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        
+            .nt-live-sim-assumption-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
     </style>
 
 </head>
@@ -4646,6 +4755,8 @@
     
     function syncLiveSimulationTicker(ticker) {
         if (!ticker) return;
+
+        updateLiveSimAssumptionPanel(ticker);
 
         const selectedTickerLabel = document.getElementById("live-sim-selected-ticker-label");
         if (selectedTickerLabel) {
@@ -6187,6 +6298,29 @@
             return false;
         }
     }
+
+    function liveSimTickerIsCrypto(ticker) {
+        return String(ticker || "").trim().toUpperCase().endsWith("-USD");
+    }
+    
+    function updateLiveSimAssumptionPanel(ticker) {
+        const costEl = document.getElementById("live-sim-assumption-cost");
+        const quantityEl = document.getElementById("live-sim-assumption-quantity");
+    
+        const isCrypto = liveSimTickerIsCrypto(ticker);
+    
+        if (costEl) {
+            costEl.textContent = isCrypto
+                ? "Cost: 1.00% per trade"
+                : "Cost: 0.10% per trade";
+        }
+    
+        if (quantityEl) {
+            quantityEl.textContent = isCrypto
+                ? "Crypto allows fractional positions. BUY and SELL can use partial quantities."
+                : "Stocks use whole-share quantities. BUY and SELL quantities are rounded while respecting available cash and current holdings.";
+        }
+    }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -6301,6 +6435,7 @@
         if (selectedTickerLabel) {
             selectedTickerLabel.textContent = this.value.trim() || "—";
         }
+        updateLiveSimAssumptionPanel(this.value);
     });
 
     document.getElementById("live-sim-refresh-btn")?.addEventListener("click", async function () {
@@ -6318,6 +6453,7 @@
     
     // Auto-load saved simulations when page loads.
     syncLiveSimulationTicker(currentTicker || "BTC-USD");
+    updateLiveSimAssumptionPanel(currentTicker || "BTC-USD");
     refreshLiveSimAuthState();
     loadLiveSimulations();
     
