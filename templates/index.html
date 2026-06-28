@@ -952,15 +952,34 @@
                             </div>
         
                             <div class="nt-live-sim-field">
-                                <label for="live-sim-ticker">Ticker</label>
-                                <input 
-                                    id="live-sim-ticker" 
-                                    name="ticker"
-                                    type="text" 
-                                    value="BTC-USD"
-                                    placeholder="BTC-USD, ETH-USD, AAPL..."
-                                    required
-                                >
+                                <label for="live-sim-ticker-search">Ticker</label>
+                            
+                                <div class="nt-live-sim-asset-picker">
+                            
+                                    <div class="nt-live-sim-ticker-search-wrap">
+                                        <input 
+                                            id="live-sim-ticker-search"
+                                            class="nt-live-sim-ticker-search"
+                                            type="search"
+                                            placeholder="Search BTC, ETH, AAPL, NVDA..."
+                                            autocomplete="off"
+                                        >
+                                    </div>
+                            
+                                    <select 
+                                        id="live-sim-ticker" 
+                                        name="ticker"
+                                        class="nt-live-sim-ticker-select"
+                                        required
+                                    >
+                                        <option value="BTC-USD">BTC-USD</option>
+                                    </select>
+                            
+                                </div>
+                            
+                                <div id="live-sim-ticker-helper" class="nt-live-sim-field-note">
+                                    Choose from supported assets available in EpochSignaler.
+                                </div>
                             </div>
         
                             <div class="nt-live-sim-field">
