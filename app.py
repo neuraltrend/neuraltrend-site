@@ -804,12 +804,17 @@ def list_live_simulations():
 
     query = LiveSimulation.query.filter_by(user_id=current_user.id)
 
-    if requested_status == "archived":
+    if requested_status == "active":
+        query = query.filter_by(status="active")
+    elif requested_status == "paused":
+        query = query.filter_by(status="paused")
+    elif requested_status == "archived":
         query = query.filter_by(status="archived")
     elif requested_status == "all":
         pass
     else:
-        # Default view: active + paused. Archived simulations are hidden.
+        # Default view: active + paused
+        requested_status = "open"
         query = query.filter(LiveSimulation.status.in_(["active", "paused"]))
 
     sims = query.order_by(LiveSimulation.created_at.desc()).all()
@@ -822,26 +827,33 @@ def list_live_simulations():
 
     sims = query.order_by(LiveSimulation.created_at.desc()).all()
 
-    used_count = (
-        LiveSimulation.query
-        .filter(
-            LiveSimulation.user_id == current_user.id,
-            LiveSimulation.status.in_(["active", "paused"])
-        )
-        .count()
-    )
+    active_count = LiveSimulation.query.filter_by(
+        user_id=current_user.id,
+        status="active"
+    ).count()
 
-    archived_count = (
-        LiveSimulation.query
-        .filter_by(user_id=current_user.id, status="archived")
-        .count()
-    )
+    paused_count = LiveSimulation.query.filter_by(
+        user_id=current_user.id,
+        status="paused"
+    ).count()
+
+    archived_count = LiveSimulation.query.filter_by(
+        user_id=current_user.id,
+        status="archived"
+    ).count()
+
+    open_count = active_count + paused_count
+    all_count = open_count + archived_count
 
     return jsonify({
         "limit": LIVE_SIMULATION_LIMIT,
         "count": len(sims),
-        "used_count": used_count,
+        "used_count": open_count,
+        "active_count": active_count,
+        "paused_count": paused_count,
         "archived_count": archived_count,
+        "open_count": open_count,
+        "all_count": all_count,
         "view": requested_status,
         "simulations": [live_simulation_summary(sim) for sim in sims]
     })
