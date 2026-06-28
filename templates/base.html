@@ -4396,6 +4396,36 @@
             }
         }
 
+        /* ===============================
+           Live simulation filter counts
+        ================================ */
+        
+        .nt-live-sim-filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .nt-live-sim-filter-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 6px;
+            border-radius: 999px;
+            background: rgba(100, 116, 139, 0.12);
+            color: inherit;
+            font-size: 10px;
+            line-height: 1;
+            font-weight: 900;
+        }
+        
+        .nt-live-sim-filter-chip.selected .nt-live-sim-filter-count {
+            background: rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+        }
+
     </style>
 
 </head>
@@ -5816,6 +5846,8 @@
             const statusQuery = encodeURIComponent(liveSimStatusFilter || "open");
             const data = await liveSimFetchJSON(`/live-simulations?status=${statusQuery}`);
 
+            updateLiveSimFilterCounts(data);
+
             liveSimulationsCache = data.simulations || [];
             
             limitEl.textContent = liveSimLimitText(data);
@@ -5842,6 +5874,8 @@
             setLiveSimRefreshStatus(`Last refreshed at ${liveSimRefreshTimestamp()}.`);
     
         } catch (error) {
+            resetLiveSimFilterCounts();
+            
             if (isLiveSimLoginError(error)) {
                 renderLiveSimulationLoggedOutState();
                 setLiveSimMessage("Log in or sign up to create and save live simulations.");
@@ -6898,6 +6932,34 @@
         }
     
         return `${data.used_count} of ${data.limit} active/paused simulations used. ${data.archived_count} archived.`;
+    }
+
+    function updateLiveSimFilterCounts(data) {
+        const counts = {
+            open: data.open_count || data.used_count || 0,
+            active: data.active_count || 0,
+            paused: data.paused_count || 0,
+            archived: data.archived_count || 0,
+            all: data.all_count || 0
+        };
+    
+        Object.entries(counts).forEach(([key, value]) => {
+            const el = document.getElementById(`live-sim-count-${key}`);
+    
+            if (el) {
+                el.textContent = String(value);
+            }
+        });
+    }
+    
+    function resetLiveSimFilterCounts() {
+        ["open", "active", "paused", "archived", "all"].forEach(key => {
+            const el = document.getElementById(`live-sim-count-${key}`);
+    
+            if (el) {
+                el.textContent = "0";
+            }
+        });
     }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
