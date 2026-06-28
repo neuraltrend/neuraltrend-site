@@ -1036,13 +1036,48 @@
                         </div>
                 
                         <div class="nt-live-sim-header-actions">
-                            <button 
-                                type="button" 
-                                id="live-sim-archive-toggle-btn" 
-                                class="nt-live-sim-refresh-btn"
-                            >
-                                Show Archived
-                            </button>
+
+                            <div class="nt-live-sim-filter-chips" aria-label="Simulation filters">
+                                <button 
+                                    type="button" 
+                                    class="nt-live-sim-filter-chip selected" 
+                                    data-live-sim-filter="open"
+                                >
+                                    Open
+                                </button>
+                        
+                                <button 
+                                    type="button" 
+                                    class="nt-live-sim-filter-chip" 
+                                    data-live-sim-filter="active"
+                                >
+                                    Active
+                                </button>
+                        
+                                <button 
+                                    type="button" 
+                                    class="nt-live-sim-filter-chip" 
+                                    data-live-sim-filter="paused"
+                                >
+                                    Paused
+                                </button>
+                        
+                                <button 
+                                    type="button" 
+                                    class="nt-live-sim-filter-chip" 
+                                    data-live-sim-filter="archived"
+                                >
+                                    Archived
+                                </button>
+                        
+                                <button 
+                                    type="button" 
+                                    class="nt-live-sim-filter-chip" 
+                                    data-live-sim-filter="all"
+                                >
+                                    All
+                                </button>
+                            </div>
                         
                             <button 
                                 type="button" 
@@ -1051,6 +1086,7 @@
                             >
                                 Refresh
                             </button>
+                        
                         </div>
                     </div>
                 
