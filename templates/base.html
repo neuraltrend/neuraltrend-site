@@ -4211,6 +4211,67 @@
             }
         }
 
+        /* ===============================
+           Live simulation asset selector
+        ================================ */
+        
+        .nt-live-sim-asset-picker {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .nt-live-sim-ticker-search-wrap {
+            position: relative;
+        }
+        
+        .nt-live-sim-ticker-search-wrap::before {
+            content: "🔍";
+            position: absolute;
+            left: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            opacity: 0.72;
+            pointer-events: none;
+        }
+        
+        .nt-live-sim-ticker-search,
+        .nt-live-sim-ticker-select {
+            width: 100%;
+            border: 1px solid var(--nt-border);
+            border-radius: 12px;
+            background: #ffffff;
+            color: var(--nt-dark);
+            font-size: 13px;
+            font-weight: 750;
+            outline: none;
+            box-sizing: border-box;
+        }
+        
+        .nt-live-sim-ticker-search {
+            padding: 10px 11px 10px 34px;
+        }
+        
+        .nt-live-sim-ticker-select {
+            padding: 10px 11px;
+            cursor: pointer;
+        }
+        
+        .nt-live-sim-ticker-search:focus,
+        .nt-live-sim-ticker-select:focus {
+            border-color: rgba(37, 99, 235, 0.45);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+        }
+        
+        .nt-live-sim-field-note {
+            margin-top: 6px;
+            font-size: 11px;
+            line-height: 1.4;
+            font-weight: 650;
+            color: var(--nt-neutral);
+        }
+
     </style>
 
 </head>
@@ -4755,32 +4816,30 @@
     
     function syncLiveSimulationTicker(ticker) {
         if (!ticker) return;
-
-        updateLiveSimAssumptionPanel(ticker);
-
-        const selectedTickerLabel = document.getElementById("live-sim-selected-ticker-label");
-        if (selectedTickerLabel) {
-            selectedTickerLabel.textContent = ticker;
+    
+        const normalizedTicker = normalizeTickerForCompare(ticker);
+        const select = document.getElementById("live-sim-ticker");
+        const search = document.getElementById("live-sim-ticker-search");
+    
+        if (!select) return;
+    
+        renderLiveSimTickerOptions("", ticker);
+    
+        const matchingOption = Array.from(select.options).find(option =>
+            normalizeTickerForCompare(option.value) === normalizedTicker
+        );
+    
+        if (matchingOption) {
+            select.value = matchingOption.value;
         }
     
-        const tickerInput = document.getElementById("live-sim-ticker");
-        const nameInput = document.getElementById("live-sim-name");
+        const selectedTicker = select.value || ticker;
     
-        if (tickerInput) {
-            tickerInput.value = ticker;
+        if (search) {
+            search.value = selectedTicker;
         }
     
-        if (nameInput) {
-            const shouldAutoUpdateName =
-                !nameInput.value.trim() ||
-                nameInput.dataset.autoName === "true" ||
-                nameInput.value.includes("Live Simulation");
-    
-            if (shouldAutoUpdateName) {
-                nameInput.value = defaultLiveSimulationName(ticker);
-                nameInput.dataset.autoName = "true";
-            }
-        }
+        updateLiveSimTickerSelectionUI(selectedTicker, true);
     }
     
     function applyAllFilters() {
@@ -6321,6 +6380,194 @@
                 : "Stocks use whole-share quantities. BUY and SELL quantities are rounded while respecting available cash and current holdings.";
         }
     }
+
+    let liveSimTickerOptionsCache = [];
+
+    function normalizeTickerForCompare(ticker) {
+        return String(ticker || "").trim().toUpperCase();
+    }
+    
+    function getLiveSimTickerOptions() {
+        /*
+          Priority:
+          1. Use loaded signal-board data if available.
+          2. Fallback to the existing Backtest #ticker dropdown.
+          3. Fallback to a small safe default list.
+        */
+    
+        const seen = new Set();
+        const options = [];
+    
+        if (Array.isArray(defaultOrder) && defaultOrder.length > 0) {
+            defaultOrder.forEach(item => {
+                const value = String(item?.ticker || "").trim();
+                const key = normalizeTickerForCompare(value);
+    
+                if (!value || seen.has(key)) return;
+    
+                seen.add(key);
+                options.push({
+                    value,
+                    label: value
+                });
+            });
+        }
+    
+        if (!options.length) {
+            const backtestTickerSelect = document.getElementById("ticker");
+    
+            if (backtestTickerSelect) {
+                Array.from(backtestTickerSelect.options).forEach(option => {
+                    const value = String(option.value || "").trim();
+                    const label = String(option.textContent || value).trim();
+                    const key = normalizeTickerForCompare(value);
+    
+                    if (!value || seen.has(key)) return;
+    
+                    seen.add(key);
+                    options.push({
+                        value,
+                        label
+                    });
+                });
+            }
+        }
+    
+        if (!options.length) {
+            ["BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD", "AAPL", "MSFT", "GOOGL", "NVDA"].forEach(value => {
+                options.push({
+                    value,
+                    label: value
+                });
+            });
+        }
+    
+        liveSimTickerOptionsCache = options;
+        return options;
+    }
+    
+    function liveSimTickerExists(ticker) {
+        const key = normalizeTickerForCompare(ticker);
+    
+        return getLiveSimTickerOptions().some(option =>
+            normalizeTickerForCompare(option.value) === key
+        );
+    }
+    
+    function renderLiveSimTickerOptions(searchTerm = "", preferredTicker = null) {
+        const select = document.getElementById("live-sim-ticker");
+        const helper = document.getElementById("live-sim-ticker-helper");
+    
+        if (!select) return;
+    
+        const allOptions = getLiveSimTickerOptions();
+        const term = String(searchTerm || "").trim().toLowerCase();
+    
+        let filtered = allOptions.filter(option => {
+            const value = String(option.value || "").toLowerCase();
+            const label = String(option.label || "").toLowerCase();
+    
+            return !term || value.includes(term) || label.includes(term);
+        });
+    
+        if (!filtered.length) {
+            filtered = allOptions.slice(0, 1);
+        }
+    
+        select.innerHTML = filtered.map(option => `
+            <option value="${escapeHTML(option.value)}">
+                ${escapeHTML(option.label)}
+            </option>
+        `).join("");
+    
+        const preferredKey = normalizeTickerForCompare(preferredTicker);
+        const currentKey = normalizeTickerForCompare(select.value);
+    
+        const preferredMatch = filtered.find(option =>
+            normalizeTickerForCompare(option.value) === preferredKey
+        );
+    
+        const currentMatch = filtered.find(option =>
+            normalizeTickerForCompare(option.value) === currentKey
+        );
+    
+        if (preferredMatch) {
+            select.value = preferredMatch.value;
+        } else if (currentMatch) {
+            select.value = currentMatch.value;
+        } else if (filtered.length) {
+            select.value = filtered[0].value;
+        }
+    
+        if (helper) {
+            helper.textContent = term
+                ? `${filtered.length} matching assets shown.`
+                : `${allOptions.length} supported assets available.`;
+        }
+    }
+    
+    function updateLiveSimTickerSelectionUI(ticker, updateName = true) {
+        if (!ticker) return;
+    
+        const selectedTickerLabel = document.getElementById("live-sim-selected-ticker-label");
+    
+        if (selectedTickerLabel) {
+            selectedTickerLabel.textContent = ticker;
+        }
+    
+        updateLiveSimAssumptionPanel(ticker);
+    
+        const nameInput = document.getElementById("live-sim-name");
+    
+        if (nameInput && updateName) {
+            const shouldAutoUpdateName =
+                !nameInput.value.trim() ||
+                nameInput.dataset.autoName === "true" ||
+                nameInput.value.includes("Live Simulation");
+    
+            if (shouldAutoUpdateName) {
+                nameInput.value = defaultLiveSimulationName(ticker);
+                nameInput.dataset.autoName = "true";
+            }
+        }
+    }
+    
+    function initializeLiveSimTickerSelector() {
+        const select = document.getElementById("live-sim-ticker");
+        const search = document.getElementById("live-sim-ticker-search");
+    
+        if (!select) return;
+    
+        renderLiveSimTickerOptions("", currentTicker || "BTC-USD");
+    
+        if (search) {
+            search.value = select.value || currentTicker || "BTC-USD";
+    
+            search.addEventListener("input", function () {
+                renderLiveSimTickerOptions(this.value, null);
+    
+                const selectedTicker = select.value;
+                updateLiveSimTickerSelectionUI(selectedTicker, true);
+            });
+    
+            search.addEventListener("focus", function () {
+                this.select();
+            });
+        }
+    
+        select.addEventListener("change", function () {
+            const selectedTicker = this.value;
+    
+            if (search) {
+                search.value = selectedTicker;
+            }
+    
+            updateLiveSimTickerSelectionUI(selectedTicker, true);
+            setLiveSimMessage(`Using ${selectedTicker} for the new simulation.`);
+        });
+    
+        updateLiveSimTickerSelectionUI(select.value || "BTC-USD", true);
+    }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -6340,6 +6587,11 @@
             initial_cash: Number(document.getElementById("live-sim-cash").value),
             position_size_pct: Number(document.getElementById("live-sim-position").value)
         };
+
+        if (!payload.ticker || !liveSimTickerExists(payload.ticker)) {
+            setLiveSimMessage("Please choose a supported asset from the ticker dropdown.", true);
+            return;
+        }
     
         const duplicate = findDuplicateLiveSimulation(payload);
     
@@ -6429,15 +6681,6 @@
         setLiveSimMessage(`Using ${selectedTicker} for the new simulation.`);
     });
 
-    document.getElementById("live-sim-ticker")?.addEventListener("input", function () {
-        const selectedTickerLabel = document.getElementById("live-sim-selected-ticker-label");
-    
-        if (selectedTickerLabel) {
-            selectedTickerLabel.textContent = this.value.trim() || "—";
-        }
-        updateLiveSimAssumptionPanel(this.value);
-    });
-
     document.getElementById("live-sim-refresh-btn")?.addEventListener("click", async function () {
         setLiveSimMessage("Refreshing simulations from latest available CSV data...");
         await loadLiveSimulations();
@@ -6452,6 +6695,7 @@
     });
     
     // Auto-load saved simulations when page loads.
+    initializeLiveSimTickerSelector();
     syncLiveSimulationTicker(currentTicker || "BTC-USD");
     updateLiveSimAssumptionPanel(currentTicker || "BTC-USD");
     refreshLiveSimAuthState();
