@@ -3670,64 +3670,6 @@
         }
 
         /* ===============================
-           Live simulation selected asset hint
-        ================================ */
-        
-        .nt-live-sim-selected-asset {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 14px;
-            padding: 11px 12px;
-            border-radius: 14px;
-            background: rgba(37, 99, 235, 0.06);
-            border: 1px solid rgba(37, 99, 235, 0.16);
-        }
-        
-        .nt-live-sim-selected-left {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-        
-        .nt-live-sim-selected-label {
-            font-size: 11px;
-            font-weight: 850;
-            color: var(--nt-neutral);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        
-        .nt-live-sim-selected-value {
-            font-size: 14px;
-            font-weight: 900;
-            color: var(--nt-dark);
-        }
-        
-        .nt-live-sim-selected-value strong {
-            color: var(--nt-blue);
-        }
-        
-        .nt-live-sim-use-selected-btn {
-            border: 1px solid rgba(37, 99, 235, 0.24);
-            background: #ffffff;
-            color: var(--nt-blue);
-            border-radius: 999px;
-            padding: 8px 11px;
-            font-size: 12px;
-            font-weight: 900;
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-        
-        .nt-live-sim-use-selected-btn:hover {
-            background: var(--nt-blue);
-            color: #ffffff;
-        }
-
-        /* ===============================
            Live simulation richer cards
         ================================ */
         
@@ -5483,7 +5425,6 @@
         highlightSelectedTicker();
         updateSelectedPerformanceCards(ticker);
         syncBacktestTicker(ticker);
-        syncLiveSimulationTicker(ticker);
     
         const duration = document.getElementById('period-select').value;
     
@@ -6781,7 +6722,15 @@
     
         if (!select) return;
     
-        renderLiveSimTickerOptions(currentTicker || "BTC-USD");
+        renderLiveSimTickerOptions("BTC-USD");
+    
+        const btcOption = Array.from(select.options).find(option =>
+            normalizeTickerForCompare(option.value) === "BTC-USD"
+        );
+    
+        if (btcOption) {
+            select.value = btcOption.value;
+        }
     
         select.addEventListener("change", function () {
             const selectedTicker = this.value;
@@ -7063,17 +7012,6 @@
         this.dataset.autoName = "false";
     });
 
-    document.getElementById("live-sim-use-selected-btn")?.addEventListener("click", function () {
-        const selectedTicker =
-            currentTicker ||
-            document.getElementById("metric-selected-ticker")?.textContent ||
-            "BTC-USD";
-    
-        syncLiveSimulationTicker(selectedTicker);
-    
-        setLiveSimMessage(`Using ${selectedTicker} for the new simulation.`);
-    });
-
     document.getElementById("live-sim-refresh-btn")?.addEventListener("click", async function () {
         setLiveSimMessage("Refreshing simulations from latest available CSV data...");
         await loadLiveSimulations();
@@ -7103,8 +7041,7 @@
     
     // Auto-load saved simulations when page loads.
     initializeLiveSimTickerSelector();
-    syncLiveSimulationTicker(currentTicker || "BTC-USD");
-    updateLiveSimAssumptionPanel(currentTicker || "BTC-USD");
+    updateLiveSimAssumptionPanel("BTC-USD");
     updateLiveSimFilterUI();
     refreshLiveSimAuthState();
     loadLiveSimulations();
