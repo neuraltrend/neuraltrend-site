@@ -4349,6 +4349,53 @@
             background: rgba(22, 163, 74, 0.16);
         }
 
+        /* ===============================
+           Live simulation filter chips
+        ================================ */
+        
+        .nt-live-sim-filter-chips {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .nt-live-sim-filter-chip {
+            border: 1px solid rgba(100, 116, 139, 0.20);
+            background: #ffffff;
+            color: var(--nt-neutral);
+            border-radius: 999px;
+            padding: 7px 10px;
+            font-size: 11px;
+            line-height: 1;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .nt-live-sim-filter-chip:hover {
+            border-color: rgba(37, 99, 235, 0.28);
+            color: var(--nt-blue);
+            background: rgba(37, 99, 235, 0.06);
+        }
+        
+        .nt-live-sim-filter-chip.selected {
+            border-color: rgba(37, 99, 235, 0.40);
+            background: var(--nt-blue);
+            color: #ffffff;
+        }
+        
+        @media (max-width: 760px) {
+            .nt-live-sim-header-actions {
+                justify-content: flex-start;
+            }
+        
+            .nt-live-sim-filter-chips {
+                justify-content: flex-start;
+            }
+        }
+
     </style>
 
 </head>
@@ -5686,7 +5733,7 @@
     let selectedLiveSimulationId = null;
     let recentlyCreatedLiveSimulationId = null;
     let liveSimulationsCache = [];
-    let liveSimShowingArchived = false;
+    let liveSimStatusFilter = "open";
     
     let liveSimLoggedIn = false;
     let liveSimUserEmail = null;
@@ -5766,16 +5813,12 @@
         setLiveSimRefreshStatus("Checking latest saved simulations...");
     
         try {
-            const statusQuery = liveSimShowingArchived ? "archived" : "open";
+            const statusQuery = encodeURIComponent(liveSimStatusFilter || "open");
             const data = await liveSimFetchJSON(`/live-simulations?status=${statusQuery}`);
 
             liveSimulationsCache = data.simulations || [];
             
-            if (liveSimShowingArchived) {
-                limitEl.textContent = `${data.count} archived simulations.`;
-            } else {
-                limitEl.textContent = `${data.used_count} of ${data.limit} active/paused simulations used. ${data.archived_count} archived.`;
-            }
+            limitEl.textContent = liveSimLimitText(data);
             
             renderLiveSimulationList(liveSimulationsCache);
     
@@ -5788,9 +5831,11 @@
             
                 const listEl = document.getElementById("live-sim-list");
                 if (listEl) {
-                    listEl.innerHTML = liveSimShowingArchived
-                        ? `<div class="nt-live-sim-small-note">No archived simulations yet.</div>`
-                        : `<div class="nt-live-sim-small-note">No active simulations yet. Create your first one above.</div>`;
+                    listEl.innerHTML = `
+                        <div class="nt-live-sim-small-note">
+                            ${escapeHTML(liveSimEmptyStateMessage(liveSimStatusFilter))}
+                        </div>
+                    `;
                 }
             }
 
@@ -6793,6 +6838,67 @@
             setLiveSimMessage(error.message, true);
         }
     }
+
+    function liveSimFilterLabel(filter) {
+        const labels = {
+            open: "Open",
+            active: "Active",
+            paused: "Paused",
+            archived: "Archived",
+            all: "All"
+        };
+    
+        return labels[filter] || "Open";
+    }
+    
+    function updateLiveSimFilterUI() {
+        document.querySelectorAll("[data-live-sim-filter]").forEach(btn => {
+            const isSelected = btn.dataset.liveSimFilter === liveSimStatusFilter;
+    
+            btn.classList.toggle("selected", isSelected);
+            btn.setAttribute("aria-pressed", isSelected ? "true" : "false");
+        });
+    }
+    
+    function liveSimEmptyStateMessage(filter) {
+        if (filter === "active") {
+            return "No active simulations. Resume a paused simulation or create a new one.";
+        }
+    
+        if (filter === "paused") {
+            return "No paused simulations.";
+        }
+    
+        if (filter === "archived") {
+            return "No archived simulations yet.";
+        }
+    
+        if (filter === "all") {
+            return "No simulations yet. Create your first one above.";
+        }
+    
+        return "No open simulations yet. Create your first one above.";
+    }
+    
+    function liveSimLimitText(data) {
+        if (liveSimStatusFilter === "active") {
+            return `${data.active_count} active simulations. ${data.paused_count} paused · ${data.archived_count} archived.`;
+        }
+    
+        if (liveSimStatusFilter === "paused") {
+            return `${data.paused_count} paused simulations. ${data.active_count} active · ${data.archived_count} archived.`;
+        }
+    
+        if (liveSimStatusFilter === "archived") {
+            return `${data.archived_count} archived simulations. ${data.open_count} open.`;
+        }
+    
+        if (liveSimStatusFilter === "all") {
+            return `${data.all_count} total simulations. ${data.open_count} open · ${data.archived_count} archived.`;
+        }
+    
+        return `${data.used_count} of ${data.limit} active/paused simulations used. ${data.archived_count} archived.`;
+    }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -6919,28 +7025,25 @@
         }
     });
 
-    document.getElementById("live-sim-archive-toggle-btn")?.addEventListener("click", async function () {
-        liveSimShowingArchived = !liveSimShowingArchived;
+    document.querySelectorAll("[data-live-sim-filter]").forEach(btn => {
+        btn.addEventListener("click", async function () {
+            liveSimStatusFilter = this.dataset.liveSimFilter || "open";
     
-        this.textContent = liveSimShowingArchived
-            ? "Show Active"
-            : "Show Archived";
+            selectedLiveSimulationId = null;
     
-        selectedLiveSimulationId = null;
+            updateLiveSimFilterUI();
     
-        setLiveSimMessage(
-            liveSimShowingArchived
-                ? "Showing archived simulations."
-                : "Showing active and paused simulations."
-        );
+            setLiveSimMessage(`Showing ${liveSimFilterLabel(liveSimStatusFilter).toLowerCase()} simulations.`);
     
-        await loadLiveSimulations();
+            await loadLiveSimulations();
+        });
     });
     
     // Auto-load saved simulations when page loads.
     initializeLiveSimTickerSelector();
     syncLiveSimulationTicker(currentTicker || "BTC-USD");
     updateLiveSimAssumptionPanel(currentTicker || "BTC-USD");
+    updateLiveSimFilterUI();
     refreshLiveSimAuthState();
     loadLiveSimulations();
     
