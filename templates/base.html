@@ -4272,6 +4272,83 @@
             background: rgba(37, 99, 235, 0.14);
         }
 
+        /* ===============================
+           Live simulation status controls
+        ================================ */
+        
+        .nt-live-sim-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        
+        .nt-live-sim-status-badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 4px 8px;
+            font-size: 10px;
+            line-height: 1.2;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.035em;
+        }
+        
+        .nt-live-sim-status-badge.active {
+            color: var(--nt-positive);
+            background: rgba(22, 163, 74, 0.10);
+        }
+        
+        .nt-live-sim-status-badge.paused {
+            color: #92400E;
+            background: rgba(245, 158, 11, 0.13);
+        }
+        
+        .nt-live-sim-status-badge.archived {
+            color: var(--nt-neutral);
+            background: rgba(100, 116, 139, 0.12);
+        }
+        
+        .nt-live-sim-pause,
+        .nt-live-sim-archive,
+        .nt-live-sim-restore {
+            border: none;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 850;
+            padding: 5px 8px;
+            cursor: pointer;
+        }
+        
+        .nt-live-sim-pause {
+            background: rgba(245, 158, 11, 0.10);
+            color: #92400E;
+        }
+        
+        .nt-live-sim-pause:hover {
+            background: rgba(245, 158, 11, 0.17);
+        }
+        
+        .nt-live-sim-archive {
+            background: rgba(100, 116, 139, 0.10);
+            color: var(--nt-neutral);
+        }
+        
+        .nt-live-sim-archive:hover {
+            background: rgba(100, 116, 139, 0.16);
+        }
+        
+        .nt-live-sim-restore {
+            background: rgba(22, 163, 74, 0.10);
+            color: var(--nt-positive);
+        }
+        
+        .nt-live-sim-restore:hover {
+            background: rgba(22, 163, 74, 0.16);
+        }
+
     </style>
 
 </head>
@@ -5609,6 +5686,7 @@
     let selectedLiveSimulationId = null;
     let recentlyCreatedLiveSimulationId = null;
     let liveSimulationsCache = [];
+    let liveSimShowingArchived = false;
     
     let liveSimLoggedIn = false;
     let liveSimUserEmail = null;
@@ -5688,11 +5766,16 @@
         setLiveSimRefreshStatus("Checking latest saved simulations...");
     
         try {
-            const data = await liveSimFetchJSON("/live-simulations");
+            const statusQuery = liveSimShowingArchived ? "archived" : "open";
+            const data = await liveSimFetchJSON(`/live-simulations?status=${statusQuery}`);
 
             liveSimulationsCache = data.simulations || [];
             
-            limitEl.textContent = `${data.count} of ${data.limit} simulations used.`;
+            if (liveSimShowingArchived) {
+                limitEl.textContent = `${data.count} archived simulations.`;
+            } else {
+                limitEl.textContent = `${data.used_count} of ${data.limit} active/paused simulations used. ${data.archived_count} archived.`;
+            }
             
             renderLiveSimulationList(liveSimulationsCache);
     
@@ -5702,6 +5785,13 @@
                 await selectLiveSimulation(targetId);
             } else {
                 document.getElementById("live-sim-dashboard").style.display = "none";
+            
+                const listEl = document.getElementById("live-sim-list");
+                if (listEl) {
+                    listEl.innerHTML = liveSimShowingArchived
+                        ? `<div class="nt-live-sim-small-note">No archived simulations yet.</div>`
+                        : `<div class="nt-live-sim-small-note">No active simulations yet. Create your first one above.</div>`;
+                }
             }
 
             setLiveSimRefreshStatus(`Last refreshed at ${liveSimRefreshTimestamp()}.`);
@@ -5759,6 +5849,7 @@
                             <div class="nt-live-sim-item-name">${escapeHTML(sim.name)}</div>
                             <div class="nt-live-sim-item-meta">
                                 ${escapeHTML(sim.ticker)} · ${Number(sim.position_size_pct).toFixed(0)}% per signal · ${escapeHTML(sim.asset_type || "")}
+                                ${liveSimStatusBadgeHTML(sim.status)}
                             </div>
                             
                             ${liveSimLatestSignalHTML(sim)}
@@ -5767,22 +5858,63 @@
                         </div>
     
                         <div class="nt-live-sim-card-actions">
-                            <button 
-                                type="button" 
-                                class="nt-live-sim-edit" 
-                                data-rename-live-sim-id="${sim.id}"
-                                data-current-live-sim-name="${escapeHTML(sim.name)}"
-                            >
-                                Rename
-                            </button>
+                            ${
+                                sim.status === "archived"
+                                    ? `
+                                        <button 
+                                            type="button" 
+                                            class="nt-live-sim-restore" 
+                                            data-status-live-sim-id="${sim.id}"
+                                            data-status-value="active"
+                                        >
+                                            Restore
+                                        </button>
                         
-                            <button 
-                                type="button" 
-                                class="nt-live-sim-delete" 
-                                data-delete-live-sim-id="${sim.id}"
-                            >
-                                Delete
-                            </button>
+                                        <button 
+                                            type="button" 
+                                            class="nt-live-sim-delete" 
+                                            data-delete-live-sim-id="${sim.id}"
+                                        >
+                                            Delete
+                                        </button>
+                                    `
+                                    : `
+                                        <button 
+                                            type="button" 
+                                            class="nt-live-sim-edit" 
+                                            data-rename-live-sim-id="${sim.id}"
+                                            data-current-live-sim-name="${escapeHTML(sim.name)}"
+                                        >
+                                            Rename
+                                        </button>
+                        
+                                        <button 
+                                            type="button" 
+                                            class="nt-live-sim-pause" 
+                                            data-status-live-sim-id="${sim.id}"
+                                            data-status-value="${sim.status === "paused" ? "active" : "paused"}"
+                                        >
+                                            ${sim.status === "paused" ? "Resume" : "Pause"}
+                                        </button>
+                        
+                                        <button 
+                                            type="button" 
+                                            class="nt-live-sim-archive" 
+                                            data-status-live-sim-id="${sim.id}"
+                                            data-status-value="archived"
+                                        >
+                                            Archive
+                                        </button>
+                        
+                                        <button 
+                                            type="button" 
+                                            class="nt-live-sim-delete" 
+                                            data-delete-live-sim-id="${sim.id}"
+                                        >
+                                            Delete
+                                        </button>
+                                    `
+                            }
                         </div>
                     </div>
     
@@ -5840,6 +5972,22 @@
                 const currentName = this.dataset.currentLiveSimName || "";
         
                 await renameLiveSimulation(simId, currentName);
+            });
+        });
+
+        document.querySelectorAll("[data-status-live-sim-id]").forEach(btn => {
+            btn.addEventListener("click", async function (e) {
+                e.stopPropagation();
+        
+                const simId = Number(this.dataset.statusLiveSimId);
+                const newStatus = this.dataset.statusValue;
+        
+                if (newStatus === "archived") {
+                    const ok = confirm("Archive this simulation? It will be hidden from the main list but its history will be kept.");
+                    if (!ok) return;
+                }
+        
+                await updateLiveSimulationStatus(simId, newStatus);
             });
         });
     
@@ -6156,6 +6304,28 @@
     }
 
     function liveSimCsvStatusHTML(sim) {
+        if (sim.status === "paused") {
+            const processedDate = sim.last_processed_date || sim.latest_equity_date || "—";
+        
+            return `
+                <div class="nt-live-sim-csv-status stale">
+                    <span class="nt-live-sim-csv-dot"></span>
+                    <span>Paused · processed through ${escapeHTML(processedDate)}</span>
+                </div>
+            `;
+        }
+        
+        if (sim.status === "archived") {
+            const processedDate = sim.last_processed_date || sim.latest_equity_date || "—";
+        
+            return `
+                <div class="nt-live-sim-csv-status stale">
+                    <span class="nt-live-sim-csv-dot"></span>
+                    <span>Archived · history kept through ${escapeHTML(processedDate)}</span>
+                </div>
+            `;
+        }
+        
         const isCurrent = Boolean(sim.is_current_with_csv);
         const statusClass = isCurrent ? "current" : "stale";
     
@@ -6583,6 +6753,46 @@
             setLiveSimMessage(error.message, true);
         }
     }
+
+    function liveSimStatusBadgeHTML(status) {
+        const cleanStatus = String(status || "active").toLowerCase();
+    
+        return `
+            <span class="nt-live-sim-status-badge ${escapeHTML(cleanStatus)}">
+                ${escapeHTML(cleanStatus)}
+            </span>
+        `;
+    }
+    
+    async function updateLiveSimulationStatus(simId, newStatus) {
+        try {
+            await liveSimFetchJSON(`/live-simulations/${simId}/status`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    status: newStatus
+                })
+            });
+    
+            selectedLiveSimulationId = simId;
+    
+            if (newStatus === "archived") {
+                selectedLiveSimulationId = null;
+                setLiveSimMessage("Simulation archived. It is hidden from the main list.");
+            } else if (newStatus === "paused") {
+                setLiveSimMessage("Simulation paused. It will not process new CSV rows until resumed.");
+            } else {
+                setLiveSimMessage("Simulation restored/resumed.");
+            }
+    
+            await loadLiveSimulations();
+    
+        } catch (error) {
+            setLiveSimMessage(error.message, true);
+        }
+    }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -6707,6 +6917,24 @@
             e.preventDefault();
             openNeuralTrendLoginModal();
         }
+    });
+
+    document.getElementById("live-sim-archive-toggle-btn")?.addEventListener("click", async function () {
+        liveSimShowingArchived = !liveSimShowingArchived;
+    
+        this.textContent = liveSimShowingArchived
+            ? "Show Active"
+            : "Show Archived";
+    
+        selectedLiveSimulationId = null;
+    
+        setLiveSimMessage(
+            liveSimShowingArchived
+                ? "Showing archived simulations."
+                : "Showing active and paused simulations."
+        );
+    
+        await loadLiveSimulations();
     });
     
     // Auto-load saved simulations when page loads.
