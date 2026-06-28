@@ -800,12 +800,19 @@ def me():
 @app.route("/live-simulations", methods=["GET"])
 @login_required
 def list_live_simulations():
-    sims = (
-        LiveSimulation.query
-        .filter_by(user_id=current_user.id, status="active")
-        .order_by(LiveSimulation.created_at.desc())
-        .all()
-    )
+    requested_status = request.args.get("status", "open").strip().lower()
+
+    query = LiveSimulation.query.filter_by(user_id=current_user.id)
+
+    if requested_status == "archived":
+        query = query.filter_by(status="archived")
+    elif requested_status == "all":
+        pass
+    else:
+        # Default view: active + paused. Archived simulations are hidden.
+        query = query.filter(LiveSimulation.status.in_(["active", "paused"]))
+
+    sims = query.order_by(LiveSimulation.created_at.desc()).all()
 
     for sim in sims:
         try:
@@ -813,16 +820,29 @@ def list_live_simulations():
         except Exception as e:
             print(f"Live simulation update error for sim {sim.id}:", str(e))
 
-    sims = (
+    sims = query.order_by(LiveSimulation.created_at.desc()).all()
+
+    used_count = (
         LiveSimulation.query
-        .filter_by(user_id=current_user.id, status="active")
-        .order_by(LiveSimulation.created_at.desc())
-        .all()
+        .filter(
+            LiveSimulation.user_id == current_user.id,
+            LiveSimulation.status.in_(["active", "paused"])
+        )
+        .count()
+    )
+
+    archived_count = (
+        LiveSimulation.query
+        .filter_by(user_id=current_user.id, status="archived")
+        .count()
     )
 
     return jsonify({
         "limit": LIVE_SIMULATION_LIMIT,
         "count": len(sims),
+        "used_count": used_count,
+        "archived_count": archived_count,
+        "view": requested_status,
         "simulations": [live_simulation_summary(sim) for sim in sims]
     })
 
@@ -851,10 +871,14 @@ def create_live_simulation():
 
     position_size_pct = position_fraction * 100
 
-    active_count = LiveSimulation.query.filter_by(
-        user_id=current_user.id,
-        status="active"
-    ).count()
+    active_count = (
+        LiveSimulation.query
+        .filter(
+            LiveSimulation.user_id == current_user.id,
+            LiveSimulation.status.in_(["active", "paused"])
+        )
+        .count()
+    )
 
     if active_count >= LIVE_SIMULATION_LIMIT:
         return jsonify({
@@ -986,6 +1010,35 @@ def rename_live_simulation(simulation_id):
 
     return jsonify({
         "message": "Simulation renamed.",
+        "simulation": live_simulation_summary(sim)
+    })
+
+@app.route("/live-simulations/<int:simulation_id>/status", methods=["PATCH"])
+@login_required
+def update_live_simulation_status(simulation_id):
+    sim = LiveSimulation.query.filter_by(
+        id=simulation_id,
+        user_id=current_user.id
+    ).first()
+
+    if not sim:
+        return jsonify({"error": "Simulation not found."}), 404
+
+    data = request.get_json(silent=True) or {}
+    new_status = str(data.get("status", "")).strip().lower()
+
+    allowed_statuses = {"active", "paused", "archived"}
+
+    if new_status not in allowed_statuses:
+        return jsonify({
+            "error": "Invalid status. Use active, paused, or archived."
+        }), 400
+
+    sim.status = new_status
+    db.session.commit()
+
+    return jsonify({
+        "message": f"Simulation status updated to {new_status}.",
         "simulation": live_simulation_summary(sim)
     })
 
