@@ -1124,71 +1124,94 @@
                 </details>
             
                 <!-- SELECTED SIMULATION DETAIL -->
-            <div id="live-sim-dashboard" class="nt-live-sim-dashboard" style="display: none;">
-        
-                <div class="nt-live-sim-dashboard-header">
-                    <div>
-                        <div class="nt-section-eyebrow">Selected Simulation</div>
-                        <h4 id="live-sim-detail-title" class="nt-live-sim-dashboard-title">
-                            —
-                        </h4>
-                        <p id="live-sim-detail-subtitle" class="nt-live-sim-dashboard-subtitle">
-                            —
-                        </p>
-                        <div id="live-sim-detail-signal-wrap" class="nt-live-sim-detail-signal-wrap">
+                <div id="live-sim-dashboard" class="nt-live-sim-dashboard" style="display: none;">
+                
+                    <div class="nt-live-sim-dashboard-header">
+                        <div>
+                            <div class="nt-section-eyebrow">Selected Simulation</div>
+                
+                            <h4 id="live-sim-detail-title" class="nt-live-sim-dashboard-title">
+                                —
+                            </h4>
+                
+                            <p id="live-sim-detail-subtitle" class="nt-live-sim-dashboard-subtitle">
+                                —
+                            </p>
+                
+                            <div id="live-sim-detail-signal-wrap" class="nt-live-sim-detail-signal-wrap">
+                            </div>
                         </div>
                     </div>
+                
+                    <div class="nt-live-sim-metric-grid nt-live-sim-metric-grid-compact">
+                
+                        <div class="nt-live-sim-metric-card">
+                            <div class="nt-live-sim-metric-label">Strategy Value</div>
+                            <div id="live-sim-strategy-value" class="nt-live-sim-metric-value">—</div>
+                            <div id="live-sim-strategy-return" class="nt-live-sim-metric-sub">—</div>
+                        </div>
+                
+                        <div class="nt-live-sim-metric-card">
+                            <div class="nt-live-sim-metric-label">Buy & Hold</div>
+                            <div id="live-sim-benchmark-value" class="nt-live-sim-metric-value">—</div>
+                            <div id="live-sim-benchmark-return" class="nt-live-sim-metric-sub">—</div>
+                        </div>
+                
+                        <div class="nt-live-sim-metric-card">
+                            <div class="nt-live-sim-metric-label">Vs Buy & Hold</div>
+                            <div id="live-sim-alpha-value" class="nt-live-sim-metric-value">—</div>
+                            <div id="live-sim-alpha-return" class="nt-live-sim-metric-sub">—</div>
+                        </div>
+                
+                        <div class="nt-live-sim-metric-card">
+                            <div class="nt-live-sim-metric-label">Cash / Position</div>
+                            <div id="live-sim-cash-balance" class="nt-live-sim-metric-value">—</div>
+                            <div id="live-sim-position-quantity" class="nt-live-sim-metric-sub">—</div>
+                        </div>
+                
+                    </div>
+                
+                    <div class="nt-live-sim-analysis-grid">
+                
+                        <div class="nt-live-sim-chart-card nt-live-sim-chart-card-main">
+                            <div class="nt-live-sim-chart-title">
+                                Equity Curve
+                            </div>
+                
+                            <div class="nt-live-sim-chart-subtitle">
+                                Strategy value compared with Buy & Hold from the same start date.
+                            </div>
+                
+                            <div class="nt-live-sim-chart-shell nt-live-sim-chart-shell-compact">
+                                <canvas id="live-sim-chart"></canvas>
+                            </div>
+                        </div>
+                
+                        <div class="nt-live-sim-trades-card nt-live-sim-trades-card-side">
+                            <div class="nt-live-sim-trades-header">
+                                <div>
+                                    <div class="nt-live-sim-chart-title">
+                                        Recent Trades
+                                    </div>
+                
+                                    <div id="live-sim-trades-subtitle" class="nt-live-sim-chart-subtitle">
+                                        —
+                                    </div>
+                                </div>
+                
+                                <div id="live-sim-trade-count-pill" class="nt-live-sim-trade-count-pill">
+                                    —
+                                </div>
+                            </div>
+                
+                            <div id="live-sim-trades-table" class="nt-live-sim-trades-table">
+                                <!-- trades injected by JS -->
+                            </div>
+                        </div>
+                
+                    </div>
+                
                 </div>
-        
-                <div class="nt-live-sim-metric-grid">
-        
-                    <div class="nt-live-sim-metric-card">
-                        <div class="nt-live-sim-metric-label">Strategy Value</div>
-                        <div id="live-sim-strategy-value" class="nt-live-sim-metric-value">—</div>
-                        <div id="live-sim-strategy-return" class="nt-live-sim-metric-sub">—</div>
-                    </div>
-        
-                    <div class="nt-live-sim-metric-card">
-                        <div class="nt-live-sim-metric-label">Buy & Hold Value</div>
-                        <div id="live-sim-benchmark-value" class="nt-live-sim-metric-value">—</div>
-                        <div id="live-sim-benchmark-return" class="nt-live-sim-metric-sub">—</div>
-                    </div>
-        
-                    <div class="nt-live-sim-metric-card">
-                        <div class="nt-live-sim-metric-label">Cash Balance</div>
-                        <div id="live-sim-cash-balance" class="nt-live-sim-metric-value">—</div>
-                        <div id="live-sim-position-quantity" class="nt-live-sim-metric-sub">—</div>
-                    </div>
-        
-                    <div class="nt-live-sim-metric-card">
-                        <div class="nt-live-sim-metric-label">Trades</div>
-                        <div id="live-sim-trade-count" class="nt-live-sim-metric-value">—</div>
-                        <div id="live-sim-last-date" class="nt-live-sim-metric-sub">—</div>
-                    </div>
-        
-                </div>
-        
-                <div class="nt-live-sim-chart-card">
-                    <div class="nt-live-sim-chart-title">
-                        Live Equity Curve: Strategy vs Buy & Hold
-                    </div>
-        
-                    <div class="nt-live-sim-chart-shell">
-                        <canvas id="live-sim-chart"></canvas>
-                    </div>
-                </div>
-        
-                <div class="nt-live-sim-trades-card">
-                    <div class="nt-live-sim-chart-title">
-                        Trade History
-                    </div>
-        
-                    <div id="live-sim-trades-table" class="nt-live-sim-trades-table">
-                        <!-- trades injected by JS -->
-                    </div>
-                </div>
-        
-            </div>
         
         </section>
 
