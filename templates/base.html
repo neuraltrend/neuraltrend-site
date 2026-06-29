@@ -4899,6 +4899,63 @@
             }
         }
 
+        /* ===============================
+           Create simulation: clean one-line form
+        ================================ */
+        
+        /* Make create card height natural */
+        .nt-live-sim-layout > .nt-live-sim-card:first-child {
+            height: auto;
+        }
+        
+        /* Force the 4 create fields into one clean row on desktop */
+        .nt-live-sim-layout > .nt-live-sim-card:first-child .nt-live-sim-form-grid {
+            display: grid;
+            grid-template-columns: minmax(240px, 1.4fr) minmax(170px, 1fr) minmax(130px, 0.7fr) minmax(150px, 0.8fr) !important;
+            gap: 12px;
+            align-items: start;
+        }
+        
+        /* Make fields compact and prevent weird overflow */
+        .nt-live-sim-layout > .nt-live-sim-card:first-child .nt-live-sim-field {
+            min-width: 0;
+        }
+        
+        .nt-live-sim-layout > .nt-live-sim-card:first-child input,
+        .nt-live-sim-layout > .nt-live-sim-card:first-child select {
+            min-height: 40px;
+        }
+        
+        /* Keep helper text compact under ticker */
+        .nt-live-sim-layout > .nt-live-sim-card:first-child .nt-live-sim-field-note {
+            margin-top: 4px;
+            font-size: 10.5px;
+            line-height: 1.25;
+        }
+        
+        /* Keep create button/message compact */
+        .nt-live-sim-layout > .nt-live-sim-card:first-child .nt-live-sim-actions {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        /* Tablet: 2 rows only when screen is not wide enough */
+        @media (max-width: 760px) {
+            .nt-live-sim-layout > .nt-live-sim-card:first-child .nt-live-sim-form-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+        }
+        
+        /* Mobile: 1 column */
+        @media (max-width: 520px) {
+            .nt-live-sim-layout > .nt-live-sim-card:first-child .nt-live-sim-form-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
     </style>
 
 </head>
