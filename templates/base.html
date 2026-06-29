@@ -3787,45 +3787,6 @@
         }
 
         /* ===============================
-           Live simulation CSV status
-        ================================ */
-        
-        .nt-live-sim-csv-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 6px;
-            font-size: 11px;
-            line-height: 1.35;
-            font-weight: 800;
-            color: var(--nt-neutral);
-        }
-        
-        .nt-live-sim-csv-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 999px;
-            background: var(--nt-neutral);
-            flex-shrink: 0;
-        }
-        
-        .nt-live-sim-csv-status.current {
-            color: var(--nt-positive);
-        }
-        
-        .nt-live-sim-csv-status.current .nt-live-sim-csv-dot {
-            background: var(--nt-positive);
-        }
-        
-        .nt-live-sim-csv-status.stale {
-            color: var(--nt-negative);
-        }
-        
-        .nt-live-sim-csv-status.stale .nt-live-sim-csv-dot {
-            background: var(--nt-negative);
-        }
-
-        /* ===============================
            Live simulation latest signal badge
         ================================ */
         
@@ -5918,8 +5879,6 @@
                             </div>
                             
                             ${liveSimLatestSignalHTML(sim)}
-                            
-                            ${liveSimCsvStatusHTML(sim)}
                         </div>
     
                         <div class="nt-live-sim-card-actions">
@@ -6114,7 +6073,7 @@
             `${sim.name}`;
     
         document.getElementById("live-sim-detail-subtitle").textContent =
-            `${sim.ticker} · ${Number(sim.position_size_pct).toFixed(0)}% position size · Started ${sim.start_date} · CSV through ${sim.latest_csv_date || "—"}`;
+            `${sim.ticker} · ${Number(sim.position_size_pct).toFixed(0)}% position size · Started ${sim.start_date}`;
 
         const detailSignalWrap = document.getElementById("live-sim-detail-signal-wrap");
             if (detailSignalWrap) {
@@ -6366,47 +6325,6 @@
             hour: "2-digit",
             minute: "2-digit"
         });
-    }
-
-    function liveSimCsvStatusHTML(sim) {
-        if (sim.status === "paused") {
-            const processedDate = sim.last_processed_date || sim.latest_equity_date || "—";
-        
-            return `
-                <div class="nt-live-sim-csv-status stale">
-                    <span class="nt-live-sim-csv-dot"></span>
-                    <span>Paused · processed through ${escapeHTML(processedDate)}</span>
-                </div>
-            `;
-        }
-        
-        if (sim.status === "archived") {
-            const processedDate = sim.last_processed_date || sim.latest_equity_date || "—";
-        
-            return `
-                <div class="nt-live-sim-csv-status stale">
-                    <span class="nt-live-sim-csv-dot"></span>
-                    <span>Archived · history kept through ${escapeHTML(processedDate)}</span>
-                </div>
-            `;
-        }
-        
-        const isCurrent = Boolean(sim.is_current_with_csv);
-        const statusClass = isCurrent ? "current" : "stale";
-    
-        const latestCsvDate = sim.latest_csv_date || "—";
-        const processedDate = sim.last_processed_date || sim.latest_equity_date || "—";
-    
-        const label = isCurrent
-            ? `CSV current · through ${latestCsvDate}`
-            : `Needs refresh · processed ${processedDate}, CSV ${latestCsvDate}`;
-    
-        return `
-            <div class="nt-live-sim-csv-status ${statusClass}">
-                <span class="nt-live-sim-csv-dot"></span>
-                <span>${escapeHTML(label)}</span>
-            </div>
-        `;
     }
 
     function liveSimSignalInfo(signal) {
