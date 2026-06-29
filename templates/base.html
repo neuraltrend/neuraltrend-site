@@ -4500,6 +4500,47 @@
             }
         }
 
+        /* ===============================
+           Selected simulation: full-width chart + trades below
+        ================================ */
+        
+        /* Put Equity Curve and Recent Trades back into one column */
+        .nt-live-sim-analysis-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        /* Let the chart take the full dashboard width */
+        .nt-live-sim-chart-card-main {
+            width: 100%;
+        }
+        
+        /* Make the chart feel like the main visual again */
+        .nt-live-sim-chart-shell-compact {
+            height: 380px;
+        }
+        
+        /* Put Recent Trades below the chart, full width */
+        .nt-live-sim-trades-card-side {
+            width: 100%;
+        }
+        
+        /* Restore full trade table columns */
+        .nt-live-sim-trades-card-side .nt-live-trade-row {
+            grid-template-columns: 100px 80px repeat(4, minmax(0, 1fr));
+        }
+        
+        /* Show all columns again: Cost and Cash After */
+        .nt-live-sim-trades-card-side .nt-live-trade-row > div:nth-child(5),
+        .nt-live-sim-trades-card-side .nt-live-trade-row > div:nth-child(6) {
+            display: block;
+        }
+        
+        /* Keep recent trades compact but readable */
+        .nt-live-sim-trades-card-side .nt-live-sim-trades-table {
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
     </style>
 
 </head>
