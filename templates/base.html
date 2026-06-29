@@ -5216,6 +5216,82 @@
             z-index: 1;
         }
 
+        /* ===============================
+           My simulations board: remove horizontal scroll after Close column removal
+        ================================ */
+        
+        .nt-live-sim-board-scroll {
+            overflow-x: hidden !important;
+        }
+        
+        .nt-live-sim-board-table {
+            min-width: 0 !important;
+            width: 100% !important;
+            table-layout: fixed;
+        }
+        
+        /* Column widths after removing Close column:
+           1 Date, 2 Name, 3 Ticker, 4 Signal, 5 Position,
+           6 Cash/Position, 7 Strategy, 8 B&H, 9 Vs B&H */
+        .nt-live-sim-board-table th:nth-child(1),
+        .nt-live-sim-board-table td:nth-child(1) {
+            width: 10%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(2),
+        .nt-live-sim-board-table td:nth-child(2) {
+            width: 18%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(3),
+        .nt-live-sim-board-table td:nth-child(3) {
+            width: 9%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(4),
+        .nt-live-sim-board-table td:nth-child(4) {
+            width: 9%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(5),
+        .nt-live-sim-board-table td:nth-child(5) {
+            width: 9%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(6),
+        .nt-live-sim-board-table td:nth-child(6) {
+            width: 13%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(7),
+        .nt-live-sim-board-table td:nth-child(7) {
+            width: 11%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(8),
+        .nt-live-sim-board-table td:nth-child(8) {
+            width: 11%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(9),
+        .nt-live-sim-board-table td:nth-child(9) {
+            width: 10%;
+        }
+        
+        /* Prevent long text from forcing horizontal scroll */
+        .nt-live-sim-board-table th,
+        .nt-live-sim-board-table td {
+            overflow: hidden;
+        }
+        
+        .nt-live-sim-board-main-value,
+        .nt-live-sim-board-sub-value,
+        .nt-live-sim-board-name,
+        .nt-live-sim-board-ticker {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
     </style>
 
 </head>
@@ -6772,12 +6848,6 @@
                             <th>Position Size</th>
     
                             <th class="numeric">
-                                <button type="button" data-live-sim-board-sort="close">
-                                    Close ${liveSimBoardSortArrow("close")}
-                                </button>
-                            </th>
-    
-                            <th class="numeric">
                                 <button type="button" data-live-sim-board-sort="cash_position">
                                     Cash / Position ${liveSimBoardSortArrow("cash_position")}
                                 </button>
@@ -6810,7 +6880,6 @@
                                     const simId = Number(sim.id);
                                     const isActive = Number(selectedLiveSimulationId) === simId;
                                     const signal = liveSimLatestSignalValue(sim);
-                                    const close = liveSimLatestCloseValue(sim);
                                     const strategyValue = liveSimStrategyValue(sim);
                                     const benchmarkValue = liveSimBenchmarkValue(sim);
                                     const strategyReturn = liveSimStrategyReturnPct(sim);
@@ -6856,12 +6925,6 @@
                                             </td>
     
                                             <td class="numeric">
-                                                <div class="nt-live-sim-board-main-value">
-                                                    ${liveSimPriceLabel(close)}
-                                                </div>
-                                            </td>
-    
-                                            <td class="numeric">
                                                 ${liveSimCashPositionHTML(sim)}
                                             </td>
     
@@ -6881,7 +6944,7 @@
                                 }).join("")
                                 : `
                                     <tr>
-                                        <td colspan="10">
+                                        <td colspan="9">
                                             <div class="nt-live-sim-board-empty">
                                                 No simulations match the selected filters.
                                             </div>
@@ -8051,10 +8114,6 @@
     
         if (key === "ticker") {
             return String(sim.ticker || "").toLowerCase();
-        }
-    
-        if (key === "close") {
-            return liveSimLatestCloseValue(sim) ?? -Infinity;
         }
     
         if (key === "cash_position") {
