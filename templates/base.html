@@ -4374,6 +4374,132 @@
             font-size: 11px;
         }
 
+        /* ===============================
+           Selected simulation dashboard polish
+        ================================ */
+        
+        .nt-live-sim-dashboard {
+            padding: 16px;
+        }
+        
+        .nt-live-sim-dashboard-header {
+            margin-bottom: 12px;
+        }
+        
+        .nt-live-sim-metric-grid-compact {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .nt-live-sim-metric-card {
+            padding: 12px;
+        }
+        
+        .nt-live-sim-metric-value {
+            font-size: 20px;
+        }
+        
+        .nt-live-sim-analysis-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.85fr);
+            gap: 12px;
+            align-items: stretch;
+        }
+        
+        .nt-live-sim-chart-card-main,
+        .nt-live-sim-trades-card-side {
+            margin-top: 0;
+        }
+        
+        .nt-live-sim-chart-subtitle {
+            margin-top: -4px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            line-height: 1.45;
+            font-weight: 650;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-live-sim-chart-shell-compact {
+            height: 320px;
+        }
+        
+        .nt-live-sim-trades-card-side {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        
+        .nt-live-sim-trades-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .nt-live-sim-trade-count-pill {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.08);
+            color: var(--nt-blue);
+            padding: 6px 9px;
+            font-size: 11px;
+            line-height: 1;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        
+        .nt-live-sim-trades-card-side .nt-live-sim-trades-table {
+            flex: 1;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+        
+        .nt-live-sim-trades-card-side .nt-live-trade-row {
+            grid-template-columns: 86px 62px repeat(2, minmax(0, 1fr));
+        }
+        
+        .nt-live-sim-trades-card-side .nt-live-trade-row > div:nth-child(5),
+        .nt-live-sim-trades-card-side .nt-live-trade-row > div:nth-child(6) {
+            display: none;
+        }
+        
+        @media (max-width: 1100px) {
+            .nt-live-sim-analysis-grid {
+                grid-template-columns: 1fr;
+            }
+        
+            .nt-live-sim-trades-card-side .nt-live-trade-row {
+                grid-template-columns: 100px 80px repeat(4, minmax(0, 1fr));
+            }
+        
+            .nt-live-sim-trades-card-side .nt-live-trade-row > div:nth-child(5),
+            .nt-live-sim-trades-card-side .nt-live-trade-row > div:nth-child(6) {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .nt-live-sim-metric-grid-compact {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        
+            .nt-live-sim-chart-shell-compact {
+                height: 300px;
+            }
+        }
+        
+        @media (max-width: 560px) {
+            .nt-live-sim-metric-grid-compact {
+                grid-template-columns: 1fr;
+            }
+        }
+
     </style>
 
 </head>
@@ -6073,7 +6199,7 @@
             `${sim.name}`;
     
         document.getElementById("live-sim-detail-subtitle").textContent =
-            `${sim.ticker} · ${Number(sim.position_size_pct).toFixed(0)}% position size · Started ${sim.start_date}`;
+            `${sim.ticker} · ${Number(sim.position_size_pct).toFixed(0)}% per signal · Started ${sim.start_date} · ${sim.status || "active"}`;
 
         const detailSignalWrap = document.getElementById("live-sim-detail-signal-wrap");
             if (detailSignalWrap) {
@@ -6093,12 +6219,37 @@
             `Position: ${Number(sim.position_quantity).toLocaleString(undefined, {
                 maximumFractionDigits: 8
             })}`;
-    
-        document.getElementById("live-sim-trade-count").textContent =
-            String(sim.trade_count || 0);
-    
-        document.getElementById("live-sim-last-date").textContent =
-            sim.latest_equity_date ? `Last update: ${sim.latest_equity_date}` : "No equity points yet";
+
+        const alphaValue = liveSimAlphaValue(sim);
+        const alphaPct = liveSimAlphaPercent(sim);
+        const alphaClass = liveSimReturnClass(alphaPct);
+        
+        const alphaValueEl = document.getElementById("live-sim-alpha-value");
+        const alphaReturnEl = document.getElementById("live-sim-alpha-return");
+        
+        if (alphaValueEl) {
+            const sign = alphaValue > 0 ? "+" : "";
+            alphaValueEl.textContent =
+                alphaValue === null ? "—" : `${sign}${liveSimMoney(alphaValue)}`;
+        }
+        
+        if (alphaReturnEl) {
+            alphaReturnEl.textContent =
+                alphaPct === null ? "—" : `Relative: ${liveSimPercent(alphaPct)}`;
+            alphaReturnEl.className = `nt-live-sim-metric-sub ${alphaClass}`;
+        }
+        
+        const tradeCountPill = document.getElementById("live-sim-trade-count-pill");
+        if (tradeCountPill) {
+            tradeCountPill.textContent = `${sim.trade_count || 0} trades`;
+        }
+        
+        const tradesSubtitle = document.getElementById("live-sim-trades-subtitle");
+        if (tradesSubtitle) {
+            tradesSubtitle.textContent = sim.latest_equity_date
+                ? `Latest update: ${sim.latest_equity_date}`
+                : "No equity points yet";
+        }
     
         const strategyReturnEl = document.getElementById("live-sim-strategy-return");
         strategyReturnEl.textContent = `Return: ${liveSimPercent(sim.strategy_return)}`;
