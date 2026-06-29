@@ -1077,10 +1077,6 @@
                     <div id="live-sim-list" class="nt-live-sim-list">
                         <!-- simulation cards injected by JS -->
                     </div>
-        
-                    <div class="nt-live-sim-warning">
-                        Paper simulation only. It does not place trades and should not be interpreted as investment advice.
-                    </div>
                 </aside>
         
                 </div>
@@ -1130,51 +1126,51 @@
                 </details>
             
                 <!-- SELECTED SIMULATION DETAIL -->
-                <div id="live-sim-dashboard" class="nt-live-sim-dashboard" style="display: none;">
+                <div id="live-sim-dashboard" class="nt-live-sim-dashboard" style="display: none;">            
                 
-                    <div class="nt-live-sim-dashboard-header">
-                        <div>
+                    <div class="nt-live-sim-dashboard-header nt-live-sim-dashboard-header-compact">
+                        <div class="nt-live-sim-dashboard-title-area">
                             <div class="nt-section-eyebrow">Selected Simulation</div>
-                
+                    
                             <h4 id="live-sim-detail-title" class="nt-live-sim-dashboard-title">
                                 —
                             </h4>
-                
+                    
                             <p id="live-sim-detail-subtitle" class="nt-live-sim-dashboard-subtitle">
                                 —
                             </p>
-                
+                    
                             <div id="live-sim-detail-signal-wrap" class="nt-live-sim-detail-signal-wrap">
                             </div>
                         </div>
-                    </div>
-                
-                    <div class="nt-live-sim-metric-grid nt-live-sim-metric-grid-compact">
-                
-                        <div class="nt-live-sim-metric-card">
-                            <div class="nt-live-sim-metric-label">Strategy Value</div>
-                            <div id="live-sim-strategy-value" class="nt-live-sim-metric-value">—</div>
-                            <div id="live-sim-strategy-return" class="nt-live-sim-metric-sub">—</div>
+                    
+                        <div class="nt-live-sim-header-metrics">
+                    
+                            <div class="nt-live-sim-metric-card nt-live-sim-mini-metric">
+                                <div class="nt-live-sim-metric-label">Strategy</div>
+                                <div id="live-sim-strategy-value" class="nt-live-sim-metric-value">—</div>
+                                <div id="live-sim-strategy-return" class="nt-live-sim-metric-sub">—</div>
+                            </div>
+                    
+                            <div class="nt-live-sim-metric-card nt-live-sim-mini-metric">
+                                <div class="nt-live-sim-metric-label">Buy & Hold</div>
+                                <div id="live-sim-benchmark-value" class="nt-live-sim-metric-value">—</div>
+                                <div id="live-sim-benchmark-return" class="nt-live-sim-metric-sub">—</div>
+                            </div>
+                    
+                            <div class="nt-live-sim-metric-card nt-live-sim-mini-metric">
+                                <div class="nt-live-sim-metric-label">Vs B&H</div>
+                                <div id="live-sim-alpha-value" class="nt-live-sim-metric-value">—</div>
+                                <div id="live-sim-alpha-return" class="nt-live-sim-metric-sub">—</div>
+                            </div>
+                    
+                            <div class="nt-live-sim-metric-card nt-live-sim-mini-metric">
+                                <div class="nt-live-sim-metric-label">Cash / Position</div>
+                                <div id="live-sim-cash-balance" class="nt-live-sim-metric-value">—</div>
+                                <div id="live-sim-position-quantity" class="nt-live-sim-metric-sub">—</div>
+                            </div>
+                    
                         </div>
-                
-                        <div class="nt-live-sim-metric-card">
-                            <div class="nt-live-sim-metric-label">Buy & Hold</div>
-                            <div id="live-sim-benchmark-value" class="nt-live-sim-metric-value">—</div>
-                            <div id="live-sim-benchmark-return" class="nt-live-sim-metric-sub">—</div>
-                        </div>
-                
-                        <div class="nt-live-sim-metric-card">
-                            <div class="nt-live-sim-metric-label">Vs Buy & Hold</div>
-                            <div id="live-sim-alpha-value" class="nt-live-sim-metric-value">—</div>
-                            <div id="live-sim-alpha-return" class="nt-live-sim-metric-sub">—</div>
-                        </div>
-                
-                        <div class="nt-live-sim-metric-card">
-                            <div class="nt-live-sim-metric-label">Cash / Position</div>
-                            <div id="live-sim-cash-balance" class="nt-live-sim-metric-value">—</div>
-                            <div id="live-sim-position-quantity" class="nt-live-sim-metric-sub">—</div>
-                        </div>
-                
                     </div>
                 
                     <div class="nt-live-sim-analysis-grid">
