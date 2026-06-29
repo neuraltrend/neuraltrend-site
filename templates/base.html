@@ -5190,6 +5190,32 @@
             }
         }
 
+        /* ===============================
+           Fix My Simulations board height / overlap
+        ================================ */
+        
+        /* Remove old card-list height limits that can clip the new table */
+        .nt-live-sim-layout > .nt-live-sim-card:nth-child(2) .nt-live-sim-list,
+        .nt-live-sim-list {
+            max-height: none !important;
+            overflow: visible !important;
+        }
+        
+        /* Give the table its own internal scroll area */
+        .nt-live-sim-board-scroll {
+            max-height: 380px !important;
+            overflow: auto !important;
+            margin-bottom: 14px;
+        }
+        
+        /* Push selected simulation/equity curve safely below the board */
+        .nt-live-sim-dashboard {
+            margin-top: 22px !important;
+            clear: both;
+            position: relative;
+            z-index: 1;
+        }
+
     </style>
 
 </head>
@@ -7872,12 +7898,14 @@
     }
     
     function liveSimLatestSignalValue(sim) {
-        return String(
-            sim.latest_signal ||
-            sim.latest_signal_action ||
-            sim.signal ||
+        return normalizeLiveSimSignalLabel(
+            sim.latest_signal ??
+            sim.latest_signal_action ??
+            sim.latest_epoch_signal ??
+            sim.epoch_signal ??
+            sim.signal ??
             "—"
-        ).toUpperCase();
+        );
     }
     
     function liveSimLatestCloseValue(sim) {
@@ -7979,12 +8007,13 @@
     }
     
     function liveSimBoardSignalBadgeHTML(signal) {
-        const cleanSignal = String(signal || "—").toUpperCase();
+        const cleanSignal = normalizeLiveSimSignalLabel(signal);
     
         let className = "hold";
     
         if (cleanSignal === "BUY") className = "buy";
         if (cleanSignal === "SELL") className = "sell";
+        if (cleanSignal === "HOLD") className = "hold";
     
         return `
             <span class="nt-live-sim-board-signal ${className}">
@@ -8083,6 +8112,27 @@
     function liveSimBoardSortArrow(key) {
         if (liveSimBoardSortKey !== key) return "↕";
         return liveSimBoardSortDirection === "asc" ? "↑" : "↓";
+    }
+
+    function normalizeLiveSimSignalLabel(signal) {
+        if (signal === null || signal === undefined || signal === "") {
+            return "—";
+        }
+    
+        const rawSignal = String(signal).trim().toUpperCase();
+        const numericSignal = Number(rawSignal);
+    
+        if (Number.isFinite(numericSignal)) {
+            if (numericSignal > 0) return "BUY";
+            if (numericSignal < 0) return "SELL";
+            return "HOLD";
+        }
+    
+        if (rawSignal === "BUY") return "BUY";
+        if (rawSignal === "SELL") return "SELL";
+        if (rawSignal === "HOLD") return "HOLD";
+    
+        return rawSignal || "—";
     }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
