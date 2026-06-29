@@ -4643,6 +4643,71 @@
             filter: brightness(0.98);
         }
 
+        /* ===============================
+           Compact live simulation cards
+        ================================ */
+        
+        .nt-live-sim-item-top-compact {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: start;
+        }
+        
+        .nt-live-sim-card-left {
+            min-width: 0;
+        }
+        
+        .nt-live-sim-card-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            text-align: right;
+            min-width: 145px;
+        }
+        
+        .nt-live-sim-created-date {
+            font-size: 11px;
+            line-height: 1.35;
+            font-weight: 750;
+            color: var(--nt-neutral);
+            white-space: nowrap;
+        }
+        
+        .nt-live-sim-item .nt-live-sim-alpha-pill {
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Remove extra bottom spacing now that the footer is gone */
+        .nt-live-sim-card-metrics {
+            margin-top: 9px;
+        }
+        
+        /* Optional: slightly tighter card padding */
+        .nt-live-sim-item {
+            padding: 11px;
+        }
+        
+        /* Optional cleanup if old footer HTML remains somewhere */
+        .nt-live-sim-card-footer {
+            display: none;
+        }
+        
+        @media (max-width: 620px) {
+            .nt-live-sim-item-top-compact {
+                grid-template-columns: 1fr;
+            }
+        
+            .nt-live-sim-card-right {
+                align-items: flex-start;
+                text-align: left;
+                min-width: 0;
+            }
+        }
+
     </style>
 
 </head>
@@ -6135,19 +6200,28 @@
             const alphaClass = liveSimAlphaClass(alphaValue);
             const alphaLabel = liveSimAlphaLabel(sim);
     
-            const latestDate = sim.latest_equity_date || sim.last_processed_date || "—";
-    
             return `
                 <div class="nt-live-sim-item ${activeClass} ${createdClass}" data-live-sim-id="${sim.id}">
-                    <div class="nt-live-sim-item-top">
-                        <div>
+                    <div class="nt-live-sim-item-top nt-live-sim-item-top-compact">
+                        <div class="nt-live-sim-card-left">
                             <div class="nt-live-sim-item-name">${escapeHTML(sim.name)}</div>
+                    
                             <div class="nt-live-sim-item-meta">
                                 ${escapeHTML(sim.ticker)} · ${Number(sim.position_size_pct).toFixed(0)}% per signal · ${escapeHTML(sim.asset_type || "")}
                                 ${liveSimStatusBadgeHTML(sim.status)}
                             </div>
-                            
+                    
                             ${liveSimLatestSignalHTML(sim)}
+                        </div>
+                    
+                        <div class="nt-live-sim-card-right">
+                            <div class="nt-live-sim-alpha-pill ${alphaClass}">
+                                ${alphaLabel}
+                            </div>
+                    
+                            <div class="nt-live-sim-created-date">
+                                ${escapeHTML(liveSimCreatedDateLabel(sim.created_at))}
+                            </div>
                         </div>
                     </div>
     
@@ -6174,16 +6248,6 @@
                             <div class="nt-live-sim-item-meta ${benchmarkReturnClass}">
                                 ${liveSimPercent(sim.benchmark_return)}
                             </div>
-                        </div>
-                    </div>
-    
-                    <div class="nt-live-sim-card-footer">
-                        <div class="nt-live-sim-card-updated">
-                            Updated: ${escapeHTML(latestDate)}
-                        </div>
-    
-                        <div class="nt-live-sim-alpha-pill ${alphaClass}">
-                            ${alphaLabel}
                         </div>
                     </div>
                 </div>
@@ -7157,6 +7221,22 @@
                 </div>
             </div>
         `;
+    }
+
+    function liveSimCreatedDateLabel(createdAt) {
+        if (!createdAt) return "Created: —";
+    
+        const date = new Date(createdAt);
+    
+        if (Number.isNaN(date.getTime())) {
+            return `Created: ${String(createdAt).slice(0, 10)}`;
+        }
+    
+        return `Created: ${date.toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric"
+        })}`;
     }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
