@@ -4848,6 +4848,57 @@
             font-size: 11px;
         }
 
+        /* ===============================
+           Stack live simulation panels vertically
+           Create Simulation on top, My Simulations below
+        ================================ */
+        
+        .nt-live-sim-layout {
+            grid-template-columns: 1fr !important;
+            align-items: start;
+        }
+        
+        /* Remove equal-height behavior from the previous side-by-side layout */
+        .nt-live-sim-layout > .nt-live-sim-card {
+            height: auto;
+        }
+        
+        /* Make the create form compact now that it has full width */
+        .nt-live-sim-layout > .nt-live-sim-card:first-child .nt-live-sim-form-grid {
+            grid-template-columns: 1.4fr 1fr 0.8fr 0.8fr;
+            align-items: end;
+        }
+        
+        /* Make My Simulations use the full width below */
+        .nt-live-sim-layout > .nt-live-sim-card:nth-child(2) {
+            width: 100%;
+        }
+        
+        /* Keep the simulation list from becoming too tall */
+        .nt-live-sim-layout > .nt-live-sim-card:nth-child(2) .nt-live-sim-list {
+            max-height: 300px;
+            flex: 0 1 auto;
+        }
+        
+        /* Let filter chips fit more naturally in one line */
+        .nt-live-sim-header-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        /* Mobile/tablet: stack create form fields */
+        @media (max-width: 900px) {
+            .nt-live-sim-layout > .nt-live-sim-card:first-child .nt-live-sim-form-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        
+        @media (max-width: 560px) {
+            .nt-live-sim-layout > .nt-live-sim-card:first-child .nt-live-sim-form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
     </style>
 
 </head>
