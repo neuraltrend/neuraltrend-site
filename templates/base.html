@@ -4708,6 +4708,99 @@
             }
         }
 
+        /* ===============================
+           Compact selected simulation dashboard
+        ================================ */
+        
+        .nt-live-sim-dashboard {
+            margin-top: 12px;
+            padding: 14px;
+        }
+        
+        .nt-live-sim-dashboard-header-compact {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(420px, 0.9fr);
+            gap: 14px;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+        
+        .nt-live-sim-dashboard-title-area {
+            min-width: 0;
+        }
+        
+        .nt-live-sim-header-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(150px, 1fr));
+            gap: 8px;
+            align-items: stretch;
+        }
+        
+        .nt-live-sim-mini-metric {
+            padding: 9px 10px;
+            min-width: 0;
+        }
+        
+        .nt-live-sim-mini-metric .nt-live-sim-metric-label {
+            font-size: 10px;
+            margin-bottom: 4px;
+        }
+        
+        .nt-live-sim-mini-metric .nt-live-sim-metric-value {
+            font-size: 16px;
+            line-height: 1.1;
+        }
+        
+        .nt-live-sim-mini-metric .nt-live-sim-metric-sub {
+            font-size: 11px;
+            margin-top: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Bring the chart closer to the top */
+        .nt-live-sim-analysis-grid {
+            margin-top: 0;
+            grid-template-columns: 1fr;
+        }
+        
+        .nt-live-sim-chart-card,
+        .nt-live-sim-trades-card {
+            margin-top: 10px;
+        }
+        
+        .nt-live-sim-chart-card-main {
+            margin-top: 0;
+        }
+        
+        /* Slightly shorter chart so list + curve have a better chance to fit on screen */
+        .nt-live-sim-chart-shell-compact {
+            height: 340px;
+        }
+        
+        @media (max-width: 1050px) {
+            .nt-live-sim-dashboard-header-compact {
+                grid-template-columns: 1fr;
+            }
+        
+            .nt-live-sim-header-metrics {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+        
+        @media (max-width: 760px) {
+            .nt-live-sim-header-metrics {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        
+        @media (max-width: 520px) {
+            .nt-live-sim-header-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+
     </style>
 
 </head>
