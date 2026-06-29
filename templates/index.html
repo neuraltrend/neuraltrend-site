@@ -1081,50 +1081,6 @@
         
                 </div>
             
-                <!-- LIVE SIMULATION ASSUMPTIONS -->
-                <details class="nt-live-sim-assumptions">
-                    <summary>
-                        <span>Live Simulation Assumptions</span>
-                        <strong id="live-sim-assumption-cost">Cost: 1.00% per trade</strong>
-                    </summary>
-            
-                    <div class="nt-live-sim-assumption-grid">
-            
-                        <div class="nt-live-sim-assumption-item">
-                            <div class="nt-live-sim-assumption-label">Signal Action</div>
-                            <div class="nt-live-sim-assumption-text">
-                                BUY invests the selected percentage of available cash. SELL exits the selected percentage of the current position. HOLD makes no trade.
-                            </div>
-                        </div>
-            
-                        <div class="nt-live-sim-assumption-item">
-                            <div class="nt-live-sim-assumption-label">Transaction Costs</div>
-                            <div class="nt-live-sim-assumption-text">
-                                Crypto simulations use 1.00% per trade. Stock simulations use 0.10% per trade.
-                            </div>
-                        </div>
-            
-                        <div class="nt-live-sim-assumption-item">
-                            <div class="nt-live-sim-assumption-label">Quantity Rule</div>
-                            <div id="live-sim-assumption-quantity" class="nt-live-sim-assumption-text">
-                                Crypto allows fractional positions. Stocks use whole-share quantities.
-                            </div>
-                        </div>
-                        
-                        <div class="nt-live-sim-assumption-item">
-                            <div class="nt-live-sim-assumption-label">Start & Benchmark</div>
-                            <div class="nt-live-sim-assumption-text">
-                                Each simulation starts from the latest available CSV date at creation. The benchmark is Buy & Hold from the same start date, with transaction cost included.
-                            </div>
-                        </div>
-            
-                    </div>
-            
-                    <div class="nt-live-sim-assumption-warning">
-                        Paper simulation only. Simulations update from the latest deployed CSV data when the panel loads or when Refresh is clicked. It does not place trades, connect to an exchange, or provide investment advice.
-                    </div>
-                </details>
-            
                 <!-- SELECTED SIMULATION DETAIL -->
                 <div id="live-sim-dashboard" class="nt-live-sim-dashboard" style="display: none;">            
                 
@@ -1142,6 +1098,50 @@
                     
                             <div id="live-sim-detail-signal-wrap" class="nt-live-sim-detail-signal-wrap">
                             </div>
+
+                            <!-- LIVE SIMULATION ASSUMPTIONS -->
+                            <details class="nt-live-sim-assumptions">
+                                <summary>
+                                    <span>Live Simulation Assumptions</span>
+                                    <strong id="live-sim-assumption-cost">Cost: 1.00% per trade</strong>
+                                </summary>
+                        
+                                <div class="nt-live-sim-assumption-grid">
+                        
+                                    <div class="nt-live-sim-assumption-item">
+                                        <div class="nt-live-sim-assumption-label">Signal Action</div>
+                                        <div class="nt-live-sim-assumption-text">
+                                            BUY invests the selected percentage of available cash. SELL exits the selected percentage of the current position. HOLD makes no trade.
+                                        </div>
+                                    </div>
+                        
+                                    <div class="nt-live-sim-assumption-item">
+                                        <div class="nt-live-sim-assumption-label">Transaction Costs</div>
+                                        <div class="nt-live-sim-assumption-text">
+                                            Crypto simulations use 1.00% per trade. Stock simulations use 0.10% per trade.
+                                        </div>
+                                    </div>
+                        
+                                    <div class="nt-live-sim-assumption-item">
+                                        <div class="nt-live-sim-assumption-label">Quantity Rule</div>
+                                        <div id="live-sim-assumption-quantity" class="nt-live-sim-assumption-text">
+                                            Crypto allows fractional positions. Stocks use whole-share quantities.
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="nt-live-sim-assumption-item">
+                                        <div class="nt-live-sim-assumption-label">Start & Benchmark</div>
+                                        <div class="nt-live-sim-assumption-text">
+                                            Each simulation starts from the latest available CSV date at creation. The benchmark is Buy & Hold from the same start date, with transaction cost included.
+                                        </div>
+                                    </div>
+                        
+                                </div>
+                        
+                                <div class="nt-live-sim-assumption-warning">
+                                    Paper simulation only. Simulations update from the latest deployed CSV data when the panel loads or when Refresh is clicked. It does not place trades, connect to an exchange, or provide investment advice.
+                                </div>
+                            </details>
                         </div>
                     
                         <div class="nt-live-sim-header-metrics">
