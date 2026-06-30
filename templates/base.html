@@ -5513,16 +5513,6 @@
             gap: 10px;
         }
         
-        .nt-live-sim-asset-control .nt-control-label {
-            margin: 0;
-            font-size: 11px;
-            line-height: 1;
-            font-weight: 800;
-            color: var(--nt-neutral);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        
         .nt-live-sim-asset-control .nt-asset-pills {
             display: flex;
             align-items: center;
@@ -5799,6 +5789,151 @@
         .nt-live-sim-board-table th:nth-child(9),
         .nt-live-sim-board-table td:nth-child(9) {
             width: 12.5%;
+        }
+
+        /* ===============================
+           My Simulations: Signal Overview-style controls
+        ================================ */
+        
+        .nt-live-sim-board-header-signal-style {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 12px;
+        }
+        
+        .nt-live-sim-list-title-area {
+            min-width: 0;
+        }
+        
+        .nt-live-sim-board-top-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .nt-live-sim-reset-view-btn,
+        .nt-live-sim-refresh-btn {
+            padding: 8px 13px;
+            font-size: 12px;
+            line-height: 1;
+        }
+        
+        /* Reuse Signal Overview control-card feeling */
+        .nt-live-sim-controls-card {
+            margin-top: 0;
+            margin-bottom: 10px;
+            padding: 14px;
+        }
+        
+        .nt-live-sim-controls-grid {
+            display: grid;
+            grid-template-columns: minmax(240px, 1fr) minmax(360px, 1.4fr) minmax(230px, 0.9fr);
+            gap: 16px;
+            align-items: end;
+        }
+        
+        /* Same label feeling as Signal Overview */
+        .nt-live-sim-controls-card .nt-control-label {
+            font-size: 12px;
+            line-height: 1.2;
+            font-weight: 800;
+            color: var(--nt-neutral);
+            text-transform: none;
+            letter-spacing: 0;
+            margin-bottom: 7px;
+        }
+        
+        /* Status pills styled like the Signal Overview horizon pills */
+        .nt-live-sim-status-pills {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .live-sim-status-pill {
+            border: 1px solid var(--nt-border);
+            border-radius: 999px;
+            background: #FFFFFF;
+            color: var(--nt-neutral);
+            padding: 7px 11px;
+            font-size: 12px;
+            line-height: 1;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        
+        .live-sim-status-pill:hover {
+            border-color: var(--nt-blue);
+            color: var(--nt-blue);
+        }
+        
+        .live-sim-status-pill.selected,
+        .live-sim-status-pill.active {
+            background: var(--nt-blue);
+            border-color: var(--nt-blue);
+            color: #FFFFFF;
+        }
+        
+        .live-sim-status-pill .nt-live-sim-filter-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            margin-left: 5px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.24);
+            font-size: 10px;
+            font-weight: 900;
+        }
+        
+        .live-sim-status-pill:not(.selected):not(.active) .nt-live-sim-filter-count {
+            background: rgba(100, 116, 139, 0.12);
+            color: var(--nt-neutral);
+        }
+        
+        /* Make live simulation asset pills align like Signal Overview */
+        .nt-live-sim-controls-card .nt-asset-control {
+            display: flex;
+            align-items: center;
+        }
+        
+        .nt-live-sim-controls-card .nt-asset-pills {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .nt-live-sim-controls-card .asset-pill {
+            padding: 7px 12px;
+            font-size: 12px;
+            line-height: 1;
+        }
+        
+        /* Mobile */
+        @media (max-width: 1100px) {
+            .nt-live-sim-controls-grid {
+                grid-template-columns: 1fr;
+                align-items: stretch;
+            }
+        }
+        
+        @media (max-width: 760px) {
+            .nt-live-sim-board-header-signal-style {
+                flex-direction: column;
+            }
+        
+            .nt-live-sim-board-top-buttons {
+                justify-content: flex-start;
+            }
         }
 
     </style>
@@ -7151,6 +7286,7 @@
     let liveSimBoardStrategyDisplayMode = "percent";
     let liveSimBoardBenchmarkDisplayMode = "percent";
     let liveSimBoardAlphaDisplayMode = "percent";
+    let liveSimBoardSearchQuery = "";
     
     function liveSimMoney(value) {
         if (value === null || value === undefined || Number.isNaN(Number(value))) {
@@ -7513,6 +7649,11 @@
         updateLiveSimBoardActiveRow();
         renderLiveSimSelectedActions();
         syncLiveSimAssetPills();
+
+        const liveSimSearchInput = document.getElementById("live-sim-board-search");
+        if (liveSimSearchInput) {
+            liveSimSearchInput.value = liveSimBoardSearchQuery;
+        }
     }
     
     async function selectLiveSimulation(simId) {
@@ -8746,6 +8887,22 @@
     
     function getFilteredAndSortedLiveSimulations(simulations) {
         let result = simulations.slice();
+
+        if (liveSimBoardSearchQuery.trim()) {
+            const query = liveSimBoardSearchQuery.trim().toLowerCase();
+        
+            result = result.filter(sim => {
+                const name = String(sim.name || "").toLowerCase();
+                const ticker = String(sim.ticker || "").toLowerCase();
+                const status = String(sim.status || "").toLowerCase();
+        
+                return (
+                    name.includes(query) ||
+                    ticker.includes(query) ||
+                    status.includes(query)
+                );
+            });
+        }
     
         if (liveSimBoardAssetTypeFilter !== "all") {
             result = result.filter(sim =>
@@ -8939,7 +9096,8 @@
     
     async function resetLiveSimulationBoardView() {
         liveSimStatusFilter = "open";
-    
+
+        liveSimBoardSearchQuery = "";
         liveSimBoardAssetTypeFilter = "all";
         liveSimBoardSignalFilter = "all";
         liveSimBoardPositionFilter = "all";
@@ -8950,6 +9108,11 @@
     
         liveSimBoardSortKey = "created_at";
         liveSimBoardSortDirection = "desc";
+
+        const liveSimSearchInput = document.getElementById("live-sim-board-search");
+        if (liveSimSearchInput) {
+            liveSimSearchInput.value = "";
+        }
     
         updateLiveSimFilterUI();
         syncLiveSimAssetPills();
@@ -9253,7 +9416,14 @@
             renderLiveSimulationList(liveSimulationsCache);
         }
     });
-    
+
+    document.addEventListener("input", function (e) {
+        if (e.target && e.target.id === "live-sim-board-search") {
+            liveSimBoardSearchQuery = e.target.value || "";
+            renderLiveSimulationList(liveSimulationsCache);
+        }
+    });
+        
     // Auto-load saved simulations when page loads.
     initializeLiveSimTickerSelector();
     updateLiveSimAssumptionPanel("BTC-USD");
