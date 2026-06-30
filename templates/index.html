@@ -993,19 +993,40 @@
                 <!-- SIMULATION LIST -->
                 <aside class="nt-live-sim-card">
 
-                    <div class="nt-live-sim-list-header">
-                        <div>
+                    <div class="nt-live-sim-list-header nt-live-sim-list-header-signal-style">
+
+                        <div class="nt-live-sim-list-title-area">
+                            <div class="nt-section-eyebrow">Simulation Board</div>
+                    
                             <h4 class="nt-live-sim-card-title">
                                 My simulations
                             </h4>
-                
+                    
                             <div id="live-sim-refresh-status" class="nt-live-sim-small-note">
                                 Auto-updates when this panel loads.
                             </div>
                         </div>
-                
-                        <div class="nt-live-sim-header-actions">
-
+                    
+                        <div class="nt-live-sim-board-control-stack">
+                    
+                            <div class="nt-live-sim-board-top-buttons">
+                                <button 
+                                    type="button" 
+                                    id="reset-live-sim-board" 
+                                    class="nt-reset-btn nt-live-sim-reset-view-btn"
+                                >
+                                    Reset View
+                                </button>
+                    
+                                <button 
+                                    type="button" 
+                                    id="live-sim-refresh-btn" 
+                                    class="nt-live-sim-refresh-btn"
+                                >
+                                    Refresh
+                                </button>
+                            </div>
+                    
                             <div class="nt-live-sim-filter-chips" aria-label="Simulation filters">
                                 <button 
                                     type="button" 
@@ -1015,7 +1036,7 @@
                                     Open
                                     <span id="live-sim-count-open" class="nt-live-sim-filter-count">0</span>
                                 </button>
-                            
+                    
                                 <button 
                                     type="button" 
                                     class="nt-live-sim-filter-chip" 
@@ -1024,7 +1045,7 @@
                                     Active
                                     <span id="live-sim-count-active" class="nt-live-sim-filter-count">0</span>
                                 </button>
-                            
+                    
                                 <button 
                                     type="button" 
                                     class="nt-live-sim-filter-chip" 
@@ -1033,7 +1054,7 @@
                                     Paused
                                     <span id="live-sim-count-paused" class="nt-live-sim-filter-count">0</span>
                                 </button>
-                            
+                    
                                 <button 
                                     type="button" 
                                     class="nt-live-sim-filter-chip" 
@@ -1042,7 +1063,7 @@
                                     Archived
                                     <span id="live-sim-count-archived" class="nt-live-sim-filter-count">0</span>
                                 </button>
-                            
+                    
                                 <button 
                                     type="button" 
                                     class="nt-live-sim-filter-chip" 
@@ -1052,15 +1073,37 @@
                                     <span id="live-sim-count-all" class="nt-live-sim-filter-count">0</span>
                                 </button>
                             </div>
-                        
-                            <button 
-                                type="button" 
-                                id="live-sim-refresh-btn" 
-                                class="nt-live-sim-refresh-btn"
-                            >
-                                Refresh
-                            </button>
-                        
+                    
+                            <div class="nt-live-sim-asset-control">
+                                <span class="nt-control-label">Asset Type</span>
+                    
+                                <div class="nt-asset-pills" role="group" aria-label="Live simulation asset type">
+                                    <button 
+                                        type="button" 
+                                        class="asset-pill live-sim-asset-pill active" 
+                                        data-live-sim-asset-filter="all"
+                                    >
+                                        All
+                                    </button>
+                    
+                                    <button 
+                                        type="button" 
+                                        class="asset-pill live-sim-asset-pill" 
+                                        data-live-sim-asset-filter="crypto"
+                                    >
+                                        Crypto
+                                    </button>
+                    
+                                    <button 
+                                        type="button" 
+                                        class="asset-pill live-sim-asset-pill" 
+                                        data-live-sim-asset-filter="stock"
+                                    >
+                                        Stocks
+                                    </button>
+                                </div>
+                            </div>
+                    
                         </div>
                     </div>
                 
