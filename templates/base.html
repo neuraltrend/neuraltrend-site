@@ -5398,7 +5398,7 @@
         /* Make simulation name shorter but show full name on hover through native title tooltip */
         .nt-live-sim-board-name {
             max-width: 120px;
-            cursor: help;
+            cursor: default;
         }
         
         .nt-live-sim-board-main-value {
@@ -5407,6 +5407,51 @@
         
         .nt-live-sim-board-sub-value {
             font-size: 10px;
+        }
+
+        /* ===============================
+           Simulation name custom hover tooltip
+        ================================ */
+        
+        /* Allow tooltip to appear outside the simulation-name cell */
+        .nt-live-sim-board-table th:nth-child(2),
+        .nt-live-sim-board-table td:nth-child(2) {
+            overflow: visible !important;
+        }
+        
+        .nt-live-sim-name-tooltip-wrap {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+        }
+        
+        .nt-live-sim-name-tooltip-wrap .nt-live-sim-board-name {
+            cursor: default;
+        }
+        
+        .nt-live-sim-name-tooltip {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: calc(100% + 7px);
+            z-index: 9999;
+            min-width: 180px;
+            max-width: 320px;
+            padding: 8px 10px;
+            border: 1px solid var(--nt-border);
+            border-radius: 10px;
+            background: #FFFFFF;
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
+            color: var(--nt-dark);
+            font-size: 12px;
+            line-height: 1.35;
+            font-weight: 800;
+            text-align: left;
+            white-space: normal;
+        }
+        
+        .nt-live-sim-name-tooltip-wrap:hover .nt-live-sim-name-tooltip {
+            display: block;
         }
 
     </style>
@@ -7067,13 +7112,16 @@
                                             </td>
     
                                             <td>
-                                                <div 
-                                                    class="nt-live-sim-board-name"
-                                                    title="${escapeHTML(fullName)}"
-                                                >
-                                                    ${escapeHTML(fullName)}
+                                                <div class="nt-live-sim-name-tooltip-wrap">
+                                                    <div class="nt-live-sim-board-name">
+                                                        ${escapeHTML(fullName)}
+                                                    </div>
+                                                
+                                                    <div class="nt-live-sim-name-tooltip">
+                                                        ${escapeHTML(fullName)}
+                                                    </div>
                                                 </div>
-    
+                                                
                                                 <div class="nt-live-sim-board-status">
                                                     ${escapeHTML(sim.status || "active")}
                                                 </div>
@@ -8470,9 +8518,11 @@
     
         if (numberValue === null) return "—";
     
-        const sign = numberValue > 0 ? "+" : "";
-    
-        return `${sign}${liveSimPercent(numberValue)}`;
+        /*
+           liveSimPercent() already adds + for positive values.
+           So we should not add another + here.
+        */
+        return liveSimPercent(numberValue);
     }
     
     function liveSimBoardMetricHTML(value, pct, displayMode = "percent") {
