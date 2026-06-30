@@ -6379,6 +6379,272 @@
             }
         }
 
+        /* =========================================================
+           FINAL FIX: Live Simulation controls EXACTLY like Signal Overview
+           Put this at the VERY END of the style block
+        ========================================================= */
+        
+        /* Same card look/size as Signal Overview controls */
+        .nt-live-sim-controls-card {
+            margin-bottom: 14px !important;
+            padding: 16px !important;
+            background: #ffffff !important;
+            border: 1px solid var(--nt-border) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06) !important;
+            overflow: visible !important;
+        }
+        
+        /* Same 3-column logic as Signal Overview:
+           search expands, horizon and asset type use natural width */
+        .nt-live-sim-controls-grid-main {
+            display: grid !important;
+            grid-template-columns: minmax(260px, 1.15fr) auto auto !important;
+            gap: 14px !important;
+            align-items: end !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        
+        /* Same control group spacing as Signal Overview */
+        .nt-live-sim-controls-grid-main .nt-control-group {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 7px !important;
+            width: auto !important;
+            min-width: 0 !important;
+        }
+        
+        /* Labels: same as Signal Overview */
+        .nt-live-sim-controls-card .nt-control-label {
+            font-size: 12px !important;
+            font-weight: 800 !important;
+            color: var(--nt-dark) !important;
+            text-transform: none !important;
+            letter-spacing: 0 !important;
+            margin: 0 !important;
+        }
+        
+        /* Search: exactly same as Signal Overview */
+        .nt-live-sim-controls-card .nt-search-shell {
+            position: relative !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+        }
+        
+        .nt-live-sim-controls-card .nt-search-icon {
+            position: absolute !important;
+            left: 13px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            font-size: 14px !important;
+            color: var(--nt-neutral) !important;
+            pointer-events: none !important;
+        }
+        
+        .nt-live-sim-controls-card .nt-search-input {
+            width: 100% !important;
+            height: 42px !important;
+            line-height: normal !important;
+            padding: 9px 12px 9px 38px !important;
+            border-radius: 999px !important;
+            border: 1px solid var(--nt-border) !important;
+            background: #F8FAFC !important;
+            color: var(--nt-dark) !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            outline: none !important;
+        }
+        
+        /* Return horizon: same segmented-pill container as Signal Overview */
+        .nt-live-sim-horizon-pills {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 4px !important;
+            padding: 4px !important;
+            background: #F1F5F9 !important;
+            border: 1px solid var(--nt-border) !important;
+            border-radius: 999px !important;
+            width: auto !important;
+            max-width: none !important;
+            min-width: 0 !important;
+            flex-wrap: nowrap !important;
+            overflow: visible !important;
+        }
+        
+        /* Return horizon buttons: same as Signal Overview */
+        .nt-live-sim-horizon-pills .period-pill {
+            border: none !important;
+            background: transparent !important;
+            color: var(--nt-neutral) !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
+            padding: 7px 11px !important;
+            height: auto !important;
+            min-height: 0 !important;
+            line-height: normal !important;
+            border-radius: 999px !important;
+            cursor: pointer !important;
+            transition: all 0.15s ease !important;
+            flex: 0 0 auto !important;
+            white-space: nowrap !important;
+        }
+        
+        .nt-live-sim-horizon-pills .period-pill:hover {
+            background: #E2E8F0 !important;
+            color: var(--nt-dark) !important;
+        }
+        
+        .nt-live-sim-horizon-pills .period-pill.active {
+            background: var(--nt-blue) !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25) !important;
+        }
+        
+        /* Asset type: same segmented-pill container as Signal Overview */
+        .nt-live-sim-controls-card .nt-asset-control {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            flex-wrap: wrap !important;
+            width: auto !important;
+            max-width: none !important;
+            min-width: 0 !important;
+        }
+        
+        .nt-live-sim-controls-card .nt-asset-pills {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 4px !important;
+            padding: 4px !important;
+            background: #F1F5F9 !important;
+            border: 1px solid var(--nt-border) !important;
+            border-radius: 999px !important;
+            width: auto !important;
+            max-width: none !important;
+            min-width: 0 !important;
+            flex-wrap: nowrap !important;
+            overflow: visible !important;
+        }
+        
+        /* Asset type buttons: same as Signal Overview */
+        .nt-live-sim-controls-card .asset-pill {
+            border: none !important;
+            background: transparent !important;
+            color: var(--nt-neutral) !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
+            padding: 7px 12px !important;
+            height: auto !important;
+            min-height: 0 !important;
+            line-height: normal !important;
+            border-radius: 999px !important;
+            cursor: pointer !important;
+            transition: all 0.15s ease !important;
+            flex: 0 0 auto !important;
+            white-space: nowrap !important;
+        }
+        
+        .nt-live-sim-controls-card .asset-pill:hover {
+            background: #E2E8F0 !important;
+            color: var(--nt-dark) !important;
+        }
+        
+        .nt-live-sim-controls-card .asset-pill.active {
+            background: var(--nt-dark) !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.22) !important;
+        }
+        
+        /* Simulation status row: make it compact, not fat */
+        .nt-live-sim-status-row {
+            margin-top: 14px !important;
+            padding-top: 12px !important;
+            border-top: 1px solid var(--nt-border) !important;
+        }
+        
+        .nt-live-sim-status-row .nt-control-group {
+            gap: 7px !important;
+        }
+        
+        .nt-live-sim-status-pills {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            flex-wrap: wrap !important;
+        }
+        
+        /* Status pills: compact, not fat */
+        .live-sim-status-pill {
+            border: 1px solid var(--nt-border) !important;
+            border-radius: 999px !important;
+            background: #ffffff !important;
+            color: var(--nt-neutral) !important;
+            padding: 7px 11px !important;
+            height: auto !important;
+            min-height: 0 !important;
+            font-size: 12px !important;
+            line-height: normal !important;
+            font-weight: 800 !important;
+            cursor: pointer !important;
+            transition: all 0.15s ease !important;
+            white-space: nowrap !important;
+        }
+        
+        .live-sim-status-pill:hover {
+            background: #E2E8F0 !important;
+            color: var(--nt-dark) !important;
+        }
+        
+        .live-sim-status-pill.selected,
+        .live-sim-status-pill.active {
+            background: var(--nt-blue) !important;
+            border-color: var(--nt-blue) !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25) !important;
+        }
+        
+        /* Count bubbles inside status pills */
+        .live-sim-status-pill .nt-live-sim-filter-count {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            min-width: 18px !important;
+            height: 18px !important;
+            margin-left: 5px !important;
+            padding: 0 6px !important;
+            border-radius: 999px !important;
+            background: rgba(100, 116, 139, 0.12) !important;
+            color: inherit !important;
+            font-size: 10px !important;
+            line-height: 1 !important;
+            font-weight: 900 !important;
+        }
+        
+        .live-sim-status-pill.selected .nt-live-sim-filter-count,
+        .live-sim-status-pill.active .nt-live-sim-filter-count {
+            background: rgba(255, 255, 255, 0.22) !important;
+            color: #ffffff !important;
+        }
+        
+        /* Responsive behavior exactly like Signal Overview */
+        @media (max-width: 1050px) {
+            .nt-live-sim-controls-grid-main {
+                grid-template-columns: 1fr !important;
+                align-items: stretch !important;
+            }
+        
+            .nt-live-sim-horizon-pills,
+            .nt-live-sim-controls-card .nt-asset-pills {
+                width: fit-content !important;
+                max-width: 100% !important;
+                flex-wrap: wrap !important;
+            }
+        }
+
     </style>
 
 </head>
