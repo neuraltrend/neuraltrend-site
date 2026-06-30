@@ -6079,6 +6079,133 @@
             }
         }
 
+        /* ===============================
+           Live simulation controls: closer to Signal Overview top panel
+        ================================ */
+        
+        /* Make the three controls fill the whole row like Signal Overview */
+        .nt-live-sim-controls-grid-main {
+            display: grid;
+            grid-template-columns: minmax(260px, 1.05fr) minmax(520px, 1.65fr) minmax(250px, 0.85fr) !important;
+            gap: 22px;
+            align-items: end;
+            width: 100%;
+        }
+        
+        /* Make each control group use its full grid column */
+        .nt-live-sim-controls-grid-main .nt-control-group {
+            width: 100%;
+            min-width: 0;
+        }
+        
+        /* Make labels match the Signal Overview label style */
+        .nt-live-sim-controls-card .nt-control-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            line-height: 1.2;
+            font-weight: 800;
+            color: var(--nt-neutral);
+            text-transform: none !important;
+            letter-spacing: 0 !important;
+        }
+        
+        /* Make search height match pill rows */
+        .nt-live-sim-controls-card .nt-search-shell {
+            height: 38px !important;
+            min-height: 38px !important;
+            padding: 0 14px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .nt-live-sim-controls-card .nt-search-input {
+            height: 38px !important;
+            line-height: 38px;
+            padding-top: 0;
+            padding-bottom: 0;
+            font-size: 14px;
+        }
+        
+        /* Make horizon bar occupy its full middle column */
+        .nt-live-sim-horizon-pills {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            flex-wrap: nowrap;
+        }
+        
+        /* Make horizon pills the same visual height as search */
+        .nt-live-sim-horizon-pills .period-pill {
+            height: 38px;
+            min-height: 38px;
+            padding: 0 11px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            line-height: 1;
+            flex: 1 1 auto;
+            white-space: nowrap;
+        }
+        
+        /* Make asset type fill the right column neatly */
+        .nt-live-sim-controls-card .nt-asset-control {
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+        
+        .nt-live-sim-controls-card .nt-asset-pills {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            flex-wrap: nowrap;
+        }
+        
+        /* Make asset pills same height as search and horizon */
+        .nt-live-sim-controls-card .asset-pill {
+            height: 38px;
+            min-height: 38px;
+            padding: 0 13px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            line-height: 1;
+            flex: 1 1 auto;
+            white-space: nowrap;
+        }
+        
+        /* Keep the controls card slightly taller and more balanced */
+        .nt-live-sim-controls-card {
+            padding: 18px 20px 17px 20px;
+        }
+        
+        /* On medium screens, allow horizon and asset pills to wrap only when needed */
+        @media (max-width: 1250px) {
+            .nt-live-sim-controls-grid-main {
+                grid-template-columns: 1fr !important;
+                gap: 16px;
+                align-items: stretch;
+            }
+        
+            .nt-live-sim-horizon-pills,
+            .nt-live-sim-controls-card .nt-asset-pills {
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+        
+            .nt-live-sim-horizon-pills .period-pill,
+            .nt-live-sim-controls-card .asset-pill {
+                flex: 0 0 auto;
+            }
+        }
+
     </style>
 
 </head>
