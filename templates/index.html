@@ -1028,8 +1028,8 @@
                     </div>
                     
                     <div class="nt-controls-card nt-live-sim-controls-card">
-                    
-                        <div class="nt-controls-grid nt-live-sim-controls-grid">
+
+                        <div class="nt-live-sim-controls-grid-main">
                     
                             <!-- SEARCH -->
                             <div class="nt-control-group">
@@ -1049,57 +1049,17 @@
                                 </div>
                             </div>
                     
-                            <!-- SIMULATION STATUS -->
+                            <!-- RETURN HORIZON -->
                             <div class="nt-control-group">
-                                <span class="nt-control-label">Simulation status</span>
+                                <span class="nt-control-label">Return horizon</span>
                     
-                                <div class="nt-live-sim-status-pills" role="group" aria-label="Simulation status">
-                    
-                                    <button 
-                                        type="button" 
-                                        class="live-sim-status-pill selected" 
-                                        data-live-sim-filter="open"
-                                    >
-                                        Open
-                                        <span id="live-sim-count-open" class="nt-live-sim-filter-count">0</span>
-                                    </button>
-                    
-                                    <button 
-                                        type="button" 
-                                        class="live-sim-status-pill" 
-                                        data-live-sim-filter="active"
-                                    >
-                                        Active
-                                        <span id="live-sim-count-active" class="nt-live-sim-filter-count">0</span>
-                                    </button>
-                    
-                                    <button 
-                                        type="button" 
-                                        class="live-sim-status-pill" 
-                                        data-live-sim-filter="paused"
-                                    >
-                                        Paused
-                                        <span id="live-sim-count-paused" class="nt-live-sim-filter-count">0</span>
-                                    </button>
-                    
-                                    <button 
-                                        type="button" 
-                                        class="live-sim-status-pill" 
-                                        data-live-sim-filter="archived"
-                                    >
-                                        Archived
-                                        <span id="live-sim-count-archived" class="nt-live-sim-filter-count">0</span>
-                                    </button>
-                    
-                                    <button 
-                                        type="button" 
-                                        class="live-sim-status-pill" 
-                                        data-live-sim-filter="all"
-                                    >
-                                        All
-                                        <span id="live-sim-count-all" class="nt-live-sim-filter-count">0</span>
-                                    </button>
-                    
+                                <div class="nt-period-pills nt-live-sim-horizon-pills" role="group" aria-label="Live simulation return horizon">
+                                    <button type="button" class="period-pill live-sim-horizon-pill" data-live-sim-horizon="1w">1W</button>
+                                    <button type="button" class="period-pill live-sim-horizon-pill" data-live-sim-horizon="1mo">1M</button>
+                                    <button type="button" class="period-pill live-sim-horizon-pill" data-live-sim-horizon="3mo">3M</button>
+                                    <button type="button" class="period-pill live-sim-horizon-pill" data-live-sim-horizon="6mo">6M</button>
+                                    <button type="button" class="period-pill live-sim-horizon-pill" data-live-sim-horizon="1y">1Y</button>
+                                    <button type="button" class="period-pill live-sim-horizon-pill active" data-live-sim-horizon="since_start">Since Start</button>
                                 </div>
                             </div>
                     
@@ -1108,7 +1068,6 @@
                                 <span class="nt-control-label">Asset type</span>
                     
                                 <div class="nt-asset-control">
-                    
                                     <div class="nt-asset-pills" role="group" aria-label="Live simulation asset type">
                                         <button 
                                             type="button" 
@@ -1134,11 +1093,47 @@
                                             Stocks
                                         </button>
                                     </div>
-                    
                                 </div>
                             </div>
                     
                         </div>
+                    
+                        <!-- SIMULATION STATUS -->
+                        <div class="nt-live-sim-status-row">
+                            <div class="nt-control-group">
+                                <span class="nt-control-label">Simulation status</span>
+                    
+                                <div class="nt-live-sim-status-pills" role="group" aria-label="Simulation status">
+                    
+                                    <button type="button" class="live-sim-status-pill selected" data-live-sim-filter="open">
+                                        Open
+                                        <span id="live-sim-count-open" class="nt-live-sim-filter-count">0</span>
+                                    </button>
+                    
+                                    <button type="button" class="live-sim-status-pill" data-live-sim-filter="active">
+                                        Active
+                                        <span id="live-sim-count-active" class="nt-live-sim-filter-count">0</span>
+                                    </button>
+                    
+                                    <button type="button" class="live-sim-status-pill" data-live-sim-filter="paused">
+                                        Paused
+                                        <span id="live-sim-count-paused" class="nt-live-sim-filter-count">0</span>
+                                    </button>
+                    
+                                    <button type="button" class="live-sim-status-pill" data-live-sim-filter="archived">
+                                        Archived
+                                        <span id="live-sim-count-archived" class="nt-live-sim-filter-count">0</span>
+                                    </button>
+                    
+                                    <button type="button" class="live-sim-status-pill" data-live-sim-filter="all">
+                                        All
+                                        <span id="live-sim-count-all" class="nt-live-sim-filter-count">0</span>
+                                    </button>
+                    
+                                </div>
+                            </div>
+                        </div>
+                    
                     </div>
                 
                     <div id="live-sim-limit" class="nt-live-sim-small-note">
