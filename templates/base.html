@@ -6956,8 +6956,9 @@
                 </table>
             </div>
         `;
-    
+
         scrollToRecentlyCreatedSimulation();
+        updateLiveSimBoardActiveRow();
         renderLiveSimSelectedActions();
     }
     
@@ -6971,9 +6972,11 @@
             document.querySelectorAll(".nt-live-sim-item").forEach(card => {
                 card.classList.toggle(
                     "active",
-                    Number(card.dataset.liveSimId) === simId
+                    Number(card.dataset.liveSimId) === Number(simId)
                 );
             });
+            
+            updateLiveSimBoardActiveRow();
             
             renderLiveSimSelectedActions();
     
@@ -8012,16 +8015,47 @@
         );
     }
     
+    function liveSimReturnPctFromValue(currentValue, initialCash) {
+        const value = liveSimNumberOrNull(currentValue);
+        const initial = liveSimNumberOrNull(initialCash);
+    
+        if (value === null || initial === null || initial <= 0) {
+            return null;
+        }
+    
+        return ((value / initial) - 1) * 100;
+    }
+    
     function liveSimStrategyReturnPct(sim) {
+        const calculatedReturn = liveSimReturnPctFromValue(
+            liveSimStrategyValue(sim),
+            sim.initial_cash
+        );
+    
+        if (calculatedReturn !== null) {
+            return calculatedReturn;
+        }
+    
         return liveSimNumberOrNull(
             sim.strategy_return_pct ??
+            sim.strategy_return_percent ??
             sim.current_return_pct
         );
     }
     
     function liveSimBenchmarkReturnPct(sim) {
+        const calculatedReturn = liveSimReturnPctFromValue(
+            liveSimBenchmarkValue(sim),
+            sim.initial_cash
+        );
+    
+        if (calculatedReturn !== null) {
+            return calculatedReturn;
+        }
+    
         return liveSimNumberOrNull(
             sim.benchmark_return_pct ??
+            sim.benchmark_return_percent ??
             sim.buy_hold_return_pct
         );
     }
@@ -8192,6 +8226,15 @@
         if (rawSignal === "HOLD") return "HOLD";
     
         return rawSignal || "—";
+    }
+
+    function updateLiveSimBoardActiveRow() {
+        document.querySelectorAll("[data-live-sim-board-row-id]").forEach(row => {
+            row.classList.toggle(
+                "active",
+                Number(row.dataset.liveSimBoardRowId) === Number(selectedLiveSimulationId)
+            );
+        });
     }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
@@ -8418,11 +8461,16 @@
     
         if (row) {
             e.preventDefault();
-    
+        
             const simId = Number(row.dataset.liveSimBoardRowId);
-    
+        
             if (Number.isFinite(simId)) {
+                selectedLiveSimulationId = simId;
+                updateLiveSimBoardActiveRow();
+        
                 await selectLiveSimulation(simId);
+        
+                updateLiveSimBoardActiveRow();
             }
         }
     });
