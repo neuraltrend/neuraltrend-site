@@ -5454,6 +5454,353 @@
             display: block;
         }
 
+        /* ===============================
+           My Simulations: Signal Overview-style layout
+        ================================ */
+        
+        .nt-live-sim-list-header-signal-style {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .nt-live-sim-list-title-area {
+            min-width: 0;
+        }
+        
+        .nt-live-sim-board-control-stack {
+            margin-left: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            min-width: 410px;
+        }
+        
+        .nt-live-sim-board-top-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+        
+        .nt-live-sim-reset-view-btn,
+        .nt-live-sim-refresh-btn {
+            padding: 8px 13px;
+            font-size: 12px;
+            line-height: 1;
+        }
+        
+        .nt-live-sim-board-control-stack .nt-live-sim-filter-chips {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .nt-live-sim-board-control-stack .nt-live-sim-filter-chip {
+            padding: 6px 8px;
+            font-size: 10.5px;
+        }
+        
+        .nt-live-sim-asset-control {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .nt-live-sim-asset-control .nt-control-label {
+            margin: 0;
+            font-size: 11px;
+            line-height: 1;
+            font-weight: 800;
+            color: var(--nt-neutral);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        
+        .nt-live-sim-asset-control .nt-asset-pills {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .nt-live-sim-asset-control .asset-pill {
+            padding: 6px 11px;
+            font-size: 11.5px;
+        }
+        
+        /* Mobile */
+        @media (max-width: 900px) {
+            .nt-live-sim-list-header-signal-style {
+                flex-direction: column;
+            }
+        
+            .nt-live-sim-board-control-stack {
+                width: 100%;
+                min-width: 0;
+                align-items: flex-start;
+                margin-left: 0;
+            }
+        
+            .nt-live-sim-board-top-buttons,
+            .nt-live-sim-board-control-stack .nt-live-sim-filter-chips,
+            .nt-live-sim-asset-control {
+                justify-content: flex-start;
+            }
+        }
+
+        /* ===============================
+           My Simulations board: closer to Signal Overview board
+        ================================ */
+        
+        .nt-live-sim-board-scroll {
+            border: 1px solid var(--nt-border);
+            border-radius: 14px;
+            background: #FFFFFF;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            max-height: 280px !important;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+        }
+        
+        .nt-live-sim-board-table {
+            width: 100% !important;
+            min-width: 0 !important;
+            table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 13px;
+            color: var(--nt-dark);
+        }
+        
+        .nt-live-sim-board-table thead th {
+            position: sticky;
+            z-index: 3;
+            background: #F8FAFC;
+            border-bottom: 1px solid var(--nt-border);
+            padding: 10px 8px 6px 8px;
+            font-size: 12px;
+            line-height: 1.15;
+            font-weight: 800;
+            color: var(--nt-dark);
+            text-transform: none;
+            letter-spacing: 0;
+            white-space: nowrap;
+            vertical-align: bottom;
+        }
+        
+        .nt-live-sim-board-table thead tr:first-child th {
+            top: 0;
+        }
+        
+        .nt-live-sim-board-filter-row th {
+            top: 38px !important;
+            z-index: 4;
+            padding: 4px 8px 8px 8px !important;
+            background: #F8FAFC !important;
+        }
+        
+        .nt-live-sim-board-table thead button {
+            border: none;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            padding: 0;
+            cursor: pointer;
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .nt-live-sim-board-table thead button:hover {
+            color: var(--nt-blue);
+        }
+        
+        .nt-live-sim-board-filter-row select {
+            width: 100%;
+            padding: 4px 7px;
+            border-radius: 999px;
+            border: 1px solid var(--nt-border);
+            background: #FFFFFF;
+            color: var(--nt-neutral);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            outline: none;
+        }
+        
+        .nt-live-sim-board-filter-row select:hover {
+            border-color: var(--nt-blue);
+            color: var(--nt-dark);
+        }
+        
+        .nt-live-sim-board-table tbody tr {
+            transition: background 0.15s ease;
+            cursor: pointer;
+        }
+        
+        .nt-live-sim-board-table tbody tr:hover {
+            background: var(--nt-row-hover);
+        }
+        
+        .nt-live-sim-board-table tbody tr.active {
+            background: var(--nt-selected-row);
+            box-shadow: inset 3px 0 0 var(--nt-blue);
+        }
+        
+        .nt-live-sim-board-table tbody td {
+            padding: 7px 8px;
+            border-bottom: 1px solid #EEEEEE;
+            vertical-align: middle;
+            box-sizing: border-box;
+        }
+        
+        .nt-live-sim-board-table th.numeric,
+        .nt-live-sim-board-table td.numeric {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .nt-live-sim-board-main-value {
+            font-size: 13px;
+            line-height: 1.25;
+            font-weight: 700;
+            color: var(--nt-dark);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        
+        .nt-live-sim-board-sub-value {
+            margin-top: 2px;
+            font-size: 11px;
+            line-height: 1.2;
+            font-weight: 700;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .nt-live-sim-board-main-value.positive,
+        .nt-live-sim-board-sub-value.positive {
+            color: var(--nt-positive);
+        }
+        
+        .nt-live-sim-board-main-value.negative,
+        .nt-live-sim-board-sub-value.negative {
+            color: var(--nt-negative);
+        }
+        
+        .nt-live-sim-board-main-value.neutral,
+        .nt-live-sim-board-sub-value.neutral {
+            color: var(--nt-neutral);
+        }
+        
+        .nt-live-sim-board-signal {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 66px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        
+        .nt-live-sim-board-signal.buy {
+            color: var(--nt-positive);
+            background: rgba(22, 163, 74, 0.10);
+            border: 1px solid rgba(22, 163, 74, 0.22);
+        }
+        
+        .nt-live-sim-board-signal.sell {
+            color: var(--nt-negative);
+            background: rgba(220, 38, 38, 0.10);
+            border: 1px solid rgba(220, 38, 38, 0.22);
+        }
+        
+        .nt-live-sim-board-signal.hold {
+            color: var(--nt-neutral);
+            background: rgba(100, 116, 139, 0.10);
+            border: 1px solid rgba(100, 116, 139, 0.18);
+        }
+        
+        .nt-live-sim-board-ticker,
+        .nt-live-sim-board-name {
+            font-size: 13px;
+            line-height: 1.25;
+            font-weight: 700;
+            color: var(--nt-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .nt-live-sim-board-name {
+            max-width: 115px;
+        }
+        
+        .nt-live-sim-board-status {
+            margin-top: 2px;
+            font-size: 11px;
+            line-height: 1.2;
+            font-weight: 700;
+            color: var(--nt-neutral);
+            text-transform: capitalize;
+        }
+        
+        /* 9-column width tuning */
+        .nt-live-sim-board-table th:nth-child(1),
+        .nt-live-sim-board-table td:nth-child(1) {
+            width: 8.5%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(2),
+        .nt-live-sim-board-table td:nth-child(2) {
+            width: 13%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(3),
+        .nt-live-sim-board-table td:nth-child(3) {
+            width: 8.5%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(4),
+        .nt-live-sim-board-table td:nth-child(4) {
+            width: 11%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(5),
+        .nt-live-sim-board-table td:nth-child(5) {
+            width: 9%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(6),
+        .nt-live-sim-board-table td:nth-child(6) {
+            width: 12%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(7),
+        .nt-live-sim-board-table td:nth-child(7) {
+            width: 13.5%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(8),
+        .nt-live-sim-board-table td:nth-child(8) {
+            width: 12%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(9),
+        .nt-live-sim-board-table td:nth-child(9) {
+            width: 12.5%;
+        }
+
     </style>
 
 </head>
@@ -6968,23 +7315,6 @@
         }
     
         list.innerHTML = `
-            <div class="nt-live-sim-board-tools nt-live-sim-board-tools-asset-only">
-                <div class="nt-live-sim-board-filter">
-                    <label for="live-sim-board-asset-filter">Asset type</label>
-                    <select id="live-sim-board-asset-filter">
-                        <option value="all" ${liveSimBoardAssetTypeFilter === "all" ? "selected" : ""}>All</option>
-                        ${assetTypeOptions.map(value => `
-                            <option value="${escapeHTML(value)}" ${liveSimBoardAssetTypeFilter === value ? "selected" : ""}>
-                                ${escapeHTML(value.charAt(0).toUpperCase() + value.slice(1))}
-                            </option>
-                        `).join("")}
-                    </select>
-                </div>
-    
-                <div class="nt-live-sim-board-result-count">
-                    ${visibleSimulations.length} of ${allSimulations.length} shown
-                </div>
-            </div>
     
             <div class="nt-live-sim-board-scroll">
                 <table class="nt-live-sim-board-table">
@@ -7178,10 +7508,11 @@
                 </table>
             </div>
         `;
-    
+
         scrollToRecentlyCreatedSimulation();
         updateLiveSimBoardActiveRow();
         renderLiveSimSelectedActions();
+        syncLiveSimAssetPills();
     }
     
     async function selectLiveSimulation(simId) {
@@ -8580,6 +8911,51 @@
             </div>
         `;
     }
+
+    function liveSimAssetTypeValue(sim) {
+        const assetType = String(sim.asset_type || "").trim().toLowerCase();
+    
+        if (assetType) {
+            return assetType;
+        }
+    
+        const ticker = String(sim.ticker || "").trim().toUpperCase();
+    
+        if (ticker.endsWith("-USD")) {
+            return "crypto";
+        }
+    
+        return "stock";
+    }
+    
+    function syncLiveSimAssetPills() {
+        document.querySelectorAll("[data-live-sim-asset-filter]").forEach(button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.liveSimAssetFilter === liveSimBoardAssetTypeFilter
+            );
+        });
+    }
+    
+    async function resetLiveSimulationBoardView() {
+        liveSimStatusFilter = "open";
+    
+        liveSimBoardAssetTypeFilter = "all";
+        liveSimBoardSignalFilter = "all";
+        liveSimBoardPositionFilter = "all";
+    
+        liveSimBoardStrategyDisplayMode = "percent";
+        liveSimBoardBenchmarkDisplayMode = "percent";
+        liveSimBoardAlphaDisplayMode = "percent";
+    
+        liveSimBoardSortKey = "created_at";
+        liveSimBoardSortDirection = "desc";
+    
+        updateLiveSimFilterUI();
+        syncLiveSimAssetPills();
+    
+        await loadLiveSimulations();
+    }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -8852,6 +9228,28 @@
     
         if (e.target && e.target.id === "live-sim-board-position-filter") {
             liveSimBoardPositionFilter = e.target.value;
+            renderLiveSimulationList(liveSimulationsCache);
+        }
+    });
+
+    document.addEventListener("click", async function (e) {
+        const resetButton = e.target.closest("#reset-live-sim-board");
+    
+        if (resetButton) {
+            e.preventDefault();
+            await resetLiveSimulationBoardView();
+            return;
+        }
+    
+        const assetButton = e.target.closest("[data-live-sim-asset-filter]");
+    
+        if (assetButton) {
+            e.preventDefault();
+    
+            liveSimBoardAssetTypeFilter =
+                assetButton.dataset.liveSimAssetFilter || "all";
+    
+            syncLiveSimAssetPills();
             renderLiveSimulationList(liveSimulationsCache);
         }
     });
