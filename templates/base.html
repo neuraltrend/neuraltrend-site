@@ -5936,6 +5936,149 @@
             }
         }
 
+        /* ===============================
+           Live simulation controls: cleaner Signal Overview-style layout
+        ================================ */
+        
+        .nt-live-sim-controls-card {
+            margin-top: 0;
+            margin-bottom: 12px;
+            padding: 18px 20px 16px 20px;
+        }
+        
+        /* First row: Search | Return horizon | Asset type */
+        .nt-live-sim-controls-grid-main {
+            display: grid;
+            grid-template-columns: minmax(280px, 1.05fr) minmax(430px, 1.35fr) minmax(250px, 0.8fr);
+            gap: 22px;
+            align-items: end;
+        }
+        
+        /* Second row: Simulation status full width */
+        .nt-live-sim-status-row {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(226, 232, 240, 0.9);
+        }
+        
+        .nt-live-sim-status-row .nt-control-group {
+            width: 100%;
+        }
+        
+        /* Labels like Signal Overview: small, sentence case */
+        .nt-live-sim-controls-card .nt-control-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            line-height: 1.2;
+            font-weight: 800;
+            color: var(--nt-neutral);
+            text-transform: none !important;
+            letter-spacing: 0 !important;
+        }
+        
+        /* Make horizon pills fit better */
+        .nt-live-sim-horizon-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .nt-live-sim-horizon-pills .period-pill {
+            padding: 7px 10px;
+            font-size: 12px;
+            line-height: 1;
+        }
+        
+        /* Simulation status can now use full width and stay in one clean row */
+        .nt-live-sim-status-pills {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+        
+        .live-sim-status-pill {
+            border: 1px solid var(--nt-border);
+            border-radius: 999px;
+            background: #FFFFFF;
+            color: var(--nt-neutral);
+            padding: 8px 13px;
+            font-size: 12px;
+            line-height: 1;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        
+        .live-sim-status-pill:hover {
+            border-color: var(--nt-blue);
+            color: var(--nt-blue);
+        }
+        
+        .live-sim-status-pill.selected,
+        .live-sim-status-pill.active {
+            background: var(--nt-blue);
+            border-color: var(--nt-blue);
+            color: #FFFFFF;
+        }
+        
+        .live-sim-status-pill .nt-live-sim-filter-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            margin-left: 6px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.24);
+            font-size: 10px;
+            font-weight: 900;
+        }
+        
+        .live-sim-status-pill:not(.selected):not(.active) .nt-live-sim-filter-count {
+            background: rgba(100, 116, 139, 0.12);
+            color: var(--nt-neutral);
+        }
+        
+        /* Asset type aligned like Signal Overview */
+        .nt-live-sim-controls-card .nt-asset-control {
+            display: flex;
+            align-items: center;
+        }
+        
+        .nt-live-sim-controls-card .nt-asset-pills {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .nt-live-sim-controls-card .asset-pill {
+            padding: 7px 12px;
+            font-size: 12px;
+            line-height: 1;
+        }
+        
+        /* Search box height consistent with Signal Overview */
+        .nt-live-sim-controls-card .nt-search-shell {
+            min-height: 44px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .nt-live-sim-controls-grid-main {
+                grid-template-columns: 1fr;
+                gap: 16px;
+                align-items: stretch;
+            }
+        
+            .nt-live-sim-status-row {
+                margin-top: 16px;
+            }
+        }
+
     </style>
 
 </head>
@@ -9119,6 +9262,18 @@
     
         await loadLiveSimulations();
     }
+
+    document.addEventListener("click", function (e) {
+        const horizonButton = e.target.closest("[data-live-sim-horizon]");
+    
+        if (!horizonButton) return;
+    
+        e.preventDefault();
+    
+        document.querySelectorAll("[data-live-sim-horizon]").forEach(button => {
+            button.classList.toggle("active", button === horizonButton);
+        });
+    });
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
         e.preventDefault();
