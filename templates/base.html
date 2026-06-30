@@ -5292,6 +5292,123 @@
             text-overflow: ellipsis;
         }
 
+        /* ===============================
+           My simulations board: header filters + improved widths
+        ================================ */
+        
+        .nt-live-sim-board-tools-asset-only {
+            align-items: end;
+            justify-content: flex-end;
+            margin-top: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .nt-live-sim-board-tools-asset-only .nt-live-sim-board-filter {
+            min-width: 130px;
+        }
+        
+        .nt-live-sim-board-filter-row th {
+            top: 31px;
+            padding: 6px 6px 8px 6px !important;
+            background: #F8FAFC !important;
+            border-bottom: 1px solid var(--nt-border);
+        }
+        
+        .nt-live-sim-board-filter-row select {
+            width: 100%;
+            max-width: 100%;
+            border: 1px solid rgba(203, 213, 225, 0.95);
+            border-radius: 9px;
+            background: #FFFFFF;
+            color: var(--nt-dark);
+            font-size: 10px;
+            line-height: 1;
+            font-weight: 850;
+            padding: 5px 6px;
+            outline: none;
+        }
+        
+        .nt-live-sim-board-filter-row select:focus,
+        .nt-live-sim-board-filter select:focus {
+            border-color: rgba(37, 99, 235, 0.55);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+        }
+        
+        /* Adjusted 9-column layout:
+           Date, Simulation, Ticker, Signal, Position,
+           Cash/Position, Strategy, B&H, Vs B&H */
+        .nt-live-sim-board-table th:nth-child(1),
+        .nt-live-sim-board-table td:nth-child(1) {
+            width: 9%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(2),
+        .nt-live-sim-board-table td:nth-child(2) {
+            width: 14%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(3),
+        .nt-live-sim-board-table td:nth-child(3) {
+            width: 8%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(4),
+        .nt-live-sim-board-table td:nth-child(4) {
+            width: 11%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(5),
+        .nt-live-sim-board-table td:nth-child(5) {
+            width: 9%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(6),
+        .nt-live-sim-board-table td:nth-child(6) {
+            width: 12%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(7),
+        .nt-live-sim-board-table td:nth-child(7) {
+            width: 13%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(8),
+        .nt-live-sim-board-table td:nth-child(8) {
+            width: 12%;
+        }
+        
+        .nt-live-sim-board-table th:nth-child(9),
+        .nt-live-sim-board-table td:nth-child(9) {
+            width: 12%;
+        }
+        
+        /* More compact headers to avoid last letters disappearing */
+        .nt-live-sim-board-table thead th {
+            font-size: 9.5px;
+            padding-left: 6px;
+            padding-right: 6px;
+        }
+        
+        .nt-live-sim-board-table thead button {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Make simulation name shorter but show full name on hover through native title tooltip */
+        .nt-live-sim-board-name {
+            max-width: 120px;
+            cursor: help;
+        }
+        
+        .nt-live-sim-board-main-value {
+            font-size: 11px;
+        }
+        
+        .nt-live-sim-board-sub-value {
+            font-size: 10px;
+        }
+
     </style>
 
 </head>
@@ -6637,6 +6754,11 @@
     let liveSimBoardSortDirection = "desc";
     let liveSimBoardSignalFilter = "all";
     let liveSimBoardPositionFilter = "all";
+    let liveSimBoardAssetTypeFilter = "all";
+
+    let liveSimBoardStrategyDisplayMode = "percent";
+    let liveSimBoardBenchmarkDisplayMode = "percent";
+    let liveSimBoardAlphaDisplayMode = "percent";
     
     function liveSimMoney(value) {
         if (value === null || value === undefined || Number.isNaN(Number(value))) {
@@ -6781,6 +6903,14 @@
             )
         ).sort((a, b) => Number(a) - Number(b));
     
+        const assetTypeOptions = Array.from(
+            new Set(
+                allSimulations
+                    .map(sim => liveSimAssetTypeValue(sim))
+                    .filter(Boolean)
+            )
+        ).sort();
+    
         if (!allSimulations.length) {
             list.innerHTML = `
                 <div class="nt-live-sim-board-empty">
@@ -6793,24 +6923,14 @@
         }
     
         list.innerHTML = `
-            <div class="nt-live-sim-board-tools">
+            <div class="nt-live-sim-board-tools nt-live-sim-board-tools-asset-only">
                 <div class="nt-live-sim-board-filter">
-                    <label for="live-sim-board-signal-filter">Latest signal</label>
-                    <select id="live-sim-board-signal-filter">
-                        <option value="all" ${liveSimBoardSignalFilter === "all" ? "selected" : ""}>All</option>
-                        <option value="BUY" ${liveSimBoardSignalFilter === "BUY" ? "selected" : ""}>BUY</option>
-                        <option value="SELL" ${liveSimBoardSignalFilter === "SELL" ? "selected" : ""}>SELL</option>
-                        <option value="HOLD" ${liveSimBoardSignalFilter === "HOLD" ? "selected" : ""}>HOLD</option>
-                    </select>
-                </div>
-    
-                <div class="nt-live-sim-board-filter">
-                    <label for="live-sim-board-position-filter">Position size</label>
-                    <select id="live-sim-board-position-filter">
-                        <option value="all" ${liveSimBoardPositionFilter === "all" ? "selected" : ""}>All</option>
-                        ${positionOptions.map(value => `
-                            <option value="${escapeHTML(value)}" ${liveSimBoardPositionFilter === value ? "selected" : ""}>
-                                ${escapeHTML(value)}%
+                    <label for="live-sim-board-asset-filter">Asset type</label>
+                    <select id="live-sim-board-asset-filter">
+                        <option value="all" ${liveSimBoardAssetTypeFilter === "all" ? "selected" : ""}>All</option>
+                        ${assetTypeOptions.map(value => `
+                            <option value="${escapeHTML(value)}" ${liveSimBoardAssetTypeFilter === value ? "selected" : ""}>
+                                ${escapeHTML(value.charAt(0).toUpperCase() + value.slice(1))}
                             </option>
                         `).join("")}
                     </select>
@@ -6827,13 +6947,13 @@
                         <tr>
                             <th>
                                 <button type="button" data-live-sim-board-sort="created_at">
-                                    Date Created ${liveSimBoardSortArrow("created_at")}
+                                    Date ${liveSimBoardSortArrow("created_at")}
                                 </button>
                             </th>
     
                             <th>
                                 <button type="button" data-live-sim-board-sort="name">
-                                    Simulation Name ${liveSimBoardSortArrow("name")}
+                                    Simulation ${liveSimBoardSortArrow("name")}
                                 </button>
                             </th>
     
@@ -6845,7 +6965,7 @@
     
                             <th>Latest Signal</th>
     
-                            <th>Position Size</th>
+                            <th>Position</th>
     
                             <th class="numeric">
                                 <button type="button" data-live-sim-board-sort="cash_position">
@@ -6855,13 +6975,13 @@
     
                             <th class="numeric">
                                 <button type="button" data-live-sim-board-sort="strategy_value">
-                                    Strategy Value ${liveSimBoardSortArrow("strategy_value")}
+                                    Strategy ${liveSimBoardSortArrow("strategy_value")}
                                 </button>
                             </th>
     
                             <th class="numeric">
                                 <button type="button" data-live-sim-board-sort="benchmark_value">
-                                    B&H Value ${liveSimBoardSortArrow("benchmark_value")}
+                                    B&H ${liveSimBoardSortArrow("benchmark_value")}
                                 </button>
                             </th>
     
@@ -6869,6 +6989,55 @@
                                 <button type="button" data-live-sim-board-sort="alpha">
                                     Vs B&H ${liveSimBoardSortArrow("alpha")}
                                 </button>
+                            </th>
+                        </tr>
+    
+                        <tr class="nt-live-sim-board-filter-row">
+                            <th></th>
+                            <th></th>
+                            <th></th>
+    
+                            <th>
+                                <select id="live-sim-board-signal-filter" aria-label="Filter by latest signal">
+                                    <option value="all" ${liveSimBoardSignalFilter === "all" ? "selected" : ""}>All</option>
+                                    <option value="BUY" ${liveSimBoardSignalFilter === "BUY" ? "selected" : ""}>BUY</option>
+                                    <option value="SELL" ${liveSimBoardSignalFilter === "SELL" ? "selected" : ""}>SELL</option>
+                                    <option value="HOLD" ${liveSimBoardSignalFilter === "HOLD" ? "selected" : ""}>HOLD</option>
+                                </select>
+                            </th>
+    
+                            <th>
+                                <select id="live-sim-board-position-filter" aria-label="Filter by position size">
+                                    <option value="all" ${liveSimBoardPositionFilter === "all" ? "selected" : ""}>All</option>
+                                    ${positionOptions.map(value => `
+                                        <option value="${escapeHTML(value)}" ${liveSimBoardPositionFilter === value ? "selected" : ""}>
+                                            ${escapeHTML(value)}%
+                                        </option>
+                                    `).join("")}
+                                </select>
+                            </th>
+    
+                            <th></th>
+    
+                            <th class="numeric">
+                                <select id="live-sim-board-strategy-mode" aria-label="Strategy display mode">
+                                    <option value="percent" ${liveSimBoardStrategyDisplayMode === "percent" ? "selected" : ""}>Return %</option>
+                                    <option value="value" ${liveSimBoardStrategyDisplayMode === "value" ? "selected" : ""}>$ Value</option>
+                                </select>
+                            </th>
+    
+                            <th class="numeric">
+                                <select id="live-sim-board-benchmark-mode" aria-label="Buy and Hold display mode">
+                                    <option value="percent" ${liveSimBoardBenchmarkDisplayMode === "percent" ? "selected" : ""}>Return %</option>
+                                    <option value="value" ${liveSimBoardBenchmarkDisplayMode === "value" ? "selected" : ""}>$ Value</option>
+                                </select>
+                            </th>
+    
+                            <th class="numeric">
+                                <select id="live-sim-board-alpha-mode" aria-label="Vs Buy and Hold display mode">
+                                    <option value="percent" ${liveSimBoardAlphaDisplayMode === "percent" ? "selected" : ""}>Return %</option>
+                                    <option value="value" ${liveSimBoardAlphaDisplayMode === "value" ? "selected" : ""}>$ Value</option>
+                                </select>
                             </th>
                         </tr>
                     </thead>
@@ -6884,6 +7053,7 @@
                                     const benchmarkValue = liveSimBenchmarkValue(sim);
                                     const strategyReturn = liveSimStrategyReturnPct(sim);
                                     const benchmarkReturn = liveSimBenchmarkReturnPct(sim);
+                                    const fullName = sim.name || "Simulation";
     
                                     return `
                                         <tr 
@@ -6897,9 +7067,13 @@
                                             </td>
     
                                             <td>
-                                                <div class="nt-live-sim-board-name">
-                                                    ${escapeHTML(sim.name || "Simulation")}
+                                                <div 
+                                                    class="nt-live-sim-board-name"
+                                                    title="${escapeHTML(fullName)}"
+                                                >
+                                                    ${escapeHTML(fullName)}
                                                 </div>
+    
                                                 <div class="nt-live-sim-board-status">
                                                     ${escapeHTML(sim.status || "active")}
                                                 </div>
@@ -6929,15 +7103,15 @@
                                             </td>
     
                                             <td class="numeric">
-                                                ${liveSimBoardValueWithReturnHTML(strategyValue, strategyReturn)}
+                                                ${liveSimBoardMetricHTML(strategyValue, strategyReturn, liveSimBoardStrategyDisplayMode)}
                                             </td>
     
                                             <td class="numeric">
-                                                ${liveSimBoardValueWithReturnHTML(benchmarkValue, benchmarkReturn)}
+                                                ${liveSimBoardMetricHTML(benchmarkValue, benchmarkReturn, liveSimBoardBenchmarkDisplayMode)}
                                             </td>
     
                                             <td class="numeric">
-                                                ${liveSimBoardAlphaHTML(sim)}
+                                                ${liveSimBoardAlphaHTML(sim, liveSimBoardAlphaDisplayMode)}
                                             </td>
                                         </tr>
                                     `;
@@ -6956,7 +7130,7 @@
                 </table>
             </div>
         `;
-
+    
         scrollToRecentlyCreatedSimulation();
         updateLiveSimBoardActiveRow();
         renderLiveSimSelectedActions();
@@ -8165,14 +8339,26 @@
         }
     
         if (key === "strategy_value") {
+            if (liveSimBoardStrategyDisplayMode === "percent") {
+                return liveSimStrategyReturnPct(sim) ?? -Infinity;
+            }
+    
             return liveSimStrategyValue(sim) ?? -Infinity;
         }
     
         if (key === "benchmark_value") {
+            if (liveSimBoardBenchmarkDisplayMode === "percent") {
+                return liveSimBenchmarkReturnPct(sim) ?? -Infinity;
+            }
+    
             return liveSimBenchmarkValue(sim) ?? -Infinity;
         }
     
         if (key === "alpha") {
+            if (liveSimBoardAlphaDisplayMode === "percent") {
+                return liveSimAlphaPercent(sim) ?? -Infinity;
+            }
+    
             return liveSimAlphaValue(sim) ?? -Infinity;
         }
     
@@ -8181,6 +8367,12 @@
     
     function getFilteredAndSortedLiveSimulations(simulations) {
         let result = simulations.slice();
+    
+        if (liveSimBoardAssetTypeFilter !== "all") {
+            result = result.filter(sim =>
+                liveSimAssetTypeValue(sim) === liveSimBoardAssetTypeFilter
+            );
+        }
     
         if (liveSimBoardSignalFilter !== "all") {
             result = result.filter(sim =>
@@ -8245,6 +8437,98 @@
                 Number(row.dataset.liveSimBoardRowId) === Number(selectedLiveSimulationId)
             );
         });
+    }
+
+    function liveSimAssetTypeValue(sim) {
+        const assetType = String(sim.asset_type || "").trim().toLowerCase();
+    
+        if (assetType) {
+            return assetType;
+        }
+    
+        const ticker = String(sim.ticker || "").trim().toUpperCase();
+    
+        if (ticker.endsWith("-USD")) {
+            return "crypto";
+        }
+    
+        return "stock";
+    }
+    
+    function liveSimSignedMoney(value) {
+        const numberValue = liveSimNumberOrNull(value);
+    
+        if (numberValue === null) return "—";
+    
+        const sign = numberValue > 0 ? "+" : "";
+    
+        return `${sign}${liveSimMoney(numberValue)}`;
+    }
+    
+    function liveSimSignedPercent(value) {
+        const numberValue = liveSimNumberOrNull(value);
+    
+        if (numberValue === null) return "—";
+    
+        const sign = numberValue > 0 ? "+" : "";
+    
+        return `${sign}${liveSimPercent(numberValue)}`;
+    }
+    
+    function liveSimBoardMetricHTML(value, pct, displayMode = "percent") {
+        const numberValue = liveSimNumberOrNull(value);
+        const pctValue = liveSimNumberOrNull(pct);
+        const toneClass = liveSimBoardToneClass(pctValue);
+    
+        if (displayMode === "value") {
+            return `
+                <div class="nt-live-sim-board-main-value ${toneClass}">
+                    ${numberValue === null ? "—" : liveSimMoney(numberValue)}
+                </div>
+    
+                <div class="nt-live-sim-board-sub-value ${toneClass}">
+                    ${pctValue === null ? "—" : `(${liveSimSignedPercent(pctValue)})`}
+                </div>
+            `;
+        }
+    
+        return `
+            <div class="nt-live-sim-board-main-value ${toneClass}">
+                ${pctValue === null ? "—" : liveSimSignedPercent(pctValue)}
+            </div>
+    
+            <div class="nt-live-sim-board-sub-value ${toneClass}">
+                ${numberValue === null ? "—" : `(${liveSimMoney(numberValue)})`}
+            </div>
+        `;
+    }
+    
+    function liveSimBoardAlphaHTML(sim, displayMode = "percent") {
+        const alphaValue = liveSimAlphaValue(sim);
+        const alphaPct = liveSimAlphaPercent(sim);
+        const toneClass = liveSimBoardToneClass(alphaPct);
+    
+        if (displayMode === "value") {
+            return `
+                <div class="nt-live-sim-board-main-value ${toneClass}">
+                    ${alphaValue === null ? "—" : liveSimSignedMoney(alphaValue)}
+                </div>
+    
+                <div class="nt-live-sim-board-sub-value ${toneClass}">
+                    ${alphaPct === null ? "—" : `(${liveSimSignedPercent(alphaPct)})`}
+                </div>
+            `;
+        }
+    
+        return `
+            <div class="nt-live-sim-board-main-value ${toneClass}">
+                ${alphaPct === null ? "—" : liveSimSignedPercent(alphaPct)}
+            </div>
+    
+            <div class="nt-live-sim-board-sub-value ${toneClass}">
+                ${alphaValue === null ? "—" : `(${liveSimSignedMoney(alphaValue)})`}
+            </div>
+        `;
     }
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
@@ -8486,6 +8770,30 @@
     });
     
     document.addEventListener("change", function (e) {
+        if (e.target && e.target.id === "live-sim-board-asset-filter") {
+            liveSimBoardAssetTypeFilter = e.target.value;
+            renderLiveSimulationList(liveSimulationsCache);
+            return;
+        }
+        
+        if (e.target && e.target.id === "live-sim-board-strategy-mode") {
+            liveSimBoardStrategyDisplayMode = e.target.value;
+            renderLiveSimulationList(liveSimulationsCache);
+            return;
+        }
+        
+        if (e.target && e.target.id === "live-sim-board-benchmark-mode") {
+            liveSimBoardBenchmarkDisplayMode = e.target.value;
+            renderLiveSimulationList(liveSimulationsCache);
+            return;
+        }
+        
+        if (e.target && e.target.id === "live-sim-board-alpha-mode") {
+            liveSimBoardAlphaDisplayMode = e.target.value;
+            renderLiveSimulationList(liveSimulationsCache);
+            return;
+        }
+        
         if (e.target && e.target.id === "live-sim-board-signal-filter") {
             liveSimBoardSignalFilter = e.target.value;
             renderLiveSimulationList(liveSimulationsCache);
