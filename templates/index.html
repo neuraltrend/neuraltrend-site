@@ -993,7 +993,7 @@
                 <!-- SIMULATION LIST -->
                 <aside class="nt-live-sim-card">
 
-                    <div class="nt-live-sim-list-header nt-live-sim-list-header-signal-style">
+                    <div class="nt-live-sim-list-header nt-live-sim-board-header-signal-style">
 
                         <div class="nt-live-sim-list-title-area">
                             <div class="nt-section-eyebrow">Simulation Board</div>
@@ -1007,100 +1007,134 @@
                             </div>
                         </div>
                     
-                        <div class="nt-live-sim-board-control-stack">
+                        <div class="nt-live-sim-board-top-buttons">
+                            <button 
+                                type="button" 
+                                id="reset-live-sim-board" 
+                                class="nt-reset-btn nt-live-sim-reset-view-btn"
+                            >
+                                Reset View
+                            </button>
                     
-                            <div class="nt-live-sim-board-top-buttons">
-                                <button 
-                                    type="button" 
-                                    id="reset-live-sim-board" 
-                                    class="nt-reset-btn nt-live-sim-reset-view-btn"
-                                >
-                                    Reset View
-                                </button>
+                            <button 
+                                type="button" 
+                                id="live-sim-refresh-btn" 
+                                class="nt-live-sim-refresh-btn"
+                            >
+                                Refresh
+                            </button>
+                        </div>
                     
-                                <button 
-                                    type="button" 
-                                    id="live-sim-refresh-btn" 
-                                    class="nt-live-sim-refresh-btn"
-                                >
-                                    Refresh
-                                </button>
+                    </div>
+                    
+                    <div class="nt-controls-card nt-live-sim-controls-card">
+                    
+                        <div class="nt-controls-grid nt-live-sim-controls-grid">
+                    
+                            <!-- SEARCH -->
+                            <div class="nt-control-group">
+                                <label class="nt-control-label" for="live-sim-board-search">
+                                    Search simulation
+                                </label>
+                    
+                                <div class="nt-search-shell">
+                                    <span class="nt-search-icon">🔍</span>
+                    
+                                    <input 
+                                        type="text" 
+                                        id="live-sim-board-search" 
+                                        class="nt-search-input"
+                                        placeholder="Search name, ticker..."
+                                    >
+                                </div>
                             </div>
                     
-                            <div class="nt-live-sim-filter-chips" aria-label="Simulation filters">
-                                <button 
-                                    type="button" 
-                                    class="nt-live-sim-filter-chip selected" 
-                                    data-live-sim-filter="open"
-                                >
-                                    Open
-                                    <span id="live-sim-count-open" class="nt-live-sim-filter-count">0</span>
-                                </button>
+                            <!-- SIMULATION STATUS -->
+                            <div class="nt-control-group">
+                                <span class="nt-control-label">Simulation status</span>
                     
-                                <button 
-                                    type="button" 
-                                    class="nt-live-sim-filter-chip" 
-                                    data-live-sim-filter="active"
-                                >
-                                    Active
-                                    <span id="live-sim-count-active" class="nt-live-sim-filter-count">0</span>
-                                </button>
+                                <div class="nt-live-sim-status-pills" role="group" aria-label="Simulation status">
                     
-                                <button 
-                                    type="button" 
-                                    class="nt-live-sim-filter-chip" 
-                                    data-live-sim-filter="paused"
-                                >
-                                    Paused
-                                    <span id="live-sim-count-paused" class="nt-live-sim-filter-count">0</span>
-                                </button>
-                    
-                                <button 
-                                    type="button" 
-                                    class="nt-live-sim-filter-chip" 
-                                    data-live-sim-filter="archived"
-                                >
-                                    Archived
-                                    <span id="live-sim-count-archived" class="nt-live-sim-filter-count">0</span>
-                                </button>
-                    
-                                <button 
-                                    type="button" 
-                                    class="nt-live-sim-filter-chip" 
-                                    data-live-sim-filter="all"
-                                >
-                                    All
-                                    <span id="live-sim-count-all" class="nt-live-sim-filter-count">0</span>
-                                </button>
-                            </div>
-                    
-                            <div class="nt-live-sim-asset-control">
-                                <span class="nt-control-label">Asset Type</span>
-                    
-                                <div class="nt-asset-pills" role="group" aria-label="Live simulation asset type">
                                     <button 
                                         type="button" 
-                                        class="asset-pill live-sim-asset-pill active" 
-                                        data-live-sim-asset-filter="all"
+                                        class="live-sim-status-pill selected" 
+                                        data-live-sim-filter="open"
+                                    >
+                                        Open
+                                        <span id="live-sim-count-open" class="nt-live-sim-filter-count">0</span>
+                                    </button>
+                    
+                                    <button 
+                                        type="button" 
+                                        class="live-sim-status-pill" 
+                                        data-live-sim-filter="active"
+                                    >
+                                        Active
+                                        <span id="live-sim-count-active" class="nt-live-sim-filter-count">0</span>
+                                    </button>
+                    
+                                    <button 
+                                        type="button" 
+                                        class="live-sim-status-pill" 
+                                        data-live-sim-filter="paused"
+                                    >
+                                        Paused
+                                        <span id="live-sim-count-paused" class="nt-live-sim-filter-count">0</span>
+                                    </button>
+                    
+                                    <button 
+                                        type="button" 
+                                        class="live-sim-status-pill" 
+                                        data-live-sim-filter="archived"
+                                    >
+                                        Archived
+                                        <span id="live-sim-count-archived" class="nt-live-sim-filter-count">0</span>
+                                    </button>
+                    
+                                    <button 
+                                        type="button" 
+                                        class="live-sim-status-pill" 
+                                        data-live-sim-filter="all"
                                     >
                                         All
+                                        <span id="live-sim-count-all" class="nt-live-sim-filter-count">0</span>
                                     </button>
                     
-                                    <button 
-                                        type="button" 
-                                        class="asset-pill live-sim-asset-pill" 
-                                        data-live-sim-asset-filter="crypto"
-                                    >
-                                        Crypto
-                                    </button>
+                                </div>
+                            </div>
                     
-                                    <button 
-                                        type="button" 
-                                        class="asset-pill live-sim-asset-pill" 
-                                        data-live-sim-asset-filter="stock"
-                                    >
-                                        Stocks
-                                    </button>
+                            <!-- ASSET TYPE -->
+                            <div class="nt-control-group">
+                                <span class="nt-control-label">Asset type</span>
+                    
+                                <div class="nt-asset-control">
+                    
+                                    <div class="nt-asset-pills" role="group" aria-label="Live simulation asset type">
+                                        <button 
+                                            type="button" 
+                                            class="asset-pill live-sim-asset-pill active" 
+                                            data-live-sim-asset-filter="all"
+                                        >
+                                            All
+                                        </button>
+                    
+                                        <button 
+                                            type="button" 
+                                            class="asset-pill live-sim-asset-pill" 
+                                            data-live-sim-asset-filter="crypto"
+                                        >
+                                            Crypto
+                                        </button>
+                    
+                                        <button 
+                                            type="button" 
+                                            class="asset-pill live-sim-asset-pill" 
+                                            data-live-sim-asset-filter="stock"
+                                        >
+                                            Stocks
+                                        </button>
+                                    </div>
+                    
                                 </div>
                             </div>
                     
