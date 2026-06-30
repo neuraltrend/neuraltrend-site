@@ -8023,7 +8023,17 @@
             return null;
         }
     
-        return ((value / initial) - 1) * 100;
+        /* 
+           Important:
+           liveSimPercent() expects decimal return, not percentage points.
+    
+           Correct:
+           0.05  -> 5.00%
+           -0.01 -> -1.00%
+    
+           So do NOT multiply by 100 here.
+        */
+        return (value / initial) - 1;
     }
     
     function liveSimStrategyReturnPct(sim) {
