@@ -42,6 +42,8 @@ app.config.update(
 
 mail = Mail(app)
 
+BASE_URL = os.environ.get("BASE_URL", "https://neuraltrend.org").rstrip("/")
+
 # 🔐 REQUIRED FOR SESSIONS
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -100,7 +102,7 @@ def confirm_verification_token(token, expiration=3600):
 def send_verification_email(user_email):
     token = generate_verification_token(user_email)
 
-    verify_url = f"https://neuraltrend.org/verify/{token}"
+    verify_url = f"{BASE_URL}/verify/{token}"
 
     msg = Message(
         subject="Verify your NeuralTrend account",
@@ -913,15 +915,20 @@ def login():
 
         return jsonify({"error": "Invalid email or password"}), 401
 
-    # ✅ Successful login → reset counters
+    # ✅ Successful password check → reset counters
     user.failed_attempts = 0
     user.locked_until = None
-    db.session.commit()
-
+    
     # 🔒 Require verification
     if not user.is_verified:
+        db.session.commit()
         return jsonify({"error": "Please verify your email first"}), 403
-
+    
+    # ✅ User is verified and will actually log in
+    user.last_login = datetime.utcnow()
+    
+    db.session.commit()
+    
     login_user(user)
 
     return jsonify({
@@ -1218,7 +1225,7 @@ def request_password_reset():
 
     if user:
         token = generate_reset_token(email)
-        reset_url = f"https://neuraltrend.org/reset-password/{token}"
+        reset_url = f"{BASE_URL}/reset-password/{token}"
 
         msg = Message(
             subject="Reset your password",
@@ -1268,7 +1275,7 @@ def request_delete_account():
     user = current_user
 
     token = generate_delete_token(user.email)
-    delete_url = f"https://neuraltrend.org/confirm-delete/{token}"
+    delete_url = f"{BASE_URL}/confirm-delete/{token}"
 
     msg = Message(
         subject="Confirm account deletion",
