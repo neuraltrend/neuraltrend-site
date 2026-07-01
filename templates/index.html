@@ -2257,6 +2257,7 @@
         highlightSelectedTicker();
         updateSelectedPerformanceCards(ticker);
         syncBacktestTicker(ticker);
+        syncLiveSimulationTicker(ticker);
     
         const duration = document.getElementById('period-select').value;
     
@@ -2783,7 +2784,7 @@
     
                                     return `
                                         <tr 
-                                            class="nt-live-sim-board-row ${isActive ? "active" : ""}"
+                                            class="nt-live-sim-board-row ${isActive ? "active" : ""} ${Number(recentlyCreatedLiveSimulationId) === simId ? "just-created" : ""}"
                                             data-live-sim-board-row-id="${simId}"
                                         >
                                             <td>
@@ -3144,29 +3145,6 @@
     
         return (strategy / benchmark) - 1;
     }
-    
-    function liveSimAlphaClass(value) {
-        if (value === null || value === undefined || Number.isNaN(Number(value))) {
-            return "neutral";
-        }
-    
-        if (Number(value) > 0) return "positive";
-        if (Number(value) < 0) return "negative";
-        return "neutral";
-    }
-    
-    function liveSimAlphaLabel(sim) {
-        const alphaValue = liveSimAlphaValue(sim);
-        const alphaPct = liveSimAlphaPercent(sim);
-    
-        if (alphaValue === null || alphaPct === null) {
-            return "Vs B&H: —";
-        }
-    
-        const sign = alphaValue > 0 ? "+" : "";
-    
-        return `Vs B&H: ${sign}${liveSimMoney(alphaValue)} (${liveSimPercent(alphaPct)})`;
-    }
 
     function setLiveSimRefreshStatus(message) {
         const el = document.getElementById("live-sim-refresh-status");
@@ -3248,7 +3226,7 @@
         if (!recentlyCreatedLiveSimulationId) return;
     
         const card = document.querySelector(
-            `[data-live-sim-id="${recentlyCreatedLiveSimulationId}"]`
+            `[data-live-sim-board-row-id="${recentlyCreatedLiveSimulationId}"]`
         );
     
         if (!card) return;
@@ -3832,22 +3810,6 @@
         `;
     }
 
-    function liveSimCreatedDateLabel(createdAt) {
-        if (!createdAt) return "Created: —";
-    
-        const date = new Date(createdAt);
-    
-        if (Number.isNaN(date.getTime())) {
-            return `Created: ${String(createdAt).slice(0, 10)}`;
-        }
-    
-        return `Created: ${date.toLocaleDateString(undefined, {
-            year: "numeric",
-            month: "short",
-            day: "numeric"
-        })}`;
-    }
-
     function liveSimNumberOrNull(value) {
         const numberValue = Number(value);
         return Number.isFinite(numberValue) ? numberValue : null;
@@ -3882,31 +3844,6 @@
             sim.signal ??
             "—"
         );
-    }
-    
-    function liveSimLatestCloseValue(sim) {
-        return liveSimNumberOrNull(
-            sim.latest_close ??
-            sim.latest_close_price ??
-            sim.close_price ??
-            sim.last_close ??
-            sim.current_close
-        );
-    }
-    
-    function liveSimPriceLabel(value) {
-        const numberValue = liveSimNumberOrNull(value);
-    
-        if (numberValue === null) return "—";
-    
-        if (Math.abs(numberValue) < 1) {
-            return `$${numberValue.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 6
-            })}`;
-        }
-    
-        return liveSimMoney(numberValue);
     }
     
     function liveSimStrategyValue(sim) {
@@ -3988,39 +3925,6 @@
         }
     
         return numberValue > 0 ? "positive" : "negative";
-    }
-    
-    function liveSimBoardValueWithReturnHTML(value, pct) {
-        const numberValue = liveSimNumberOrNull(value);
-        const pctValue = liveSimNumberOrNull(pct);
-        const toneClass = liveSimBoardToneClass(pctValue);
-    
-        return `
-            <div class="nt-live-sim-board-main-value">
-                ${numberValue === null ? "—" : liveSimMoney(numberValue)}
-            </div>
-    
-            <div class="nt-live-sim-board-sub-value ${toneClass}">
-                ${pctValue === null ? "—" : `(${liveSimPercent(pctValue)})`}
-            </div>
-        `;
-    }
-    
-    function liveSimBoardAlphaHTML(sim) {
-        const alphaValue = liveSimAlphaValue(sim);
-        const alphaPct = liveSimAlphaPercent(sim);
-        const toneClass = liveSimBoardToneClass(alphaPct);
-        const sign = alphaValue > 0 ? "+" : "";
-    
-        return `
-            <div class="nt-live-sim-board-main-value ${toneClass}">
-                ${alphaValue === null ? "—" : `${sign}${liveSimMoney(alphaValue)}`}
-            </div>
-    
-            <div class="nt-live-sim-board-sub-value ${toneClass}">
-                ${alphaPct === null ? "—" : `(${liveSimPercent(alphaPct)})`}
-            </div>
-        `;
     }
     
     function liveSimBoardSignalBadgeHTML(signal) {
@@ -4190,22 +4094,6 @@
             );
         });
     }
-
-    function liveSimAssetTypeValue(sim) {
-        const assetType = String(sim.asset_type || "").trim().toLowerCase();
-    
-        if (assetType) {
-            return assetType;
-        }
-    
-        const ticker = String(sim.ticker || "").trim().toUpperCase();
-    
-        if (ticker.endsWith("-USD")) {
-            return "crypto";
-        }
-    
-        return "stock";
-    }
     
     function liveSimSignedMoney(value) {
         const numberValue = liveSimNumberOrNull(value);
@@ -4227,34 +4115,6 @@
            So we should not add another + here.
         */
         return liveSimPercent(numberValue);
-    }
-    
-    function liveSimBoardMetricHTML(value, pct, displayMode = "percent") {
-        const numberValue = liveSimNumberOrNull(value);
-        const pctValue = liveSimNumberOrNull(pct);
-        const toneClass = liveSimBoardToneClass(pctValue);
-    
-        if (displayMode === "value") {
-            return `
-                <div class="nt-live-sim-board-main-value ${toneClass}">
-                    ${numberValue === null ? "—" : liveSimMoney(numberValue)}
-                </div>
-    
-                <div class="nt-live-sim-board-sub-value ${toneClass}">
-                    ${pctValue === null ? "—" : `(${liveSimSignedPercent(pctValue)})`}
-                </div>
-            `;
-        }
-    
-        return `
-            <div class="nt-live-sim-board-main-value ${toneClass}">
-                ${pctValue === null ? "—" : liveSimSignedPercent(pctValue)}
-            </div>
-    
-            <div class="nt-live-sim-board-sub-value ${toneClass}">
-                ${numberValue === null ? "—" : `(${liveSimMoney(numberValue)})`}
-            </div>
-        `;
     }
     
     function liveSimBoardAlphaHTML(sim, displayMode = "percent") {
