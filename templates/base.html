@@ -6312,6 +6312,127 @@
             box-shadow: 0 2px 6px rgba(15, 23, 42, 0.22) !important;
         }
 
+        /* ===============================
+           EpochSignaler internal tool tabs
+           Signal Overview | Backtest | Live Simulation
+        ================================ */
+        
+        .nt-epoch-tool-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin: 18px 0 18px 0;
+            padding: 8px;
+            border-radius: 18px;
+            background: #F8FAFC;
+            border: 1px solid var(--nt-border);
+        }
+        
+        .nt-epoch-tool-tab {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            min-height: 64px;
+            padding: 12px 14px;
+            border: 1px solid var(--nt-border);
+            border-radius: 14px;
+            background: #ffffff;
+            color: var(--nt-dark);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s ease;
+        }
+        
+        .nt-epoch-tool-tab:hover {
+            background: #F1F5F9;
+            border-color: #CBD5E1;
+            transform: translateY(-1px);
+        }
+        
+        .nt-epoch-tool-tab.active {
+            background: var(--nt-dark);
+            border-color: var(--nt-dark);
+            color: #ffffff;
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.14);
+        }
+        
+        .nt-epoch-tool-tab-icon {
+            width: 34px;
+            height: 34px;
+            flex: 0 0 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(37, 99, 235, 0.10);
+            font-size: 16px;
+        }
+        
+        .nt-epoch-tool-tab.active .nt-epoch-tool-tab-icon {
+            background: rgba(255, 255, 255, 0.14);
+        }
+        
+        .nt-epoch-tool-tab strong {
+            display: block;
+            font-size: 13px;
+            line-height: 1.25;
+            font-weight: 900;
+        }
+        
+        .nt-epoch-tool-tab small {
+            display: block;
+            margin-top: 3px;
+            font-size: 11px;
+            line-height: 1.3;
+            font-weight: 650;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-epoch-tool-tab.active small {
+            color: rgba(255, 255, 255, 0.72);
+        }
+        
+        .nt-epoch-tool-panels {
+            width: 100%;
+            min-width: 0;
+        }
+        
+        .nt-epoch-tool-panel {
+            display: none;
+            width: 100%;
+            min-width: 0;
+        }
+        
+        .nt-epoch-tool-panel.nt-epoch-tool-panel-active {
+            display: block;
+        }
+        
+        /* Remove old vertical spacing now that sections are inside tabs */
+        #epochsignaler-section .nt-epoch-tool-panel > .results-section,
+        #epochsignaler-section .nt-epoch-tool-panel > .nt-backtest-section,
+        #epochsignaler-section .nt-epoch-tool-panel > .nt-live-sim-section {
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+        }
+        
+        /* Keep the overview clean inside its tab */
+        #epochsignaler-section .nt-epoch-tool-panel > .nt-epoch-dashboard {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        
+        /* Responsive */
+        @media (max-width: 850px) {
+            .nt-epoch-tool-tabs {
+                grid-template-columns: 1fr;
+            }
+        
+            .nt-epoch-tool-tab {
+                min-height: 58px;
+            }
+        }
+
     </style>
 
 </head>
