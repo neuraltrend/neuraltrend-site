@@ -457,6 +457,7 @@ def live_simulation_summary(sim):
             sim.last_processed_date == latest_csv_date
             if sim.last_processed_date and latest_csv_date else False
         ),
+        "horizon_returns": build_live_sim_horizon_returns(sim),
     })
 
     return data
@@ -489,7 +490,6 @@ def live_simulation_detail(sim):
     })
 
     return summary
-
 
 def update_live_simulation_from_csv(sim):
     """
@@ -641,6 +641,146 @@ def update_live_simulation_from_csv(sim):
 
     db.session.commit()
     return sim
+
+LIVE_SIM_HORIZON_DAYS = {
+    "1d": 1,
+    "1w": 7,
+    "1mo": 30,
+    "3mo": 90,
+    "6mo": 180,
+    "1y": 365,
+    "since_start": None,
+}
+
+def safe_live_sim_return(current_value, base_value):
+    try:
+        current_value = float(current_value)
+        base_value = float(base_value)
+
+        if base_value <= 0:
+            return None
+
+        return (current_value / base_value) - 1
+
+    except Exception:
+        return None
+
+
+def safe_live_sim_float(value):
+    try:
+        if value is None:
+            return None
+        return float(value)
+    except Exception:
+        return None
+
+
+def get_live_sim_horizon_base_point(points, latest_point, horizon_key):
+    if not points or latest_point is None:
+        return None
+
+    days = LIVE_SIM_HORIZON_DAYS.get(horizon_key)
+
+    if days is None:
+        return None
+
+    target_date = latest_point.equity_date - timedelta(days=days)
+
+    older_points = [
+        point for point in points
+        if point.equity_date <= target_date
+    ]
+
+    if older_points:
+        return older_points[-1]
+
+    # If the simulation is younger than the selected horizon,
+    # use the earliest available point.
+    return points[0]
+
+
+def build_live_sim_horizon_returns(sim):
+    points = (
+        LiveSimulationEquity.query
+        .filter_by(simulation_id=sim.id)
+        .order_by(LiveSimulationEquity.equity_date.asc())
+        .all()
+    )
+
+    if not points:
+        return {}
+
+    latest_point = points[-1]
+
+    latest_strategy_value = safe_live_sim_float(latest_point.strategy_value)
+    latest_benchmark_value = safe_live_sim_float(latest_point.benchmark_value)
+
+    if latest_strategy_value is None or latest_benchmark_value is None:
+        return {}
+
+    output = {}
+
+    for horizon_key in LIVE_SIM_HORIZON_DAYS.keys():
+
+        if horizon_key == "since_start":
+            base_strategy_value = safe_live_sim_float(sim.initial_cash)
+            base_benchmark_value = safe_live_sim_float(sim.initial_cash)
+            base_date = sim.start_date.isoformat() if sim.start_date else None
+        else:
+            base_point = get_live_sim_horizon_base_point(
+                points,
+                latest_point,
+                horizon_key
+            )
+
+            if base_point is None:
+                continue
+
+            base_strategy_value = safe_live_sim_float(base_point.strategy_value)
+            base_benchmark_value = safe_live_sim_float(base_point.benchmark_value)
+            base_date = base_point.equity_date.isoformat() if base_point.equity_date else None
+
+        if base_strategy_value is None or base_benchmark_value is None:
+            continue
+
+        strategy_return = safe_live_sim_return(
+            latest_strategy_value,
+            base_strategy_value
+        )
+
+        benchmark_return = safe_live_sim_return(
+            latest_benchmark_value,
+            base_benchmark_value
+        )
+
+        strategy_change = latest_strategy_value - base_strategy_value
+        benchmark_change = latest_benchmark_value - base_benchmark_value
+
+        alpha_return = None
+        if strategy_return is not None and benchmark_return is not None:
+            alpha_return = strategy_return - benchmark_return
+
+        alpha_change = strategy_change - benchmark_change
+
+        output[horizon_key] = {
+            "base_date": base_date,
+            "latest_date": latest_point.equity_date.isoformat() if latest_point.equity_date else None,
+
+            "strategy_return": strategy_return,
+            "benchmark_return": benchmark_return,
+            "alpha_return": alpha_return,
+
+            "strategy_change": strategy_change,
+            "benchmark_change": benchmark_change,
+            "alpha_change": alpha_change,
+
+            "strategy_value": latest_strategy_value,
+            "benchmark_value": latest_benchmark_value,
+            "base_strategy_value": base_strategy_value,
+            "base_benchmark_value": base_benchmark_value,
+        }
+
+    return output
 
 def get_latest_csv_date_for_ticker(ticker):
     try:
