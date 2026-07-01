@@ -1468,9 +1468,6 @@ def backtest():
         'sell_prices': sell_prices.tolist() if isinstance(sell_prices, pd.Series) else sell_prices,
     }
 
-    else:
-        results['equity_curve_2'] = []  # keep chart code safe
-
     return jsonify(results)
 
 @app.route('/equity', methods=['POST'])
