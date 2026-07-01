@@ -1164,7 +1164,8 @@
             </div>
         </div>
     </div>
-    </section>
+</div>
+</section>
 
     <!-- Contact Section -->
     <section id="contact" class="nt-contact-section">
@@ -1317,8 +1318,7 @@
         ticker, final_value, final_value_epoch, profit_factor, profit_factor_epoch, sharpe_ratio,
         position_size_pct = 100, transaction_cost_rate = 0,
         equity_curve, epoch_equity_curve, dates,
-        ticker_2, final_value_2, profit_factor_2, sharpe_ratio_2,
-        equity_curve_2, buy_dates, buy_prices, sell_dates, sell_prices
+        buy_dates, buy_prices, sell_dates, sell_prices
     }) {
         const resultsDiv = document.getElementById('results');
     
@@ -1464,17 +1464,6 @@
                 showLine: false
             }
         ];
-    
-        if (equity_curve_2 && equity_curve_2.length > 0) {
-            datasets.push({
-                label: `${ticker_2} Buy&Hold Equity Curve`,
-                data: equity_curve_2,
-                pointStyle: 'line',
-                borderColor: 'darkgray',
-                pointRadius: 0,   // <-- remove circle markers
-                fill: false
-            });
-        }
     
         // new Chart(ctx, {
         if (equityChart) {
