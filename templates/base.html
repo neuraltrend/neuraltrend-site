@@ -137,75 +137,6 @@
             padding-top: calc(var(--nav-height) + 20px);
             padding-left: 30px; /* added left padding */
         }
-
-        .product-box {
-            background-color: #f9f9f9; /* very light gray — you can use your own color */
-            padding: 20px;
-            border-radius: 8px; /* optional, for rounded edges */
-            box-shadow: 0 0 10px rgba(0,0,0,0.05); /* optional, soft shadow */
-        }
-
-        .three-blocks {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            margin: 20px;
-        }
-
-        .block {
-            background-color: #f9f9f9; /* Light gray box */
-            border-radius: 8px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 15px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-
-        .block-title {
-            background-color: #e3e3e3; /* Title background */
-            padding: 10px;
-            font-weight: bold;
-            text-align: center;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-
-        .block-chart {
-            flex: 1;
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            min-height: 300px; /* adjust chart height */
-        
-            /* Center widget content */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .block-bottom {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .block-img {
-            width: 100px;
-            height: 100px;
-            object-fit: contain;
-        }
-                
-        .tradingview-widget-copyright {
-            font-size: 10px !important;       /* smaller font */
-            color: #666 !important;           /* subtle gray color */
-            text-align: center !important;    /* center the text */
-            padding-top: 5px !important;      /* some spacing from widget */
-            font-family: Arial, sans-serif !important;
-            user-select: none;                /* prevent selection if you want */
-            opacity: 0.7;                    /* slight transparency */
-        }
         
         /* Make the form layout two rows: title row and inputs row */
         #backtest-form {
@@ -384,101 +315,6 @@
         }
         .footer a:hover {
             text-decoration: underline;
-        }
-        
-        /* Layout for Contact + Follow Us */
-        /* Main layout: Contact Us + Follow Us side by side */
-        #contact-section {
-            display: flex;
-            gap: 20px;
-            max-width: 1200px;
-            margin: 20px auto;
-            flex-wrap: wrap; /* Makes it responsive on small screens */
-        }
-        
-        /* Shared box styling */
-        .contact-box, .follow-box {
-            flex: 1;
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.05);
-            min-width: 300px; /* Prevents boxes from shrinking too much */
-        }
-
-        /* Headings */
-        .contact-box h2, .follow-box h2 {
-            font-size: 1.5em;
-            margin-bottom: 15px;
-        }
-        
-        /* Contact form styles */
-        .contact-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .contact-form label {
-            font-weight: bold;
-        }
-        
-        .contact-form input,
-        .contact-form textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        
-        .contact-form textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .contact-form button {
-            background-color: #0077B5;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        
-        .contact-form button:hover {
-            background-color: #005f87;
-        }
-        
-        /* Follow Us buttons */
-        .social-btn {
-            display: block;
-            padding: 12px 15px;
-            margin: 10px 0;
-            font-size: 18px;
-            font-weight: bold;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        .social-btn i {
-            margin-right: 10px;
-        }
-
-        /* Brand colors */
-        .social-btn.linkedin { background-color: #0077B5; }
-        .social-btn.twitter { background-color: #1DA1F2; }
-        .social-btn.facebook { background-color: #1877F2; }
-        .social-btn.instagram { background-color: #E1306C; }
-        
-        
-        /* Hover effect for Follow Us buttons */
-        .social-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
         /* ===============================
@@ -3336,64 +3172,7 @@
             color: var(--nt-neutral);
             font-weight: 600;
         }
-        
-        .nt-live-sim-step-list {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-        }
-        
-        .nt-live-sim-step {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 11px 12px;
-            border-radius: 14px;
-            background: #ffffff;
-            border: 1px solid var(--nt-border);
-        }
-        
-        .nt-live-sim-step-num {
-            width: 26px;
-            height: 26px;
-            flex: 0 0 26px;
-            border-radius: 999px;
-            background: rgba(37, 99, 235, 0.10);
-            color: var(--nt-blue);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 900;
-        }
-        
-        .nt-live-sim-step-title {
-            font-size: 13px;
-            line-height: 1.3;
-            font-weight: 900;
-            color: var(--nt-dark);
-        }
-        
-        .nt-live-sim-step-text {
-            margin-top: 3px;
-            font-size: 12px;
-            line-height: 1.45;
-            font-weight: 600;
-            color: var(--nt-neutral);
-        }
-        
-        .nt-live-sim-warning {
-            margin-top: 14px;
-            padding: 12px;
-            border-radius: 14px;
-            background: rgba(217, 119, 6, 0.08);
-            border: 1px solid rgba(217, 119, 6, 0.18);
-            color: #92400E;
-            font-size: 12px;
-            line-height: 1.5;
-            font-weight: 650;
-        }
-        
+          
         @media (max-width: 900px) {
             .nt-live-sim-layout {
                 grid-template-columns: 1fr;
@@ -3642,86 +3421,6 @@
             .nt-live-sim-chart-shell {
                 height: 300px;
             }
-        }
-
-        /* ===============================
-           Live simulation richer cards
-        ================================ */
-        
-        .nt-live-sim-card-metrics {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 8px;
-            margin-top: 10px;
-        }
-        
-        .nt-live-sim-card-metric {
-            border: 1px solid var(--nt-border);
-            border-radius: 11px;
-            background: #F8FAFC;
-            padding: 8px;
-            min-width: 0;
-        }
-        
-        .nt-live-sim-card-metric-label {
-            font-size: 10px;
-            line-height: 1.2;
-            font-weight: 850;
-            color: var(--nt-neutral);
-            text-transform: uppercase;
-            letter-spacing: 0.035em;
-            margin-bottom: 4px;
-        }
-        
-        .nt-live-sim-card-metric-value {
-            font-size: 13px;
-            line-height: 1.2;
-            font-weight: 900;
-            color: var(--nt-dark);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .nt-live-sim-card-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            margin-top: 10px;
-            padding-top: 8px;
-            border-top: 1px solid var(--nt-border);
-        }
-        
-        .nt-live-sim-card-updated {
-            font-size: 11px;
-            line-height: 1.35;
-            font-weight: 700;
-            color: var(--nt-neutral);
-        }
-        
-        .nt-live-sim-alpha-pill {
-            border-radius: 999px;
-            padding: 5px 8px;
-            font-size: 11px;
-            line-height: 1.2;
-            font-weight: 900;
-            white-space: nowrap;
-        }
-        
-        .nt-live-sim-alpha-pill.positive {
-            color: var(--nt-positive);
-            background: rgba(22, 163, 74, 0.10);
-        }
-        
-        .nt-live-sim-alpha-pill.negative {
-            color: var(--nt-negative);
-            background: rgba(220, 38, 38, 0.10);
-        }
-        
-        .nt-live-sim-alpha-pill.neutral {
-            color: var(--nt-neutral);
-            background: rgba(100, 116, 139, 0.10);
         }
 
         /* ===============================
@@ -4125,32 +3824,6 @@
         }
 
         /* ===============================
-           Live simulation card actions
-        ================================ */
-        
-        .nt-live-sim-card-actions {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-        
-        .nt-live-sim-edit {
-            border: none;
-            background: rgba(37, 99, 235, 0.08);
-            color: var(--nt-blue);
-            border-radius: 999px;
-            font-size: 11px;
-            font-weight: 850;
-            padding: 5px 8px;
-            cursor: pointer;
-        }
-        
-        .nt-live-sim-edit:hover {
-            background: rgba(37, 99, 235, 0.14);
-        }
-
-        /* ===============================
            Live simulation status controls
         ================================ */
         
@@ -4187,44 +3860,6 @@
         .nt-live-sim-status-badge.archived {
             color: var(--nt-neutral);
             background: rgba(100, 116, 139, 0.12);
-        }
-        
-        .nt-live-sim-pause,
-        .nt-live-sim-archive,
-        .nt-live-sim-restore {
-            border: none;
-            border-radius: 999px;
-            font-size: 11px;
-            font-weight: 850;
-            padding: 5px 8px;
-            cursor: pointer;
-        }
-        
-        .nt-live-sim-pause {
-            background: rgba(245, 158, 11, 0.10);
-            color: #92400E;
-        }
-        
-        .nt-live-sim-pause:hover {
-            background: rgba(245, 158, 11, 0.17);
-        }
-        
-        .nt-live-sim-archive {
-            background: rgba(100, 116, 139, 0.10);
-            color: var(--nt-neutral);
-        }
-        
-        .nt-live-sim-archive:hover {
-            background: rgba(100, 116, 139, 0.16);
-        }
-        
-        .nt-live-sim-restore {
-            background: rgba(22, 163, 74, 0.10);
-            color: var(--nt-positive);
-        }
-        
-        .nt-live-sim-restore:hover {
-            background: rgba(22, 163, 74, 0.16);
         }
 
         /* ===============================
@@ -4656,19 +4291,9 @@
             text-overflow: ellipsis;
         }
         
-        /* Remove extra bottom spacing now that the footer is gone */
-        .nt-live-sim-card-metrics {
-            margin-top: 9px;
-        }
-        
         /* Optional: slightly tighter card padding */
         .nt-live-sim-item {
             padding: 11px;
-        }
-        
-        /* Optional cleanup if old footer HTML remains somewhere */
-        .nt-live-sim-card-footer {
-            display: none;
         }
         
         @media (max-width: 620px) {
