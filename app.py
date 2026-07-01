@@ -2,9 +2,7 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-import yfinance as yf
 import pandas as pd
-import numpy as np
 import os
 from functools import lru_cache
 from extensions import db, bcrypt, login_manager
@@ -794,23 +792,6 @@ def get_latest_csv_date_for_ticker(ticker):
 # Routes
 # --------------------
 
-# @app.route("/init-db")
-# def init_db():
-#     with app.app_context():
-#         db.create_all()
-#     return "DB initialized"
-
-# @app.route("/admin/init-live-sim-tables/<token>")
-# def init_live_sim_tables(token):
-#     expected_token = os.environ.get("ADMIN_INIT_TOKEN")
-
-#     if not expected_token or token != expected_token:
-#         return "Unauthorized", 403
-
-#     db.create_all()
-
-#     return "Live simulation tables initialized."
-
 @app.route("/signup", methods=["POST"])
 @limiter.limit("3 per minute")
 def signup():    
@@ -1298,17 +1279,6 @@ def confirm_delete(token):
 
     return "Your account has been permanently deleted"
 
-# @app.route("/force_delete_user")
-# def force_delete_user():
-#     user = User.query.filter_by(email="x@x.com").first()
-#     if user:
-#         db.session.delete(user)
-#         db.session.commit()
-#         return "Deleted"
-#     return "User not found"
-
-# https://neuraltrend.org/force_delete_user
-
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -1345,7 +1315,6 @@ def backtest():
     ticker = request.form['ticker']
     start_date = request.form['start']
     duration = request.form["duration"]    # e.g. '1mo','3mo','6mo','1yr'
-    ticker_2 = []
     
     # Position size per signal: 100%, 50%, 25%, etc.
     try:
@@ -1478,32 +1447,6 @@ def backtest():
     risk_free_rate_daily = (1 + risk_free_rate_annual) ** (1/252) - 1
     excess_returns = returns - risk_free_rate_daily
     sharpe_ratio = float(((excess_returns.mean() / excess_returns.std()) * (252 ** 0.5)))
-
-    equity_curve_2=[]
-    if ticker_2:
-        df_2 = yf.download(ticker_2, start=start_date, end=end_date_2, interval='1d')  # FIXED
-        df_2 = df_2[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
-
-        series_2 = pd.DataFrame()
-        for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
-            df_2[col] = df_2[col].astype(float)
-            values_2 = df_2[col].values
-            if values_2.ndim > 1:
-                values_2 = values_2.flatten()
-            df_2[col] = values_2
-            series_2[col] = pd.Series(values_2, index=df_2.index)
-
-        equity_curve_2 = df_2['Close'].to_numpy().flatten().astype(float).tolist()
-        equity_curve_start=equity_curve_2[0]
-        equity_curve_2 = np.array(equity_curve_2)  # convert list to numpy array
-        equity_curve_2 = equity_curve_2 / equity_curve_2[0] * initial_cash
-        equity_curve_2 = equity_curve_2.tolist()
-        final_value_2 = float(equity_curve_2[-1])
-        profit_factor_2 = float(final_value_2 / initial_cash)
-
-        returns_2 = df_2['Close'].pct_change().dropna()
-        excess_returns_2 = returns_2 - risk_free_rate_daily
-        sharpe_ratio_2 = float(((excess_returns_2.mean() / excess_returns_2.std()) * (252 ** 0.5)).iloc[0])
     
     dates = signals_df.index.strftime('%Y-%m-%d').tolist()
 
@@ -1525,14 +1468,6 @@ def backtest():
         'sell_prices': sell_prices.tolist() if isinstance(sell_prices, pd.Series) else sell_prices,
     }
 
-    if ticker_2 and equity_curve_2:  # or however you check for optional input
-        results.update({
-            'ticker_2': ticker_2,
-            'final_value_2': final_value_2,
-            'profit_factor_2': profit_factor_2,
-            'sharpe_ratio_2': sharpe_ratio_2,
-            'equity_curve_2': equity_curve_2
-        })
     else:
         results['equity_curve_2'] = []  # keep chart code safe
 
