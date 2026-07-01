@@ -4863,7 +4863,9 @@
     
         const maxDate = `${yyyy}-${mm}-${dd}`;
     
-        startInput.setAttribute("max", maxDate);
+        if (startInput) {
+            startInput.setAttribute("max", maxDate);
+        }
     });
 
     /* ===============================
