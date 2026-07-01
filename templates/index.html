@@ -128,8 +128,56 @@
             
             </div>
 
-        <!-- Trade Signal -->
-        <section class="results-section nt-epoch-dashboard">
+            <!-- EpochSignaler tool tabs -->
+            <div class="nt-epoch-tool-tabs" role="tablist" aria-label="EpochSignaler tools">
+
+                <button
+                    type="button"
+                    class="nt-epoch-tool-tab active"
+                    data-epoch-tool-target="epoch-tool-overview"
+                    aria-selected="true"
+                >
+                    <span class="nt-epoch-tool-tab-icon">📊</span>
+                    <span>
+                        <strong>Signal Overview</strong>
+                        <small>Board + equity preview</small>
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    class="nt-epoch-tool-tab"
+                    data-epoch-tool-target="epoch-tool-backtest"
+                    aria-selected="false"
+                >
+                    <span class="nt-epoch-tool-tab-icon">🧪</span>
+                    <span>
+                        <strong>Backtest</strong>
+                        <small>Run historical simulations</small>
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    class="nt-epoch-tool-tab"
+                    data-epoch-tool-target="epoch-tool-live"
+                    aria-selected="false"
+                >
+                    <span class="nt-epoch-tool-tab-icon">🟢</span>
+                    <span>
+                        <strong>Live Simulation</strong>
+                        <small>Daily paper portfolios</small>
+                    </span>
+                </button>
+
+            </div>
+    
+            <div class="nt-epoch-tool-panels">
+    
+            <div id="epoch-tool-overview" class="nt-epoch-tool-panel nt-epoch-tool-panel-active">
+    
+            <!-- Trade Signal -->
+            <section class="results-section nt-epoch-dashboard">
 
                 <!-- QUICK SIGNAL BOARD -->
                 <div class="nt-signal-board-shell">
@@ -472,7 +520,11 @@
                 </div>
                 <!-- EQUITY PREVIEW SECTION END -->
         
-        </section>
+            </section>
+
+                </div>
+
+                <div id="epoch-tool-backtest" class="nt-epoch-tool-panel">
 
         <!-- Backtest Simulation -->
         <section class="results-section nt-backtest-section">
@@ -547,6 +599,10 @@
         
             <div id="results"></div>
         </section>
+
+                </div>
+
+                <div id="epoch-tool-live" class="nt-epoch-tool-panel">
 
         <!-- Live Portfolio Simulation -->
         <section class="nt-live-sim-section" id="live-simulation-preview">
@@ -952,8 +1008,12 @@
         
         </section>
 
+                </div>
+
+            </div>
+
         </div>
-        
+
         <!-- AltIndexer -->
         <div id="altindexer-section" class="nt-model-panel">
         
@@ -4704,6 +4764,61 @@
             startInput.setAttribute("max", maxDate);
         }
     });
+
+    /* ===============================
+       EpochSignaler internal tool tabs
+       Signal Overview | Backtest | Live Simulation
+    ================================ */
+    
+    function setActiveEpochToolPanel(panelId) {
+        const targetPanel = document.getElementById(panelId);
+        if (!targetPanel) return;
+    
+        document.querySelectorAll(".nt-epoch-tool-tab").forEach(tab => {
+            const isActive = tab.dataset.epochToolTarget === panelId;
+    
+            tab.classList.toggle("active", isActive);
+            tab.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+    
+        document.querySelectorAll(".nt-epoch-tool-panel").forEach(panel => {
+            panel.classList.toggle(
+                "nt-epoch-tool-panel-active",
+                panel.id === panelId
+            );
+        });
+    
+        // Resize visible charts after switching tabs
+        setTimeout(() => {
+            if (panelId === "epoch-tool-overview") {
+                if (typeof previewChart !== "undefined" && previewChart) {
+                    previewChart.resize();
+                }
+            }
+    
+            if (panelId === "epoch-tool-backtest") {
+                if (typeof equityChart !== "undefined" && equityChart) {
+                    equityChart.resize();
+                }
+            }
+    
+            if (panelId === "epoch-tool-live") {
+                if (typeof liveSimChart !== "undefined" && liveSimChart) {
+                    liveSimChart.resize();
+                }
+            }
+        }, 80);
+    }
+    
+    document.querySelectorAll(".nt-epoch-tool-tab").forEach(tab => {
+        tab.addEventListener("click", function () {
+            const panelId = this.dataset.epochToolTarget;
+            setActiveEpochToolPanel(panelId);
+        });
+    });
+    
+    // Default internal EpochSignaler tab
+    setActiveEpochToolPanel("epoch-tool-overview");
 
     /* ===============================
        Model tab behavior
