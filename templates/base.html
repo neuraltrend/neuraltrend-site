@@ -7602,11 +7602,15 @@
     `;
     
     function loadSummary() {
-        const duration = document.getElementById('period-select').value; // e.g., '1w', '1mo', '1y'
+        const duration = document.getElementById('period-select')?.value || "5y"; // e.g., '1w', '1mo', '1y'
     
         fetch(`/signals/summary?duration=${duration}&_=${Date.now()}`)
             .then(r => r.json())
             .then(data => {
+                if (!Array.isArray(data)) {
+                    throw new Error(data.error || "Signal summary response was not a list.");
+                }
+                
                 allSignals = data;
                 defaultOrder = [...data];
             
@@ -7669,21 +7673,25 @@
     
     function syncPeriodPills() {
         const select = document.getElementById("period-select");
-        if (!select) return;
+        const group = document.getElementById("period-pill-group");
     
-        document.querySelectorAll(".period-pill").forEach(btn => {
+        if (!select || !group) return;
+    
+        group.querySelectorAll(".period-pill").forEach(btn => {
             const isActive = btn.dataset.value === select.value;
             btn.classList.toggle("active", isActive);
             btn.setAttribute("aria-pressed", isActive ? "true" : "false");
         });
     }
     
-    document.querySelectorAll(".period-pill").forEach(btn => {
+    document.querySelectorAll("#period-pill-group .period-pill").forEach(btn => {
         btn.addEventListener("click", function () {
             const select = document.getElementById("period-select");
             if (!select) return;
     
             const newValue = this.dataset.value;
+    
+            if (!newValue) return;
     
             if (select.value === newValue) {
                 return;
@@ -7692,8 +7700,6 @@
             select.value = newValue;
             syncPeriodPills();
     
-            // Trigger your existing period-select change logic:
-            // reload signal summary, update selected asset, update chart.
             select.dispatchEvent(new Event("change", { bubbles: true }));
         });
     });
@@ -7719,21 +7725,25 @@
     
     function syncAssetPills() {
         const select = document.getElementById("asset-type-filter");
-        if (!select) return;
+        const group = document.getElementById("asset-pill-group");
     
-        document.querySelectorAll(".asset-pill").forEach(btn => {
+        if (!select || !group) return;
+    
+        group.querySelectorAll(".asset-pill").forEach(btn => {
             const isActive = btn.dataset.value === select.value;
             btn.classList.toggle("active", isActive);
             btn.setAttribute("aria-pressed", isActive ? "true" : "false");
         });
     }
     
-    document.querySelectorAll(".asset-pill").forEach(btn => {
+    document.querySelectorAll("#asset-pill-group .asset-pill").forEach(btn => {
         btn.addEventListener("click", function () {
             const select = document.getElementById("asset-type-filter");
             if (!select) return;
     
             const newValue = this.dataset.value;
+    
+            if (!newValue) return;
     
             if (select.value === newValue) {
                 return;
@@ -7742,7 +7752,6 @@
             select.value = newValue;
             syncAssetPills();
     
-            // Trigger your existing asset filter logic
             select.dispatchEvent(new Event("change", { bubbles: true }));
         });
     });
