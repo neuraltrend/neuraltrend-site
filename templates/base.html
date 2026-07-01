@@ -6645,6 +6645,73 @@
             }
         }
 
+        /* =========================================================
+           FINAL Live Simulation control polish
+           - same compact sizing as Signal Overview
+           - taller simulation board
+           - active Since Start horizon
+        ========================================================= */
+        
+        /* Refresh + Reset View: same height/feel as Signal Overview Reset View */
+        .nt-live-sim-board-top-buttons .nt-live-sim-refresh-btn,
+        .nt-live-sim-board-top-buttons .nt-live-sim-reset-view-btn {
+            min-height: 42px !important;
+            padding: 9px 14px !important;
+            font-size: 13px !important;
+            line-height: 1 !important;
+            font-weight: 800 !important;
+            border-radius: 999px !important;
+        }
+        
+        /* Keep Refresh blue-outline but same size */
+        .nt-live-sim-board-top-buttons .nt-live-sim-refresh-btn {
+            border: 1px solid rgba(37, 99, 235, 0.22) !important;
+            background: #ffffff !important;
+            color: var(--nt-blue) !important;
+        }
+        
+        .nt-live-sim-board-top-buttons .nt-live-sim-refresh-btn:hover {
+            background: var(--nt-blue) !important;
+            color: #ffffff !important;
+        }
+        
+        /* Reset View same as Signal Overview */
+        .nt-live-sim-board-top-buttons .nt-live-sim-reset-view-btn {
+            border: 1px solid var(--nt-border) !important;
+            background: #ffffff !important;
+            color: var(--nt-dark) !important;
+        }
+        
+        .nt-live-sim-board-top-buttons .nt-live-sim-reset-view-btn:hover {
+            background: #F1F5F9 !important;
+            border-color: #CBD5E1 !important;
+        }
+        
+        /* Make simulation board tall enough for about 5 rows */
+        .nt-live-sim-board-scroll {
+            max-height: 355px !important;
+        }
+        
+        /* Ensure Since Start / selected horizon is blue by default */
+        .nt-live-sim-horizon-pills .period-pill.active {
+            background: var(--nt-blue) !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25) !important;
+        }
+        
+        /* Keep non-active horizon buttons gray like Signal Overview */
+        .nt-live-sim-horizon-pills .period-pill:not(.active) {
+            background: transparent !important;
+            color: var(--nt-neutral) !important;
+        }
+        
+        /* Keep asset type active dark like Signal Overview */
+        .nt-live-sim-controls-card .asset-pill.active {
+            background: var(--nt-dark) !important;
+            color: #ffffff !important;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.22) !important;
+        }
+
     </style>
 
 </head>
@@ -7996,6 +8063,8 @@
     let liveSimBoardBenchmarkDisplayMode = "percent";
     let liveSimBoardAlphaDisplayMode = "percent";
     let liveSimBoardSearchQuery = "";
+
+    let liveSimBoardHorizon = "since_start";
     
     function liveSimMoney(value) {
         if (value === null || value === undefined || Number.isNaN(Number(value))) {
@@ -8269,10 +8338,15 @@
                                     const simId = Number(sim.id);
                                     const isActive = Number(selectedLiveSimulationId) === simId;
                                     const signal = liveSimLatestSignalValue(sim);
-                                    const strategyValue = liveSimStrategyValue(sim);
-                                    const benchmarkValue = liveSimBenchmarkValue(sim);
-                                    const strategyReturn = liveSimStrategyReturnPct(sim);
-                                    const benchmarkReturn = liveSimBenchmarkReturnPct(sim);
+
+                                    const strategyValue = liveSimBoardStrategyDollarForHorizon(sim);
+                                    const benchmarkValue = liveSimBoardBenchmarkDollarForHorizon(sim);
+                                    const alphaValue = liveSimBoardAlphaDollarForHorizon(sim);
+                                    
+                                    const strategyReturn = liveSimBoardStrategyReturnForHorizon(sim);
+                                    const benchmarkReturn = liveSimBoardBenchmarkReturnForHorizon(sim);
+                                    const alphaReturn = liveSimBoardAlphaReturnForHorizon(sim);
+                                    
                                     const fullName = sim.name || "Simulation";
     
                                     return `
@@ -8324,17 +8398,17 @@
                                             <td class="numeric">
                                                 ${liveSimCashPositionHTML(sim)}
                                             </td>
-    
+
                                             <td class="numeric">
-                                                ${liveSimBoardMetricHTML(strategyValue, strategyReturn, liveSimBoardStrategyDisplayMode)}
+                                                ${liveSimBoardReturnMetricHTML(strategyValue, strategyReturn, liveSimBoardStrategyDisplayMode)}
                                             </td>
-    
+                                            
                                             <td class="numeric">
-                                                ${liveSimBoardMetricHTML(benchmarkValue, benchmarkReturn, liveSimBoardBenchmarkDisplayMode)}
+                                                ${liveSimBoardReturnMetricHTML(benchmarkValue, benchmarkReturn, liveSimBoardBenchmarkDisplayMode)}
                                             </td>
-    
+                                            
                                             <td class="numeric">
-                                                ${liveSimBoardAlphaHTML(sim, liveSimBoardAlphaDisplayMode)}
+                                                ${liveSimBoardReturnMetricHTML(alphaValue, alphaReturn, liveSimBoardAlphaDisplayMode)}
                                             </td>
                                         </tr>
                                     `;
@@ -8358,6 +8432,7 @@
         updateLiveSimBoardActiveRow();
         renderLiveSimSelectedActions();
         syncLiveSimAssetPills();
+        syncLiveSimHorizonPills();
 
         const liveSimSearchInput = document.getElementById("live-sim-board-search");
         if (liveSimSearchInput) {
@@ -9566,29 +9641,29 @@
         if (key === "cash_position") {
             return liveSimNumberOrNull(sim.cash_balance) ?? -Infinity;
         }
-    
+
         if (key === "strategy_value") {
             if (liveSimBoardStrategyDisplayMode === "percent") {
-                return liveSimStrategyReturnPct(sim) ?? -Infinity;
+                return liveSimBoardStrategyReturnForHorizon(sim) ?? -Infinity;
             }
-    
-            return liveSimStrategyValue(sim) ?? -Infinity;
+        
+            return liveSimBoardStrategyDollarForHorizon(sim) ?? -Infinity;
         }
-    
+        
         if (key === "benchmark_value") {
             if (liveSimBoardBenchmarkDisplayMode === "percent") {
-                return liveSimBenchmarkReturnPct(sim) ?? -Infinity;
+                return liveSimBoardBenchmarkReturnForHorizon(sim) ?? -Infinity;
             }
-    
-            return liveSimBenchmarkValue(sim) ?? -Infinity;
+        
+            return liveSimBoardBenchmarkDollarForHorizon(sim) ?? -Infinity;
         }
-    
+        
         if (key === "alpha") {
             if (liveSimBoardAlphaDisplayMode === "percent") {
-                return liveSimAlphaPercent(sim) ?? -Infinity;
+                return liveSimBoardAlphaReturnForHorizon(sim) ?? -Infinity;
             }
-    
-            return liveSimAlphaValue(sim) ?? -Infinity;
+        
+            return liveSimBoardAlphaDollarForHorizon(sim) ?? -Infinity;
         }
     
         return "";
@@ -9810,13 +9885,14 @@
         liveSimBoardAssetTypeFilter = "all";
         liveSimBoardSignalFilter = "all";
         liveSimBoardPositionFilter = "all";
+        liveSimBoardHorizon = "since_start";
     
         liveSimBoardStrategyDisplayMode = "percent";
         liveSimBoardBenchmarkDisplayMode = "percent";
         liveSimBoardAlphaDisplayMode = "percent";
     
         liveSimBoardSortKey = "created_at";
-        liveSimBoardSortDirection = "desc";
+        liveSimBoardSortDirection = "desc";   
 
         const liveSimSearchInput = document.getElementById("live-sim-board-search");
         if (liveSimSearchInput) {
@@ -9825,8 +9901,133 @@
     
         updateLiveSimFilterUI();
         syncLiveSimAssetPills();
+        syncLiveSimHorizonPills();
     
         await loadLiveSimulations();
+    }
+
+    function syncLiveSimHorizonPills() {
+        document.querySelectorAll("[data-live-sim-horizon]").forEach(button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.liveSimHorizon === liveSimBoardHorizon
+            );
+        });
+    }
+    
+    function liveSimBoardHorizonMetrics(sim) {
+        const allMetrics = sim.horizon_returns || {};
+        return allMetrics[liveSimBoardHorizon] || allMetrics.since_start || null;
+    }
+    
+    function liveSimBoardStrategyReturnForHorizon(sim) {
+        const metrics = liveSimBoardHorizonMetrics(sim);
+    
+        if (metrics && metrics.strategy_return !== null && metrics.strategy_return !== undefined) {
+            return Number(metrics.strategy_return);
+        }
+    
+        return liveSimStrategyReturnPct(sim);
+    }
+    
+    function liveSimBoardBenchmarkReturnForHorizon(sim) {
+        const metrics = liveSimBoardHorizonMetrics(sim);
+    
+        if (metrics && metrics.benchmark_return !== null && metrics.benchmark_return !== undefined) {
+            return Number(metrics.benchmark_return);
+        }
+    
+        return liveSimBenchmarkReturnPct(sim);
+    }
+    
+    function liveSimBoardAlphaReturnForHorizon(sim) {
+        const metrics = liveSimBoardHorizonMetrics(sim);
+    
+        if (metrics && metrics.alpha_return !== null && metrics.alpha_return !== undefined) {
+            return Number(metrics.alpha_return);
+        }
+    
+        const strategyReturn = liveSimBoardStrategyReturnForHorizon(sim);
+        const benchmarkReturn = liveSimBoardBenchmarkReturnForHorizon(sim);
+    
+        if (strategyReturn === null || benchmarkReturn === null) {
+            return null;
+        }
+    
+        return strategyReturn - benchmarkReturn;
+    }
+    
+    function liveSimBoardStrategyDollarForHorizon(sim) {
+        const metrics = liveSimBoardHorizonMetrics(sim);
+    
+        if (metrics && metrics.strategy_change !== null && metrics.strategy_change !== undefined) {
+            return Number(metrics.strategy_change);
+        }
+    
+        const value = liveSimStrategyValue(sim);
+        const initial = liveSimNumberOrNull(sim.initial_cash);
+    
+        if (value === null || initial === null) return null;
+    
+        return value - initial;
+    }
+    
+    function liveSimBoardBenchmarkDollarForHorizon(sim) {
+        const metrics = liveSimBoardHorizonMetrics(sim);
+    
+        if (metrics && metrics.benchmark_change !== null && metrics.benchmark_change !== undefined) {
+            return Number(metrics.benchmark_change);
+        }
+    
+        const value = liveSimBenchmarkValue(sim);
+        const initial = liveSimNumberOrNull(sim.initial_cash);
+    
+        if (value === null || initial === null) return null;
+    
+        return value - initial;
+    }
+    
+    function liveSimBoardAlphaDollarForHorizon(sim) {
+        const metrics = liveSimBoardHorizonMetrics(sim);
+    
+        if (metrics && metrics.alpha_change !== null && metrics.alpha_change !== undefined) {
+            return Number(metrics.alpha_change);
+        }
+    
+        const strategyChange = liveSimBoardStrategyDollarForHorizon(sim);
+        const benchmarkChange = liveSimBoardBenchmarkDollarForHorizon(sim);
+    
+        if (strategyChange === null || benchmarkChange === null) return null;
+    
+        return strategyChange - benchmarkChange;
+    }
+    
+    function liveSimBoardReturnMetricHTML(value, pct, displayMode = "percent") {
+        const numberValue = liveSimNumberOrNull(value);
+        const pctValue = liveSimNumberOrNull(pct);
+        const toneClass = liveSimBoardToneClass(pctValue);
+    
+        if (displayMode === "value") {
+            return `
+                <div class="nt-live-sim-board-main-value ${toneClass}">
+                    ${numberValue === null ? "—" : liveSimSignedMoney(numberValue)}
+                </div>
+    
+                <div class="nt-live-sim-board-sub-value ${toneClass}">
+                    ${pctValue === null ? "—" : `(${liveSimSignedPercent(pctValue)})`}
+                </div>
+            `;
+        }
+    
+        return `
+            <div class="nt-live-sim-board-main-value ${toneClass}">
+                ${pctValue === null ? "—" : liveSimSignedPercent(pctValue)}
+            </div>
+    
+            <div class="nt-live-sim-board-sub-value ${toneClass}">
+                ${numberValue === null ? "—" : `(${liveSimSignedMoney(numberValue)})`}
+            </div>
+        `;
     }
 
     document.addEventListener("click", function (e) {
@@ -9836,9 +10037,10 @@
     
         e.preventDefault();
     
-        document.querySelectorAll("[data-live-sim-horizon]").forEach(button => {
-            button.classList.toggle("active", button === horizonButton);
-        });
+        liveSimBoardHorizon = horizonButton.dataset.liveSimHorizon || "since_start";
+    
+        syncLiveSimHorizonPills();
+        renderLiveSimulationList(liveSimulationsCache);
     });
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
