@@ -123,7 +123,7 @@ def send_verification_email(user_email):
         print("EMAIL ERROR (verify):", str(e))
 
 def normalize_email(email):
-    return email.strip().lower()
+    return str(email or "").strip().lower()
 
 def generate_reset_token(email):
     return get_serializer().dumps(email, salt="password-reset")
@@ -246,8 +246,9 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "XCAD-USD", "XLM-USD", "XMR-USD", "XOM", "XTZ-USD", "XYO-USD", "YGG-USD", "ZBCN-USD", "ZEN-USD", "ZEREBRO-USD", "ZETA-USD", 
                "ZIG-USD", "ZKJ-USD", "ZRX-USD"]
 
-def compute_signals_for_ticker(ticker, period_days=365*10):
-    cache_key = (ticker, period_days)
+def compute_signals_for_ticker(ticker, period_days=365*10, csv_version=None):
+    effective_csv_version = csv_version if csv_version is not None else get_csv_version()
+    cache_key = (ticker, period_days, effective_csv_version)
     if cache_key in cache:
         return cache[cache_key]
 
@@ -1487,11 +1488,17 @@ def backtest():
     final_value = float(equity_curve[-1])
     profit_factor = float(final_value / initial_cash)
 
-    returns = signals_df['Close'].pct_change().dropna()
+    returns = signals_df["Close"].pct_change().dropna()
     risk_free_rate_annual = 0.01
     risk_free_rate_daily = (1 + risk_free_rate_annual) ** (1/252) - 1
     excess_returns = returns - risk_free_rate_daily
-    sharpe_ratio = float(((excess_returns.mean() / excess_returns.std()) * (252 ** 0.5)))
+    
+    std = excess_returns.std()
+    
+    if len(excess_returns) < 2 or std == 0 or pd.isna(std):
+        sharpe_ratio = 0.0
+    else:
+        sharpe_ratio = float((excess_returns.mean() / std) * (252 ** 0.5))
     
     dates = signals_df.index.strftime('%Y-%m-%d').tolist()
 
@@ -1649,7 +1656,7 @@ def compute_signals_summary_cached(csv_version, period_days):
 
     for t in SUPPORTED_TICKERS:
         try:
-            sigs = compute_signals_for_ticker(t, period_days)
+            sigs = compute_signals_for_ticker(t, period_days, csv_version)
             results.append({
                 'ticker': t,
                 'today_signal': sigs['today'],
