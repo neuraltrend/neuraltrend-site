@@ -1359,25 +1359,37 @@ def backtest():
 
     # Parse dates
     start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-
+    
     # Compute intended end and cap at today
     delta = parse_duration(duration)
     end_date = min(start_date + delta, datetime.today().date())
     
+    base_symbol = ticker.split("-")[0]
+    
+    # --- Load CSV of signals ---
+    csv_filename = f"epoch_{base_symbol}.csv"
+    csv_path = os.path.join(app.root_path, "data", csv_filename)
+    
+    signals_df = pd.read_csv(csv_path, parse_dates=["Date"])
+    
+    # Filter for the desired period
     mask = (
         (signals_df["Date"] >= pd.to_datetime(start_date)) &
         (signals_df["Date"] <= pd.to_datetime(end_date))
     )
-    df_filtered = signals_df.loc[mask].copy()
     
-    # Optional: set Date as index
-    df_filtered.set_index('Date', inplace=True)
-    signals_df=df_filtered
+    signals_df = signals_df.loc[mask].copy()
+    
+    # Set Date as index
+    signals_df.set_index("Date", inplace=True)
     
     # Convert Close and signal to numeric explicitly
-    signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
-    signals_df['epoch_signal'] = pd.to_numeric(signals_df['epoch_signal'], errors='coerce')
-    signals_df = signals_df.dropna(subset=['Close', 'epoch_signal'])
+    signals_df["Close"] = pd.to_numeric(signals_df["Close"], errors="coerce")
+    signals_df["epoch_signal"] = pd.to_numeric(signals_df["epoch_signal"], errors="coerce")
+    signals_df = signals_df.dropna(subset=["Close", "epoch_signal"])
+    
+    if len(signals_df) < 2:
+        return jsonify({"error": "Not enough data in selected duration"}), 400
     
     # Same transaction-cost rule used by EpochSignaler/live simulation
     transaction_cost = get_transaction_cost_rate(ticker)
