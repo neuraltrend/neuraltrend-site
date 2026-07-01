@@ -129,72 +129,74 @@
             </div>
 
             <!-- EpochSignaler workspace -->
-            <div class="nt-epoch-workspace">
+            <div class="nt-epoch-subworkspace">
             
-                <aside class="nt-epoch-workspace-nav">
-                    <div class="nt-epoch-workspace-card">
+                <div class="nt-epoch-subnav-card">
             
-                        <div class="nt-epoch-workspace-kicker">
-                            EpochSignaler Tools
+                    <div class="nt-epoch-subnav-header">
+                        <div>
+                            <div class="nt-epoch-subnav-kicker">
+                                EpochSignaler Tools
+                            </div>
+            
+                            <h4 class="nt-epoch-subnav-title">
+                                Choose how you want to use EpochSignaler
+                            </h4>
+            
+                            <p class="nt-epoch-subnav-subtitle">
+                                Switch between signal exploration, historical backtesting, and live paper simulations.
+                            </p>
                         </div>
+                    </div>
             
-                        <div class="nt-epoch-workspace-title">
-                            Choose a workspace
-                        </div>
+                    <div class="nt-epoch-tool-tabs" role="tablist" aria-label="EpochSignaler tools">
             
-                        <p class="nt-epoch-workspace-subtitle">
-                            Switch between signal exploration, historical backtesting, and live paper simulations.
-                        </p>
+                        <button
+                            type="button"
+                            class="nt-epoch-tool-tab active"
+                            data-epoch-tool-target="epoch-tool-overview"
+                            aria-selected="true"
+                        >
+                            <span class="nt-epoch-tool-tab-icon">📊</span>
+                            <span>
+                                <strong>Signal Overview</strong>
+                                <small>Board + equity preview</small>
+                            </span>
+                        </button>
             
-                        <div class="nt-epoch-tool-tabs" role="tablist" aria-label="EpochSignaler tools">
-
-                <button
-                    type="button"
-                    class="nt-epoch-tool-tab active"
-                    data-epoch-tool-target="epoch-tool-overview"
-                    aria-selected="true"
-                >
-                    <span class="nt-epoch-tool-tab-icon">📊</span>
-                    <span>
-                        <strong>Signal Overview</strong>
-                        <small>Board + equity preview</small>
-                    </span>
-                </button>
-
-                <button
-                    type="button"
-                    class="nt-epoch-tool-tab"
-                    data-epoch-tool-target="epoch-tool-backtest"
-                    aria-selected="false"
-                >
-                    <span class="nt-epoch-tool-tab-icon">🧪</span>
-                    <span>
-                        <strong>Backtest</strong>
-                        <small>Run historical simulations</small>
-                    </span>
-                </button>
-
-                <button
-                    type="button"
-                    class="nt-epoch-tool-tab"
-                    data-epoch-tool-target="epoch-tool-live"
-                    aria-selected="false"
-                >
-                    <span class="nt-epoch-tool-tab-icon">🟢</span>
-                    <span>
-                        <strong>Live Simulation</strong>
-                        <small>Daily paper portfolios</small>
-                    </span>
-                </button>
-
-            </div>
-
-        </div>
-        </aside>
-    
-        <div class="nt-epoch-workspace-content">
-    
-            <div class="nt-epoch-tool-panels">
+                        <button
+                            type="button"
+                            class="nt-epoch-tool-tab"
+                            data-epoch-tool-target="epoch-tool-backtest"
+                            aria-selected="false"
+                        >
+                            <span class="nt-epoch-tool-tab-icon">🧪</span>
+                            <span>
+                                <strong>Backtest</strong>
+                                <small>Run historical simulations</small>
+                            </span>
+                        </button>
+            
+                        <button
+                            type="button"
+                            class="nt-epoch-tool-tab"
+                            data-epoch-tool-target="epoch-tool-live"
+                            aria-selected="false"
+                        >
+                            <span class="nt-epoch-tool-tab-icon">🟢</span>
+                            <span>
+                                <strong>Live Simulation</strong>
+                                <small>Daily paper portfolios</small>
+                            </span>
+                        </button>
+            
+                    </div>
+            
+                </div>
+            
+                <div class="nt-epoch-tool-content-card">
+            
+                    <div class="nt-epoch-tool-panels">
     
             <div id="epoch-tool-overview" class="nt-epoch-tool-panel nt-epoch-tool-panel-active">
     
@@ -1028,7 +1030,7 @@
                 
                 </div>
         
-                    </section>
+                 </section>
         <!-- Live Portfolio Simulation END -->
 
                 </div>
@@ -1038,10 +1040,10 @@
             <!-- nt-epoch-tool-panels END -->
 
         </div>
-        <!-- nt-epoch-workspace-content END -->
+        <!-- nt-epoch-tool-content-card END -->
 
     </div>
-    <!-- nt-epoch-workspace END -->
+    <!-- nt-epoch-subworkspace END -->
 
 </div>
 <!-- epochsignaler-section END -->
