@@ -211,6 +211,39 @@ def get_csv_version():
 cache = {}  # simple in-memory cache per ticker
 LIVE_SIMULATION_LIMIT = 100
 
+SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL', 'GOOGL', 'MSFT', "1INCH-USD", "3ULL-USD", "AAVE-USD","ABBV", "ACE-USD",
+               "ACH-USD", "ADA-USD", "AERO-USD", "AEVO-USD", "AGI-USD", "AIOZ-USD", "AIT-USD", "AITECH-USD", "AIXBT-USD", "AKT-USD", "ALEPH-USD",
+               "ALGO-USD", "ALI-USD", "ALPH-USD", "ALT-USD", "ALU-USD", "ALVA-USD", "AMP-USD", 'AMZN', "ANKR-USD", "ANON-USD", "ANYONE-USD", "APT-USD",
+               "APU-USD", "AR-USD", "ARB-USD", "ARC-USD", "ASML", "ASTR-USD", "ATLAS-USD", "ATOM-USD", "AURY-USD", "AUTOS-USD", "AVAX-USD", 'AVGO', 
+               "AXL-USD", "AXS-USD", "BAI-USD", "BAL-USD", "BAND-USD", "BANANA-USD", "BASEDAI-USD", "BAZED-USD", "BCB-USD",
+               "BCUT-USD", "BEAM-USD", "BGB-USD", "BIGTIME-USD", "BLUR-USD", "BNB-USD", "BNT-USD", "BONK-USD", "BRETT-USD", 'BRKB', 
+               "BYTES-USD", "CELO-USD", "CERE-USD", "CETUS-USD", "CFG-USD", "CGPT-USD", "CHAPZ-USD", "CHAT-USD", "CHEX-USD", "CHZ-USD", 
+               "COMP-USD", "COST", "COTI-USD", "CPOOL-USD", "CREDI-USD", "CREO-USD", "CRO-USD", "CROWN-USD", "CRU-USD", "CRV-USD", "CTC-USD", "CVC-USD",
+               "DARK-USD", "DCK-USD", "DEVVE-USD", "DIMO-USD", "DIO-USD", "DOGE-USD", "DOME-USD", "DOMI-USD", "DOT-USD", "DRIFT-USD", "DSYNC-USD",
+               "DYDX-USD", "DYM-USD", "EDU-USD", "ENA-USD", "ENJ-USD", "ENQAI-USD", "F3-USD", "FAR-USD", "FET-USD", "FIDA-USD", 
+               "FIL-USD", "FLIP-USD", "FLOW-USD", "FLR-USD", "FLUX-USD", "FOXY-USD", "FUELX-USD", "FYN-USD", "GEAR-USD", "GFAL-USD",
+               "GHX-USD", "GLQ-USD", "GMEE-USD", "GMRX-USD", "GMT-USD", "GMX-USD", "GODS-USD", "GPU-USD", "GRIFFAIN-USD", "GRT-USD",
+               "GSWIFT-USD", "GTAI-USD", "GTC-USD", "HASHAI-USD", "HBAR-USD", "HEART-USD", "HELLO-USD", "HNT-USD", "HONEY-USD",
+               "HXD-USD", "HYPC-USD", "HYPE-USD", "IAG-USD", "ICP-USD", "ILV-USD", "IMX-USD", "INJ-USD", "INSP-USD", "IOTX-USD",
+               "IVPAY-USD", "JASMY-USD", "JNJ", "JOE-USD", "JTO-USD", "JUP-USD", "KARATE-USD", "KARRAT-USD", "KAS-USD", "KATA-USD", "KOMPETE-USD",
+               "KRL-USD", "LAI-USD", "LEO-USD", "LFNTY-USD", "LIKE-USD", "LINK-USD", "LMWR-USD", "LPT-USD", "LRC-USD", "LTC-USD", "MA",
+               "MAGIC-USD", "MASK-USD", "MAVIA-USD", "MBS-USD", 'META', "METIS-USD", "MEW-USD", "MINA-USD", "ML-USD", "MLN-USD", "MNDE-USD",
+               "MNT-USD", "MOODENG-USD", "MPLX-USD", "MU", "MUBI-USD", "MXM-USD", "MYRIA-USD", "MYRO-USD", "NAKA-USD", 
+               "NEAR-USD", "NEON-USD", "NEURAL-USD", "NMT-USD", "NOS-USD", "NTRN-USD", "NU-USD", "NXRA-USD", "OCT-USD", "OGN-USD", "OKB-USD",
+               "OLAS-USD", "OMG-USD", "ONDO-USD", "OP-USD", "ORAI-USD", "ORCA-USD", "ORCL", "ORDI-USD", "OTK-USD", "OXT-USD", "PAAL-USD", 
+               "PAID-USD", "PANDORA-USD", "PDA-USD", "PENDLE-USD", "PENG-USD", "PENGU-USD", "PEPE-USD", "PERP-USD", "PHA-USD", 
+               "PIN-USD", "PIXEL-USD", "POL-USD", "POLS-USD", "POLYX-USD", "PORTAL-USD", "PRIME-USD", "PROPC-USD", "PYR-USD", 
+               "PYTH-USD", "QANX-USD", "QI-USD", "QNT-USD", "RAY-USD", "RARE-USD", "RARI-USD", "RDT-USD", "REN-USD", "RENDER-USD", 
+               "REQ-USD", "RIO-USD", "RLB-USD", "RMRK-USD", "RON-USD", "ROOT-USD", "RSC-USD", "RSR-USD", "RSS3-USD",
+               "RUNE-USD", "SAFE-USD", "SC-USD", "SEI-USD", "SENATE-USD", "SERSH-USD", "SHDW-USD", "SHIB-USD", 
+               "SHIDO-USD", "SHRAP-USD", "SIDUS-USD", "SIPHER-USD", "SKL-USD", "SNS-USD", "SPEC-USD", "SPELL-USD", "SRM-USD", "SSV-USD", 
+               "STEP-USD", "STG-USD", "STORJ-USD", "STRK-USD", "SUI-USD", "SUNDOG-USD", "SUPER-USD", "TAI-USD", "TAO-USD", 'TCEHY', 
+               "TET-USD", "TFUEL-USD", "THETA-USD", "TLOS-USD", "TON-USD", "TRAC-USD", "TRIAS-USD", "TRU-USD", 'TSLA', 'TSM', "TURBO-USD",
+               "UNI-USD", "UNIBOT-USD", "UOS-USD", 'V', "VAI-USD", "VET-USD", "VIA-USD", "VIRTUAL-USD", "VOO", "VR-USD", "VRA-USD",
+               "WAXP-USD", "WHALES-USD", "WIF-USD", "WIFI-USD", "WILD-USD", "WINR-USD", "WLD-USD", "WMTX-USD", "XAI-USD", 
+               "XCAD-USD", "XLM-USD", "XMR-USD", "XOM", "XTZ-USD", "XYO-USD", "YGG-USD", "ZBCN-USD", "ZEN-USD", "ZEREBRO-USD", "ZETA-USD", 
+               "ZIG-USD", "ZKJ-USD", "ZRX-USD"]
+
 def compute_signals_for_ticker(ticker, period_days=365*10):
     cache_key = (ticker, period_days)
     if cache_key in cache:
@@ -1281,7 +1314,7 @@ def confirm_delete(token):
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html", supported_tickers=SUPPORTED_TICKERS)
 
 @app.route("/data")
 def data():
@@ -1329,19 +1362,12 @@ def backtest():
 
     # Compute intended end and cap at today
     delta = parse_duration(duration)
-    end_date_2 = start_date + delta
-
-    end_for_download=min(end_date_2,datetime.today().date())
-
-    base_symbol = ticker.split('-')[0]  # -> "BTC"
+    end_date = min(start_date + delta, datetime.today().date())
     
-    # --- Load CSV of signals ---
-    csv_filename = f"epoch_{base_symbol}.csv"
-    csv_path = os.path.join(app.root_path, 'data', csv_filename)
-    signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
-    
-    # Filter for the desired period
-    mask = (signals_df['Date'] >= pd.to_datetime(start_date)) & (signals_df['Date'] <= pd.to_datetime(end_date_2))
+    mask = (
+        (signals_df["Date"] >= pd.to_datetime(start_date)) &
+        (signals_df["Date"] <= pd.to_datetime(end_date))
+    )
     df_filtered = signals_df.loc[mask].copy()
     
     # Optional: set Date as index
@@ -1474,7 +1500,7 @@ def backtest():
 def equity():
 
     ticker = request.form['ticker']
-    duration_str = request.form["duration"]  # '1w','1mo','1y', etc.
+    duration_str = (request.form.get("duration") or "5y").strip()
 
     # Convert duration to days
     try:
@@ -1596,68 +1622,13 @@ def equity():
     }
 
     return jsonify(results)
-    
-@app.route('/signals', methods=['POST'])
-def signals():
-    ticker = request.form['ticker']
-    duration_str = request.form.get('duration', '1y')  # default '10y'
-
-    try:
-        period_days = duration_to_days(duration_str)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-
-    sigs = compute_signals_for_ticker(ticker, period_days)
-
-    return jsonify({
-        'ticker': ticker,
-        'today_signal': sigs['today'],
-        'yesterday_signal': sigs['yesterday'],
-        'last_week_signal': sigs['last_week'],
-        'last_month_signal': sigs['last_month'],
-        'buy_hold_annual_return': sigs['buy_hold_annual_return'],
-        'strategy_annual_return': sigs['strategy_annual_return'],
-        'outperformance': sigs['outperformance'],
-    })
 
 # Cached version that invalidates when CSV files change
 @lru_cache(maxsize=1)
 def compute_signals_summary_cached(csv_version, period_days):
-    tickers = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL', 'GOOGL', 'MSFT', "1INCH-USD", "3ULL-USD", "AAVE-USD","ABBV", "ACE-USD",
-               "ACH-USD", "ADA-USD", "AERO-USD", "AEVO-USD", "AGI-USD", "AIOZ-USD", "AIT-USD", "AITECH-USD", "AIXBT-USD", "AKT-USD", "ALEPH-USD",
-               "ALGO-USD", "ALI-USD", "ALPH-USD", "ALT-USD", "ALU-USD", "ALVA-USD", "AMP-USD", 'AMZN', "ANKR-USD", "ANON-USD", "ANYONE-USD", "APT-USD",
-               "APU-USD", "AR-USD", "ARB-USD", "ARC-USD", "ASML", "ASTR-USD", "ATLAS-USD", "ATOM-USD", "AURY-USD", "AUTOS-USD", "AVAX-USD", 'AVGO', 
-               "AXL-USD", "AXS-USD", "BAI-USD", "BAL-USD", "BAND-USD", "BANANA-USD", "BASEDAI-USD", "BAZED-USD", "BCB-USD",
-               "BCUT-USD", "BEAM-USD", "BGB-USD", "BIGTIME-USD", "BLUR-USD", "BNB-USD", "BNT-USD", "BONK-USD", "BRETT-USD", 'BRKB', 
-               "BYTES-USD", "CELO-USD", "CERE-USD", "CETUS-USD", "CFG-USD", "CGPT-USD", "CHAPZ-USD", "CHAT-USD", "CHEX-USD", "CHZ-USD", 
-               "COMP-USD", "COST", "COTI-USD", "CPOOL-USD", "CREDI-USD", "CREO-USD", "CRO-USD", "CROWN-USD", "CRU-USD", "CRV-USD", "CTC-USD", "CVC-USD",
-               "DARK-USD", "DCK-USD", "DEVVE-USD", "DIMO-USD", "DIO-USD", "DOGE-USD", "DOME-USD", "DOMI-USD", "DOT-USD", "DRIFT-USD", "DSYNC-USD",
-               "DYDX-USD", "DYM-USD", "EDU-USD", "ENA-USD", "ENJ-USD", "ENQAI-USD", "F3-USD", "FAR-USD", "FET-USD", "FIDA-USD", 
-               "FIL-USD", "FLIP-USD", "FLOW-USD", "FLR-USD", "FLUX-USD", "FOXY-USD", "FUELX-USD", "FYN-USD", "GEAR-USD", "GFAL-USD",
-               "GHX-USD", "GLQ-USD", "GMEE-USD", "GMRX-USD", "GMT-USD", "GMX-USD", "GODS-USD", "GPU-USD", "GRIFFAIN-USD", "GRT-USD",
-               "GSWIFT-USD", "GTAI-USD", "GTC-USD", "HASHAI-USD", "HBAR-USD", "HEART-USD", "HELLO-USD", "HNT-USD", "HONEY-USD",
-               "HXD-USD", "HYPC-USD", "HYPE-USD", "IAG-USD", "ICP-USD", "ILV-USD", "IMX-USD", "INJ-USD", "INSP-USD", "IOTX-USD",
-               "IVPAY-USD", "JASMY-USD", "JNJ", "JOE-USD", "JTO-USD", "JUP-USD", "KARATE-USD", "KARRAT-USD", "KAS-USD", "KATA-USD", "KOMPETE-USD",
-               "KRL-USD", "LAI-USD", "LEO-USD", "LFNTY-USD", "LIKE-USD", "LINK-USD", "LMWR-USD", "LPT-USD", "LRC-USD", "LTC-USD", "MA",
-               "MAGIC-USD", "MASK-USD", "MAVIA-USD", "MBS-USD", 'META', "METIS-USD", "MEW-USD", "MINA-USD", "ML-USD", "MLN-USD", "MNDE-USD",
-               "MNT-USD", "MOODENG-USD", "MPLX-USD", "MU", "MUBI-USD", "MXM-USD", "MYRIA-USD", "MYRO-USD", "NAKA-USD", 
-               "NEAR-USD", "NEON-USD", "NEURAL-USD", "NMT-USD", "NOS-USD", "NTRN-USD", "NU-USD", "NXRA-USD", "OCT-USD", "OGN-USD", "OKB-USD",
-               "OLAS-USD", "OMG-USD", "ONDO-USD", "OP-USD", "ORAI-USD", "ORCA-USD", "ORCL", "ORDI-USD", "OTK-USD", "OXT-USD", "PAAL-USD", 
-               "PAID-USD", "PANDORA-USD", "PDA-USD", "PENDLE-USD", "PENG-USD", "PENGU-USD", "PEPE-USD", "PERP-USD", "PHA-USD", 
-               "PIN-USD", "PIXEL-USD", "POL-USD", "POLS-USD", "POLYX-USD", "PORTAL-USD", "PRIME-USD", "PROPC-USD", "PYR-USD", 
-               "PYTH-USD", "QANX-USD", "QI-USD", "QNT-USD", "RAY-USD", "RARE-USD", "RARI-USD", "RDT-USD", "REN-USD", "RENDER-USD", 
-               "REQ-USD", "RIO-USD", "RLB-USD", "RMRK-USD", "RON-USD", "ROOT-USD", "RSC-USD", "RSR-USD", "RSS3-USD",
-               "RUNE-USD", "SAFE-USD", "SC-USD", "SEI-USD", "SENATE-USD", "SERSH-USD", "SHDW-USD", "SHIB-USD", 
-               "SHIDO-USD", "SHRAP-USD", "SIDUS-USD", "SIPHER-USD", "SKL-USD", "SNS-USD", "SPEC-USD", "SPELL-USD", "SRM-USD", "SSV-USD", 
-               "STEP-USD", "STG-USD", "STORJ-USD", "STRK-USD", "SUI-USD", "SUNDOG-USD", "SUPER-USD", "TAI-USD", "TAO-USD", 'TCEHY', 
-               "TET-USD", "TFUEL-USD", "THETA-USD", "TLOS-USD", "TON-USD", "TRAC-USD", "TRIAS-USD", "TRU-USD", 'TSLA', 'TSM', "TURBO-USD",
-               "UNI-USD", "UNIBOT-USD", "UOS-USD", 'V', "VAI-USD", "VET-USD", "VIA-USD", "VIRTUAL-USD", "VOO", "VR-USD", "VRA-USD",
-               "WAXP-USD", "WHALES-USD", "WIF-USD", "WIFI-USD", "WILD-USD", "WINR-USD", "WLD-USD", "WMTX-USD", "XAI-USD", 
-               "XCAD-USD", "XLM-USD", "XMR-USD", "XOM", "XTZ-USD", "XYO-USD", "YGG-USD", "ZBCN-USD", "ZEN-USD", "ZEREBRO-USD", "ZETA-USD", 
-               "ZIG-USD", "ZKJ-USD", "ZRX-USD"]
     results = []
 
-    for t in tickers:
+    for t in SUPPORTED_TICKERS:
         try:
             sigs = compute_signals_for_ticker(t, period_days)
             results.append({
@@ -1677,7 +1648,7 @@ def compute_signals_summary_cached(csv_version, period_days):
 
 @app.route('/signals/summary')
 def signals_summary():
-    duration_str = request.args.get('duration', '5y')  # default '5y'
+    duration_str = (request.args.get("duration") or "5y").strip()
     
     try:
         period_days = duration_to_days(duration_str)
