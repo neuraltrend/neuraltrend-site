@@ -1909,7 +1909,11 @@
         return "return-neutral";
     }
     
-    function formatSignal(signal) {
+    function formatSignal(signal, locked = false) {
+        if (locked) {
+            return `<span class="signal-badge signal-locked">🔒 Pro</span>`;
+        }
+    
         if (signal === 1) {
             return `<span class="signal-badge signal-buy">▲ BUY</span>`;
         }
@@ -2125,10 +2129,10 @@
             >
                 <div class="signal-ticker">${item.ticker}</div>
     
-                <div class="signal-cell-left">${formatSignal(item.today_signal)}</div>
-                <div class="signal-cell-left">${formatSignal(item.yesterday_signal)}</div>
-                <div class="signal-cell-left">${formatSignal(item.last_week_signal)}</div>
-                <div class="signal-cell-left">${formatSignal(item.last_month_signal)}</div>
+                <div class="signal-cell-left">${formatSignal(item.today_signal, item.signals_locked)}</div>
+                <div class="signal-cell-left">${formatSignal(item.yesterday_signal, item.signals_locked)}</div>
+                <div class="signal-cell-left">${formatSignal(item.last_week_signal, item.signals_locked)}</div>
+                <div class="signal-cell-left">${formatSignal(item.last_month_signal, item.signals_locked)}</div>
     
                 <div class="signal-cell-right">${formatPercent(item.buy_hold_annual_return)}</div>
                 <div class="signal-cell-right">${formatPercent(item.strategy_annual_return)}</div>
@@ -4998,6 +5002,22 @@
                 displaylogo: false
             });
         });
+    </script>
+        
+    <script>
+        async function startProCheckout() {
+            const response = await fetch("/create-checkout-session", {
+                method: "POST"
+            });
+        
+            const data = await response.json();
+        
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                alert(data.error || "Could not start checkout.");
+            }
+        }
     </script>
 
     </div>
