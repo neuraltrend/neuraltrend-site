@@ -6644,6 +6644,111 @@
             filter: none;
         }
 
+        /* ===============================
+           Pro Upgrade Card
+        ================================ */
+
+        .nt-pro-upgrade-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin: 16px 0 20px 0;
+            padding: 18px 20px;
+            border-radius: 18px;
+            background:
+                radial-gradient(circle at top right, rgba(37, 99, 235, 0.12), transparent 34%),
+                #ffffff;
+            border: 1px solid var(--nt-border);
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+        }
+        
+        .nt-pro-upgrade-copy h3 {
+            margin: 4px 0 0 0;
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-pro-upgrade-copy p {
+            max-width: 780px;
+            margin: 6px 0 0 0;
+            font-size: 13px;
+            line-height: 1.55;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-pro-upgrade-btn {
+            border: none;
+            border-radius: 999px;
+            background: var(--nt-dark);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 900;
+            padding: 11px 16px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+        
+        .nt-pro-upgrade-btn:hover {
+            background: #020617;
+            transform: translateY(-1px);
+        }
+        
+        .nt-pro-lock-card {
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 28px;
+            border-radius: 16px;
+            background: #F8FAFC;
+            border: 1px dashed rgba(100, 116, 139, 0.35);
+            text-align: center;
+        }
+        
+        .nt-pro-lock-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(37, 99, 235, 0.10);
+            font-size: 22px;
+        }
+        
+        .nt-pro-lock-card h3 {
+            margin: 4px 0 0 0;
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-pro-lock-card p {
+            max-width: 520px;
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.55;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        @media (max-width: 700px) {
+            .nt-pro-upgrade-card {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        
+            .nt-pro-upgrade-btn {
+                width: 100%;
+            }
+        }
+
     </style>
 
 </head>
