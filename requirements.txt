@@ -17,3 +17,5 @@ pandas
 numpy
 redis
 
+stripe
+
