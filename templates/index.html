@@ -128,6 +128,28 @@
             
             </div>
 
+            <div id="pro-upgrade-card" class="nt-pro-upgrade-card">
+
+                <div class="nt-pro-upgrade-copy">
+                    <div class="nt-section-eyebrow">NeuralTrend Pro</div>
+            
+                    <h3>
+                        Unlock all EpochSignaler assets
+                    </h3>
+            
+                    <p>
+                        Free users can access full signals for BTC-USD, ETH-USD, SOL-USD, and XRP-USD.
+                        Pro unlocks all supported assets, full signal history, equity previews, backtests,
+                        and up to 100 live simulations.
+                    </p>
+                </div>
+            
+                <button type="button" class="nt-pro-upgrade-btn" onclick="startProCheckout()">
+                    Upgrade to Pro — $9.99/month
+                </button>
+            
+            </div>
+
             <!-- EpochSignaler workspace -->
             <div class="nt-epoch-subworkspace">
             
@@ -1354,15 +1376,55 @@
         e.preventDefault();
     
         const formData = new FormData(this);
+        const resultsDiv = document.getElementById('results');
+    
         fetch('/backtest', {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
-        .then(data => {
+        .then(async response => {
+            const data = await response.json();
+    
+            if (!response.ok) {
+                if (data.upgrade_required) {
+                    resultsDiv.innerHTML = `
+                        <div class="nt-pro-lock-card">
+                            <div class="nt-pro-lock-icon">🔒</div>
+    
+                            <h3>Pro backtest locked</h3>
+    
+                            <p>
+                                Backtesting for ${escapeHTML(data.ticker || "this asset")}
+                                is available with NeuralTrend Pro.
+                            </p>
+    
+                            <button type="button" class="nt-pro-upgrade-btn" onclick="startProCheckout()">
+                                Upgrade to Pro
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div style="color: var(--nt-negative); font-weight: 700;">
+                            ${escapeHTML(data.error || "Backtest failed.")}
+                        </div>
+                    `;
+                }
+    
+                return;
+            }
+    
             renderResults(data);
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error:', error);
+    
+            resultsDiv.innerHTML = `
+                <div style="color: var(--nt-negative); font-weight: 700;">
+                    Backtest failed. Please try again.
+                </div>
+            `;
+        });
     });
 
     function formatBacktestCurrency(value) {
@@ -2336,7 +2398,7 @@
     function loadTicker(ticker) {
 
         currentTicker = ticker;
-
+    
         highlightSelectedTicker();
         updateSelectedPerformanceCards(ticker);
         syncBacktestTicker(ticker);
@@ -2348,13 +2410,27 @@
         formData.append('ticker', ticker);
         formData.append('duration', duration);
     
-        // 2️⃣ Load equity preview (UNDER BOARD)
         fetch('/equity', {
             method: 'POST',
             body: formData
         })
-        .then(r => r.json())
-        .then(renderEquityPreview);
+        .then(async response => {
+            const data = await response.json();
+    
+            if (!response.ok) {
+                showLockedEquityPreview(data);
+                return;
+            }
+    
+            renderEquityPreview(data);
+        })
+        .catch(error => {
+            console.error("Equity preview error:", error);
+            showLockedEquityPreview({
+                error: "Could not load equity preview.",
+                ticker: ticker
+            });
+        });
     }
     
     /* ===============================
@@ -2411,6 +2487,44 @@
     };
     
     Chart.register(signalMarkerPlugin);
+
+    function showLockedEquityPreview(data = {}) {
+        const container = document.getElementById("equity-preview-container");
+        const chartDiv = document.getElementById("equity-preview-chart");
+    
+        if (!container || !chartDiv) return;
+    
+        container.style.display = "block";
+    
+        const ticker = data.ticker || currentTicker || "this asset";
+    
+        const titleEl = document.getElementById("preview-title");
+        if (titleEl) {
+            titleEl.innerText = `${ticker} — Pro Equity Preview`;
+        }
+    
+        const previewTickerEl = document.getElementById("preview-selected-ticker");
+        if (previewTickerEl) {
+            previewTickerEl.textContent = ticker;
+        }
+    
+        chartDiv.innerHTML = `
+            <div class="nt-pro-lock-card">
+                <div class="nt-pro-lock-icon">🔒</div>
+    
+                <h3>Pro feature locked</h3>
+    
+                <p>
+                    Full signal history, equity preview, and backtesting for ${escapeHTML(ticker)}
+                    are available with NeuralTrend Pro.
+                </p>
+    
+                <button type="button" class="nt-pro-upgrade-btn" onclick="startProCheckout()">
+                    Upgrade to Pro
+                </button>
+            </div>
+        `;
+    }
     
     function renderEquityPreview(data) {
     
@@ -5006,16 +5120,34 @@
         
     <script>
         async function startProCheckout() {
-            const response = await fetch("/create-checkout-session", {
-                method: "POST"
-            });
+            try {
+                const meResponse = await fetch("/me", { cache: "no-store" });
+                const me = await meResponse.json();
         
-            const data = await response.json();
+                if (!me.email) {
+                    if (typeof openNeuralTrendLoginModal === "function") {
+                        openNeuralTrendLoginModal();
+                    } else {
+                        alert("Please log in or sign up before upgrading.");
+                    }
+                    return;
+                }
         
-            if (data.url) {
-                window.location.href = data.url;
-            } else {
-                alert(data.error || "Could not start checkout.");
+                const response = await fetch("/create-checkout-session", {
+                    method: "POST"
+                });
+        
+                const data = await response.json();
+        
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert(data.error || "Could not start checkout.");
+                }
+        
+            } catch (error) {
+                console.error("Checkout error:", error);
+                alert("Could not start checkout. Please try again.");
             }
         }
     </script>
