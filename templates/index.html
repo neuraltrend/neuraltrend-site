@@ -2040,7 +2040,7 @@
             formatMultiple(item.outperformance);
     
         document.getElementById("metric-today-signal").innerHTML =
-            formatSignal(item.today_signal);
+        formatSignal(item.today_signal, item.signals_locked);
     
         document.getElementById("metric-strategy-sub").textContent =
             normalizedDollarText(item.strategy_annual_return);
@@ -2049,7 +2049,7 @@
             normalizedDollarText(item.buy_hold_annual_return);
     
         document.getElementById("metric-signal-sub").textContent =
-            signalSubText(item.today_signal);
+            item.signals_locked ? "Pro signal locked" : signalSubText(item.today_signal);
     }
     
     let currentSort = {
