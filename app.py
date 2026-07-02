@@ -12,6 +12,7 @@ from flask_mail import Mail, Message
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.middleware.proxy_fix import ProxyFix
+import stripe
 
 app = Flask(__name__)
 
@@ -52,6 +53,11 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = True  # important on Render HTTPS
+
+# Stripe
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+STRIPE_PRO_PRICE_ID = os.environ.get("STRIPE_PRO_PRICE_ID")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
 
 db.init_app(app)
 bcrypt.init_app(app)
@@ -211,7 +217,13 @@ def get_csv_version():
     return max(mtimes) if mtimes else 0
 
 cache = {}  # simple in-memory cache per ticker
-LIVE_SIMULATION_LIMIT = 100
+
+TOP_FREE_TICKERS = {"BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD"}
+
+FREE_LIVE_SIMULATION_LIMIT = 5
+PAID_LIVE_SIMULATION_LIMIT = 100
+
+PAID_SUBSCRIPTION_STATUSES = {"active", "trialing"}
 
 SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL', 'GOOGL', 'MSFT', "1INCH-USD", "3ULL-USD", "AAVE-USD","ABBV", "ACE-USD",
                "ACH-USD", "ADA-USD", "AERO-USD", "AEVO-USD", "AGI-USD", "AIOZ-USD", "AIT-USD", "AITECH-USD", "AIXBT-USD", "AKT-USD", "ALEPH-USD",
@@ -245,6 +257,28 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "WAXP-USD", "WHALES-USD", "WIF-USD", "WIFI-USD", "WILD-USD", "WINR-USD", "WLD-USD", "WMTX-USD", "XAI-USD", 
                "XCAD-USD", "XLM-USD", "XMR-USD", "XOM", "XTZ-USD", "XYO-USD", "YGG-USD", "ZBCN-USD", "ZEN-USD", "ZEREBRO-USD", "ZETA-USD", 
                "ZIG-USD", "ZKJ-USD", "ZRX-USD"]
+
+def is_paid_user(user):
+    return (
+        user is not None
+        and getattr(user, "is_authenticated", False)
+        and user.subscription_type == "pro"
+        and user.subscription_status in PAID_SUBSCRIPTION_STATUSES
+    )
+
+def get_live_simulation_limit_for_user(user):
+    if is_paid_user(user):
+        return PAID_LIVE_SIMULATION_LIMIT
+
+    return FREE_LIVE_SIMULATION_LIMIT
+
+def can_view_full_signals_for_ticker(user, ticker):
+    ticker = str(ticker or "").upper()
+
+    if ticker in TOP_FREE_TICKERS:
+        return True
+
+    return is_paid_user(user)
 
 def compute_signals_for_ticker(ticker, period_days=365*10, csv_version=None):
     effective_csv_version = csv_version if csv_version is not None else get_csv_version()
@@ -948,11 +982,19 @@ def logout():
 def me():
     if current_user.is_authenticated:
         return jsonify({
-            "email": current_user.email
+            "email": current_user.email,
+            "subscription_type": current_user.subscription_type,
+            "subscription_status": current_user.subscription_status,
+            "is_paid": is_paid_user(current_user),
+            "live_simulation_limit": get_live_simulation_limit_for_user(current_user)
         })
 
     return jsonify({
-        "email": None
+        "email": None,
+        "subscription_type": "anonymous",
+        "subscription_status": "none",
+        "is_paid": False,
+        "live_simulation_limit": 0
     })
 
 # --------------------
@@ -1007,8 +1049,11 @@ def list_live_simulations():
     open_count = active_count + paused_count
     all_count = open_count + archived_count
 
+    user_limit = get_live_simulation_limit_for_user(current_user)
+
     return jsonify({
-        "limit": LIVE_SIMULATION_LIMIT,
+        "limit": user_limit,
+        "is_paid": is_paid_user(current_user),
         "count": len(sims),
         "used_count": open_count,
         "active_count": active_count,
@@ -1017,7 +1062,7 @@ def list_live_simulations():
         "open_count": open_count,
         "all_count": all_count,
         "view": requested_status,
-        "simulations": [live_simulation_summary(sim) for sim in sims]
+        "simulations": [live_simulation_summary(sim) for sim in sims],
     })
 
 @app.route("/live-simulations", methods=["POST"])
@@ -1054,9 +1099,16 @@ def create_live_simulation():
         .count()
     )
 
-    if active_count >= LIVE_SIMULATION_LIMIT:
+    user_limit = get_live_simulation_limit_for_user(current_user)
+
+    if active_count >= user_limit:
         return jsonify({
-            "error": f"Simulation limit reached. Current limit is {LIVE_SIMULATION_LIMIT}."
+            "error": (
+                f"Simulation limit reached. Your current limit is {user_limit}. "
+                "Upgrade to Pro to unlock up to 100 live simulations."
+            ),
+            "upgrade_required": not is_paid_user(current_user),
+            "limit": user_limit
         }), 403
 
     try:
@@ -1649,6 +1701,50 @@ def equity():
 
     return jsonify(results)
 
+def mask_signal_summary_row_for_user(row, user):
+    """
+    Returns a user-safe signal-summary row.
+
+    Public/free users:
+    - see full signals only for BTC-USD, ETH-USD, SOL-USD, XRP-USD
+    - see ticker + return columns for all other assets
+    - do not receive hidden signal values from the backend
+
+    Paid users:
+    - see all signal columns for all assets
+    """
+    ticker = row.get("ticker")
+    full_access = can_view_full_signals_for_ticker(user, ticker)
+
+    safe_row = {
+        "ticker": ticker,
+
+        # Return columns stay visible to everyone
+        "buy_hold_annual_return": row.get("buy_hold_annual_return"),
+        "strategy_annual_return": row.get("strategy_annual_return"),
+        "outperformance": row.get("outperformance"),
+
+        # Frontend uses this to show locked/blurred cells
+        "signals_locked": not full_access,
+    }
+
+    if full_access:
+        safe_row.update({
+            "today_signal": row.get("today_signal"),
+            "yesterday_signal": row.get("yesterday_signal"),
+            "last_week_signal": row.get("last_week_signal"),
+            "last_month_signal": row.get("last_month_signal"),
+        })
+    else:
+        safe_row.update({
+            "today_signal": None,
+            "yesterday_signal": None,
+            "last_week_signal": None,
+            "last_month_signal": None,
+        })
+
+    return safe_row
+
 # Cached version that invalidates when CSV files change
 @lru_cache(maxsize=1)
 def compute_signals_summary_cached(csv_version, period_days):
@@ -1682,5 +1778,133 @@ def signals_summary():
         return jsonify({"error": str(e)}), 400
 
     csv_version = get_csv_version()
-    results = compute_signals_summary_cached(csv_version, period_days)
-    return jsonify(results)
+
+    # Full internal cached data
+    raw_results = compute_signals_summary_cached(csv_version, period_days)
+    
+    # User-safe data returned to frontend
+    safe_results = [
+        mask_signal_summary_row_for_user(row, current_user)
+        for row in raw_results
+    ]
+    
+    return jsonify(safe_results)
+
+@app.route("/create-checkout-session", methods=["POST"])
+@login_required
+def create_checkout_session():
+    if not STRIPE_PRO_PRICE_ID:
+        return jsonify({"error": "Stripe price ID is not configured."}), 500
+
+    try:
+        customer_id = current_user.stripe_customer_id
+
+        if not customer_id:
+            customer = stripe.Customer.create(
+                email=current_user.email,
+                metadata={"user_id": current_user.id}
+            )
+
+            current_user.stripe_customer_id = customer.id
+            db.session.commit()
+
+            customer_id = customer.id
+
+        checkout_session = stripe.checkout.Session.create(
+            customer=customer_id,
+            mode="subscription",
+            payment_method_types=["card"],
+            line_items=[
+                {
+                    "price": STRIPE_PRO_PRICE_ID,
+                    "quantity": 1,
+                }
+            ],
+            success_url=f"{BASE_URL}/?checkout=success",
+            cancel_url=f"{BASE_URL}/?checkout=cancelled",
+            metadata={
+                "user_id": current_user.id
+            }
+        )
+
+        return jsonify({"url": checkout_session.url})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/billing-portal", methods=["POST"])
+@login_required
+def billing_portal():
+    if not current_user.stripe_customer_id:
+        return jsonify({"error": "No billing customer found."}), 400
+
+    try:
+        portal_session = stripe.billing_portal.Session.create(
+            customer=current_user.stripe_customer_id,
+            return_url=f"{BASE_URL}/"
+        )
+
+        return jsonify({"url": portal_session.url})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/stripe/webhook", methods=["POST"])
+def stripe_webhook():
+    payload = request.data
+    sig_header = request.headers.get("Stripe-Signature")
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload,
+            sig_header,
+            STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError:
+        return "Invalid payload", 400
+    except stripe.error.SignatureVerificationError:
+        return "Invalid signature", 400
+
+    event_type = event["type"]
+    data_object = event["data"]["object"]
+
+    if event_type == "checkout.session.completed":
+        customer_id = data_object.get("customer")
+        subscription_id = data_object.get("subscription")
+
+        user = User.query.filter_by(stripe_customer_id=customer_id).first()
+
+        if user:
+            user.subscription_type = "pro"
+            user.subscription_status = "active"
+
+            if hasattr(user, "stripe_subscription_id"):
+                user.stripe_subscription_id = subscription_id
+
+            db.session.commit()
+
+    elif event_type in [
+        "customer.subscription.created",
+        "customer.subscription.updated",
+        "customer.subscription.deleted"
+    ]:
+        customer_id = data_object.get("customer")
+        status = data_object.get("status")
+        subscription_id = data_object.get("id")
+
+        user = User.query.filter_by(stripe_customer_id=customer_id).first()
+
+        if user:
+            if status in PAID_SUBSCRIPTION_STATUSES:
+                user.subscription_type = "pro"
+                user.subscription_status = status
+            else:
+                user.subscription_type = "free"
+                user.subscription_status = status or "inactive"
+
+            if hasattr(user, "stripe_subscription_id"):
+                user.stripe_subscription_id = subscription_id
+
+            db.session.commit()
+
+    return "OK", 200
