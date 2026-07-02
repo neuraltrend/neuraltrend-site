@@ -258,7 +258,26 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "XCAD-USD", "XLM-USD", "XMR-USD", "XOM", "XTZ-USD", "XYO-USD", "YGG-USD", "ZBCN-USD", "ZEN-USD", "ZEREBRO-USD", "ZETA-USD", 
                "ZIG-USD", "ZKJ-USD", "ZRX-USD"]
 
+def is_admin_user(user):
+    if (
+        user is None
+        or not getattr(user, "is_authenticated", False)
+        or not getattr(user, "email", None)
+    ):
+        return False
+
+    admin_emails = {
+        email.strip().lower()
+        for email in os.environ.get("ADMIN_EMAILS", "").split(",")
+        if email.strip()
+    }
+
+    return user.email.lower() in admin_emails
+
 def is_paid_user(user):
+    if is_admin_user(user):
+        return True
+
     return (
         user is not None
         and getattr(user, "is_authenticated", False)
@@ -996,6 +1015,7 @@ def me():
             "subscription_type": current_user.subscription_type,
             "subscription_status": current_user.subscription_status,
             "is_paid": is_paid_user(current_user),
+            "is_admin": is_admin_user(current_user),
             "live_simulation_limit": get_live_simulation_limit_for_user(current_user)
         })
 
