@@ -280,6 +280,16 @@ def can_view_full_signals_for_ticker(user, ticker):
 
     return is_paid_user(user)
 
+def require_signal_access_or_403(ticker):
+    if can_view_full_signals_for_ticker(current_user, ticker):
+        return None
+
+    return jsonify({
+        "error": "This asset is available in Pro. Upgrade to unlock full signals, equity preview, and backtesting.",
+        "upgrade_required": True,
+        "ticker": ticker
+    }), 403
+
 def compute_signals_for_ticker(ticker, period_days=365*10, csv_version=None):
     effective_csv_version = csv_version if csv_version is not None else get_csv_version()
     cache_key = (ticker, period_days, effective_csv_version)
@@ -1406,6 +1416,11 @@ def ads_txt():
 def backtest():
     initial_cash = float(request.form['cash'])
     ticker = request.form['ticker']
+    
+    access_error = require_signal_access_or_403(ticker)
+    if access_error:
+        return access_error
+        
     start_date = request.form['start']
     duration = request.form["duration"]    # e.g. '1mo','3mo','6mo','1yr'
     
@@ -1578,6 +1593,11 @@ def backtest():
 def equity():
 
     ticker = request.form['ticker']
+
+    access_error = require_signal_access_or_403(ticker)
+    if access_error:
+        return access_error
+    
     duration_str = (request.form.get("duration") or "5y").strip()
 
     # Convert duration to days
