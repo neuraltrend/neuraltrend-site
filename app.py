@@ -917,15 +917,15 @@ def signup():
 
     existing_user = User.query.filter_by(email=email).first()
 
-        if existing_user:
-            if not existing_user.is_verified:
-                send_verification_email(email)
-    
-                return jsonify({
-                    "message": "This account already exists but is not verified. We sent a new verification email. Please check your inbox and spam folder."
-                })
-    
-            return jsonify({"error": "User already exists. Please log in."}), 400
+    if existing_user:
+        if not existing_user.is_verified:
+            send_verification_email(email)
+
+            return jsonify({
+                "message": "This account already exists but is not verified. We sent a new verification email. Please check your inbox and spam folder."
+            })
+
+        return jsonify({"error": "User already exists. Please log in."}), 400
 
     hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
