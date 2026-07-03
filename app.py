@@ -1898,6 +1898,18 @@ def billing_portal():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+def stripe_to_dict(obj):
+    if isinstance(obj, dict):
+        return obj
+
+    if hasattr(obj, "_to_dict_recursive"):
+        return obj._to_dict_recursive()
+
+    if hasattr(obj, "to_dict_recursive"):
+        return obj.to_dict_recursive()
+
+    return dict(obj)
+
 @app.route("/stripe/webhook", methods=["POST"])
 @limiter.exempt
 def stripe_webhook():
@@ -1913,7 +1925,7 @@ def stripe_webhook():
 
         # IMPORTANT:
         # Convert StripeObject into a normal Python dict so .get() works safely.
-        event = event.to_dict_recursive()
+        event = stripe_to_dict(event)
 
     except ValueError as e:
         print("STRIPE WEBHOOK ERROR: invalid payload")
@@ -1966,7 +1978,7 @@ def stripe_webhook():
             if not user and customer_id:
                 try:
                     customer = stripe.Customer.retrieve(customer_id)
-                    customer = customer.to_dict_recursive()
+                    customer = stripe_to_dict(customer)
 
                     customer_email = normalize_email(customer.get("email"))
 
