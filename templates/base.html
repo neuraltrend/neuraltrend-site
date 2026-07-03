@@ -6845,6 +6845,223 @@
             color: var(--nt-dark);
         }
 
+        /* ===============================
+           Pricing section
+        ================================ */
+        
+        .nt-pricing-section {
+            margin: 26px 0 34px 0;
+            padding: 26px;
+            border-radius: 22px;
+            background: #ffffff;
+            border: 1px solid var(--nt-border);
+            box-shadow: 0 2px 14px rgba(15, 23, 42, 0.06);
+        }
+        
+        .nt-pricing-header {
+            max-width: 760px;
+            margin-bottom: 20px;
+        }
+        
+        .nt-pricing-title {
+            margin: 0;
+            font-size: 24px;
+            line-height: 1.25;
+            font-weight: 950;
+            color: var(--nt-dark);
+        }
+        
+        .nt-pricing-subtitle {
+            margin: 8px 0 0 0;
+            font-size: 14px;
+            line-height: 1.6;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-pricing-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+            gap: 16px;
+            align-items: stretch;
+        }
+        
+        .nt-pricing-card {
+            position: relative;
+            padding: 22px;
+            border-radius: 18px;
+            border: 1px solid var(--nt-border);
+            background: #F8FAFC;
+            min-width: 0;
+        }
+        
+        .nt-pricing-card-featured {
+            background:
+                radial-gradient(circle at top right, rgba(37, 99, 235, 0.13), transparent 34%),
+                #ffffff;
+            border-color: rgba(37, 99, 235, 0.26);
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+        }
+        
+        .nt-pricing-featured-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 9px;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.10);
+            border: 1px solid rgba(37, 99, 235, 0.18);
+            color: var(--nt-blue);
+            font-size: 11px;
+            font-weight: 900;
+        }
+        
+        .nt-pricing-plan-label {
+            font-size: 11px;
+            line-height: 1.2;
+            font-weight: 900;
+            letter-spacing: 0.055em;
+            text-transform: uppercase;
+            color: var(--nt-blue);
+        }
+        
+        .nt-pricing-plan-title {
+            margin: 7px 0 0 0;
+            font-size: 19px;
+            line-height: 1.25;
+            font-weight: 950;
+            color: var(--nt-dark);
+        }
+        
+        .nt-pricing-price {
+            margin-top: 14px;
+            font-size: 34px;
+            line-height: 1;
+            font-weight: 950;
+            color: var(--nt-dark);
+        }
+        
+        .nt-pricing-price span {
+            font-size: 13px;
+            font-weight: 750;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-pricing-plan-text {
+            margin: 12px 0 0 0;
+            font-size: 13px;
+            line-height: 1.55;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-pricing-list {
+            margin: 16px 0 18px 0;
+            padding: 0;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+        
+        .nt-pricing-list li {
+            position: relative;
+            padding-left: 24px;
+            font-size: 13px;
+            line-height: 1.45;
+            font-weight: 700;
+            color: var(--nt-dark);
+        }
+        
+        .nt-pricing-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: var(--nt-positive);
+            font-weight: 950;
+        }
+        
+        .nt-pricing-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .nt-pricing-btn {
+            border: none;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 950;
+            padding: 11px 16px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .nt-pricing-btn-primary {
+            background: var(--nt-dark);
+            color: #ffffff;
+        }
+        
+        .nt-pricing-btn-primary:hover {
+            background: #020617;
+            transform: translateY(-1px);
+        }
+        
+        .nt-pricing-btn-secondary {
+            background: #ffffff;
+            color: var(--nt-dark);
+            border: 1px solid var(--nt-border);
+        }
+        
+        .nt-pricing-btn-secondary:hover {
+            background: #F1F5F9;
+            transform: translateY(-1px);
+        }
+        
+        .nt-pricing-disclaimer {
+            margin: 14px 0 0 0;
+            font-size: 12px;
+            line-height: 1.5;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        @media (max-width: 850px) {
+            .nt-pricing-grid {
+                grid-template-columns: 1fr;
+            }
+        
+            .nt-pricing-section {
+                padding: 20px;
+                border-radius: 18px;
+            }
+        
+            .nt-pricing-featured-badge {
+                position: static;
+                width: fit-content;
+                margin-bottom: 10px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .nt-pricing-title {
+                font-size: 21px;
+            }
+        
+            .nt-pricing-price {
+                font-size: 30px;
+            }
+        
+            .nt-pricing-btn {
+                width: 100%;
+            }
+        }
+
     </style>
 
 </head>
@@ -6860,11 +7077,12 @@
     
         <!-- LEFT: nav links -->
         <div class="nav-links">
-            <!-- <a href="https://neuraltrend.org">Home</a> -->
-            <!-- <a href="https://github.com/neuraltrend/">Sample Algorithms</a> -->
+            <a href="https://neuraltrend.org">Home</a>
+            <a href="#pricing">Pricing</a>
+            <a href="https://github.com/neuraltrend/">Sample Algorithms</a>
             <!-- <a href="/market">Market Insight</a> -->
             <!-- <a href="/knowledge">Knowledge Hub</a> -->
-            <!-- <a href="mailto:contact@neuraltrend.org">Contact</a> -->
+            <a href="mailto:contact@neuraltrend.org">Contact</a>
         </div>
     
         <!-- RIGHT: login area -->
