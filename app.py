@@ -117,19 +117,19 @@ def send_verification_email(user_email):
         recipients=[user_email]
     )
 
-        msg.body = f"""
-        Hi,
-        
-        Please verify your NeuralTrend account by clicking the link below:
-        
-        {verify_url}
-        
-        This verification link expires in 1 hour.
-        
-        If you did not create a NeuralTrend account, you can ignore this email.
-        
-        NeuralTrend
-        """
+    msg.body = f"""
+    Hi,
+    
+    Please verify your NeuralTrend account by clicking the link below:
+    
+    {verify_url}
+    
+    This verification link expires in 1 hour.
+    
+    If you did not create a NeuralTrend account, you can ignore this email.
+    
+    NeuralTrend
+    """
 
     try:
         mail.send(msg)
