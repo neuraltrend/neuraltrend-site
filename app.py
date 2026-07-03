@@ -1932,7 +1932,7 @@ def billing_portal():
     try:
         portal_session = stripe.billing_portal.Session.create(
             customer=current_user.stripe_customer_id,
-            return_url=f"{BASE_URL}/"
+            return_url=f"{BASE_URL}/?billing=portal"
         )
 
         return jsonify({"url": portal_session.url})
