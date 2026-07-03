@@ -6749,6 +6749,46 @@
             }
         }
 
+        .nt-pro-card-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        
+        .nt-pro-status-pill {
+            align-items: center;
+            justify-content: center;
+            padding: 7px 10px;
+            border-radius: 999px;
+            background: rgba(22, 163, 74, 0.10);
+            border: 1px solid rgba(22, 163, 74, 0.22);
+            color: var(--nt-positive);
+            font-size: 12px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        
+        .nt-pro-active-card {
+            background:
+                radial-gradient(circle at top right, rgba(22, 163, 74, 0.14), transparent 34%),
+                #ffffff;
+            border-color: rgba(22, 163, 74, 0.22);
+        }
+        
+        .nt-user-pro-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 6px;
+            padding: 3px 7px;
+            border-radius: 999px;
+            background: rgba(22, 163, 74, 0.12);
+            color: var(--nt-positive);
+            font-size: 10px;
+            font-weight: 900;
+        }
+
     </style>
 
 </head>
@@ -6972,6 +7012,20 @@
     async function checkUser() {
         const response = await fetch("/me");
         const data = await response.json();
+
+        window.neuralTrendCurrentUser = data;
+
+        document.dispatchEvent(new CustomEvent("neuralTrendUserUpdated", {
+            detail: data
+        }));
+        
+        if (typeof updateProSubscriptionUI === "function") {
+            updateProSubscriptionUI(data);
+        }
+        
+        if (typeof clearSuspiciousTickerSearchAutofill === "function") {
+            setTimeout(clearSuspiciousTickerSearchAutofill, 50);
+        }
     
         if (data.email) {
             userArea.innerHTML = `
