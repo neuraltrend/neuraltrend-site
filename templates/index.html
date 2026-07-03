@@ -5312,8 +5312,9 @@
     function showCheckoutStatusBanner() {
         const params = new URLSearchParams(window.location.search);
         const checkoutStatus = params.get("checkout");
-    
-        if (!checkoutStatus) return;
+        const billingStatus = params.get("billing");
+        
+        if (!checkoutStatus && !billingStatus) return;
     
         const banner = document.getElementById("checkout-status-banner");
         const title = document.getElementById("checkout-status-title");
@@ -5344,6 +5345,23 @@
             title.textContent = "Checkout cancelled";
             text.textContent = "No payment was made. You can upgrade to NeuralTrend Pro anytime.";
             banner.style.display = "flex";
+        }
+
+        if (billingStatus === "portal") {
+            banner.classList.add("success");
+        
+            title.textContent = "Billing updated";
+            text.textContent = "Your billing settings were updated. If you scheduled cancellation, your Pro access stays active until the end of the paid billing period.";
+        
+            banner.style.display = "flex";
+        
+            if (typeof refreshProSubscriptionUI === "function") {
+                refreshProSubscriptionUI();
+            }
+        
+            if (typeof refreshSignalBoardForCurrentUser === "function") {
+                setTimeout(refreshSignalBoardForCurrentUser, 1200);
+            }
         }
     
         if (closeBtn) {
