@@ -2266,9 +2266,9 @@
     `;
     
     function loadSummary() {
-        const duration = document.getElementById('period-select')?.value || "5y"; // e.g., '1w', '1mo', '1y'
+        const duration = document.getElementById('period-select')?.value || "5y";
     
-        fetch(`/signals/summary?duration=${duration}&_=${Date.now()}`)
+        return fetch(`/signals/summary?duration=${duration}&_=${Date.now()}`)
             .then(r => r.json())
             .then(data => {
                 if (!Array.isArray(data)) {
@@ -2295,6 +2295,28 @@
                 board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
                 console.error(err);
             });
+    }
+
+    async function refreshSignalBoardForCurrentUser() {
+        const board = document.getElementById("signal-board");
+    
+        if (board) {
+            board.innerHTML = `
+                <div style="text-align:center; color:#888; padding:20px;">
+                    Updating your Pro access…
+                </div>
+            `;
+        }
+    
+        try {
+            await loadSummary();
+    
+            if (currentTicker) {
+                loadTicker(currentTicker);
+            }
+        } catch (error) {
+            console.error("Could not refresh signal board after login:", error);
+        }
     }
     
     // Load on page start
