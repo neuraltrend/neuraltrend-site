@@ -131,22 +131,35 @@
             <div id="pro-upgrade-card" class="nt-pro-upgrade-card">
 
                 <div class="nt-pro-upgrade-copy">
-                    <div class="nt-section-eyebrow">NeuralTrend Pro</div>
+                    <div id="pro-card-kicker" class="nt-section-eyebrow">
+                        NeuralTrend Pro
+                    </div>
             
-                    <h3>
+                    <h3 id="pro-card-title">
                         Unlock all EpochSignaler assets
                     </h3>
             
-                    <p>
+                    <p id="pro-card-text">
                         Free users can access full signals for BTC-USD, ETH-USD, SOL-USD, and XRP-USD.
                         Pro unlocks all supported assets, full signal history, equity previews, backtests,
                         and up to 100 live simulations.
                     </p>
                 </div>
             
-                <button type="button" class="nt-pro-upgrade-btn" onclick="startProCheckout()">
-                    Upgrade to Pro — $9.99/month
-                </button>
+                <div class="nt-pro-card-actions">
+                    <span id="pro-status-pill" class="nt-pro-status-pill" style="display:none;">
+                        Pro Active
+                    </span>
+            
+                    <button 
+                        type="button" 
+                        id="pro-card-action-btn"
+                        class="nt-pro-upgrade-btn" 
+                        onclick="startProCheckout()"
+                    >
+                        Upgrade to Pro — $9.99/month
+                    </button>
+                </div>
             
             </div>
 
@@ -334,10 +347,18 @@
                                         <span class="nt-search-icon">🔍</span>
                         
                                         <input 
-                                            type="text" 
-                                            id="ticker-search" 
+                                            type="search" 
+                                            id="ticker-search"
+                                            name="nt_ticker_search_not_email"
                                             class="nt-search-input"
                                             placeholder="Search BTC, ETH, AAPL, NVDA..."
+                                            autocomplete="off"
+                                            autocorrect="off"
+                                            autocapitalize="characters"
+                                            spellcheck="false"
+                                            inputmode="search"
+                                            data-lpignore="true"
+                                            data-form-type="other"
                                         >
                                     </div>
                                 </div>
@@ -1756,6 +1777,25 @@
             }[char];
         });
     }
+
+    function clearSuspiciousTickerSearchAutofill() {
+        const searchInput = document.getElementById("ticker-search");
+    
+        if (!searchInput) return;
+    
+        const value = (searchInput.value || "").trim();
+    
+        // Browser/password-manager autofill sometimes puts login email here.
+        const looksLikeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    
+        if (looksLikeEmail) {
+            searchInput.value = "";
+    
+            if (typeof applyAllFilters === "function") {
+                applyAllFilters();
+            }
+        }
+    }
     
     function plainSignalText(value) {
         if (value === 1) return "BUY";
@@ -2335,6 +2375,14 @@
         .addEventListener('input', function() {
             applyAllFilters();
         });
+
+    window.addEventListener("pageshow", function() {
+        setTimeout(clearSuspiciousTickerSearchAutofill, 100);
+    });
+    
+    document.addEventListener("neuralTrendUserUpdated", function() {
+        setTimeout(clearSuspiciousTickerSearchAutofill, 100);
+    });
     
     document.getElementById('asset-type-filter')
         .addEventListener('change', function() {
@@ -5119,37 +5167,112 @@
     </script>
         
     <script>
-        async function startProCheckout() {
-            try {
-                const meResponse = await fetch("/me", { cache: "no-store" });
-                const me = await meResponse.json();
-        
-                if (!me.email) {
-                    if (typeof openNeuralTrendLoginModal === "function") {
-                        openNeuralTrendLoginModal();
-                    } else {
-                        alert("Please log in or sign up before upgrading.");
-                    }
-                    return;
-                }
-        
-                const response = await fetch("/create-checkout-session", {
-                    method: "POST"
-                });
-        
-                const data = await response.json();
-        
-                if (data.url) {
-                    window.location.href = data.url;
-                } else {
-                    alert(data.error || "Could not start checkout.");
-                }
-        
-            } catch (error) {
-                console.error("Checkout error:", error);
-                alert("Could not start checkout. Please try again.");
-            }
+    function updateProSubscriptionUI(user = {}) {
+        const card = document.getElementById("pro-upgrade-card");
+        const kicker = document.getElementById("pro-card-kicker");
+        const title = document.getElementById("pro-card-title");
+        const text = document.getElementById("pro-card-text");
+        const pill = document.getElementById("pro-status-pill");
+        const actionBtn = document.getElementById("pro-card-action-btn");
+
+        if (!card || !title || !text || !pill || !actionBtn) return;
+
+        const isPaid = Boolean(user.is_paid);
+
+        card.classList.toggle("nt-pro-active-card", isPaid);
+
+        if (isPaid) {
+            if (kicker) kicker.textContent = "NeuralTrend Pro";
+            title.textContent = "Pro subscription active";
+            text.textContent = "Your account has full access to all supported EpochSignaler assets, equity previews, backtests, and Pro live-simulation limits.";
+
+            pill.style.display = "inline-flex";
+            pill.textContent = "Pro Active";
+
+            actionBtn.textContent = "Manage Billing";
+            actionBtn.onclick = startBillingPortal;
+        } else {
+            if (kicker) kicker.textContent = "NeuralTrend Pro";
+            title.textContent = "Unlock all EpochSignaler assets";
+            text.textContent = "Free users can access full signals for BTC-USD, ETH-USD, SOL-USD, and XRP-USD. Pro unlocks all supported assets, full signal history, equity previews, backtests, and up to 100 live simulations.";
+
+            pill.style.display = "none";
+
+            actionBtn.textContent = "Upgrade to Pro — $9.99/month";
+            actionBtn.onclick = startProCheckout;
         }
+    }
+
+    async function refreshProSubscriptionUI() {
+        try {
+            const response = await fetch("/me", { cache: "no-store" });
+            const data = await response.json();
+            updateProSubscriptionUI(data);
+        } catch (error) {
+            console.error("Could not refresh subscription UI:", error);
+        }
+    }
+
+    async function startProCheckout() {
+        try {
+            const meResponse = await fetch("/me", { cache: "no-store" });
+            const me = await meResponse.json();
+
+            if (!me.email) {
+                if (typeof openNeuralTrendLoginModal === "function") {
+                    openNeuralTrendLoginModal();
+                } else {
+                    alert("Please log in or sign up before upgrading.");
+                }
+                return;
+            }
+
+            const response = await fetch("/create-checkout-session", {
+                method: "POST"
+            });
+
+            const data = await response.json();
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                alert(data.error || "Could not start checkout.");
+            }
+
+        } catch (error) {
+            console.error("Checkout error:", error);
+            alert("Could not start checkout. Please try again.");
+        }
+    }
+
+    async function startBillingPortal() {
+        try {
+            const response = await fetch("/billing-portal", {
+                method: "POST"
+            });
+
+            const data = await response.json();
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                alert(data.error || "Could not open billing portal.");
+            }
+
+        } catch (error) {
+            console.error("Billing portal error:", error);
+            alert("Could not open billing portal. Please try again.");
+        }
+    }
+
+    document.addEventListener("neuralTrendUserUpdated", function(event) {
+        updateProSubscriptionUI(event.detail || {});
+    });
+
+    window.addEventListener("pageshow", function() {
+        refreshProSubscriptionUI();
+    });
+        
     </script>
 
     </div>
