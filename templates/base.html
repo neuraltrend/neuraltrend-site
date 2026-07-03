@@ -6789,6 +6789,62 @@
             font-weight: 900;
         }
 
+        /* ===============================
+           Checkout Banner
+        ================================ */
+
+        .nt-checkout-banner {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+            margin: 0 0 18px 0;
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 1px solid var(--nt-border);
+            background: #ffffff;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+        }
+        
+        .nt-checkout-banner.success {
+            background: rgba(22, 163, 74, 0.08);
+            border-color: rgba(22, 163, 74, 0.24);
+        }
+        
+        .nt-checkout-banner.cancelled {
+            background: rgba(100, 116, 139, 0.08);
+            border-color: rgba(100, 116, 139, 0.22);
+        }
+        
+        .nt-checkout-banner strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-checkout-banner p {
+            margin: 4px 0 0 0;
+            font-size: 13px;
+            line-height: 1.45;
+            font-weight: 600;
+            color: var(--nt-neutral);
+        }
+        
+        .nt-checkout-banner-close {
+            border: none;
+            background: transparent;
+            color: var(--nt-neutral);
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+        
+        .nt-checkout-banner-close:hover {
+            color: var(--nt-dark);
+        }
+
     </style>
 
 </head>
