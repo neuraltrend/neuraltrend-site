@@ -6944,6 +6944,10 @@
             }, 300);
             await checkUser();
 
+            if (typeof refreshSignalBoardForCurrentUser === "function") {
+                await refreshSignalBoardForCurrentUser();
+            }
+            
             if (typeof refreshLiveSimAuthState === "function") {
                 await refreshLiveSimAuthState();
             }
