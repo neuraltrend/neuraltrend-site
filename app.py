@@ -117,11 +117,19 @@ def send_verification_email(user_email):
         recipients=[user_email]
     )
 
-    msg.body = f"""
-    Click the link to verify your account:
-
-    {verify_url}
-    """
+        msg.body = f"""
+        Hi,
+        
+        Please verify your NeuralTrend account by clicking the link below:
+        
+        {verify_url}
+        
+        This verification link expires in 1 hour.
+        
+        If you did not create a NeuralTrend account, you can ignore this email.
+        
+        NeuralTrend
+        """
 
     try:
         mail.send(msg)
@@ -909,8 +917,15 @@ def signup():
 
     existing_user = User.query.filter_by(email=email).first()
 
-    if existing_user:
-        return jsonify({"error": "User already exists"}), 400
+        if existing_user:
+            if not existing_user.is_verified:
+                send_verification_email(email)
+    
+                return jsonify({
+                    "message": "This account already exists but is not verified. We sent a new verification email. Please check your inbox and spam folder."
+                })
+    
+            return jsonify({"error": "User already exists. Please log in."}), 400
 
     hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
@@ -927,6 +942,28 @@ def signup():
     
     return jsonify({
         "message": "Account created. Please check your email to verify."
+    })
+
+@app.route("/resend-verification", methods=["POST"])
+@limiter.limit("3 per minute")
+def resend_verification():
+    data = request.get_json(silent=True) or {}
+
+    email = normalize_email(data.get("email"))
+
+    if not email:
+        return jsonify({
+            "error": "Email is required."
+        }), 400
+
+    user = User.query.filter_by(email=email).first()
+
+    # Avoid exposing whether an account exists.
+    if user and not user.is_verified:
+        send_verification_email(email)
+
+    return jsonify({
+        "message": "If this email belongs to an unverified NeuralTrend account, a new verification email has been sent. Please check your inbox and spam folder."
     })
 
 @app.route("/verify/<token>")
@@ -988,7 +1025,12 @@ def login():
     # 🔒 Require verification
     if not user.is_verified:
         db.session.commit()
-        return jsonify({"error": "Please verify your email first"}), 403
+
+        return jsonify({
+            "error": "Please verify your email first. Check your inbox and spam folder, or resend the verification email.",
+            "verification_required": True,
+            "email": user.email
+        }), 403
     
     # ✅ User is verified and will actually log in
     user.last_login = datetime.utcnow()
