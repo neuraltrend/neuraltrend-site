@@ -13,6 +13,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.middleware.proxy_fix import ProxyFix
 import stripe
+import traceback
 
 app = Flask(__name__)
 
@@ -1864,7 +1865,14 @@ def create_checkout_session():
             success_url=f"{BASE_URL}/?checkout=success",
             cancel_url=f"{BASE_URL}/?checkout=cancelled",
             metadata={
-                "user_id": current_user.id
+                "user_id": str(current_user.id),
+                "user_email": current_user.email
+            },
+            subscription_data={
+                "metadata": {
+                    "user_id": str(current_user.id),
+                    "user_email": current_user.email
+                }
             }
         )
 
@@ -1891,6 +1899,7 @@ def billing_portal():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/stripe/webhook", methods=["POST"])
+@limiter.exempt
 def stripe_webhook():
     payload = request.data
     sig_header = request.headers.get("Stripe-Signature")
@@ -1901,51 +1910,159 @@ def stripe_webhook():
             sig_header,
             STRIPE_WEBHOOK_SECRET
         )
-    except ValueError:
+
+        # IMPORTANT:
+        # Convert StripeObject into a normal Python dict so .get() works safely.
+        event = event.to_dict_recursive()
+
+    except ValueError as e:
+        print("STRIPE WEBHOOK ERROR: invalid payload")
+        print(str(e))
         return "Invalid payload", 400
-    except stripe.error.SignatureVerificationError:
-        return "Invalid signature", 400
 
-    event_type = event["type"]
-    data_object = event["data"]["object"]
+    except Exception as e:
+        print("STRIPE WEBHOOK ERROR: event construction/signature failed")
+        print("Error type:", type(e).__name__)
+        print("Error message:", str(e))
+        traceback.print_exc()
+        return "Invalid signature or webhook construction failed", 400
 
-    if event_type == "checkout.session.completed":
-        customer_id = data_object.get("customer")
-        subscription_id = data_object.get("subscription")
+    try:
+        event_type = event["type"]
+        data_object = event["data"]["object"]
 
-        user = User.query.filter_by(stripe_customer_id=customer_id).first()
+        print("STRIPE WEBHOOK EVENT:", event_type)
 
-        if user:
-            user.subscription_type = "pro"
-            user.subscription_status = "active"
+        def find_user_for_stripe_event(customer_id=None, metadata=None):
+            metadata = metadata or {}
+            user = None
 
-            if hasattr(user, "stripe_subscription_id"):
-                user.stripe_subscription_id = subscription_id
+            # 1. Match by saved Stripe customer ID
+            if customer_id:
+                user = User.query.filter_by(
+                    stripe_customer_id=customer_id
+                ).first()
 
-            db.session.commit()
+            # 2. Match by metadata user_id
+            if not user:
+                metadata_user_id = metadata.get("user_id")
 
-    elif event_type in [
-        "customer.subscription.created",
-        "customer.subscription.updated",
-        "customer.subscription.deleted"
-    ]:
-        customer_id = data_object.get("customer")
-        status = data_object.get("status")
-        subscription_id = data_object.get("id")
+                if metadata_user_id:
+                    try:
+                        user = User.query.get(int(metadata_user_id))
+                    except Exception as e:
+                        print("Could not use metadata user_id:", metadata_user_id, str(e))
 
-        user = User.query.filter_by(stripe_customer_id=customer_id).first()
+            # 3. Match by metadata email
+            if not user:
+                metadata_email = metadata.get("user_email")
 
-        if user:
-            if status in PAID_SUBSCRIPTION_STATUSES:
+                if metadata_email:
+                    user = User.query.filter_by(
+                        email=normalize_email(metadata_email)
+                    ).first()
+
+            # 4. Fallback: retrieve Stripe customer and match by customer email
+            if not user and customer_id:
+                try:
+                    customer = stripe.Customer.retrieve(customer_id)
+                    customer = customer.to_dict_recursive()
+
+                    customer_email = normalize_email(customer.get("email"))
+
+                    if customer_email:
+                        user = User.query.filter_by(email=customer_email).first()
+
+                except Exception as e:
+                    print("Could not retrieve Stripe customer:", customer_id, str(e))
+
+            return user
+
+        if event_type == "checkout.session.completed":
+            customer_id = data_object.get("customer")
+            subscription_id = data_object.get("subscription")
+            metadata = data_object.get("metadata", {}) or {}
+
+            user = find_user_for_stripe_event(
+                customer_id=customer_id,
+                metadata=metadata
+            )
+
+            print(
+                "CHECKOUT COMPLETED:",
+                "customer_id=", customer_id,
+                "subscription_id=", subscription_id,
+                "metadata=", metadata,
+                "user_found=", bool(user),
+                "user_email=", getattr(user, "email", None)
+            )
+
+            if user:
+                user.stripe_customer_id = customer_id
                 user.subscription_type = "pro"
-                user.subscription_status = status
-            else:
-                user.subscription_type = "free"
-                user.subscription_status = status or "inactive"
+                user.subscription_status = "active"
 
-            if hasattr(user, "stripe_subscription_id"):
-                user.stripe_subscription_id = subscription_id
+                if hasattr(user, "stripe_subscription_id"):
+                    user.stripe_subscription_id = subscription_id
 
-            db.session.commit()
+                db.session.commit()
 
-    return "OK", 200
+                print("USER UPGRADED TO PRO:", user.email)
+
+        elif event_type in [
+            "customer.subscription.created",
+            "customer.subscription.updated",
+            "customer.subscription.deleted"
+        ]:
+            customer_id = data_object.get("customer")
+            status = data_object.get("status")
+            subscription_id = data_object.get("id")
+            metadata = data_object.get("metadata", {}) or {}
+
+            user = find_user_for_stripe_event(
+                customer_id=customer_id,
+                metadata=metadata
+            )
+
+            print(
+                "SUBSCRIPTION EVENT:",
+                "customer_id=", customer_id,
+                "status=", status,
+                "subscription_id=", subscription_id,
+                "metadata=", metadata,
+                "user_found=", bool(user),
+                "user_email=", getattr(user, "email", None)
+            )
+
+            if user:
+                user.stripe_customer_id = customer_id
+
+                if status in PAID_SUBSCRIPTION_STATUSES:
+                    user.subscription_type = "pro"
+                    user.subscription_status = status
+                else:
+                    user.subscription_type = "free"
+                    user.subscription_status = status or "inactive"
+
+                if hasattr(user, "stripe_subscription_id"):
+                    user.stripe_subscription_id = subscription_id
+
+                db.session.commit()
+
+                print(
+                    "USER SUBSCRIPTION UPDATED:",
+                    user.email,
+                    user.subscription_type,
+                    user.subscription_status
+                )
+
+        return "OK", 200
+
+    except Exception as e:
+        print("STRIPE WEBHOOK PROCESSING ERROR")
+        print("Event type:", event.get("type") if event else None)
+        print("Error type:", type(e).__name__)
+        print("Error message:", str(e))
+        traceback.print_exc()
+
+        return "Webhook processing failed", 500
