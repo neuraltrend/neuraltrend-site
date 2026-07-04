@@ -2776,6 +2776,27 @@
     let liveSimBoardSearchQuery = "";
 
     let liveSimBoardHorizon = "since_start";
+
+    const FREE_LIVE_SIM_TICKERS = new Set([
+        "BTC-USD",
+        "ETH-USD",
+        "SOL-USD",
+        "XRP-USD"
+    ]);
+    
+    let liveSimUserIsPaid = false;
+
+    function getVisibleLiveSimTickerOptions() {
+        const allOptions = getLiveSimTickerOptions();
+    
+        if (liveSimUserIsPaid) {
+            return allOptions;
+        }
+    
+        return allOptions.filter(option =>
+            FREE_LIVE_SIM_TICKERS.has(normalizeTickerForCompare(option.value))
+        );
+    }
     
     function liveSimMoney(value) {
         if (value === null || value === undefined || Number.isNaN(Number(value))) {
@@ -2831,7 +2852,10 @@
         }
     
         if (!response.ok) {
-            throw new Error(data.error || `Request failed (${response.status}).`);
+            const error = new Error(data.error || `Request failed (${response.status}).`);
+            error.data = data;
+            error.status = response.status;
+            throw error;
         }
     
         return data;
@@ -3588,9 +3612,10 @@
         `;
     }
 
-    function applyLiveSimAuthState(isLoggedIn, email = null) {
+    function applyLiveSimAuthState(isLoggedIn, email = null, isPaid = false) {
         liveSimLoggedIn = Boolean(isLoggedIn);
         liveSimUserEmail = email || null;
+        liveSimUserIsPaid = Boolean(isPaid);
     
         const submitBtn = document.getElementById("live-sim-submit-btn");
     
@@ -3619,16 +3644,33 @@
     
             const data = await response.json();
     
+            const messageEl = document.getElementById("live-sim-message");
+    
             if (data && data.email) {
-                applyLiveSimAuthState(true, data.email);
+                if (messageEl) {
+                    delete messageEl.dataset.userEdited;
+                }
+    
+                applyLiveSimAuthState(true, data.email, Boolean(data.is_paid));
+    
+                const currentTicker = document.getElementById("live-sim-ticker")?.value || "BTC-USD";
+                renderLiveSimTickerOptions(currentTicker);
+    
                 return true;
             }
     
-            applyLiveSimAuthState(false, null);
+            if (messageEl) {
+                delete messageEl.dataset.userEdited;
+            }
+    
+            applyLiveSimAuthState(false, null, false);
+            renderLiveSimTickerOptions("BTC-USD");
+    
             return false;
     
         } catch (error) {
-            applyLiveSimAuthState(false, null);
+            applyLiveSimAuthState(false, null, false);
+            renderLiveSimTickerOptions("BTC-USD");
             return false;
         }
     }
@@ -3724,7 +3766,7 @@
     function liveSimTickerExists(ticker) {
         const key = normalizeTickerForCompare(ticker);
     
-        return getLiveSimTickerOptions().some(option =>
+        return getVisibleLiveSimTickerOptions().some(option =>
             normalizeTickerForCompare(option.value) === key
         );
     }
@@ -3735,7 +3777,7 @@
     
         if (!select) return;
     
-        const allOptions = getLiveSimTickerOptions();
+        const allOptions = getVisibleLiveSimTickerOptions();
     
         select.innerHTML = allOptions.map(option => `
             <option value="${escapeHTML(option.value)}">
@@ -3755,7 +3797,9 @@
         }
     
         if (helper) {
-            helper.textContent = `${allOptions.length} supported assets available.`;
+            helper.textContent = liveSimUserIsPaid
+                ? `${allOptions.length} supported assets available.`
+                : "Free plan: live simulations are available for BTC-USD, ETH-USD, SOL-USD, and XRP-USD.";
         }
     }
     
@@ -4679,16 +4723,22 @@
             
             await loadLiveSimulations();
     
-        } catch (error) {
-            if (isLiveSimLoginError(error)) {
-                renderLiveSimulationLoggedOutState();
-                setLiveSimMessage("Please log in or sign up before creating a live simulation.", true);
-                openNeuralTrendLoginModal();
-            } else {
-                setLiveSimMessage(error.message, true);
-            }
-        }
-    });
+                } catch (error) {
+                    if (isLiveSimLoginError(error)) {
+                        renderLiveSimulationLoggedOutState();
+                        setLiveSimMessage("Please log in or sign up before creating a live simulation.", true);
+                        openNeuralTrendLoginModal();
+                        return;
+                    }
+        
+                    if (error.data && error.data.upgrade_required) {
+                        setLiveSimMessage(error.message, true);
+                        return;
+                    }
+        
+                    setLiveSimMessage(error.message, true);
+                }
+            });
 
     document.getElementById("live-sim-position")?.addEventListener("change", function () {
         const tickerInput = document.getElementById("live-sim-ticker");
