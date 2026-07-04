@@ -46,13 +46,20 @@
                         <li>Upgrade anytime</li>
                     </ul>
 
-                    <button 
-                        type="button" 
-                        class="nt-pricing-btn nt-pricing-btn-secondary" 
-                        onclick="openNeuralTrendLoginModal('Create a free NeuralTrend account to start using the free plan.')"
-                    >
-                        Start Free
-                    </button>
+                    <div class="nt-pricing-actions">
+                        <span id="subscription-free-status-pill" class="nt-plan-status-pill" style="display:none;">
+                            Current Plan
+                        </span>
+                    
+                        <button 
+                            type="button" 
+                            id="subscription-free-action-btn"
+                            class="nt-pricing-btn nt-pricing-btn-secondary" 
+                            onclick="startFreePlanFromSubscriptionPage()"
+                        >
+                            Start Free
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Pro Plan -->
@@ -171,6 +178,8 @@
     function updateSubscriptionPageUI(user = {}) {
         const pill = document.getElementById("subscription-pro-status-pill");
         const button = document.getElementById("subscription-pro-action-btn");
+        const freePill = document.getElementById("subscription-free-status-pill");
+        const freeButton = document.getElementById("subscription-free-action-btn");
 
         if (!pill || !button) return;
 
@@ -186,6 +195,32 @@
             button.textContent = "Upgrade to Pro";
             button.onclick = startStripeCheckoutFromSubscriptionPage;
         }
+
+        const isLoggedIn = Boolean(user.email);
+        const isPaid = Boolean(user.is_paid);
+        
+        if (freePill && freeButton) {
+            freeButton.disabled = false;
+            freeButton.classList.remove("nt-pricing-btn-disabled");
+        
+            if (!isLoggedIn) {
+                freePill.style.display = "none";
+                freeButton.textContent = "Start Free";
+                freeButton.onclick = startFreePlanFromSubscriptionPage;
+            } else if (isPaid) {
+                freePill.style.display = "none";
+                freeButton.textContent = "Included with Pro";
+                freeButton.disabled = true;
+                freeButton.classList.add("nt-pricing-btn-disabled");
+            } else {
+                freePill.style.display = "inline-flex";
+                freePill.textContent = "Current Plan";
+        
+                freeButton.textContent = "Free Plan Active";
+                freeButton.disabled = true;
+                freeButton.classList.add("nt-pricing-btn-disabled");
+            }
+        }
     }
 
     async function refreshSubscriptionPageUI() {
@@ -195,6 +230,25 @@
             updateSubscriptionPageUI(user);
         } catch (error) {
             console.error("Could not refresh subscription page UI:", error);
+        }
+    }
+
+    async function startFreePlanFromSubscriptionPage() {
+        try {
+            const response = await fetch("/me", { cache: "no-store" });
+            const user = await response.json();
+    
+            if (!user.email) {
+                openNeuralTrendLoginModal("Create a free NeuralTrend account to start using the free plan.");
+                return;
+            }
+    
+            // Already logged in, so no signup/login modal is needed.
+            updateSubscriptionPageUI(user);
+    
+        } catch (error) {
+            console.error("Free plan check error:", error);
+            openNeuralTrendLoginModal("Create a free NeuralTrend account to start using the free plan.");
         }
     }
 
