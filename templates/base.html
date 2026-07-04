@@ -7147,6 +7147,30 @@
     
     const authMessage = document.getElementById("authMessage");
     const userArea = document.getElementById("user-area");
+
+    function openNeuralTrendLoginModal(message = "Create a free account or log in to continue.") {
+        const loginModal = document.getElementById("loginModal");
+        const emailInput = document.getElementById("emailInput");
+        const authMessage = document.getElementById("authMessage");
+    
+        if (!loginModal) return;
+    
+        if (authMessage) {
+            authMessage.innerText = message;
+        }
+    
+        loginModal.style.display = "flex";
+    
+        requestAnimationFrame(() => {
+            loginModal.style.opacity = "1";
+        });
+    
+        if (emailInput) {
+            setTimeout(() => emailInput.focus(), 120);
+        }
+    }
+    
+    window.openNeuralTrendLoginModal = openNeuralTrendLoginModal;
     
     // ------------------
     // Close modal
