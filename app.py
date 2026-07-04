@@ -889,6 +889,40 @@ def build_live_sim_horizon_returns(sim):
 
     return output
 
+def can_use_live_simulation_ticker(user, ticker):
+    ticker = str(ticker or "").strip().upper()
+
+    if is_paid_user(user):
+        return True
+
+    return ticker in TOP_FREE_TICKERS
+
+
+def require_live_simulation_ticker_access(ticker):
+    ticker = str(ticker or "").strip().upper()
+
+    if can_use_live_simulation_ticker(current_user, ticker):
+        return None
+
+    return jsonify({
+        "error": (
+            "Live simulations for this asset are available on NeuralTrend Pro. "
+            "Free accounts can create live simulations only for BTC-USD, ETH-USD, SOL-USD, and XRP-USD."
+        ),
+        "upgrade_required": True,
+        "allowed_tickers": sorted(TOP_FREE_TICKERS)
+    }), 403
+
+def visible_live_simulation_query():
+    query = LiveSimulation.query.filter_by(user_id=current_user.id)
+
+    if not is_paid_user(current_user):
+        query = query.filter(
+            LiveSimulation.ticker.in_(list(TOP_FREE_TICKERS))
+        )
+
+    return query
+
 def get_latest_csv_date_for_ticker(ticker):
     try:
         df = load_epoch_csv_for_ticker(ticker)
@@ -1080,7 +1114,7 @@ def me():
 def list_live_simulations():
     requested_status = request.args.get("status", "open").strip().lower()
 
-    query = LiveSimulation.query.filter_by(user_id=current_user.id)
+    query = visible_live_simulation_query()
 
     if requested_status == "active":
         query = query.filter_by(status="active")
@@ -1105,20 +1139,9 @@ def list_live_simulations():
 
     sims = query.order_by(LiveSimulation.created_at.desc()).all()
 
-    active_count = LiveSimulation.query.filter_by(
-        user_id=current_user.id,
-        status="active"
-    ).count()
-
-    paused_count = LiveSimulation.query.filter_by(
-        user_id=current_user.id,
-        status="paused"
-    ).count()
-
-    archived_count = LiveSimulation.query.filter_by(
-        user_id=current_user.id,
-        status="archived"
-    ).count()
+    active_count = visible_live_simulation_query().filter_by(status="active").count()
+    paused_count = visible_live_simulation_query().filter_by(status="paused").count()
+    archived_count = visible_live_simulation_query().filter_by(status="archived").count()
 
     open_count = active_count + paused_count
     all_count = open_count + archived_count
@@ -1146,6 +1169,10 @@ def create_live_simulation():
 
     ticker = str(data.get("ticker", "BTC-USD")).strip().upper()
     name = str(data.get("name", "")).strip()
+
+    access_error = require_live_simulation_ticker_access(ticker)
+    if access_error:
+        return access_error
 
     try:
         initial_cash = float(data.get("initial_cash", 10000))
@@ -1257,6 +1284,10 @@ def get_live_simulation(simulation_id):
 
     if not sim:
         return jsonify({"error": "Simulation not found."}), 404
+
+    access_error = require_live_simulation_ticker_access(sim.ticker)
+    if access_error:
+        return access_error
 
     try:
         update_live_simulation_from_csv(sim)
