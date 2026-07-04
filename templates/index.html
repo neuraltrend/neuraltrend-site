@@ -3512,22 +3512,22 @@
         }, 2200);
     }
 
-    function openNeuralTrendLoginModal() {
-        const loginModal = document.getElementById("loginModal");
-        const emailInput = document.getElementById("emailInput");
+    // function openNeuralTrendLoginModal() {
+    //     const loginModal = document.getElementById("loginModal");
+    //     const emailInput = document.getElementById("emailInput");
     
-        if (!loginModal) return;
+    //     if (!loginModal) return;
     
-        loginModal.style.display = "flex";
+    //     loginModal.style.display = "flex";
     
-        requestAnimationFrame(() => {
-            loginModal.style.opacity = "1";
-        });
+    //     requestAnimationFrame(() => {
+    //         loginModal.style.opacity = "1";
+    //     });
     
-        if (emailInput) {
-            setTimeout(() => emailInput.focus(), 120);
-        }
-    }
+    //     if (emailInput) {
+    //         setTimeout(() => emailInput.focus(), 120);
+    //     }
+    // }
     
     function isLiveSimLoginError(error) {
         const message = String(error?.message || "").toLowerCase();
