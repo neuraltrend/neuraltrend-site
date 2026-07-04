@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<main>
+    <div class="nt-page-container">
+
+        <section id="subscription-plan" class="nt-pricing-section nt-subscription-page-section">
+
+            <div class="nt-pricing-header">
+                <div class="nt-section-eyebrow">Subscription Plan</div>
+
+                <h1 class="nt-pricing-title">
+                    Choose your NeuralTrend access
+                </h1>
+
+                <p class="nt-pricing-subtitle">
+                    Start with selected free signals, or upgrade to NeuralTrend Pro to unlock all supported assets,
+                    full signal history, equity previews, historical backtests, and expanded live simulations.
+                </p>
+            </div>
+
+            <div class="nt-pricing-grid">
+
+                <!-- Free Plan -->
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Free</div>
+
+                    <h3 class="nt-pricing-plan-title">
+                        Basic Access
+                    </h3>
+
+                    <div class="nt-pricing-price">
+                        $0
+                        <span>/ month</span>
+                    </div>
+
+                    <p class="nt-pricing-plan-text">
+                        Explore core EpochSignaler signals for selected major crypto assets.
+                    </p>
+
+                    <ul class="nt-pricing-list">
+                        <li>Full signals for BTC-USD, ETH-USD, SOL-USD, and XRP-USD</li>
+                        <li>Basic signal overview</li>
+                        <li>Limited live simulations</li>
+                        <li>Upgrade anytime</li>
+                    </ul>
+
+                    <button type="button" class="nt-pricing-btn nt-pricing-btn-secondary" onclick="openNeuralTrendLoginModal()">
+                        Start Free
+                    </button>
+                </div>
+
+                <!-- Pro Plan -->
+                <div class="nt-pricing-card nt-pricing-card-featured">
+                    <div class="nt-pricing-featured-badge">Recommended</div>
+
+                    <div class="nt-pricing-plan-label">Pro</div>
+
+                    <h3 class="nt-pricing-plan-title">
+                        Full EpochSignaler Access
+                    </h3>
+
+                    <div class="nt-pricing-price">
+                        $9.99
+                        <span>/ month</span>
+                    </div>
+
+                    <p class="nt-pricing-plan-text">
+                        Unlock the complete EpochSignaler research workspace.
+                    </p>
+
+                    <ul class="nt-pricing-list">
+                        <li>All supported crypto and traditional assets</li>
+                        <li>Full signal history for all assets</li>
+                        <li>Equity preview for every supported asset</li>
+                        <li>Historical backtesting</li>
+                        <li>Up to 100 live simulations</li>
+                        <li>Cancel anytime through Stripe billing</li>
+                    </ul>
+
+                    <div class="nt-pricing-actions">
+                        <span id="subscription-pro-status-pill" class="nt-pro-status-pill" style="display:none;">
+                            Pro Active
+                        </span>
+
+                        <button
+                            type="button"
+                            id="subscription-pro-action-btn"
+                            class="nt-pricing-btn nt-pricing-btn-primary"
+                            onclick="startStripeCheckoutFromSubscriptionPage()"
+                        >
+                            Upgrade to Pro
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <p class="nt-pricing-disclaimer">
+                Historical simulations and trading signals are for informational purposes only and do not constitute financial advice.
+            </p>
+
+        </section>
+
+    </div>
+</main>
+
+<script>
+    async function startStripeCheckoutFromSubscriptionPage() {
+        try {
+            const meResponse = await fetch("/me", { cache: "no-store" });
+            const me = await meResponse.json();
+
+            if (!me.email) {
+                if (typeof openNeuralTrendLoginModal === "function") {
+                    openNeuralTrendLoginModal();
+                } else {
+                    alert("Please log in or sign up before upgrading.");
+                }
+                return;
+            }
+
+            if (me.is_paid) {
+                await startBillingPortalFromSubscriptionPage();
+                return;
+            }
+
+            const response = await fetch("/create-checkout-session", {
+                method: "POST"
+            });
+
+            const data = await response.json();
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                alert(data.error || "Could not start checkout.");
+            }
+
+        } catch (error) {
+            console.error("Checkout error:", error);
+            alert("Could not start checkout. Please try again.");
+        }
+    }
+
+    async function startBillingPortalFromSubscriptionPage() {
+        try {
+            const response = await fetch("/billing-portal", {
+                method: "POST"
+            });
+
+            const data = await response.json();
+
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                alert(data.error || "Could not open billing portal.");
+            }
+
+        } catch (error) {
+            console.error("Billing portal error:", error);
+            alert("Could not open billing portal. Please try again.");
+        }
+    }
+
+    function updateSubscriptionPageUI(user = {}) {
+        const pill = document.getElementById("subscription-pro-status-pill");
+        const button = document.getElementById("subscription-pro-action-btn");
+
+        if (!pill || !button) return;
+
+        if (user.is_paid) {
+            pill.style.display = "inline-flex";
+            pill.textContent = "Pro Active";
+
+            button.textContent = "Manage Billing";
+            button.onclick = startBillingPortalFromSubscriptionPage;
+        } else {
+            pill.style.display = "none";
+
+            button.textContent = "Upgrade to Pro";
+            button.onclick = startStripeCheckoutFromSubscriptionPage;
+        }
+    }
+
+    async function refreshSubscriptionPageUI() {
+        try {
+            const response = await fetch("/me", { cache: "no-store" });
+            const user = await response.json();
+            updateSubscriptionPageUI(user);
+        } catch (error) {
+            console.error("Could not refresh subscription page UI:", error);
+        }
+    }
+
+    document.addEventListener("neuralTrendUserUpdated", function(event) {
+        updateSubscriptionPageUI(event.detail || {});
+    });
+
+    window.addEventListener("pageshow", refreshSubscriptionPageUI);
+</script>
+
+{% endblock %}
