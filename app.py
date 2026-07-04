@@ -1450,6 +1450,10 @@ def confirm_delete(token):
 def index():
     return render_template("index.html", supported_tickers=SUPPORTED_TICKERS)
 
+@app.route("/subscription")
+def subscription():
+    return render_template("subscription.html")
+
 @app.route("/data")
 def data():
     df = pd.read_csv(CSV_PATH)
