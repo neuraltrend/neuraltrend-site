@@ -7166,6 +7166,63 @@
             }
         }
 
+        /* ===============================
+           Sticky legal footer
+        ================================ */
+        
+        body {
+            padding-bottom: 52px;
+        }
+        
+        .nt-sticky-legal-footer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 9999;
+            background: #ffffff;
+            border-top: 1px solid var(--nt-border);
+            box-shadow: 0 -2px 12px rgba(15, 23, 42, 0.06);
+        }
+        
+        .nt-sticky-legal-footer-inner {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        
+        .nt-sticky-legal-footer a {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--nt-neutral);
+            text-decoration: none;
+        }
+        
+        .nt-sticky-legal-footer a:hover {
+            color: var(--nt-blue);
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding-bottom: 72px;
+            }
+        
+            .nt-sticky-legal-footer-inner {
+                gap: 10px;
+                padding: 9px 12px;
+            }
+        
+            .nt-sticky-legal-footer a {
+                font-size: 11px;
+            }
+        }
+
     </style>
 
 </head>
@@ -7204,12 +7261,14 @@
     {% block content %}{% endblock %}
 
     <!-- Footer -->
-    <div class="nt-footer-legal-links">
-        <a href="{{ url_for('terms') }}">Terms</a>
-        <a href="{{ url_for('privacy') }}">Privacy</a>
-        <a href="{{ url_for('risk_disclaimer') }}">Risk Disclaimer</a>
-        <a href="{{ url_for('refund_policy') }}">Refund & Cancellation</a>
-    </div>
+    <footer class="nt-sticky-legal-footer">
+        <div class="nt-sticky-legal-footer-inner">
+            <a href="{{ url_for('terms') }}">Terms</a>
+            <a href="{{ url_for('privacy') }}">Privacy</a>
+            <a href="{{ url_for('risk_disclaimer') }}">Risk Disclaimer</a>
+            <a href="{{ url_for('refund_policy') }}">Refund &amp; Cancellation</a>
+        </div>
+    </footer>
 
     <!-- ✅ LOGIN MODAL -->    
     <div id="loginModal" class="modal">
