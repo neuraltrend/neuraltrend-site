@@ -1476,6 +1476,14 @@ def confirm_delete(token):
     db.session.commit()
 
     return "Your account has been permanently deleted"
+    
+# force delete user
+# UPDATE users
+# SET
+#     stripe_customer_id = NULL,
+#     subscription_type = 'free',
+#     subscription_status = 'inactive'
+# WHERE email = 'test-user-email@example.com';
 
 @app.route("/")
 def index():
