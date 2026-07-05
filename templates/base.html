@@ -7083,6 +7083,89 @@
             transform: none !important;
         }
 
+        /* ===============================
+           Legal pages
+        ================================ */
+        
+        .nt-legal-page {
+            max-width: 920px;
+            margin: 28px auto 44px auto;
+            padding: 28px;
+            border-radius: 22px;
+            background: #ffffff;
+            border: 1px solid var(--nt-border);
+            box-shadow: 0 2px 14px rgba(15, 23, 42, 0.06);
+        }
+        
+        .nt-legal-page h1 {
+            margin: 0 0 8px 0;
+            font-size: 30px;
+            line-height: 1.2;
+            font-weight: 950;
+            color: var(--nt-dark);
+        }
+        
+        .nt-legal-updated {
+            margin: 0 0 24px 0;
+            font-size: 13px;
+            color: var(--nt-neutral);
+            font-weight: 600;
+        }
+        
+        .nt-legal-page h2 {
+            margin: 28px 0 10px 0;
+            font-size: 19px;
+            line-height: 1.35;
+            font-weight: 900;
+            color: var(--nt-dark);
+        }
+        
+        .nt-legal-page p,
+        .nt-legal-page li {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--nt-neutral);
+            font-weight: 600;
+        }
+        
+        .nt-legal-page ul {
+            margin: 10px 0 16px 20px;
+            padding: 0;
+        }
+        
+        .nt-legal-page a {
+            color: var(--nt-blue);
+            font-weight: 800;
+            text-decoration: none;
+        }
+        
+        .nt-legal-page a:hover {
+            text-decoration: underline;
+        }
+        
+        .nt-legal-warning {
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: rgba(245, 158, 11, 0.10);
+            border: 1px solid rgba(245, 158, 11, 0.24);
+            color: #92400e;
+            font-size: 14px;
+            line-height: 1.6;
+            font-weight: 750;
+        }
+        
+        @media (max-width: 700px) {
+            .nt-legal-page {
+                margin: 18px auto 34px auto;
+                padding: 20px;
+                border-radius: 18px;
+            }
+        
+            .nt-legal-page h1 {
+                font-size: 25px;
+            }
+        }
+
     </style>
 
 </head>
@@ -7121,8 +7204,11 @@
     {% block content %}{% endblock %}
 
     <!-- Footer -->
-    <div class="footer">
-        <a href="/privacy">Privacy Notice</a>
+    <div class="nt-footer-legal-links">
+        <a href="{{ url_for('terms') }}">Terms</a>
+        <a href="{{ url_for('privacy') }}">Privacy</a>
+        <a href="{{ url_for('risk_disclaimer') }}">Risk Disclaimer</a>
+        <a href="{{ url_for('refund_policy') }}">Refund & Cancellation</a>
     </div>
 
     <!-- ✅ LOGIN MODAL -->    
