@@ -1499,6 +1499,20 @@ def data():
 def privacy():
     return render_template('privacy.html')
 
+@app.route("/terms")
+def terms():
+    return render_template("terms.html")
+
+
+@app.route("/risk-disclaimer")
+def risk_disclaimer():
+    return render_template("risk_disclaimer.html")
+
+
+@app.route("/refund-policy")
+def refund_policy():
+    return render_template("refund_policy.html")
+
 @app.route('/market')
 def market():
     return render_template('market.html')
