@@ -598,7 +598,52 @@ def live_simulation_detail(sim):
 
     return summary
 
-def update_live_simulation_from_csv(sim):
+def can_access_live_sim_ticker_for_user(user, ticker):
+    ticker = str(ticker or "").strip().upper()
+
+    if is_paid_user(user):
+        return True
+
+    return ticker in TOP_FREE_TICKERS
+
+
+def freeze_locked_live_simulations_for_user(user):
+    """
+    If a user is no longer Pro, pause active simulations for Pro-only tickers.
+    They remain visible as old/frozen paper simulations, but they stop processing new CSV rows.
+    """
+    if not user or is_paid_user(user):
+        return 0
+
+    locked_active_sims = (
+        LiveSimulation.query
+        .filter(
+            LiveSimulation.user_id == user.id,
+            ~LiveSimulation.ticker.in_(list(TOP_FREE_TICKERS)),
+            LiveSimulation.status == "active"
+        )
+        .all()
+    )
+
+    for sim in locked_active_sims:
+        sim.status = "paused"
+
+    if locked_active_sims:
+        db.session.commit()
+
+    return len(locked_active_sims)
+
+
+def live_sim_can_update_for_user(user, sim):
+    if not sim:
+        return False
+
+    if sim.status != "active":
+        return False
+
+    return can_access_live_sim_ticker_for_user(user, sim.ticker)
+
+def update_live_simulation_from_csv(sim, user=None):
     """
     Reads fresh CSV rows and updates one simulation from its last processed date.
 
@@ -610,6 +655,14 @@ def update_live_simulation_from_csv(sim):
     - HOLD: do nothing.
     """
     if sim.status != "active":
+        return sim
+
+    owner = user or getattr(sim, "user", None)
+
+    if owner is None and getattr(sim, "user_id", None):
+        owner = User.query.get(sim.user_id)
+
+    if owner is not None and not can_access_live_sim_ticker_for_user(owner, sim.ticker):
         return sim
 
     df = load_epoch_csv_for_ticker(sim.ticker)
@@ -1112,6 +1165,8 @@ def me():
 @app.route("/live-simulations", methods=["GET"])
 @login_required
 def list_live_simulations():
+    freeze_locked_live_simulations_for_user(current_user)
+    
     requested_status = request.args.get("status", "open").strip().lower()
 
     query = visible_live_simulation_query()
@@ -1132,8 +1187,11 @@ def list_live_simulations():
     sims = query.order_by(LiveSimulation.created_at.desc()).all()
 
     for sim in sims:
+        if not live_sim_can_update_for_user(current_user, sim):
+            continue
+
         try:
-            update_live_simulation_from_csv(sim)
+            update_live_simulation_from_csv(sim, current_user)
         except Exception as e:
             print(f"Live simulation update error for sim {sim.id}:", str(e))
 
@@ -1289,10 +1347,11 @@ def get_live_simulation(simulation_id):
     if access_error:
         return access_error
 
-    try:
-        update_live_simulation_from_csv(sim)
-    except Exception as e:
-        print(f"Live simulation update error for sim {sim.id}:", str(e))
+    if live_sim_can_update_for_user(current_user, sim):
+        try:
+            update_live_simulation_from_csv(sim, current_user)
+        except Exception as e:
+            print(f"Live simulation update error for sim {sim.id}:", str(e))
 
     return jsonify({
         "simulation": live_simulation_detail(sim)
@@ -1364,6 +1423,15 @@ def update_live_simulation_status(simulation_id):
         return jsonify({
             "error": "Invalid status. Use active, paused, or archived."
         }), 400
+
+    if new_status == "active" and not can_access_live_sim_ticker_for_user(current_user, sim.ticker):
+        return jsonify({
+            "error": (
+                "This simulation uses a Pro-only asset. It is frozen while your account is on the Free plan. "
+                "Upgrade to Pro to resume it."
+            ),
+            "upgrade_required": True
+        }), 403
 
     sim.status = new_status
     db.session.commit()
@@ -2159,6 +2227,9 @@ def stripe_webhook():
                     user.stripe_subscription_id = subscription_id
 
                 db.session.commit()
+
+                if not is_paid_user(user):
+                    freeze_locked_live_simulations_for_user(user)
 
                 print(
                     "USER SUBSCRIPTION UPDATED:",
