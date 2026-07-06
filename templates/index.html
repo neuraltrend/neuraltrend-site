@@ -4150,6 +4150,10 @@
     }
     
     function liveSimLimitText(data) {
+        if (data.is_admin || data.limit === null || data.limit === undefined) {
+            return `${data.used_count} active/paused simulations used. Admin account: unlimited live simulations.`;
+        }
+                
         if (liveSimStatusFilter === "active") {
             return `${data.active_count} active simulations. ${data.paused_count} paused · ${data.archived_count} archived.`;
         }
