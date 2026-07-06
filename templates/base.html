@@ -7232,15 +7232,34 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 14px;
-            margin-left: 4px;
-            font-size: 12px;
-            font-weight: 900;
-            opacity: 0.55;
+            min-width: 24px;
+            height: 20px;
+            margin-left: 6px;
+            padding: 2px 5px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.08);
+            color: var(--nt-neutral);
+            font-size: 11px;
+            font-weight: 950;
+            line-height: 1;
+            letter-spacing: -2px;
+            opacity: 0.9;
+            vertical-align: middle;
         }
         
         .sort-indicator.active,
         .signal-sort-indicator.active {
+            min-width: 20px;
+            letter-spacing: 0;
+            background: rgba(37, 99, 235, 0.12);
+            color: var(--nt-blue);
+            opacity: 1;
+        }
+        
+        th.sortable:hover .sort-indicator,
+        th.sortable:hover .signal-sort-indicator {
+            background: rgba(37, 99, 235, 0.12);
+            color: var(--nt-blue);
             opacity: 1;
         }
 
