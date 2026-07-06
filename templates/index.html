@@ -1660,26 +1660,12 @@
                 labels: dates,
                 datasets: datasets
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: { usePointStyle: true }  // match triangle markers
-                    }
-                },
-                scales: {
-                    x: { 
-                        display: true, 
-                        title: { display: true, text: 'Date' } 
-                    },
-                    y: { 
-                        display: true,
-                        type: window.backtestLogScale ? "logarithmic" : "linear",
-                        title: { display: true, text: 'Equity ($)' } 
-                    }
-                }
-            }
+            options: ntChartOptions({
+                logScale: window.backtestLogScale,
+                yTitle: "Equity ($)",
+                yPrefix: "$",
+                legendAlign: "end"
+            })
         });
     }
         
@@ -1705,6 +1691,227 @@
         buy: "#16A34A",
         sell: "#DC2626"
     };
+
+    function ntIsSmallScreen() {
+        return window.innerWidth < 700;
+    }
+    
+    function ntTrimZeros(value) {
+        return String(value).replace(/\.0+$|(\.\d*[1-9])0+$/, "$1");
+    }
+    
+    function ntFormatCompactNumber(value, prefix = "") {
+        const numberValue = Number(value);
+    
+        if (!Number.isFinite(numberValue)) {
+            return "—";
+        }
+    
+        const absValue = Math.abs(numberValue);
+    
+        if (absValue >= 1_000_000) {
+            return prefix + ntTrimZeros((numberValue / 1_000_000).toFixed(1)) + "M";
+        }
+    
+        if (absValue >= 1_000) {
+            return prefix + ntTrimZeros((numberValue / 1_000).toFixed(1)) + "k";
+        }
+    
+        if (absValue >= 100) {
+            return prefix + ntTrimZeros(numberValue.toFixed(0));
+        }
+    
+        if (absValue >= 10) {
+            return prefix + ntTrimZeros(numberValue.toFixed(1));
+        }
+    
+        if (absValue >= 1) {
+            return prefix + ntTrimZeros(numberValue.toFixed(2));
+        }
+    
+        return prefix + ntTrimZeros(numberValue.toFixed(3));
+    }
+    
+    function ntFormatDateForAxis(value) {
+        const date = new Date(value);
+    
+        if (Number.isNaN(date.getTime())) {
+            return String(value || "").slice(0, 10);
+        }
+    
+        const duration = document.getElementById("period-select")?.value || "5y";
+    
+        const shortHorizon = ["1w", "1mo", "3mo", "6mo"].includes(duration);
+    
+        return date.toLocaleDateString(undefined, shortHorizon ? {
+            month: "short",
+            day: "numeric"
+        } : {
+            month: "short",
+            year: "numeric"
+        });
+    }
+    
+    function ntFormatDateForTooltip(value) {
+        const date = new Date(value);
+    
+        if (Number.isNaN(date.getTime())) {
+            return String(value || "");
+        }
+    
+        return date.toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric"
+        });
+    }
+    
+    function ntChartOptions({
+        logScale = false,
+        yTitle = "",
+        yPrefix = "",
+        xTitle = "",
+        legendAlign = "end"
+    } = {}) {
+        const smallScreen = ntIsSmallScreen();
+    
+        return {
+            responsive: true,
+            maintainAspectRatio: false,
+    
+            layout: {
+                padding: {
+                    top: 8,
+                    right: 10,
+                    bottom: 4,
+                    left: 4
+                }
+            },
+    
+            interaction: {
+                mode: "index",
+                intersect: false
+            },
+    
+            elements: {
+                line: {
+                    tension: 0.18
+                },
+                point: {
+                    hoverRadius: 4
+                }
+            },
+    
+            plugins: {
+                legend: {
+                    position: "top",
+                    align: legendAlign,
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 8,
+                        boxHeight: 8,
+                        padding: 14,
+                        color: NT_COLORS.neutral,
+                        font: {
+                            size: 11,
+                            weight: "700"
+                        }
+                    }
+                },
+    
+                tooltip: {
+                    mode: "index",
+                    intersect: false,
+                    backgroundColor: "rgba(15, 23, 42, 0.92)",
+                    titleColor: "#ffffff",
+                    bodyColor: "#ffffff",
+                    borderColor: "rgba(148, 163, 184, 0.25)",
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: true,
+                    callbacks: {
+                        title: function(items) {
+                            return ntFormatDateForTooltip(items?.[0]?.label);
+                        }
+                    }
+                }
+            },
+    
+            scales: {
+                x: {
+                    display: true,
+                    grid: {
+                        color: "rgba(148, 163, 184, 0.14)",
+                        drawTicks: false
+                    },
+                    border: {
+                        display: false
+                    },
+                    title: {
+                        display: Boolean(xTitle),
+                        text: xTitle,
+                        color: NT_COLORS.neutral,
+                        font: {
+                            size: 11,
+                            weight: "700"
+                        }
+                    },
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: smallScreen ? 4 : 7,
+                        maxRotation: 0,
+                        minRotation: 0,
+                        padding: 10,
+                        color: NT_COLORS.neutral,
+                        font: {
+                            size: 11,
+                            weight: "700"
+                        },
+                        callback: function(value) {
+                            const label = this.getLabelForValue
+                                ? this.getLabelForValue(value)
+                                : value;
+    
+                            return ntFormatDateForAxis(label);
+                        }
+                    }
+                },
+    
+                y: {
+                    display: true,
+                    type: logScale ? "logarithmic" : "linear",
+                    grid: {
+                        color: "rgba(148, 163, 184, 0.18)",
+                        drawTicks: false
+                    },
+                    border: {
+                        display: false
+                    },
+                    title: {
+                        display: Boolean(yTitle),
+                        text: yTitle,
+                        color: NT_COLORS.neutral,
+                        font: {
+                            size: 11,
+                            weight: "700"
+                        }
+                    },
+                    ticks: {
+                        maxTicksLimit: smallScreen ? 4 : 6,
+                        padding: 8,
+                        color: NT_COLORS.neutral,
+                        font: {
+                            size: 11,
+                            weight: "700"
+                        },
+                        callback: function(value) {
+                            return ntFormatCompactNumber(value, yPrefix);
+                        }
+                    }
+                }
+            }
+        };
+    }
     
     let signalFilters = {
         today_signal: null,
@@ -2724,24 +2931,12 @@
                     }
                 ]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,   // 🔥 THIS FIXES OVERFLOW
-                plugins: {
-                    legend: {
-                        position: "top",   // keep at top
-                        align: "end",      // 🔥 move to right
-                        labels: { usePointStyle: true }  // match backtest style
-                    }
-                },
-                scales: {
-                    x: { display: true },
-                    y: { 
-                        display: true,
-                        type: isLogScale ? "logarithmic" : "linear"
-                    }
-                }
-            }
+            options: ntChartOptions({
+                logScale: isLogScale,
+                yTitle: "$1 normalized equity",
+                yPrefix: "",
+                legendAlign: "end"
+            })
         });
     
         const toggleBtn = document.getElementById("scale-toggle-btn");
@@ -3307,33 +3502,12 @@
                     }
                 ]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: {
-                            usePointStyle: true
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        display: true,
-                        title: {
-                            display: true,
-                            text: "Date"
-                        }
-                    },
-                    y: {
-                        display: true,
-                        title: {
-                            display: true,
-                            text: "Equity ($)"
-                        }
-                    }
-                }
-            }
+            options: ntChartOptions({
+                logScale: false,
+                yTitle: "Equity ($)",
+                yPrefix: "$",
+                legendAlign: "end"
+            })
         });
     }
     
