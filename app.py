@@ -296,6 +296,9 @@ def is_paid_user(user):
     )
 
 def get_live_simulation_limit_for_user(user):
+    if is_admin_user(user):
+        return None  # Admin has unlimited live simulations
+
     if is_paid_user(user):
         return PAID_LIVE_SIMULATION_LIMIT
 
@@ -1250,6 +1253,7 @@ def list_live_simulations():
     return jsonify({
         "limit": user_limit,
         "is_paid": is_paid_user(current_user),
+        "is_admin": is_admin_user(current_user),
         "count": len(sims),
         "used_count": open_count,
         "active_count": active_count,
@@ -1301,7 +1305,7 @@ def create_live_simulation():
 
     user_limit = get_live_simulation_limit_for_user(current_user)
 
-    if active_count >= user_limit:
+    if user_limit is not None and active_count >= user_limit:
         return jsonify({
             "error": (
                 f"Simulation limit reached. Your current limit is {user_limit}. "
