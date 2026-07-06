@@ -521,6 +521,46 @@ def get_latest_equity_point(simulation_id):
         .first()
     )
 
+def enforce_free_live_simulation_limit_for_user(user):
+    """
+    For Free users, keep only the newest allowed active live simulations up to the Free limit.
+    Extra active simulations are paused.
+    """
+    if not user or is_paid_user(user):
+        return 0
+
+    limit = get_live_simulation_limit_for_user(user)
+
+    active_sims = (
+        LiveSimulation.query
+        .filter_by(user_id=user.id, status="active")
+        .order_by(LiveSimulation.updated_at.desc(), LiveSimulation.id.desc())
+        .all()
+    )
+
+    kept_count = 0
+    paused_count = 0
+
+    for sim in active_sims:
+        ticker = str(sim.ticker or "").strip().upper()
+
+        # Pro-only tickers should never stay active for Free users.
+        if ticker not in TOP_FREE_TICKERS:
+            sim.status = "paused"
+            paused_count += 1
+            continue
+
+        # Keep only the newest 5 active Free-allowed simulations.
+        if kept_count < limit:
+            kept_count += 1
+        else:
+            sim.status = "paused"
+            paused_count += 1
+
+    if paused_count:
+        db.session.commit()
+
+    return paused_count
 
 def live_simulation_summary(sim):
     latest = get_latest_equity_point(sim.id)
@@ -1166,6 +1206,7 @@ def me():
 @login_required
 def list_live_simulations():
     freeze_locked_live_simulations_for_user(current_user)
+    enforce_free_live_simulation_limit_for_user(current_user)
     
     requested_status = request.args.get("status", "open").strip().lower()
 
@@ -2230,6 +2271,7 @@ def stripe_webhook():
 
                 if not is_paid_user(user):
                     freeze_locked_live_simulations_for_user(user)
+                    enforce_free_live_simulation_limit_for_user(user)
 
                 print(
                     "USER SUBSCRIPTION UPDATED:",
