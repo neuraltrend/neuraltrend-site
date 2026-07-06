@@ -7223,6 +7223,27 @@
             }
         }
 
+        /* ===============================
+           Board sorting
+        ================================ */
+
+        .sort-indicator,
+        .signal-sort-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 14px;
+            margin-left: 4px;
+            font-size: 12px;
+            font-weight: 900;
+            opacity: 0.55;
+        }
+        
+        .sort-indicator.active,
+        .signal-sort-indicator.active {
+            opacity: 1;
+        }
+
     </style>
 
 </head>
