@@ -1732,11 +1732,34 @@
         return prefix + ntTrimZeros(numberValue.toFixed(3));
     }
     
+    function ntParseChartDate(value) {
+        const rawValue = String(value || "").trim();
+    
+        /*
+          Important:
+          Date-only strings like "2026-07-06" are parsed as UTC by JavaScript.
+          In some time zones, that displays as the previous day.
+          So we manually parse YYYY-MM-DD as a local date.
+        */
+        const match = rawValue.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    
+        if (match) {
+            const year = Number(match[1]);
+            const month = Number(match[2]) - 1;
+            const day = Number(match[3]);
+    
+            return new Date(year, month, day);
+        }
+    
+        return new Date(rawValue);
+    }
+    
     function ntFormatDateForAxis(value) {
-        const date = new Date(value);
+        const rawValue = String(value || "").trim();
+        const date = ntParseChartDate(rawValue);
     
         if (Number.isNaN(date.getTime())) {
-            return String(value || "").slice(0, 10);
+            return rawValue.slice(0, 10);
         }
     
         const duration = document.getElementById("period-select")?.value || "5y";
@@ -1753,10 +1776,11 @@
     }
     
     function ntFormatDateForTooltip(value) {
-        const date = new Date(value);
+        const rawValue = String(value || "").trim();
+        const date = ntParseChartDate(rawValue);
     
         if (Number.isNaN(date.getTime())) {
-            return String(value || "");
+            return rawValue;
         }
     
         return date.toLocaleDateString(undefined, {
