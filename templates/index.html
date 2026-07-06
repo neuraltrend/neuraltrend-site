@@ -501,7 +501,7 @@
                                     onclick="sortBy('buy_hold_annual_return')"
                                 >
                                     Buy & Hold Return (<span class="metric-horizon-text">5Y</span>)<br>
-                                    <span id="buy-hold-sort-indicator" class="nt-sort-indicator">—</span>
+                                    <span id="buy-hold-sort-indicator" class="nt-sort-indicator">↕</span>
                                 </div>
                             
                                 <div 
@@ -509,7 +509,7 @@
                                     onclick="sortBy('strategy_annual_return')"
                                 >
                                     AI Strategy Return (<span class="metric-horizon-text">5Y</span>)<br>
-                                    <span id="strategy-sort-indicator" class="nt-sort-indicator">—</span>
+                                    <span id="strategy-sort-indicator" class="nt-sort-indicator">↕</span>
                                 </div>
                             
                                 <div 
@@ -517,7 +517,7 @@
                                     onclick="sortBy('outperformance')"
                                 >
                                     AI vs Buy & Hold (<span class="metric-horizon-text">5Y</span>)<br>
-                                    <span id="outperformance-sort-indicator" class="nt-sort-indicator">—</span>
+                                    <span id="outperformance-sort-indicator" class="nt-sort-indicator">↕</span>
                                 </div>
                             
                             </div>
@@ -2202,13 +2202,13 @@
         if (!buyHoldEl || !strategyEl || !outperformanceEl) return;
     
         // Default state
-        buyHoldEl.innerHTML = "—";
-        strategyEl.innerHTML = "—";
-        outperformanceEl.innerHTML = "—";
+        buyHoldEl.innerHTML = "↕";
+        strategyEl.innerHTML = "↕";
+        outperformanceEl.innerHTML = "↕";
     
         if (!currentSort.key) return;
     
-        const arrow = currentSort.direction === 1 ? "▲" : "▼";
+        const arrow = currentSort.direction === 1 ? "↑" : "↓";
     
         if (currentSort.key === "buy_hold_annual_return") {
             buyHoldEl.innerHTML = arrow;
