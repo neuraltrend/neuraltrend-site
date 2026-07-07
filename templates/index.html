@@ -2289,9 +2289,12 @@
             return `<span class="return-value return-neutral">—</span>`;
         }
     
+        const percent = (Number(value) - 1) * 100;
+        const sign = percent > 0 ? "+" : "";
+    
         return `
             <span class="return-value ${getOutperformanceClass(value)}">
-                ${value.toFixed(2)}×
+                ${sign}${percent.toFixed(1)}%
             </span>
         `;
     }
