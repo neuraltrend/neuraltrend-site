@@ -349,12 +349,13 @@ def can_user_see_ticker(user, ticker):
 
 def get_supported_tickers_for_user(user):
     """
-    Returns SUPPORTED_TICKERS after applying admin-only visibility rules.
-    Admin sees everything.
-    Non-admin users do not see ADMIN_ONLY_TICKERS.
+    User-visible ticker list for dropdowns.
+
+    Admin sees normal supported tickers plus admin-only tickers.
+    Non-admin users see only supported tickers, excluding admin-only tickers.
     """
     if is_admin_user(user):
-        return list(SUPPORTED_TICKERS)
+        return get_all_signal_board_tickers()
 
     return [
         ticker for ticker in SUPPORTED_TICKERS
@@ -368,6 +369,38 @@ def require_ticker_visible_or_404(ticker):
         }), 404
 
     return None
+
+def unique_ticker_list(*ticker_groups):
+    """
+    Combines ticker lists/sets while preserving order and removing duplicates.
+    """
+    seen = set()
+    output = []
+
+    for group in ticker_groups:
+        for ticker in group:
+            clean_ticker = normalize_ticker(ticker)
+
+            if not clean_ticker or clean_ticker in seen:
+                continue
+
+            seen.add(clean_ticker)
+            output.append(clean_ticker)
+
+    return output
+
+def get_all_signal_board_tickers():
+    """
+    Internal processing list.
+
+    Includes normal supported tickers plus admin-only tickers.
+    This allows admin-only tickers to appear for admin even if they are
+    not listed in SUPPORTED_TICKERS.
+    """
+    return unique_ticker_list(
+        SUPPORTED_TICKERS,
+        sorted(ADMIN_ONLY_TICKERS)
+    )
 
 def compute_signals_for_ticker(ticker, period_days=365*10, csv_version=None):
     effective_csv_version = csv_version if csv_version is not None else get_csv_version()
@@ -2059,7 +2092,7 @@ def mask_signal_summary_row_for_user(row, user):
 def compute_signals_summary_cached(csv_version, period_days):
     results = []
 
-    for t in SUPPORTED_TICKERS:
+    for t in get_all_signal_board_tickers():
         try:
             sigs = compute_signals_for_ticker(t, period_days, csv_version)
             results.append({
