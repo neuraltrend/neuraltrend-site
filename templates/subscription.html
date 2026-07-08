@@ -127,11 +127,19 @@
 
 <script>
     async function startStripeCheckoutFromSubscriptionPage() {
+        ntTrack("upgrade_clicked", {
+            source: "subscription_page"
+        });
+        
         try {
             const meResponse = await fetch("/me", { cache: "no-store" });
             const me = await meResponse.json();
 
             if (!me.email) {
+                ntTrack("upgrade_requires_login", {
+                    source: "subscription_page"
+                });
+                
                 if (typeof openNeuralTrendLoginModal === "function") {
                     openNeuralTrendLoginModal();
                 } else {
@@ -141,6 +149,10 @@
             }
 
             if (me.is_paid) {
+                ntTrack("billing_portal_clicked", {
+                    source: "subscription_page"
+                });
+                
                 await startBillingPortalFromSubscriptionPage();
                 return;
             }
@@ -152,8 +164,10 @@
             const data = await response.json();
 
             if (data.url) {
-                window.location.href = data.url;
+                ntTrackAndGo("checkout_started", data.url);
+                return;
             } else {
+                ntTrack("checkout_start_failed");
                 alert(data.error || "Could not start checkout.");
             }
 
@@ -172,7 +186,8 @@
             const data = await response.json();
 
             if (data.url) {
-                window.location.href = data.url;
+                ntTrackAndGo("billing_portal_started", data.url);
+                return;
             } else {
                 alert(data.error || "Could not open billing portal.");
             }
