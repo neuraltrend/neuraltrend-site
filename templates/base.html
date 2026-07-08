@@ -7338,7 +7338,67 @@
     </div>
     
     <!-- 100% privacy-first analytics -->
+    <script>
+    window.sa_event = window.sa_event || function() {
+        var args = [].slice.call(arguments);
+        window.sa_event.q ? window.sa_event.q.push(args) : window.sa_event.q = [args];
+    };
+    
+    window.ntTrack = function(eventName, metadata = {}) {
+        try {
+            const safeEventName = String(eventName || "")
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9_]/g, "_");
+    
+            if (!safeEventName) return;
+    
+            if (typeof window.sa_event === "function") {
+                window.sa_event(safeEventName, metadata);
+            }
+        } catch (error) {
+            console.warn("Tracking error:", error);
+        }
+    };
+    
+    window.ntTrackAndGo = function(eventName, url) {
+        let hasNavigated = false;
+    
+        function go() {
+            if (hasNavigated) return;
+            hasNavigated = true;
+            window.location.href = url;
+        }
+    
+        try {
+            const safeEventName = String(eventName || "")
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9_]/g, "_");
+    
+            if (typeof window.sa_event === "function" && safeEventName) {
+                window.sa_event(safeEventName, go);
+                setTimeout(go, 350);
+                return;
+            }
+        } catch (error) {
+            console.warn("Tracking redirect error:", error);
+        }
+    
+        go();
+    };
+    </script>
+    
     <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+    
+    <script
+        async
+        data-collect="outbound,emails,downloads"
+        data-extensions="pdf,csv,docx,xlsx,zip,doc,xls"
+        data-use-title="true"
+        data-full-urls="false"
+        src="https://scripts.simpleanalyticscdn.com/auto-events.js">
+    </script>
     
     <script>
     // const loginBtn = document.getElementById("login-btn");
@@ -7398,6 +7458,8 @@
     });
 
     signupBtn.addEventListener("click", async function() {
+        ntTrack("signup_clicked");
+        
         const response = await fetch("/signup", {
             method: "POST",
             headers: {
@@ -7412,6 +7474,7 @@
         const data = await response.json();
     
         if (data.message) {
+            ntTrack("signup_created_pending_verification");
             authMessage.innerText = "Check your email to verify your account. If you do not see it, please check your spam folder.";
     
             // Close modal after short delay (better UX)
@@ -7423,6 +7486,7 @@
             }, 3500);
     
         } else {
+            ntTrack("signup_failed");
             authMessage.innerText = data.error;
         }
     });
@@ -7431,6 +7495,8 @@
     // Login
     // ------------------
     signinBtn.addEventListener("click", async function() {
+        ntTrack("login_clicked");
+        
         const email = emailInput.value;
         const password = passwordInput.value;
     
@@ -7448,6 +7514,7 @@
         const data = await response.json();
     
         if (data.message) {
+            ntTrack("login_success");
             authMessage.innerText = data.message;
             loginModal.style.opacity = "0";
             setTimeout(() => {
@@ -7467,6 +7534,7 @@
                 await loadLiveSimulations();
             }
         } else {
+            ntTrack("login_failed");
             authMessage.innerText = data.error || "Login failed.";
         
             if (data.verification_required) {
