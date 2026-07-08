@@ -261,7 +261,7 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "ZIG-USD", "ZKJ-USD", "ZRX-USD"]
 
 TOP_FREE_TICKERS = {"BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD"}
-# TOP_FREE_TICKERS = SUPPORTED_TICKERS
+ADMIN_ONLY_TICKERS = {"GOOGL", "MU", "TSM", "ASML", "JNJ", "AVGO", "AMZN", "MSFT"}
 
 FREE_LIVE_SIMULATION_LIMIT = 5
 PAID_LIVE_SIMULATION_LIMIT = 100
@@ -305,7 +305,12 @@ def get_live_simulation_limit_for_user(user):
     return FREE_LIVE_SIMULATION_LIMIT
 
 def can_view_full_signals_for_ticker(user, ticker):
-    ticker = str(ticker or "").upper()
+    ticker = normalize_ticker(ticker)
+
+    # Admin-only assets are invisible to everyone except admin,
+    # even if the user is subscribed/Pro.
+    if not can_user_see_ticker(user, ticker):
+        return False
 
     if ticker in TOP_FREE_TICKERS:
         return True
@@ -313,6 +318,12 @@ def can_view_full_signals_for_ticker(user, ticker):
     return is_paid_user(user)
 
 def require_signal_access_or_403(ticker):
+    ticker = normalize_ticker(ticker)
+
+    visibility_error = require_ticker_visible_or_404(ticker)
+    if visibility_error:
+        return visibility_error
+
     if can_view_full_signals_for_ticker(current_user, ticker):
         return None
 
@@ -321,6 +332,42 @@ def require_signal_access_or_403(ticker):
         "upgrade_required": True,
         "ticker": ticker
     }), 403
+
+def normalize_ticker(ticker):
+    return str(ticker or "").strip().upper()
+
+def is_admin_only_ticker(ticker):
+    return normalize_ticker(ticker) in ADMIN_ONLY_TICKERS
+
+def can_user_see_ticker(user, ticker):
+    ticker = normalize_ticker(ticker)
+
+    if is_admin_only_ticker(ticker) and not is_admin_user(user):
+        return False
+
+    return True
+
+def get_supported_tickers_for_user(user):
+    """
+    Returns SUPPORTED_TICKERS after applying admin-only visibility rules.
+    Admin sees everything.
+    Non-admin users do not see ADMIN_ONLY_TICKERS.
+    """
+    if is_admin_user(user):
+        return list(SUPPORTED_TICKERS)
+
+    return [
+        ticker for ticker in SUPPORTED_TICKERS
+        if not is_admin_only_ticker(ticker)
+    ]
+
+def require_ticker_visible_or_404(ticker):
+    if not can_user_see_ticker(current_user, ticker):
+        return jsonify({
+            "error": "Asset not available."
+        }), 404
+
+    return None
 
 def compute_signals_for_ticker(ticker, period_days=365*10, csv_version=None):
     effective_csv_version = csv_version if csv_version is not None else get_csv_version()
@@ -612,7 +659,6 @@ def live_simulation_summary(sim):
 
     return data
 
-
 def live_simulation_detail(sim):
     equity_points = (
         LiveSimulationEquity.query
@@ -642,13 +688,7 @@ def live_simulation_detail(sim):
     return summary
 
 def can_access_live_sim_ticker_for_user(user, ticker):
-    ticker = str(ticker or "").strip().upper()
-
-    if is_paid_user(user):
-        return True
-
-    return ticker in TOP_FREE_TICKERS
-
+    return can_use_live_simulation_ticker(user, ticker)
 
 def freeze_locked_live_simulations_for_user(user):
     """
@@ -986,13 +1026,17 @@ def build_live_sim_horizon_returns(sim):
     return output
 
 def can_use_live_simulation_ticker(user, ticker):
-    ticker = str(ticker or "").strip().upper()
+    ticker = normalize_ticker(ticker)
+
+    # Admin-only assets are blocked for non-admin users,
+    # including subscribed/Pro users.
+    if not can_user_see_ticker(user, ticker):
+        return False
 
     if is_paid_user(user):
         return True
 
     return ticker in TOP_FREE_TICKERS
-
 
 def require_live_simulation_ticker_access(ticker):
     ticker = str(ticker or "").strip().upper()
@@ -1012,6 +1056,14 @@ def require_live_simulation_ticker_access(ticker):
 def visible_live_simulation_query():
     query = LiveSimulation.query.filter_by(user_id=current_user.id)
 
+    # Non-admin users should never see admin-only simulations,
+    # even if they are Pro.
+    if not is_admin_user(current_user):
+        query = query.filter(
+            ~LiveSimulation.ticker.in_(list(ADMIN_ONLY_TICKERS))
+        )
+
+    # Free users can only see Free live-simulation tickers.
     if not is_paid_user(current_user):
         query = query.filter(
             LiveSimulation.ticker.in_(list(TOP_FREE_TICKERS))
@@ -1600,7 +1652,10 @@ def confirm_delete(token):
 
 @app.route("/")
 def index():
-    return render_template("index.html", supported_tickers=SUPPORTED_TICKERS)
+    return render_template(
+        "index.html",
+        supported_tickers=get_supported_tickers_for_user(current_user)
+    )
 
 @app.route("/subscription")
 def subscription():
@@ -2035,11 +2090,17 @@ def signals_summary():
 
     # Full internal cached data
     raw_results = compute_signals_summary_cached(csv_version, period_days)
+
+    # Apply admin-only ticker visibility BEFORE masking.
+    visible_results = [
+        row for row in raw_results
+        if can_user_see_ticker(current_user, row.get("ticker"))
+    ]
     
     # User-safe data returned to frontend
     safe_results = [
         mask_signal_summary_row_for_user(row, current_user)
-        for row in raw_results
+        for row in visible_results
     ]
     
     return jsonify(safe_results)
