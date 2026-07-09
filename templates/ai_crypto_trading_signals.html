@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}AI Crypto Trading Signals | NeuralTrend{% endblock %}
+
+{% block meta_description %}
+Explore AI crypto trading signals, compare strategy performance against buy-and-hold, run backtests, and track live paper simulations with NeuralTrend.
+{% endblock %}
+
+{% block content %}
+
+<main>
+    <div class="nt-page-container">
+
+        <section class="nt-site-intro">
+            <div class="nt-site-intro-content">
+
+                <div class="nt-site-kicker">
+                    AI Crypto Trading Signals
+                </div>
+
+                <h1 class="nt-site-title">
+                    AI crypto trading signals for BTC, ETH, SOL, XRP and more
+                </h1>
+
+                <p class="nt-site-subtitle">
+                    NeuralTrend helps crypto traders explore AI-generated BUY, HOLD, and SELL signals,
+                    compare strategy performance against buy-and-hold, run historical backtests,
+                    and track live paper simulations.
+                </p>
+
+                <div class="nt-site-actions">
+                    <a href="{{ url_for('index') }}#products" class="nt-hero-btn nt-hero-btn-primary">
+                        Explore Signals
+                    </a>
+
+                    <a href="{{ url_for('subscription') }}" class="nt-hero-btn nt-hero-btn-secondary">
+                        View Pro Plan
+                    </a>
+                </div>
+
+                <div class="nt-site-disclaimer">
+                    NeuralTrend is for informational market analysis only. It does not provide financial advice or place trades.
+                </div>
+
+            </div>
+        </section>
+
+        <section class="nt-pricing-section">
+
+            <div class="nt-pricing-header">
+                <div class="nt-section-eyebrow">Why NeuralTrend</div>
+
+                <h2 class="nt-pricing-title">
+                    Crypto signal research with backtests and paper simulations
+                </h2>
+
+                <p class="nt-pricing-subtitle">
+                    Instead of only showing a signal, NeuralTrend lets users compare AI strategy behavior with a buy-and-hold benchmark and test historical performance assumptions.
+                </p>
+            </div>
+
+            <div class="nt-pricing-grid">
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Signals</div>
+
+                    <h3 class="nt-pricing-plan-title">
+                        Daily AI signal overview
+                    </h3>
+
+                    <p class="nt-pricing-plan-text">
+                        View BUY, HOLD, and SELL signal states for major crypto assets and selected market tickers.
+                    </p>
+
+                    <ul class="nt-pricing-list">
+                        <li>BTC-USD, ETH-USD, SOL-USD, and XRP-USD free access</li>
+                        <li>Signal board with filters and search</li>
+                        <li>Return horizon comparison</li>
+                    </ul>
+                </div>
+
+                <div class="nt-pricing-card nt-pricing-card-featured">
+                    <div class="nt-pricing-featured-badge">Pro</div>
+
+                    <div class="nt-pricing-plan-label">Research Workspace</div>
+
+                    <h3 class="nt-pricing-plan-title">
+                        Backtests, equity previews, and live simulations
+                    </h3>
+
+                    <p class="nt-pricing-plan-text">
+                        NeuralTrend Pro unlocks the full EpochSignaler workspace for supported crypto and traditional assets.
+                    </p>
+
+                    <ul class="nt-pricing-list">
+                        <li>Full signal history for supported assets</li>
+                        <li>Equity preview versus buy-and-hold</li>
+                        <li>Historical backtesting</li>
+                        <li>Live paper simulations</li>
+                    </ul>
+
+                    <div class="nt-pricing-actions">
+                        <a href="{{ url_for('subscription') }}" class="nt-pricing-btn nt-pricing-btn-primary" style="text-decoration:none;">
+                            Upgrade to Pro
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="nt-pricing-section">
+
+            <div class="nt-pricing-header">
+                <div class="nt-section-eyebrow">How it works</div>
+
+                <h2 class="nt-pricing-title">
+                    From signal to simulation
+                </h2>
+            </div>
+
+            <div class="nt-pricing-grid">
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Step 1</div>
+                    <h3 class="nt-pricing-plan-title">Review the signal</h3>
+                    <p class="nt-pricing-plan-text">
+                        Start with the signal board to see the current AI signal state for each crypto asset.
+                    </p>
+                </div>
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Step 2</div>
+                    <h3 class="nt-pricing-plan-title">Compare performance</h3>
+                    <p class="nt-pricing-plan-text">
+                        Use equity previews and backtests to compare the AI strategy against buy-and-hold over selected horizons.
+                    </p>
+                </div>
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Step 3</div>
+                    <h3 class="nt-pricing-plan-title">Track paper simulations</h3>
+                    <p class="nt-pricing-plan-text">
+                        Create live paper simulations that update from the latest deployed signal data.
+                    </p>
+                </div>
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Step 4</div>
+                    <h3 class="nt-pricing-plan-title">Use results responsibly</h3>
+                    <p class="nt-pricing-plan-text">
+                        NeuralTrend is an informational research tool. It does not execute trades or guarantee returns.
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="nt-pricing-section">
+
+            <div class="nt-pricing-header">
+                <div class="nt-section-eyebrow">FAQ</div>
+
+                <h2 class="nt-pricing-title">
+                    AI crypto trading signals FAQ
+                </h2>
+            </div>
+
+            <div class="nt-pricing-card">
+                <h3 class="nt-pricing-plan-title">
+                    Is NeuralTrend financial advice?
+                </h3>
+                <p class="nt-pricing-plan-text">
+                    No. NeuralTrend provides informational market analytics, historical simulations, and paper simulation tools. It does not provide personalized financial advice.
+                </p>
+
+                <h3 class="nt-pricing-plan-title">
+                    Does NeuralTrend place trades?
+                </h3>
+                <p class="nt-pricing-plan-text">
+                    No. NeuralTrend does not connect to exchanges or brokers. Live simulations are paper simulations only.
+                </p>
+
+                <h3 class="nt-pricing-plan-title">
+                    Which crypto assets are free?
+                </h3>
+                <p class="nt-pricing-plan-text">
+                    Free users can access full signals for BTC-USD, ETH-USD, SOL-USD, and XRP-USD. Pro unlocks additional supported assets.
+                </p>
+
+                <h3 class="nt-pricing-plan-title">
+                    What does Pro unlock?
+                </h3>
+                <p class="nt-pricing-plan-text">
+                    Pro unlocks all supported assets, full signal history, equity previews, historical backtests, and expanded live paper simulations.
+                </p>
+            </div>
+
+        </section>
+
+    </div>
+</main>
+
+{% endblock %}
