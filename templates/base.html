@@ -7,7 +7,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>NeuralTrend</title>
+    <title>{% block title %}NeuralTrend | AI Trading Signals, Backtests & Paper Simulations{% endblock %}</title>
+    
+    <meta 
+        name="description" 
+        content="{% block meta_description %}NeuralTrend provides AI-powered market signals, historical backtests, equity previews, and live paper simulations for crypto and traditional assets.{% endblock %}"
+    >
+    
+    <link rel="canonical" href="{{ request.url_root.rstrip('/') ~ request.path }}">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="NeuralTrend">
+    <meta property="og:title" content="NeuralTrend | AI Trading Signals">
+    <meta property="og:description" content="AI-powered market signals, backtests, equity previews, and live paper simulations for crypto and traditional assets.">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image" content="{{ url_for('static', filename='logo.png', _external=True) }}">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="NeuralTrend | AI Trading Signals">
+    <meta name="twitter:description" content="AI-powered market signals, backtests, equity previews, and live paper simulations.">
+    <meta name="twitter:image" content="{{ url_for('static', filename='logo.png', _external=True) }}">
     
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     
