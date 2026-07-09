@@ -1165,67 +1165,6 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
             
             </div>
 
-            <div class="nt-model-preview-layout nt-model-preview-layout-full">
-
-                <div class="nt-model-preview-card">
-                    <div class="nt-model-preview-kicker">AltIndexer Calculation Logic</div>
-                
-                    <h3 class="nt-model-preview-title">
-                        How AltIndexer measures the altcoin market regime
-                    </h3>
-                
-                    <p class="nt-model-preview-text">
-                        AltIndexer is a forward-looking market-regime index calculated from the current signal-zone structure of supported altcoins.
-                        Instead of relying only on past 90-day price performance, it evaluates how many assets are currently positioned in model-defined buy or sell zones.
-                    </p>
-                
-                    <div class="nt-model-feature-list">
-                
-                        <div class="nt-model-feature-row">
-                            <div class="nt-model-feature-icon">1</div>
-                            <div>
-                                <div class="nt-model-feature-title">Daily signal-zone scan</div>
-                                <div class="nt-model-feature-text">
-                                    Each day, supported altcoins are classified according to their current model signal condition: buy zone, neutral/hold zone, or sell zone.
-                                </div>
-                            </div>
-                        </div>
-                
-                        <div class="nt-model-feature-row">
-                            <div class="nt-model-feature-icon">2</div>
-                            <div>
-                                <div class="nt-model-feature-title">Buy-zone versus sell-zone balance</div>
-                                <div class="nt-model-feature-text">
-                                    The index reflects the balance between altcoins showing stronger positive signal conditions and altcoins showing weaker or defensive signal conditions.
-                                </div>
-                            </div>
-                        </div>
-                
-                        <div class="nt-model-feature-row">
-                            <div class="nt-model-feature-icon">3</div>
-                            <div>
-                                <div class="nt-model-feature-title">Normalized market-regime score</div>
-                                <div class="nt-model-feature-text">
-                                    The final AltIndexer value is shown on a normalized scale. Positive values indicate a stronger altcoin regime, while negative values indicate a weaker or defensive regime.
-                                </div>
-                            </div>
-                        </div>
-                
-                        <div class="nt-model-feature-row">
-                            <div class="nt-model-feature-icon">4</div>
-                            <div>
-                                <div class="nt-model-feature-title">Forward-looking interpretation</div>
-                                <div class="nt-model-feature-text">
-                                    Because the calculation is based on current signal-zone conditions, AltIndexer is designed to describe the present market setup rather than only summarize past performance.
-                                </div>
-                            </div>
-                        </div>
-                
-                    </div>
-                </div>
-                  
-            </div>
-
             <!-- AltIndexer Current Metrics -->
             <div id="altindexer-performance-panel" class="nt-performance-panel">
             
@@ -1290,6 +1229,67 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                         margin: 0 auto;
                     "
                 ></div>
+            </div>
+
+            <div class="nt-model-preview-layout nt-model-preview-layout-full">
+
+                <div class="nt-model-preview-card">
+                    <div class="nt-model-preview-kicker">AltIndexer Calculation Logic</div>
+                
+                    <h3 class="nt-model-preview-title">
+                        How AltIndexer measures the altcoin market regime
+                    </h3>
+                
+                    <p class="nt-model-preview-text">
+                        AltIndexer is a forward-looking market-regime index calculated from the current signal-zone structure of supported altcoins.
+                        Instead of relying only on past 90-day price performance, it evaluates how many assets are currently positioned in model-defined buy or sell zones.
+                    </p>
+                
+                    <div class="nt-model-feature-list">
+                
+                        <div class="nt-model-feature-row">
+                            <div class="nt-model-feature-icon">1</div>
+                            <div>
+                                <div class="nt-model-feature-title">Daily signal-zone scan</div>
+                                <div class="nt-model-feature-text">
+                                    Each day, supported altcoins are classified according to their current model signal condition: buy zone, neutral/hold zone, or sell zone.
+                                </div>
+                            </div>
+                        </div>
+                
+                        <div class="nt-model-feature-row">
+                            <div class="nt-model-feature-icon">2</div>
+                            <div>
+                                <div class="nt-model-feature-title">Buy-zone versus sell-zone balance</div>
+                                <div class="nt-model-feature-text">
+                                    The index reflects the balance between altcoins showing stronger positive signal conditions and altcoins showing weaker or defensive signal conditions.
+                                </div>
+                            </div>
+                        </div>
+                
+                        <div class="nt-model-feature-row">
+                            <div class="nt-model-feature-icon">3</div>
+                            <div>
+                                <div class="nt-model-feature-title">Normalized market-regime score</div>
+                                <div class="nt-model-feature-text">
+                                    The final AltIndexer value is shown on a normalized scale. Positive values indicate a stronger altcoin regime, while negative values indicate a weaker or defensive regime.
+                                </div>
+                            </div>
+                        </div>
+                
+                        <div class="nt-model-feature-row">
+                            <div class="nt-model-feature-icon">4</div>
+                            <div>
+                                <div class="nt-model-feature-title">Forward-looking interpretation</div>
+                                <div class="nt-model-feature-text">
+                                    Because the calculation is based on current signal-zone conditions, AltIndexer is designed to describe the present market setup rather than only summarize past performance.
+                                </div>
+                            </div>
+                        </div>
+                
+                    </div>
+                </div>
+                  
             </div>
         </div>
 
