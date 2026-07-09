@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Buy and Hold vs AI Strategy | NeuralTrend{% endblock %}
+
+{% block meta_description %}
+Compare buy-and-hold investing against AI signal strategies with NeuralTrend. Explore historical backtests, equity previews, and live paper simulations for crypto and traditional assets.
+{% endblock %}
+
+{% block content %}
+
+<main>
+    <div class="nt-page-container">
+
+        <section class="nt-site-intro">
+            <div class="nt-site-intro-content">
+
+                <div class="nt-site-kicker">
+                    Buy and Hold vs AI Strategy
+                </div>
+
+                <h1 class="nt-site-title">
+                    Compare buy-and-hold performance against AI signal strategies
+                </h1>
+
+                <p class="nt-site-subtitle">
+                    NeuralTrend helps traders and investors compare AI-generated signal strategies against a simple buy-and-hold benchmark across crypto and traditional assets.
+                </p>
+
+                <div class="nt-site-actions">
+                    <a href="{{ url_for('index') }}#products" class="nt-hero-btn nt-hero-btn-primary">
+                        Compare Signals
+                    </a>
+
+                    <a href="{{ url_for('subscription') }}" class="nt-hero-btn nt-hero-btn-secondary">
+                        View Pro Plan
+                    </a>
+                </div>
+
+                <div class="nt-site-disclaimer">
+                    Historical simulations are for informational purposes only and do not constitute financial advice.
+                </div>
+
+            </div>
+        </section>
+
+        <section class="nt-pricing-section">
+
+            <div class="nt-pricing-header">
+                <div class="nt-section-eyebrow">Strategy comparison</div>
+
+                <h2 class="nt-pricing-title">
+                    Why compare against buy-and-hold?
+                </h2>
+
+                <p class="nt-pricing-subtitle">
+                    A signal strategy should be evaluated against a simple benchmark. NeuralTrend uses buy-and-hold as a reference point so users can see whether the AI strategy improves or trails passive exposure over selected horizons.
+                </p>
+            </div>
+
+            <div class="nt-pricing-grid">
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Benchmark</div>
+
+                    <h3 class="nt-pricing-plan-title">
+                        Buy-and-hold return
+                    </h3>
+
+                    <p class="nt-pricing-plan-text">
+                        Buy-and-hold shows what would have happened if the asset was purchased and held through the selected period.
+                    </p>
+
+                    <ul class="nt-pricing-list">
+                        <li>Simple passive benchmark</li>
+                        <li>Easy to understand</li>
+                        <li>Useful baseline for comparison</li>
+                    </ul>
+                </div>
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">AI Strategy</div>
+
+                    <h3 class="nt-pricing-plan-title">
+                        Signal-based strategy return
+                    </h3>
+
+                    <p class="nt-pricing-plan-text">
+                        The AI strategy follows NeuralTrend BUY, HOLD, and SELL signals and compares the resulting equity curve against the buy-and-hold benchmark.
+                    </p>
+
+                    <ul class="nt-pricing-list">
+                        <li>Uses AI-generated signal states</li>
+                        <li>Includes historical equity preview</li>
+                        <li>Can be tested with backtesting tools</li>
+                    </ul>
+                </div>
+
+                <div class="nt-pricing-card nt-pricing-card-featured">
+                    <div class="nt-pricing-featured-badge">Pro</div>
+
+                    <div class="nt-pricing-plan-label">Research Workspace</div>
+
+                    <h3 class="nt-pricing-plan-title">
+                        Backtests and live paper simulations
+                    </h3>
+
+                    <p class="nt-pricing-plan-text">
+                        NeuralTrend Pro unlocks expanded strategy research tools, including equity previews, historical backtests, and live paper simulations.
+                    </p>
+
+                    <ul class="nt-pricing-list">
+                        <li>Full signal history for supported assets</li>
+                        <li>AI strategy vs buy-and-hold charts</li>
+                        <li>Historical backtesting</li>
+                        <li>Live paper simulations</li>
+                    </ul>
+
+                    <div class="nt-pricing-actions">
+                        <a href="{{ url_for('subscription') }}" class="nt-pricing-btn nt-pricing-btn-primary" style="text-decoration:none;">
+                            Upgrade to Pro
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="nt-pricing-section">
+
+            <div class="nt-pricing-header">
+                <div class="nt-section-eyebrow">How NeuralTrend compares strategies</div>
+
+                <h2 class="nt-pricing-title">
+                    From signal board to performance comparison
+                </h2>
+            </div>
+
+            <div class="nt-pricing-grid">
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Step 1</div>
+                    <h3 class="nt-pricing-plan-title">Choose an asset</h3>
+                    <p class="nt-pricing-plan-text">
+                        Select a crypto or traditional asset from the NeuralTrend signal board.
+                    </p>
+                </div>
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Step 2</div>
+                    <h3 class="nt-pricing-plan-title">Pick a return horizon</h3>
+                    <p class="nt-pricing-plan-text">
+                        Compare results across horizons such as 1 month, 1 year, 3 years, 5 years, or 10 years when data is available.
+                    </p>
+                </div>
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Step 3</div>
+                    <h3 class="nt-pricing-plan-title">Review AI vs benchmark</h3>
+                    <p class="nt-pricing-plan-text">
+                        View AI Strategy Return, Buy & Hold Return, and the outperformance percentage.
+                    </p>
+                </div>
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Step 4</div>
+                    <h3 class="nt-pricing-plan-title">Test with simulations</h3>
+                    <p class="nt-pricing-plan-text">
+                        Use backtests and live paper simulations to study how the signal strategy behaves over time.
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="nt-pricing-section">
+
+            <div class="nt-pricing-header">
+                <div class="nt-section-eyebrow">Use cases</div>
+
+                <h2 class="nt-pricing-title">
+                    Who is this comparison useful for?
+                </h2>
+            </div>
+
+            <div class="nt-pricing-grid">
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Crypto Traders</div>
+                    <h3 class="nt-pricing-plan-title">Compare active signals with passive holding</h3>
+                    <p class="nt-pricing-plan-text">
+                        Use NeuralTrend to compare whether AI signal behavior would have outperformed or underperformed simply holding assets like BTC, ETH, SOL, or XRP.
+                    </p>
+                </div>
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Investors</div>
+                    <h3 class="nt-pricing-plan-title">Understand strategy behavior</h3>
+                    <p class="nt-pricing-plan-text">
+                        Study how a signal-based approach behaves during different market periods without relying only on raw price charts.
+                    </p>
+                </div>
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Researchers</div>
+                    <h3 class="nt-pricing-plan-title">Evaluate strategy assumptions</h3>
+                    <p class="nt-pricing-plan-text">
+                        Compare normalized equity curves, historical returns, and paper simulation outcomes against a clear benchmark.
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="nt-pricing-section">
+
+            <div class="nt-pricing-header">
+                <div class="nt-section-eyebrow">FAQ</div>
+
+                <h2 class="nt-pricing-title">
+                    Buy-and-hold vs AI strategy FAQ
+                </h2>
+            </div>
+
+            <div class="nt-pricing-card">
+
+                <h3 class="nt-pricing-plan-title">
+                    What is buy-and-hold?
+                </h3>
+                <p class="nt-pricing-plan-text">
+                    Buy-and-hold means buying an asset and holding it through the selected period without using active trading signals.
+                </p>
+
+                <h3 class="nt-pricing-plan-title">
+                    What is an AI signal strategy?
+                </h3>
+                <p class="nt-pricing-plan-text">
+                    In NeuralTrend, an AI signal strategy follows BUY, HOLD, and SELL signal states generated by the EpochSignaler model.
+                </p>
+
+                <h3 class="nt-pricing-plan-title">
+                    Does AI strategy always beat buy-and-hold?
+                </h3>
+                <p class="nt-pricing-plan-text">
+                    No. NeuralTrend does not guarantee outperformance. The comparison exists so users can evaluate when the AI strategy outperformed or underperformed the benchmark.
+                </p>
+
+                <h3 class="nt-pricing-plan-title">
+                    Can I backtest the strategy?
+                </h3>
+                <p class="nt-pricing-plan-text">
+                    Yes. NeuralTrend includes historical backtesting tools for supported assets, with expanded access available through NeuralTrend Pro.
+                </p>
+
+                <h3 class="nt-pricing-plan-title">
+                    Is this financial advice?
+                </h3>
+                <p class="nt-pricing-plan-text">
+                    No. NeuralTrend is an informational research and simulation platform. It does not provide personalized financial advice or guarantee future results.
+                </p>
+
+            </div>
+
+        </section>
+
+    </div>
+</main>
+
+{% endblock %}
