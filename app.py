@@ -1124,6 +1124,10 @@ def ai_crypto_trading_signals():
 def crypto_paper_trading_simulator():
     return render_template("crypto_paper_trading_simulator.html")
 
+@app.route("/buy-and-hold-vs-ai-strategy")
+def buy_and_hold_vs_ai_strategy():
+    return render_template("buy_and_hold_vs_ai_strategy.html")
+
 @app.route("/signup", methods=["POST"])
 @limiter.limit("3 per minute")
 def signup():    
@@ -1796,6 +1800,12 @@ def sitemap_xml():
         },
         {
             "loc": "https://neuraltrend.org/crypto-paper-trading-simulator",
+            "lastmod": today,
+            "changefreq": "weekly",
+            "priority": "0.9"
+        },
+        {
+            "loc": "https://neuraltrend.org/buy-and-hold-vs-ai-strategy",
             "lastmod": today,
             "changefreq": "weekly",
             "priority": "0.9"
