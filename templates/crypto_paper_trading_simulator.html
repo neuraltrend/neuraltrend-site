@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Crypto Paper Trading Simulator | NeuralTrend{% endblock %}
+
+{% block meta_description %}
+Use NeuralTrend's crypto paper trading simulator to track daily paper portfolios, compare AI signal strategies against buy-and-hold, and test trading ideas without risking real capital.
+{% endblock %}
+
+{% block content %}
+
+<main>
+    <div class="nt-page-container">
+
+        <section class="nt-site-intro">
+            <div class="nt-site-intro-content">
+
+                <div class="nt-site-kicker">
+                    Crypto Paper Trading Simulator
+                </div>
+
+                <h1 class="nt-site-title">
+                    Test AI crypto signal strategies without risking real capital
+                </h1>
+
+                <p class="nt-site-subtitle">
+                    NeuralTrend live simulations let you create daily-updated paper portfolios for crypto assets,
+                    track strategy value, compare against buy-and-hold, and review simulated trades based on AI-generated signals.
+                </p>
+
+                <div class="nt-site-actions">
+                    <a href="{{ url_for('index') }}#products" class="nt-hero-btn nt-hero-btn-primary">
+                        Explore Live Simulation
+                    </a>
+
+                    <a href="{{ url_for('subscription') }}" class="nt-hero-btn nt-hero-btn-secondary">
+                        View Pro Plan
+                    </a>
+                </div>
+
+                <div class="nt-site-disclaimer">
+                    Paper simulation only. NeuralTrend does not connect to exchanges, place trades, or provide financial advice.
+                </div>
+
+            </div>
+        </section>
+
+        <section class="nt-pricing-section">
+
+            <div class="nt-pricing-header">
+                <div class="nt-section-eyebrow">Why paper trading</div>
+
+                <h2 class="nt-pricing-title">
+                    Practice strategy tracking before committing capital
+                </h2>
+
+                <p class="nt-pricing-subtitle">
+                    A crypto paper trading simulator helps you observe how a signal-based strategy behaves over time without using real money.
+                </p>
+            </div>
+
+            <div class="nt-pricing-grid">
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Paper Portfolio</div>
+
+                    <h3 class="nt-pricing-plan-title">
+                        Track simulated cash and positions
+                    </h3>
+
+                    <p class="nt-pricing-plan-text">
+                        Each NeuralTrend simulation tracks its own starting cash, position size, cash balance, asset quantity, and strategy value.
+                    </p>
+
+                    <ul class="nt-pricing-list">
+                        <li>Create independent simulations per asset</li>
+                        <li>Choose initial cash and position size</li>
+                        <li>Track cash, position, trades, and equity</li>
+                    </ul>
+                </div>
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Benchmark</div>
+
+                    <h3 class="nt-pricing-plan-title">
+                        Compare against buy-and-hold
+                    </h3>
+
+                    <p class="nt-pricing-plan-text">
+                        NeuralTrend compares each paper strategy against a buy-and-hold benchmark starting from the same simulation date.
+                    </p>
+
+                    <ul class="nt-pricing-list">
+                        <li>Strategy equity curve</li>
+                        <li>Buy-and-hold benchmark curve</li>
+                        <li>Outperformance comparison</li>
+                    </ul>
+                </div>
+
+                <div class="nt-pricing-card nt-pricing-card-featured">
+                    <div class="nt-pricing-featured-badge">Pro</div>
+
+                    <div class="nt-pricing-plan-label">Live Simulation</div>
+
+                    <h3 class="nt-pricing-plan-title">
+                        Daily-updated signal-based simulations
+                    </h3>
+
+                    <p class="nt-pricing-plan-text">
+                        NeuralTrend Pro expands live simulation access across supported crypto and traditional assets.
+                    </p>
+
+                    <ul class="nt-pricing-list">
+                        <li>Free users can create limited simulations for selected major crypto assets</li>
+                        <li>Pro unlocks expanded supported assets</li>
+                        <li>Up to 100 live simulations with Pro</li>
+                        <li>Cancel anytime through Stripe billing</li>
+                    </ul>
+
+                    <div class="nt-pricing-actions">
+                        <a href="{{ url_for('subscription') }}" class="nt-pricing-btn nt-pricing-btn-primary" style="text-decoration:none;">
+                            Upgrade to Pro
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="nt-pricing-section">
+
+            <div class="nt-pricing-header">
+                <div class="nt-section-eyebrow">How it works</div>
+
+                <h2 class="nt-pricing-title">
+                    From AI signal to paper portfolio
+                </h2>
+            </div>
+
+            <div class="nt-pricing-grid">
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Step 1</div>
+                    <h3 class="nt-pricing-plan-title">Choose an asset</h3>
+                    <p class="nt-pricing-plan-text">
+                        Select a supported crypto asset such as BTC-USD, ETH-USD, SOL-USD, or XRP-USD.
+                    </p>
+                </div>
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Step 2</div>
+                    <h3 class="nt-pricing-plan-title">Set simulation rules</h3>
+                    <p class="nt-pricing-plan-text">
+                        Choose starting cash and how much of the portfolio should be used on each BUY or SELL signal.
+                    </p>
+                </div>
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Step 3</div>
+                    <h3 class="nt-pricing-plan-title">Track daily updates</h3>
+                    <p class="nt-pricing-plan-text">
+                        The simulation updates from the latest deployed NeuralTrend signal data when the panel loads or refreshes.
+                    </p>
+                </div>
+
+                <div class="nt-pricing-card">
+                    <div class="nt-pricing-plan-label">Step 4</div>
+                    <h3 class="nt-pricing-plan-title">Review performance</h3>
+                    <p class="nt-pricing-plan-text">
+                        Compare strategy value, buy-and-hold value, outperformance, and recent simulated trades.
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="nt-pricing-section">
+
+            <div class="nt-pricing-header">
+                <div class="nt-section-eyebrow">FAQ</div>
+
+                <h2 class="nt-pricing-title">
+                    Crypto paper trading simulator FAQ
+                </h2>
+            </div>
+
+            <div class="nt-pricing-card">
+
+                <h3 class="nt-pricing-plan-title">
+                    Is this real trading?
+                </h3>
+                <p class="nt-pricing-plan-text">
+                    No. NeuralTrend live simulations are paper simulations only. They do not connect to exchanges, brokers, wallets, or trading accounts.
+                </p>
+
+                <h3 class="nt-pricing-plan-title">
+                    Does NeuralTrend execute trades?
+                </h3>
+                <p class="nt-pricing-plan-text">
+                    No. NeuralTrend does not place trades. It only simulates strategy behavior using available signal and price data.
+                </p>
+
+                <h3 class="nt-pricing-plan-title">
+                    What is compared in each simulation?
+                </h3>
+                <p class="nt-pricing-plan-text">
+                    Each simulation compares the AI signal strategy against a buy-and-hold benchmark from the same start date.
+                </p>
+
+                <h3 class="nt-pricing-plan-title">
+                    Which assets are available for free simulations?
+                </h3>
+                <p class="nt-pricing-plan-text">
+                    Free accounts can create limited live simulations for selected major crypto assets. Pro unlocks expanded simulation access.
+                </p>
+
+                <h3 class="nt-pricing-plan-title">
+                    Is this financial advice?
+                </h3>
+                <p class="nt-pricing-plan-text">
+                    No. NeuralTrend is an informational research and simulation platform. It does not provide personalized financial advice or guarantee results.
+                </p>
+
+            </div>
+
+        </section>
+
+    </div>
+</main>
+
+{% endblock %}
