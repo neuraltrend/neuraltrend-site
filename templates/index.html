@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 
+{% block title %}NeuralTrend | AI Trading Signals, Backtests & Live Paper Simulations{% endblock %}
+
+{% block meta_description %}
+Compare AI trading signals against buy-and-hold, run historical backtests, view equity previews, and track live paper simulations for crypto and traditional assets.
+{% endblock %}
+
 {% block content %}
 <!-- your existing index content -->
 
@@ -31,6 +37,16 @@
                 <p class="nt-site-subtitle">
                     AI-powered trading signals, market regime insights, and forecasting tools for crypto and traditional assets.
                 </p>
+
+                <div class="nt-site-actions">
+                    <a href="#products" class="nt-hero-btn nt-hero-btn-primary">
+                        Explore Signals
+                    </a>
+                
+                    <a href="{{ url_for('subscription') }}" class="nt-hero-btn nt-hero-btn-secondary">
+                        View Pro Plan
+                    </a>
+                </div>
         
                 <div class="nt-site-disclaimer">
                     Historical simulations are for informational purposes only and do not constitute financial advice.
