@@ -7284,6 +7284,49 @@
             opacity: 1;
         }
 
+        /* ===============================
+           Live simulation board: remove sticky-header gap
+        ================================ */
+        
+        .nt-live-sim-board-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            background: #F8FAFC;
+            box-shadow: 0 1px 0 var(--nt-border);
+        }
+        
+        /* Make both header rows behave as one solid sticky block */
+        .nt-live-sim-board-table thead tr,
+        .nt-live-sim-board-table thead th {
+            background: #F8FAFC !important;
+        }
+        
+        /* Override older per-cell sticky top values */
+        .nt-live-sim-board-table thead th {
+            position: static !important;
+            top: auto !important;
+        }
+        
+        /* Remove the visual slit between first header row and filter row */
+        .nt-live-sim-board-table thead tr:first-child th {
+            border-bottom: 0 !important;
+            padding-bottom: 5px !important;
+        }
+        
+        .nt-live-sim-board-filter-row th {
+            position: static !important;
+            top: auto !important;
+            border-top: 0 !important;
+            padding-top: 0 !important;
+            border-bottom: 1px solid var(--nt-border) !important;
+        }
+        
+        /* Keep the whole scroll area visually filled */
+        .nt-live-sim-board-scroll {
+            background: #FFFFFF;
+        }
+
     </style>
 
 </head>
