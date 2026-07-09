@@ -1116,6 +1116,10 @@ def get_latest_csv_date_for_ticker(ticker):
 # Routes
 # --------------------
 
+@app.route("/ai-crypto-trading-signals")
+def ai_crypto_trading_signals():
+    return render_template("ai_crypto_trading_signals.html")
+
 @app.route("/signup", methods=["POST"])
 @limiter.limit("3 per minute")
 def signup():    
@@ -1779,6 +1783,12 @@ def sitemap_xml():
             "lastmod": today,
             "changefreq": "monthly",
             "priority": "0.3"
+        },
+        {
+            "loc": "https://neuraltrend.org/ai-crypto-trading-signals",
+            "lastmod": today,
+            "changefreq": "weekly",
+            "priority": "0.9"
         },
     ]
 
