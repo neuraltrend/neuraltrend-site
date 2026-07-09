@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_from_directory, Response
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -1729,6 +1729,77 @@ def market():
 @app.route('/knowledge')
 def knowledge():
     return render_template('knowledge.html')
+
+@app.route("/robots.txt")
+def robots_txt():
+    content = """User-agent: *
+Allow: /
+
+Sitemap: https://neuraltrend.org/sitemap.xml
+"""
+    return Response(content, mimetype="text/plain")
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    today = datetime.utcnow().date().isoformat()
+
+    pages = [
+        {
+            "loc": "https://neuraltrend.org/",
+            "lastmod": today,
+            "changefreq": "daily",
+            "priority": "1.0"
+        },
+        {
+            "loc": "https://neuraltrend.org/subscription",
+            "lastmod": today,
+            "changefreq": "weekly",
+            "priority": "0.8"
+        },
+        {
+            "loc": "https://neuraltrend.org/privacy",
+            "lastmod": today,
+            "changefreq": "monthly",
+            "priority": "0.3"
+        },
+        {
+            "loc": "https://neuraltrend.org/terms",
+            "lastmod": today,
+            "changefreq": "monthly",
+            "priority": "0.3"
+        },
+        {
+            "loc": "https://neuraltrend.org/risk-disclaimer",
+            "lastmod": today,
+            "changefreq": "monthly",
+            "priority": "0.3"
+        },
+        {
+            "loc": "https://neuraltrend.org/refund-policy",
+            "lastmod": today,
+            "changefreq": "monthly",
+            "priority": "0.3"
+        },
+    ]
+
+    url_entries = []
+
+    for page in pages:
+        url_entries.append(f"""
+    <url>
+        <loc>{page["loc"]}</loc>
+        <lastmod>{page["lastmod"]}</lastmod>
+        <changefreq>{page["changefreq"]}</changefreq>
+        <priority>{page["priority"]}</priority>
+    </url>""")
+
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{''.join(url_entries)}
+</urlset>
+"""
+
+    return Response(xml, mimetype="application/xml")
 
 @app.route('/ads.txt')
 def ads_txt():
