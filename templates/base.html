@@ -137,7 +137,7 @@
             top: 120%;
             background: white;
             border-radius: 8px;
-            min-width: 120px;
+            min-width: 190px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
             overflow: hidden;
         }
@@ -7612,6 +7612,17 @@
             }
         }
     });
+
+    // ------------------
+    // Manage Subscription
+    // ------------------
+    function manageSubscriptionFromUserMenu() {
+        if (typeof ntTrack === "function") {
+            ntTrack("user_menu_subscription_clicked");
+        }
+    
+        window.location.href = "/subscription";
+    }
     
     // ------------------
     // Logout
@@ -7728,6 +7739,7 @@
                     </div>
             
                     <div class="dropdown" id="dropdownMenu" style="display:none;">
+                        <div onclick="manageSubscriptionFromUserMenu()">Manage Subscription</div>
                         <div onclick="logout()">Logout</div>
                         <div onclick="deleteAccount()" style="color:red;">Delete Account</div>
                     </div>
