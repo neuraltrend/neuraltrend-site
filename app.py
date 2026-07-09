@@ -1120,6 +1120,10 @@ def get_latest_csv_date_for_ticker(ticker):
 def ai_crypto_trading_signals():
     return render_template("ai_crypto_trading_signals.html")
 
+@app.route("/crypto-paper-trading-simulator")
+def crypto_paper_trading_simulator():
+    return render_template("crypto_paper_trading_simulator.html")
+
 @app.route("/signup", methods=["POST"])
 @limiter.limit("3 per minute")
 def signup():    
@@ -1786,6 +1790,12 @@ def sitemap_xml():
         },
         {
             "loc": "https://neuraltrend.org/ai-crypto-trading-signals",
+            "lastmod": today,
+            "changefreq": "weekly",
+            "priority": "0.9"
+        },
+        {
+            "loc": "https://neuraltrend.org/crypto-paper-trading-simulator",
             "lastmod": today,
             "changefreq": "weekly",
             "priority": "0.9"
