@@ -4591,6 +4591,122 @@
             }
         }
 
+        @media (max-width: 1400px) {
+            .nt-market-hero-chart-header {
+                grid-template-columns: 1fr auto;
+            }
+        
+            .nt-market-hero-performance-title {
+                max-width: 64%;
+                padding-left: 120px;
+                padding-right: 120px;
+                font-size: 12px;
+            }
+        
+            .nt-market-hero-asset-btn,
+            .nt-market-hero-more-assets {
+                padding-left: 9px;
+                padding-right: 9px;
+            }
+        }
+        
+        @media (max-width: 1150px) {
+            .nt-market-hero-chart-header {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "assets"
+                    "periods"
+                    "title"
+                    "secondary";
+                gap: 9px;
+            }
+        
+            .nt-market-hero-assets {
+                grid-area: assets;
+                width: 100%;
+                justify-content: center;
+            }
+        
+            .nt-market-hero-periods {
+                grid-area: periods;
+                justify-self: center;
+            }
+        
+            .nt-market-hero-performance-title {
+                grid-area: title;
+                max-width: 100%;
+                padding: 0;
+                white-space: normal;
+            }
+        
+            .nt-market-hero-more-assets {
+                grid-area: secondary;
+                justify-self: start;
+            }
+        
+            .nt-market-hero-scale-toggle {
+                grid-area: secondary;
+                justify-self: end;
+            }
+        }
+        
+        @media (max-width: 700px) {
+            .nt-market-hero-assets {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                width: 100%;
+            }
+        
+            .nt-market-hero-asset-btn {
+                width: 100%;
+            }
+        
+            .nt-market-hero-periods {
+                width: 100%;
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                border-radius: 14px;
+            }
+        
+            .nt-market-hero-period {
+                width: 100%;
+            }
+        
+            .nt-market-hero-performance-title {
+                font-size: 12px;
+                line-height: 1.45;
+                text-align: center;
+            }
+        
+            .nt-market-hero-more-assets,
+            .nt-market-hero-scale-toggle {
+                width: auto;
+            }
+        }
+        
+        @media (max-width: 450px) {
+            .nt-market-hero-chart-header {
+                grid-template-areas:
+                    "assets"
+                    "periods"
+                    "title"
+                    "more"
+                    "scale";
+            }
+        
+            .nt-market-hero-more-assets {
+                grid-area: more;
+                justify-self: stretch;
+                width: 100%;
+            }
+        
+            .nt-market-hero-scale-toggle {
+                grid-area: scale;
+                justify-self: stretch;
+                width: 100%;
+            }
+        }
+
         /* ===============================
            My simulations board/table layout
         ================================ */
@@ -7730,16 +7846,6 @@
             gap: 14px;
         }
         
-        /* Keep chart controls together */
-        
-        .nt-market-hero-chart-controls {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
         /* Log scale toggle */
         
         .nt-market-hero-scale-toggle {
@@ -7946,33 +8052,57 @@
                 grid-template-columns: 1fr;
             }
         }
-        
-        @media (max-width: 700px) {
-            .nt-market-hero-chart-controls {
-                width: 100%;
-                align-items: stretch;
-                flex-direction: column;
-            }
-        
-            .nt-market-hero-periods {
-                width: 100%;
-            }
-        
-            .nt-market-hero-scale-toggle {
-                width: 100%;
-            }
-        }
 
         /* ===============================
            Hero asset selector
         =============================== */
         
         .nt-market-hero-chart-header {
-            display: flex;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas:
+                "assets periods"
+                "secondary secondary";
+            gap: 10px 16px;
             align-items: center;
-            justify-content: space-between;
-            gap: 14px;
             margin-bottom: 12px;
+        }
+
+        .nt-market-hero-assets {
+            grid-area: assets;
+            justify-self: start;
+        }
+        
+        .nt-market-hero-periods {
+            grid-area: periods;
+            justify-self: end;
+        }
+        
+        .nt-market-hero-more-assets {
+            grid-row: 2;
+            grid-column: 1;
+            justify-self: start;
+        }
+        
+        .nt-market-hero-performance-title {
+            grid-row: 2;
+            grid-column: 1 / 3;
+            justify-self: center;
+            max-width: 60%;
+            padding: 0 150px;
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 13px;
+            line-height: 1.35;
+            font-weight: 850;
+            text-align: center;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        
+        .nt-market-hero-scale-toggle {
+            grid-row: 2;
+            grid-column: 2;
+            justify-self: end;
         }
         
         .nt-market-hero-assets {
@@ -8052,14 +8182,64 @@
             background: linear-gradient(135deg, #F59E0B, #F97316);
             color: #ffffff;
         }
-        
-        /* ETH */
-        
+
         .nt-coin-eth {
-            color: #A5B4FC;
-            background: rgba(99, 102, 241, 0.12);
-            font-size: 15px;
-            transform: rotate(45deg);
+            padding: 4px 6px;
+            background: rgba(99, 102, 241, 0.10);
+            overflow: visible;
+        }
+        
+        .nt-coin-eth svg {
+            display: block;
+            width: 13px;
+            height: 21px;
+            overflow: visible;
+        }
+        
+        .nt-eth-top-left {
+            fill: #8C8C8C;
+        }
+        
+        .nt-eth-top-right {
+            fill: #F0F0F0;
+        }
+        
+        .nt-eth-bottom-left {
+            fill: #8C8C8C;
+        }
+        
+        .nt-eth-bottom-right {
+            fill: #F0F0F0;
+        }
+        
+        .nt-eth-center-left {
+            fill: #393939;
+        }
+        
+        .nt-eth-center-right {
+            fill: #8C8C8C;
+        }
+        
+        .nt-market-hero-asset-btn.active .nt-coin-eth {
+            background: rgba(99, 102, 241, 0.18);
+        }
+        
+        .nt-market-hero-asset-btn.active .nt-eth-top-left,
+        .nt-market-hero-asset-btn.active .nt-eth-bottom-left {
+            fill: #A5B4FC;
+        }
+        
+        .nt-market-hero-asset-btn.active .nt-eth-top-right,
+        .nt-market-hero-asset-btn.active .nt-eth-bottom-right {
+            fill: #E0E7FF;
+        }
+        
+        .nt-market-hero-asset-btn.active .nt-eth-center-left {
+            fill: #6366F1;
+        }
+        
+        .nt-market-hero-asset-btn.active .nt-eth-center-right {
+            fill: #818CF8;
         }
         
         /* SOL */
@@ -8117,23 +8297,12 @@
             transform: translateY(-1px);
         }
         
-        /* Chart controls need less width */
-        
-        .nt-market-hero-chart-controls {
-            flex: 0 0 auto;
-        }
-        
         /* Responsive */
         
         @media (max-width: 1370px) {
             .nt-market-hero-chart-header {
                 align-items: flex-start;
                 flex-direction: column;
-            }
-        
-            .nt-market-hero-chart-controls {
-                width: 100%;
-                justify-content: flex-end;
             }
         }
         
