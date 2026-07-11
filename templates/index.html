@@ -23,36 +23,160 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
             </button>
         </div>
 
-        <section class="nt-site-intro">
-            <div class="nt-site-intro-content">
-        
-                <div class="nt-site-kicker">
-                    AI Market Intelligence
-                </div>
-        
-                <h1 class="nt-site-title">
-                    NeuralTrend
-                </h1>
-        
-                <p class="nt-site-subtitle">
-                    AI-powered trading signals, market regime insights, and forecasting tools for crypto and traditional assets.
-                </p>
+        <section class="nt-market-hero">
 
-                <div class="nt-site-actions">
-                    <a href="#products" class="nt-hero-btn nt-hero-btn-primary">
-                        Explore Signals
-                    </a>
-                
-                    <a href="{{ url_for('subscription') }}" class="nt-hero-btn nt-hero-btn-secondary">
-                        View Pro Plan
-                    </a>
+            <div class="nt-market-hero-grid">
+        
+                <!-- LEFT: PRODUCT INTRO -->
+                <div class="nt-market-hero-copy">
+        
+                    <div class="nt-market-hero-kicker">
+                        AI Market Intelligence
+                    </div>
+        
+                    <h1 class="nt-market-hero-title">
+                        Neural Intelligence<br>
+                        for Financial Markets.
+                    </h1>
+        
+                    <p class="nt-market-hero-subtitle">
+                        Compare NeuralTrend’s AI-driven strategy against buy and hold,
+                        then explore market signals, historical performance, and live
+                        paper simulations across crypto and traditional assets.
+                    </p>
+        
+                    <div class="nt-market-hero-actions">
+        
+                        <a
+                            href="#products"
+                            class="nt-market-hero-btn nt-market-hero-btn-primary"
+                        >
+                            Explore Signals
+                            <span aria-hidden="true">→</span>
+                        </a>
+        
+                        <a
+                            href="{{ url_for('subscription') }}"
+                            class="nt-market-hero-btn nt-market-hero-btn-secondary"
+                        >
+                            View Pro Plan
+                        </a>
+        
+                    </div>
+        
+                    <p class="nt-market-hero-disclaimer">
+                        Historical simulations are for informational purposes only
+                        and do not constitute financial advice.
+                    </p>
+        
                 </div>
         
-                <div class="nt-site-disclaimer">
-                    Historical simulations are for informational purposes only and do not constitute financial advice.
+                <!-- RIGHT: BTC STRATEGY COMPARISON -->
+                <div class="nt-market-hero-chart-card">
+        
+                    <div class="nt-market-hero-chart-header">
+        
+                        <div class="nt-market-hero-asset">
+        
+                            <span class="nt-market-hero-btc-icon">
+                                ₿
+                            </span>
+        
+                            <div>
+                                <div class="nt-market-hero-asset-name">
+                                    BTC-USD
+                                </div>
+        
+                                <div class="nt-market-hero-asset-label">
+                                    NeuralTrend Strategy vs Buy &amp; Hold
+                                </div>
+                            </div>
+        
+                        </div>
+        
+                        <div
+                            class="nt-market-hero-periods"
+                            role="group"
+                            aria-label="Hero chart return horizon"
+                        >
+                            <button
+                                type="button"
+                                class="nt-market-hero-period"
+                                data-hero-duration="1y"
+                            >
+                                1Y
+                            </button>
+        
+                            <button
+                                type="button"
+                                class="nt-market-hero-period"
+                                data-hero-duration="3y"
+                            >
+                                3Y
+                            </button>
+        
+                            <button
+                                type="button"
+                                class="nt-market-hero-period active"
+                                data-hero-duration="5y"
+                            >
+                                5Y
+                            </button>
+        
+                            <button
+                                type="button"
+                                class="nt-market-hero-period"
+                                data-hero-duration="10y"
+                            >
+                                10Y
+                            </button>
+                        </div>
+        
+                    </div>
+        
+                    <div class="nt-market-hero-chart-shell">
+        
+                        <div
+                            id="nt-market-hero-chart-loading"
+                            class="nt-market-hero-chart-loading"
+                        >
+                            Loading BTC performance…
+                        </div>
+        
+                        <canvas
+                            id="nt-market-hero-chart"
+                            aria-label="BTC NeuralTrend strategy compared with buy and hold"
+                            role="img"
+                        ></canvas>
+        
+                    </div>
+        
+                    <div class="nt-market-hero-chart-footer">
+        
+                        <div class="nt-market-hero-legend">
+        
+                            <span class="nt-market-hero-legend-item">
+                                <span class="nt-market-hero-legend-line nt-market-hero-legend-ai"></span>
+                                NeuralTrend Strategy
+                            </span>
+        
+                            <span class="nt-market-hero-legend-item">
+                                <span class="nt-market-hero-legend-line nt-market-hero-legend-buyhold"></span>
+                                Buy &amp; Hold
+                            </span>
+        
+                        </div>
+        
+                        <span class="nt-market-hero-normalized">
+                            $1 normalized · costs included
+                        </span>
+        
+                    </div>
+        
                 </div>
         
             </div>
+        
         </section>
 
         <!-- Models Section --> 
