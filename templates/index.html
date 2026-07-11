@@ -6149,4 +6149,474 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
+<script>
+/* ===============================
+   Homepage BTC performance hero
+=============================== */
+
+(function () {
+    let ntHeroPerformanceChart = null;
+    let ntHeroRequestController = null;
+
+    const HERO_TICKER = "BTC-USD";
+    const DEFAULT_HERO_DURATION = "5y";
+
+    function parseHeroDate(value) {
+        const rawValue = String(value || "").trim();
+
+        // Prevent YYYY-MM-DD from shifting one day because of UTC parsing.
+        const match = rawValue.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+        if (match) {
+            return new Date(
+                Number(match[1]),
+                Number(match[2]) - 1,
+                Number(match[3])
+            );
+        }
+
+        return new Date(rawValue);
+    }
+
+    function formatHeroAxisDate(value, duration) {
+        const date = parseHeroDate(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return String(value || "");
+        }
+
+        if (duration === "1y") {
+            return date.toLocaleDateString(undefined, {
+                month: "short",
+                year: "2-digit"
+            });
+        }
+
+        return date.toLocaleDateString(undefined, {
+            month: "short",
+            year: "2-digit"
+        });
+    }
+
+    function formatHeroTooltipDate(value) {
+        const date = parseHeroDate(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return String(value || "");
+        }
+
+        return date.toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric"
+        });
+    }
+
+    function formatHeroPercent(value) {
+        const numberValue = Number(value);
+
+        if (!Number.isFinite(numberValue)) {
+            return "—";
+        }
+
+        const sign = numberValue > 0 ? "+" : "";
+
+        return `${sign}${numberValue.toFixed(0)}%`;
+    }
+
+    function normalizeHeroCurve(curve) {
+        if (!Array.isArray(curve) || curve.length === 0) {
+            return [];
+        }
+
+        const firstValidValue = curve.find(value =>
+            Number.isFinite(Number(value)) && Number(value) !== 0
+        );
+
+        const baseValue = Number(firstValidValue);
+
+        if (!Number.isFinite(baseValue) || baseValue === 0) {
+            return [];
+        }
+
+        /*
+          Convert each equity value into percentage return from the
+          beginning of the selected horizon.
+
+          Example:
+          1.00 → 0%
+          1.50 → +50%
+          0.80 → -20%
+        */
+        return curve.map(value => {
+            const numericValue = Number(value);
+
+            if (!Number.isFinite(numericValue)) {
+                return null;
+            }
+
+            return ((numericValue / baseValue) - 1) * 100;
+        });
+    }
+
+    function setHeroLoadingState(message, isError = false) {
+        const loadingElement = document.getElementById(
+            "nt-market-hero-chart-loading"
+        );
+
+        if (!loadingElement) {
+            return;
+        }
+
+        loadingElement.textContent = message;
+        loadingElement.style.display = "flex";
+        loadingElement.style.color = isError
+            ? "rgba(248, 113, 113, 0.92)"
+            : "rgba(255, 255, 255, 0.58)";
+    }
+
+    function hideHeroLoadingState() {
+        const loadingElement = document.getElementById(
+            "nt-market-hero-chart-loading"
+        );
+
+        if (loadingElement) {
+            loadingElement.style.display = "none";
+        }
+    }
+
+    function setActiveHeroDuration(duration) {
+        document
+            .querySelectorAll(".nt-market-hero-period")
+            .forEach(button => {
+                const isActive =
+                    button.dataset.heroDuration === duration;
+
+                button.classList.toggle("active", isActive);
+                button.setAttribute(
+                    "aria-pressed",
+                    isActive ? "true" : "false"
+                );
+            });
+    }
+
+    function renderHeroPerformanceChart(data, duration) {
+        const canvas = document.getElementById(
+            "nt-market-hero-chart"
+        );
+
+        if (!canvas) {
+            return;
+        }
+
+        const dates = Array.isArray(data.dates)
+            ? data.dates
+            : [];
+
+        const strategyReturns = normalizeHeroCurve(
+            data.epoch_equity_curve
+        );
+
+        const buyHoldReturns = normalizeHeroCurve(
+            data.equity_curve
+        );
+
+        if (
+            dates.length < 2 ||
+            strategyReturns.length !== dates.length ||
+            buyHoldReturns.length !== dates.length
+        ) {
+            throw new Error("Incomplete equity data received.");
+        }
+
+        if (ntHeroPerformanceChart) {
+            ntHeroPerformanceChart.destroy();
+            ntHeroPerformanceChart = null;
+        }
+
+        const context = canvas.getContext("2d");
+
+        ntHeroPerformanceChart = new Chart(context, {
+            type: "line",
+
+            data: {
+                labels: dates,
+
+                datasets: [
+                    {
+                        label: "NeuralTrend Strategy",
+                        data: strategyReturns,
+
+                        borderColor: "#60A5FA",
+                        backgroundColor: "rgba(96, 165, 250, 0.10)",
+
+                        borderWidth: 2.7,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+
+                        tension: 0.18,
+
+                        /*
+                          Fill the space between this curve and dataset 1.
+
+                          Green:
+                          strategy is visually above Buy & Hold.
+
+                          Red:
+                          strategy is visually below Buy & Hold.
+                        */
+                        fill: {
+                            target: 1,
+                            above: "rgba(34, 197, 94, 0.16)",
+                            below: "rgba(239, 68, 68, 0.14)"
+                        }
+                    },
+
+                    {
+                        label: "Buy & Hold",
+                        data: buyHoldReturns,
+
+                        borderColor: "rgba(216, 180, 254, 0.88)",
+                        backgroundColor: "transparent",
+
+                        borderWidth: 1.8,
+                        borderDash: [6, 5],
+
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+
+                        tension: 0.18,
+                        fill: false
+                    }
+                ]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                animation: {
+                    duration: 900,
+                    easing: "easeOutQuart"
+                },
+
+                interaction: {
+                    mode: "index",
+                    intersect: false
+                },
+
+                layout: {
+                    padding: {
+                        top: 12,
+                        right: 12,
+                        bottom: 5,
+                        left: 4
+                    }
+                },
+
+                plugins: {
+                    /*
+                      The hero has its own custom legend underneath,
+                      so Chart.js's built-in legend is hidden.
+                    */
+                    legend: {
+                        display: false
+                    },
+
+                    tooltip: {
+                        mode: "index",
+                        intersect: false,
+
+                        backgroundColor: "rgba(2, 6, 23, 0.94)",
+                        titleColor: "#FFFFFF",
+                        bodyColor: "#FFFFFF",
+
+                        borderColor: "rgba(148, 163, 184, 0.24)",
+                        borderWidth: 1,
+
+                        padding: 11,
+                        displayColors: true,
+
+                        callbacks: {
+                            title(items) {
+                                return formatHeroTooltipDate(
+                                    items?.[0]?.label
+                                );
+                            },
+
+                            label(context) {
+                                const label =
+                                    context.dataset.label || "";
+
+                                const value =
+                                    context.parsed?.y;
+
+                                return `${label}: ${formatHeroPercent(value)}`;
+                            }
+                        }
+                    }
+                },
+
+                scales: {
+                    x: {
+                        grid: {
+                            color: "rgba(148, 163, 184, 0.08)",
+                            drawTicks: false
+                        },
+
+                        border: {
+                            display: false
+                        },
+
+                        ticks: {
+                            autoSkip: true,
+                            maxTicksLimit:
+                                window.innerWidth < 700 ? 4 : 6,
+
+                            maxRotation: 0,
+                            minRotation: 0,
+                            padding: 9,
+
+                            color: "rgba(255, 255, 255, 0.44)",
+
+                            font: {
+                                size: 10,
+                                weight: "700"
+                            },
+
+                            callback(value) {
+                                const label =
+                                    this.getLabelForValue(value);
+
+                                return formatHeroAxisDate(
+                                    label,
+                                    duration
+                                );
+                            }
+                        }
+                    },
+
+                    y: {
+                        grid: {
+                            color: "rgba(148, 163, 184, 0.10)",
+                            drawTicks: false
+                        },
+
+                        border: {
+                            display: false
+                        },
+
+                        ticks: {
+                            maxTicksLimit:
+                                window.innerWidth < 700 ? 4 : 5,
+
+                            padding: 8,
+
+                            color: "rgba(255, 255, 255, 0.44)",
+
+                            font: {
+                                size: 10,
+                                weight: "700"
+                            },
+
+                            callback(value) {
+                                return formatHeroPercent(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        hideHeroLoadingState();
+    }
+
+    async function loadHeroPerformanceChart(
+        duration = DEFAULT_HERO_DURATION
+    ) {
+        setActiveHeroDuration(duration);
+        setHeroLoadingState("Loading BTC performance…");
+
+        /*
+          Cancel the prior request when users switch horizons quickly.
+        */
+        if (ntHeroRequestController) {
+            ntHeroRequestController.abort();
+        }
+
+        ntHeroRequestController = new AbortController();
+
+        const formData = new FormData();
+        formData.append("ticker", HERO_TICKER);
+        formData.append("duration", duration);
+
+        try {
+            const response = await fetch("/equity", {
+                method: "POST",
+                body: formData,
+                signal: ntHeroRequestController.signal
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error || "Could not load BTC performance."
+                );
+            }
+
+            renderHeroPerformanceChart(data, duration);
+
+        } catch (error) {
+            if (error.name === "AbortError") {
+                return;
+            }
+
+            console.error("Hero performance chart error:", error);
+
+            setHeroLoadingState(
+                "BTC performance is temporarily unavailable.",
+                true
+            );
+        }
+    }
+
+    function initializeHeroPerformanceChart() {
+        const canvas = document.getElementById(
+            "nt-market-hero-chart"
+        );
+
+        if (!canvas) {
+            return;
+        }
+
+        document
+            .querySelectorAll(".nt-market-hero-period")
+            .forEach(button => {
+                button.addEventListener("click", function () {
+                    const duration =
+                        this.dataset.heroDuration;
+
+                    if (!duration) {
+                        return;
+                    }
+
+                    loadHeroPerformanceChart(duration);
+                });
+            });
+
+        loadHeroPerformanceChart(DEFAULT_HERO_DURATION);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializeHeroPerformanceChart
+        );
+    } else {
+        initializeHeroPerformanceChart();
+    }
+})();
+</script>
+
 {% endblock %}
