@@ -77,7 +77,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
             
                         <div class="nt-market-hero-chart-header">
 
-                            <!-- ASSET SELECTOR -->
+                            <!-- ROW 1 LEFT: ASSETS -->
                             <div
                                 class="nt-market-hero-assets"
                                 role="group"
@@ -105,8 +105,28 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                     data-hero-ticker="ETH-USD"
                                     aria-pressed="false"
                                 >
-                                    <span class="nt-market-hero-coin-icon nt-coin-eth">
-                                        ◆
+                                    <span
+                                        class="nt-market-hero-coin-icon nt-coin-eth"
+                                        aria-hidden="true"
+                                    >
+                                        <svg
+                                            viewBox="0 0 256 417"
+                                            role="presentation"
+                                            focusable="false"
+                                        >
+                                            <path class="nt-eth-top-left"
+                                                  d="M127.9 0L125.1 9.5V279.1L127.9 281.9L255.8 206.3Z" />
+                                            <path class="nt-eth-top-right"
+                                                  d="M127.9 0L0 206.3L127.9 281.9V154.1Z" />
+                                            <path class="nt-eth-bottom-left"
+                                                  d="M127.9 306.1L126.3 308.1V416.2L127.9 420.8L255.9 230.5Z" />
+                                            <path class="nt-eth-bottom-right"
+                                                  d="M127.9 420.8V306.1L0 230.5Z" />
+                                            <path class="nt-eth-center-left"
+                                                  d="M127.9 281.9L255.8 206.3L127.9 154.1Z" />
+                                            <path class="nt-eth-center-right"
+                                                  d="M0 206.3L127.9 281.9V154.1Z" />
+                                        </svg>
                                     </span>
                         
                                     <span class="nt-market-hero-coin-name">
@@ -146,91 +166,98 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                     </span>
                                 </button>
                         
-                                <button
-                                    type="button"
-                                    id="nt-market-hero-more-assets"
-                                    class="nt-market-hero-more-assets"
-                                >
-                                    <span>More Assets</span>
-                                    <span aria-hidden="true">›</span>
-                                </button>
-                        
                             </div>
                         
-                            <!-- HORIZON + SCALE -->
-                            <div class="nt-market-hero-chart-controls">
-                        
-                                <div
-                                    class="nt-market-hero-periods"
-                                    role="group"
-                                    aria-label="Hero chart return horizon"
+                            <!-- ROW 1 RIGHT: PERIODS -->
+                            <div
+                                class="nt-market-hero-periods"
+                                role="group"
+                                aria-label="Hero chart return horizon"
+                            >
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-period"
+                                    data-hero-duration="3mo"
                                 >
-                                    <button
-                                        type="button"
-                                        class="nt-market-hero-period"
-                                        data-hero-duration="3mo"
-                                    >
-                                        3M
-                                    </button>
-                        
-                                    <button
-                                        type="button"
-                                        class="nt-market-hero-period"
-                                        data-hero-duration="6mo"
-                                    >
-                                        6M
-                                    </button>
-                        
-                                    <button
-                                        type="button"
-                                        class="nt-market-hero-period"
-                                        data-hero-duration="1y"
-                                    >
-                                        1Y
-                                    </button>
-                        
-                                    <button
-                                        type="button"
-                                        class="nt-market-hero-period"
-                                        data-hero-duration="3y"
-                                    >
-                                        3Y
-                                    </button>
-                        
-                                    <button
-                                        type="button"
-                                        class="nt-market-hero-period active"
-                                        data-hero-duration="5y"
-                                    >
-                                        5Y
-                                    </button>
-                        
-                                    <button
-                                        type="button"
-                                        class="nt-market-hero-period"
-                                        data-hero-duration="10y"
-                                    >
-                                        10Y
-                                    </button>
-                                </div>
+                                    3M
+                                </button>
                         
                                 <button
                                     type="button"
-                                    id="nt-market-hero-scale-toggle"
-                                    class="nt-market-hero-scale-toggle"
-                                    aria-pressed="false"
+                                    class="nt-market-hero-period"
+                                    data-hero-duration="6mo"
                                 >
-                                    <span>Log Scale</span>
-                        
-                                    <span
-                                        class="nt-market-hero-scale-switch"
-                                        aria-hidden="true"
-                                    >
-                                        <span class="nt-market-hero-scale-knob"></span>
-                                    </span>
+                                    6M
                                 </button>
                         
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-period"
+                                    data-hero-duration="1y"
+                                >
+                                    1Y
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-period"
+                                    data-hero-duration="3y"
+                                >
+                                    3Y
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-period active"
+                                    data-hero-duration="5y"
+                                >
+                                    5Y
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-period"
+                                    data-hero-duration="10y"
+                                >
+                                    10Y
+                                </button>
                             </div>
+                        
+                            <!-- ROW 2 LEFT: MORE ASSETS -->
+                            <button
+                                type="button"
+                                id="nt-market-hero-more-assets"
+                                class="nt-market-hero-more-assets"
+                            >
+                                <span>More Assets</span>
+                                <span aria-hidden="true">›</span>
+                            </button>
+                        
+                            <!-- ROW 2 CENTER: DYNAMIC TITLE -->
+                            <div
+                                id="nt-market-hero-performance-title"
+                                class="nt-market-hero-performance-title"
+                                aria-live="polite"
+                            >
+                                5Y performance of AI strategy vs Buy &amp; Hold for BTC
+                            </div>
+                        
+                            <!-- ROW 2 RIGHT: SCALE -->
+                            <button
+                                type="button"
+                                id="nt-market-hero-scale-toggle"
+                                class="nt-market-hero-scale-toggle"
+                                aria-pressed="false"
+                            >
+                                <span>Log Scale</span>
+                        
+                                <span
+                                    class="nt-market-hero-scale-switch"
+                                    aria-hidden="true"
+                                >
+                                    <span class="nt-market-hero-scale-knob"></span>
+                                </span>
+                            </button>
                         
                         </div>
             
@@ -6626,6 +6653,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function updateHeroAssetText() {
         const asset = heroAssetLabel(ntHeroTicker);
+
+        const title = document.getElementById(
+            "nt-market-hero-performance-title"
+        );
+        
+        if (title) {
+            title.textContent =
+                `${heroDurationLabel(ntHeroLastDuration)} performance ` +
+                `of AI strategy vs Buy & Hold for ${asset}`;
+        }
     
         const legend = document.getElementById(
             "nt-hero-buyhold-legend"
@@ -6656,6 +6693,9 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function renderHeroPerformanceChart(data, duration) {
+        ntHeroLastData = data;
+        ntHeroLastDuration = duration;
+        
         updateHeroAssetText();
         const canvas = document.getElementById(
             "nt-market-hero-chart"
@@ -6700,9 +6740,6 @@ document.addEventListener("DOMContentLoaded", function() {
         ) {
             throw new Error("Incomplete equity data received.");
         }
-
-        ntHeroLastData = data;
-        ntHeroLastDuration = duration;
         
         updateHeroPerformanceMetrics(
             strategyReturns,
