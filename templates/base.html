@@ -8321,6 +8321,60 @@
             }
         }
 
+        /* ==================================================
+           FINAL HERO HEADER ALIGNMENT
+           Keep title centered relative to the full chart card
+        ================================================== */
+        
+        @media (min-width: 1151px) {
+            .nt-market-hero-chart-header {
+                position: relative !important;
+                display: grid !important;
+                grid-template-columns: minmax(0, 1fr) auto !important;
+                grid-template-areas:
+                    "assets periods"
+                    "more scale" !important;
+                gap: 10px 16px !important;
+                align-items: center !important;
+            }
+        
+            .nt-market-hero-assets {
+                grid-area: assets !important;
+                justify-self: start !important;
+            }
+        
+            .nt-market-hero-periods {
+                grid-area: periods !important;
+                justify-self: end !important;
+            }
+        
+            .nt-market-hero-more-assets {
+                grid-area: more !important;
+                justify-self: start !important;
+            }
+        
+            .nt-market-hero-scale-toggle {
+                grid-area: scale !important;
+                justify-self: end !important;
+            }
+        
+            .nt-market-hero-performance-title {
+                position: absolute !important;
+                left: 50% !important;
+                bottom: 9px !important;
+                transform: translateX(-50%) !important;
+        
+                width: max-content !important;
+                max-width: calc(100% - 250px) !important;
+                padding: 0 !important;
+                margin: 0 !important;
+        
+                text-align: center !important;
+                white-space: nowrap !important;
+                pointer-events: none !important;
+            }
+        }
+
     </style>
 
 </head>
