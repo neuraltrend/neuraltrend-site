@@ -72,109 +72,219 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                 </div>
         
                 <!-- RIGHT: BTC STRATEGY COMPARISON -->
-                <div class="nt-market-hero-chart-card">
-        
-                    <div class="nt-market-hero-chart-header">
-        
-                        <div class="nt-market-hero-asset">
-        
-                            <span class="nt-market-hero-btc-icon">
-                                ₿
-                            </span>
-        
-                            <div>
-                                <div class="nt-market-hero-asset-name">
-                                    BTC-USD
+                <div class="nt-market-hero-visual">
+                    <div class="nt-market-hero-chart-card">
+            
+                        <div class="nt-market-hero-chart-header">
+            
+                            <div class="nt-market-hero-asset">
+            
+                                <span class="nt-market-hero-btc-icon">
+                                    ₿
+                                </span>
+            
+                                <div>
+                                    <div class="nt-market-hero-asset-name">
+                                        BTC-USD
+                                    </div>
+            
+                                    <div class="nt-market-hero-asset-label">
+                                        NeuralTrend Strategy vs Buy &amp; Hold
+                                    </div>
                                 </div>
-        
-                                <div class="nt-market-hero-asset-label">
-                                    NeuralTrend Strategy vs Buy &amp; Hold
+            
+                            </div>
+            
+                            <div class="nt-market-hero-chart-controls">
+
+                                <div
+                                    class="nt-market-hero-periods"
+                                    role="group"
+                                    aria-label="Hero chart return horizon"
+                                >
+                                    <button
+                                        type="button"
+                                        class="nt-market-hero-period"
+                                        data-hero-duration="3mo"
+                                    >
+                                        3M
+                                    </button>
+                            
+                                    <button
+                                        type="button"
+                                        class="nt-market-hero-period"
+                                        data-hero-duration="6mo"
+                                    >
+                                        6M
+                                    </button>
+                            
+                                    <button
+                                        type="button"
+                                        class="nt-market-hero-period"
+                                        data-hero-duration="1y"
+                                    >
+                                        1Y
+                                    </button>
+                            
+                                    <button
+                                        type="button"
+                                        class="nt-market-hero-period"
+                                        data-hero-duration="3y"
+                                    >
+                                        3Y
+                                    </button>
+                            
+                                    <button
+                                        type="button"
+                                        class="nt-market-hero-period active"
+                                        data-hero-duration="5y"
+                                    >
+                                        5Y
+                                    </button>
+                            
+                                    <button
+                                        type="button"
+                                        class="nt-market-hero-period"
+                                        data-hero-duration="10y"
+                                    >
+                                        10Y
+                                    </button>
+                                </div>
+                            
+                                <button
+                                    type="button"
+                                    id="nt-market-hero-scale-toggle"
+                                    class="nt-market-hero-scale-toggle"
+                                    aria-pressed="false"
+                                >
+                                    <span>Log Scale</span>
+                            
+                                    <span class="nt-market-hero-scale-switch" aria-hidden="true">
+                                        <span class="nt-market-hero-scale-knob"></span>
+                                    </span>
+                                </button>
+                            
+                            </div>
+            
+                        </div>
+            
+                        <div class="nt-market-hero-chart-shell">
+            
+                            <div
+                                id="nt-market-hero-chart-loading"
+                                class="nt-market-hero-chart-loading"
+                            >
+                                Loading BTC performance…
+                            </div>
+            
+                            <canvas
+                                id="nt-market-hero-chart"
+                                aria-label="BTC NeuralTrend strategy compared with buy and hold"
+                                role="img"
+                            ></canvas>
+            
+                        </div>
+            
+                        <div class="nt-market-hero-chart-footer">
+            
+                            <div class="nt-market-hero-legend">
+            
+                                <span class="nt-market-hero-legend-item">
+                                    <span class="nt-market-hero-legend-line nt-market-hero-legend-ai"></span>
+                                    NeuralTrend Strategy
+                                </span>
+            
+                                <span class="nt-market-hero-legend-item">
+                                    <span class="nt-market-hero-legend-line nt-market-hero-legend-buyhold"></span>
+                                    Buy &amp; Hold
+                                </span>
+            
+                            </div>
+            
+                            <span class="nt-market-hero-normalized">
+                                $1 normalized · costs included
+                            </span>
+            
+                        </div>
+            
+                    </div>
+
+                    <div class="nt-market-hero-metrics">
+
+                        <div class="nt-market-hero-metric-card nt-market-hero-metric-ai">
+                            <div class="nt-market-hero-metric-icon">
+                                ↗
+                            </div>
+                    
+                            <div class="nt-market-hero-metric-copy">
+                                <div class="nt-market-hero-metric-label">
+                                    AI Strategy Return
+                                    (<span class="nt-hero-metric-horizon">5Y</span>)
+                                </div>
+                    
+                                <div
+                                    id="nt-hero-strategy-return"
+                                    class="nt-market-hero-metric-value"
+                                >
+                                    —
+                                </div>
+                    
+                                <div class="nt-market-hero-metric-subtitle">
+                                    NeuralTrend Strategy
                                 </div>
                             </div>
-        
                         </div>
-        
-                        <div
-                            class="nt-market-hero-periods"
-                            role="group"
-                            aria-label="Hero chart return horizon"
-                        >
-                            <button
-                                type="button"
-                                class="nt-market-hero-period"
-                                data-hero-duration="1y"
-                            >
-                                1Y
-                            </button>
-        
-                            <button
-                                type="button"
-                                class="nt-market-hero-period"
-                                data-hero-duration="3y"
-                            >
-                                3Y
-                            </button>
-        
-                            <button
-                                type="button"
-                                class="nt-market-hero-period active"
-                                data-hero-duration="5y"
-                            >
-                                5Y
-                            </button>
-        
-                            <button
-                                type="button"
-                                class="nt-market-hero-period"
-                                data-hero-duration="10y"
-                            >
-                                10Y
-                            </button>
+                    
+                        <div class="nt-market-hero-metric-card nt-market-hero-metric-buyhold">
+                            <div class="nt-market-hero-metric-icon">
+                                −
+                            </div>
+                    
+                            <div class="nt-market-hero-metric-copy">
+                                <div class="nt-market-hero-metric-label">
+                                    Buy &amp; Hold Return
+                                    (<span class="nt-hero-metric-horizon">5Y</span>)
+                                </div>
+                    
+                                <div
+                                    id="nt-hero-buyhold-return"
+                                    class="nt-market-hero-metric-value"
+                                >
+                                    —
+                                </div>
+                    
+                                <div class="nt-market-hero-metric-subtitle">
+                                    Buy &amp; Hold BTC
+                                </div>
+                            </div>
                         </div>
-        
+                    
+                        <div class="nt-market-hero-metric-card nt-market-hero-metric-alpha">
+                            <div class="nt-market-hero-metric-icon">
+                                ↗
+                            </div>
+                    
+                            <div class="nt-market-hero-metric-copy">
+                                <div class="nt-market-hero-metric-label">
+                                    AI Outperformance
+                                    (<span class="nt-hero-metric-horizon">5Y</span>)
+                                </div>
+                    
+                                <div
+                                    id="nt-hero-outperformance"
+                                    class="nt-market-hero-metric-value"
+                                >
+                                    —
+                                </div>
+                    
+                                <div class="nt-market-hero-metric-subtitle">
+                                    AI minus Buy &amp; Hold
+                                </div>
+                            </div>
+                        </div>   
+                        
                     </div>
-        
-                    <div class="nt-market-hero-chart-shell">
-        
-                        <div
-                            id="nt-market-hero-chart-loading"
-                            class="nt-market-hero-chart-loading"
-                        >
-                            Loading BTC performance…
-                        </div>
-        
-                        <canvas
-                            id="nt-market-hero-chart"
-                            aria-label="BTC NeuralTrend strategy compared with buy and hold"
-                            role="img"
-                        ></canvas>
-        
-                    </div>
-        
-                    <div class="nt-market-hero-chart-footer">
-        
-                        <div class="nt-market-hero-legend">
-        
-                            <span class="nt-market-hero-legend-item">
-                                <span class="nt-market-hero-legend-line nt-market-hero-legend-ai"></span>
-                                NeuralTrend Strategy
-                            </span>
-        
-                            <span class="nt-market-hero-legend-item">
-                                <span class="nt-market-hero-legend-line nt-market-hero-legend-buyhold"></span>
-                                Buy &amp; Hold
-                            </span>
-        
-                        </div>
-        
-                        <span class="nt-market-hero-normalized">
-                            $1 normalized · costs included
-                        </span>
-        
-                    </div>
-        
-                </div>
-        
+                </div>      
             </div>
         
         </section>
@@ -6158,6 +6268,10 @@ document.addEventListener("DOMContentLoaded", function() {
     let ntHeroPerformanceChart = null;
     let ntHeroRequestController = null;
 
+    let ntHeroLogScale = false;
+    let ntHeroLastData = null;
+    let ntHeroLastDuration = "5y";
+
     const HERO_TICKER = "BTC-USD";
     const DEFAULT_HERO_DURATION = "5y";
 
@@ -6212,6 +6326,19 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    function heroDurationLabel(duration) {
+        const labels = {
+            "3mo": "3M",
+            "6mo": "6M",
+            "1y": "1Y",
+            "3y": "3Y",
+            "5y": "5Y",
+            "10y": "10Y"
+        };
+    
+        return labels[duration] || String(duration || "").toUpperCase();
+    }
+
     function formatHeroPercent(value) {
         const numberValue = Number(value);
 
@@ -6259,6 +6386,32 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    function normalizeHeroEquityCurve(curve) {
+        if (!Array.isArray(curve) || curve.length === 0) {
+            return [];
+        }
+    
+        const firstValidValue = curve.find(value =>
+            Number.isFinite(Number(value)) && Number(value) > 0
+        );
+    
+        const baseValue = Number(firstValidValue);
+    
+        if (!Number.isFinite(baseValue) || baseValue <= 0) {
+            return [];
+        }
+    
+        return curve.map(value => {
+            const numericValue = Number(value);
+    
+            if (!Number.isFinite(numericValue) || numericValue <= 0) {
+                return null;
+            }
+    
+            return numericValue / baseValue;
+        });
+    }
+
     function setHeroLoadingState(message, isError = false) {
         const loadingElement = document.getElementById(
             "nt-market-hero-chart-loading"
@@ -6300,6 +6453,95 @@ document.addEventListener("DOMContentLoaded", function() {
             });
     }
 
+    function getHeroFinalValidValue(values) {
+        if (!Array.isArray(values)) {
+            return null;
+        }
+    
+        for (let index = values.length - 1; index >= 0; index -= 1) {
+            const value = Number(values[index]);
+    
+            if (Number.isFinite(value)) {
+                return value;
+            }
+        }
+    
+        return null;
+    }
+    
+    function setHeroMetricValue(elementId, value) {
+        const element = document.getElementById(elementId);
+    
+        if (!element) {
+            return;
+        }
+    
+        if (!Number.isFinite(value)) {
+            element.textContent = "—";
+            return;
+        }
+    
+        const sign = value > 0 ? "+" : "";
+    
+        element.textContent =
+            `${sign}${value.toLocaleString(undefined, {
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1
+            })}%`;
+    }
+    
+    function updateHeroPerformanceMetrics(
+        strategyReturns,
+        buyHoldReturns,
+        duration
+    ) {
+        const strategyReturn =
+            getHeroFinalValidValue(strategyReturns);
+    
+        const buyHoldReturn =
+            getHeroFinalValidValue(buyHoldReturns);
+    
+        const outperformance =
+            Number.isFinite(strategyReturn) &&
+            Number.isFinite(buyHoldReturn)
+                ? strategyReturn - buyHoldReturn
+                : null;
+    
+        setHeroMetricValue(
+            "nt-hero-strategy-return",
+            strategyReturn
+        );
+    
+        setHeroMetricValue(
+            "nt-hero-buyhold-return",
+            buyHoldReturn
+        );
+    
+        setHeroMetricValue(
+            "nt-hero-outperformance",
+            outperformance
+        );
+    
+        document
+            .querySelectorAll(".nt-hero-metric-horizon")
+            .forEach(element => {
+                element.textContent =
+                    heroDurationLabel(duration);
+            });
+    
+        const alphaCard = document.querySelector(
+            ".nt-market-hero-metric-alpha"
+        );
+    
+        if (alphaCard) {
+            alphaCard.classList.toggle(
+                "is-negative",
+                Number.isFinite(outperformance) &&
+                outperformance < 0
+            );
+        }
+    }
+
     function renderHeroPerformanceChart(data, duration) {
         const canvas = document.getElementById(
             "nt-market-hero-chart"
@@ -6316,18 +6558,43 @@ document.addEventListener("DOMContentLoaded", function() {
         const strategyReturns = normalizeHeroCurve(
             data.epoch_equity_curve
         );
-
+        
         const buyHoldReturns = normalizeHeroCurve(
             data.equity_curve
         );
+        
+        const strategyEquity = normalizeHeroEquityCurve(
+            data.epoch_equity_curve
+        );
+        
+        const buyHoldEquity = normalizeHeroEquityCurve(
+            data.equity_curve
+        );
+        
+        const strategyDisplayData = ntHeroLogScale
+            ? strategyEquity
+            : strategyReturns;
+        
+        const buyHoldDisplayData = ntHeroLogScale
+            ? buyHoldEquity
+            : buyHoldReturns;
 
         if (
             dates.length < 2 ||
-            strategyReturns.length !== dates.length ||
-            buyHoldReturns.length !== dates.length
+            strategyDisplayData.length !== dates.length ||
+            buyHoldDisplayData.length !== dates.length
         ) {
             throw new Error("Incomplete equity data received.");
         }
+
+        ntHeroLastData = data;
+        ntHeroLastDuration = duration;
+        
+        updateHeroPerformanceMetrics(
+            strategyReturns,
+            buyHoldReturns,
+            duration
+        );
 
         if (ntHeroPerformanceChart) {
             ntHeroPerformanceChart.destroy();
@@ -6345,7 +6612,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 datasets: [
                     {
                         label: "NeuralTrend Strategy",
-                        data: strategyReturns,
+                        data: strategyDisplayData,
 
                         borderColor: "#60A5FA",
                         backgroundColor: "rgba(96, 165, 250, 0.10)",
@@ -6374,7 +6641,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
                     {
                         label: "Buy & Hold",
-                        data: buyHoldReturns,
+                        data: buyHoldDisplayData,
 
                         borderColor: "rgba(216, 180, 254, 0.88)",
                         backgroundColor: "transparent",
@@ -6447,10 +6714,18 @@ document.addEventListener("DOMContentLoaded", function() {
                             label(context) {
                                 const label =
                                     context.dataset.label || "";
-
+                            
                                 const value =
                                     context.parsed?.y;
-
+                            
+                                if (ntHeroLogScale) {
+                                    if (!Number.isFinite(Number(value))) {
+                                        return `${label}: —`;
+                                    }
+                            
+                                    return `${label}: $1 → $${Number(value).toFixed(2)}`;
+                                }
+                            
                                 return `${label}: ${formatHeroPercent(value)}`;
                             }
                         }
@@ -6497,6 +6772,10 @@ document.addEventListener("DOMContentLoaded", function() {
                     },
 
                     y: {
+                        type: ntHeroLogScale
+                            ? "logarithmic"
+                            : "linear",
+                        
                         grid: {
                             color: "rgba(148, 163, 184, 0.10)",
                             drawTicks: false
@@ -6520,6 +6799,18 @@ document.addEventListener("DOMContentLoaded", function() {
                             },
 
                             callback(value) {
+                                if (ntHeroLogScale) {
+                                    const numericValue = Number(value);
+                            
+                                    if (!Number.isFinite(numericValue)) {
+                                        return "";
+                                    }
+                            
+                                    return `$${numericValue.toFixed(
+                                        numericValue < 10 ? 1 : 0
+                                    )}`;
+                                }
+                            
                                 return formatHeroPercent(value);
                             }
                         }
@@ -6604,6 +6895,33 @@ document.addEventListener("DOMContentLoaded", function() {
                     loadHeroPerformanceChart(duration);
                 });
             });
+
+        const scaleToggle = document.getElementById(
+            "nt-market-hero-scale-toggle"
+        );
+        
+        if (scaleToggle) {
+            scaleToggle.addEventListener("click", function () {
+                ntHeroLogScale = !ntHeroLogScale;
+        
+                this.classList.toggle(
+                    "active",
+                    ntHeroLogScale
+                );
+        
+                this.setAttribute(
+                    "aria-pressed",
+                    ntHeroLogScale ? "true" : "false"
+                );
+        
+                if (ntHeroLastData) {
+                    renderHeroPerformanceChart(
+                        ntHeroLastData,
+                        ntHeroLastDuration
+                    );
+                }
+            });
+        }
 
         loadHeroPerformanceChart(DEFAULT_HERO_DURATION);
     }
