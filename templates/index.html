@@ -76,27 +76,90 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                     <div class="nt-market-hero-chart-card">
             
                         <div class="nt-market-hero-chart-header">
-            
-                            <div class="nt-market-hero-asset">
-            
-                                <span class="nt-market-hero-btc-icon">
-                                    ₿
-                                </span>
-            
-                                <div>
-                                    <div class="nt-market-hero-asset-name">
-                                        BTC-USD
-                                    </div>
-            
-                                    <div class="nt-market-hero-asset-label">
-                                        NeuralTrend Strategy vs Buy &amp; Hold
-                                    </div>
-                                </div>
-            
-                            </div>
-            
-                            <div class="nt-market-hero-chart-controls">
 
+                            <!-- ASSET SELECTOR -->
+                            <div
+                                class="nt-market-hero-assets"
+                                role="group"
+                                aria-label="Select hero chart asset"
+                            >
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-asset-btn active"
+                                    data-hero-ticker="BTC-USD"
+                                    aria-pressed="true"
+                                >
+                                    <span class="nt-market-hero-coin-icon nt-coin-btc">
+                                        ₿
+                                    </span>
+                        
+                                    <span class="nt-market-hero-coin-name">
+                                        BTC-USD
+                                    </span>
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-asset-btn"
+                                    data-hero-ticker="ETH-USD"
+                                    aria-pressed="false"
+                                >
+                                    <span class="nt-market-hero-coin-icon nt-coin-eth">
+                                        ◆
+                                    </span>
+                        
+                                    <span class="nt-market-hero-coin-name">
+                                        ETH-USD
+                                    </span>
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-asset-btn"
+                                    data-hero-ticker="SOL-USD"
+                                    aria-pressed="false"
+                                >
+                                    <span class="nt-market-hero-coin-icon nt-coin-sol">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </span>
+                        
+                                    <span class="nt-market-hero-coin-name">
+                                        SOL-USD
+                                    </span>
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-asset-btn"
+                                    data-hero-ticker="XRP-USD"
+                                    aria-pressed="false"
+                                >
+                                    <span class="nt-market-hero-coin-icon nt-coin-xrp">
+                                        ✕
+                                    </span>
+                        
+                                    <span class="nt-market-hero-coin-name">
+                                        XRP-USD
+                                    </span>
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    id="nt-market-hero-more-assets"
+                                    class="nt-market-hero-more-assets"
+                                >
+                                    <span>More Assets</span>
+                                    <span aria-hidden="true">›</span>
+                                </button>
+                        
+                            </div>
+                        
+                            <!-- HORIZON + SCALE -->
+                            <div class="nt-market-hero-chart-controls">
+                        
                                 <div
                                     class="nt-market-hero-periods"
                                     role="group"
@@ -109,7 +172,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                     >
                                         3M
                                     </button>
-                            
+                        
                                     <button
                                         type="button"
                                         class="nt-market-hero-period"
@@ -117,7 +180,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                     >
                                         6M
                                     </button>
-                            
+                        
                                     <button
                                         type="button"
                                         class="nt-market-hero-period"
@@ -125,7 +188,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                     >
                                         1Y
                                     </button>
-                            
+                        
                                     <button
                                         type="button"
                                         class="nt-market-hero-period"
@@ -133,7 +196,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                     >
                                         3Y
                                     </button>
-                            
+                        
                                     <button
                                         type="button"
                                         class="nt-market-hero-period active"
@@ -141,7 +204,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                     >
                                         5Y
                                     </button>
-                            
+                        
                                     <button
                                         type="button"
                                         class="nt-market-hero-period"
@@ -150,7 +213,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                         10Y
                                     </button>
                                 </div>
-                            
+                        
                                 <button
                                     type="button"
                                     id="nt-market-hero-scale-toggle"
@@ -158,14 +221,17 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                     aria-pressed="false"
                                 >
                                     <span>Log Scale</span>
-                            
-                                    <span class="nt-market-hero-scale-switch" aria-hidden="true">
+                        
+                                    <span
+                                        class="nt-market-hero-scale-switch"
+                                        aria-hidden="true"
+                                    >
                                         <span class="nt-market-hero-scale-knob"></span>
                                     </span>
                                 </button>
-                            
+                        
                             </div>
-            
+                        
                         </div>
             
                         <div class="nt-market-hero-chart-shell">
@@ -196,9 +262,11 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
             
                                 <span class="nt-market-hero-legend-item">
                                     <span class="nt-market-hero-legend-line nt-market-hero-legend-buyhold"></span>
-                                    Buy &amp; Hold
+                                    <span id="nt-hero-buyhold-legend">
+                                        Buy &amp; Hold (BTC)
+                                    </span>
                                 </span>
-            
+                                            
                             </div>
             
                             <span class="nt-market-hero-normalized">
@@ -253,7 +321,10 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                     —
                                 </div>
                     
-                                <div class="nt-market-hero-metric-subtitle">
+                                <div
+                                    id="nt-hero-buyhold-metric-subtitle"
+                                    class="nt-market-hero-metric-subtitle"
+                                >
                                     Buy &amp; Hold BTC
                                 </div>
                             </div>
@@ -6272,8 +6343,19 @@ document.addEventListener("DOMContentLoaded", function() {
     let ntHeroLastData = null;
     let ntHeroLastDuration = "5y";
 
-    const HERO_TICKER = "BTC-USD";
+    let ntHeroTicker = "BTC-USD";
     const DEFAULT_HERO_DURATION = "5y";
+
+    function heroAssetLabel(ticker) {
+        const labels = {
+            "BTC-USD": "BTC",
+            "ETH-USD": "ETH",
+            "SOL-USD": "SOL",
+            "XRP-USD": "XRP"
+        };
+    
+        return labels[ticker] || ticker.replace("-USD", "");
+    }
 
     function parseHeroDate(value) {
         const rawValue = String(value || "").trim();
@@ -6542,7 +6624,39 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    function updateHeroAssetText() {
+        const asset = heroAssetLabel(ntHeroTicker);
+    
+        const legend = document.getElementById(
+            "nt-hero-buyhold-legend"
+        );
+    
+        if (legend) {
+            legend.textContent = `Buy & Hold (${asset})`;
+        }
+    
+        const metricSubtitle = document.getElementById(
+            "nt-hero-buyhold-metric-subtitle"
+        );
+    
+        if (metricSubtitle) {
+            metricSubtitle.textContent = `Buy & Hold ${asset}`;
+        }
+    
+        const canvas = document.getElementById(
+            "nt-market-hero-chart"
+        );
+    
+        if (canvas) {
+            canvas.setAttribute(
+                "aria-label",
+                `${asset} NeuralTrend strategy compared with buy and hold`
+            );
+        }
+    }
+
     function renderHeroPerformanceChart(data, duration) {
+        updateHeroAssetText();
         const canvas = document.getElementById(
             "nt-market-hero-chart"
         );
@@ -6640,7 +6754,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     },
 
                     {
-                        label: "Buy & Hold",
+                        label: `Buy & Hold (${heroAssetLabel(ntHeroTicker)})`,
                         data: buyHoldDisplayData,
 
                         borderColor: "rgba(216, 180, 254, 0.88)",
@@ -6826,7 +6940,9 @@ document.addEventListener("DOMContentLoaded", function() {
         duration = DEFAULT_HERO_DURATION
     ) {
         setActiveHeroDuration(duration);
-        setHeroLoadingState("Loading BTC performance…");
+        setHeroLoadingState(
+            `Loading ${heroAssetLabel(ntHeroTicker)} performance…`
+        );
 
         /*
           Cancel the prior request when users switch horizons quickly.
@@ -6838,7 +6954,7 @@ document.addEventListener("DOMContentLoaded", function() {
         ntHeroRequestController = new AbortController();
 
         const formData = new FormData();
-        formData.append("ticker", HERO_TICKER);
+        formData.append("ticker", ntHeroTicker);
         formData.append("duration", duration);
 
         try {
@@ -6852,7 +6968,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
             if (!response.ok) {
                 throw new Error(
-                    data.error || "Could not load BTC performance."
+                    data.error ||
+                    `Could not load ${heroAssetLabel(ntHeroTicker)} performance.`
                 );
             }
 
@@ -6866,7 +6983,7 @@ document.addEventListener("DOMContentLoaded", function() {
             console.error("Hero performance chart error:", error);
 
             setHeroLoadingState(
-                "BTC performance is temporarily unavailable.",
+                `${heroAssetLabel(ntHeroTicker)} performance is temporarily unavailable.`,
                 true
             );
         }
@@ -6895,6 +7012,104 @@ document.addEventListener("DOMContentLoaded", function() {
                     loadHeroPerformanceChart(duration);
                 });
             });
+
+        document
+            .querySelectorAll(".nt-market-hero-asset-btn")
+            .forEach(button => {
+                button.addEventListener("click", function () {
+                    const ticker =
+                        this.dataset.heroTicker;
+        
+                    if (!ticker || ticker === ntHeroTicker) {
+                        return;
+                    }
+        
+                    ntHeroTicker = ticker;
+        
+                    document
+                        .querySelectorAll(".nt-market-hero-asset-btn")
+                        .forEach(assetButton => {
+                            const isSelected =
+                                assetButton.dataset.heroTicker === ticker;
+        
+                            assetButton.classList.toggle(
+                                "active",
+                                isSelected
+                            );
+        
+                            assetButton.setAttribute(
+                                "aria-pressed",
+                                isSelected ? "true" : "false"
+                            );
+                        });
+        
+                    /*
+                      Discard old cached data because it belongs
+                      to the previously selected asset.
+                    */
+                    ntHeroLastData = null;
+        
+                    loadHeroPerformanceChart(
+                        ntHeroLastDuration || DEFAULT_HERO_DURATION
+                    );
+                });
+            });
+
+        const moreAssetsButton = document.getElementById(
+            "nt-market-hero-more-assets"
+        );
+        
+        if (moreAssetsButton) {
+            moreAssetsButton.addEventListener("click", function () {
+        
+                /*
+                  Activate EpochSignaler in case another model
+                  was previously selected.
+                */
+                const epochModelButton = document.querySelector(
+                    '.nt-model-tab[data-model-target="epochsignaler-section"]'
+                );
+        
+                if (
+                    epochModelButton &&
+                    !epochModelButton.classList.contains("active")
+                ) {
+                    epochModelButton.click();
+                }
+        
+                /*
+                  Activate Signal Overview in case the user
+                  previously selected Live Simulation or Backtest.
+                */
+                const overviewButton = document.querySelector(
+                    '.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"]'
+                );
+        
+                if (
+                    overviewButton &&
+                    !overviewButton.classList.contains("active")
+                ) {
+                    overviewButton.click();
+                }
+        
+                /*
+                  Wait briefly for the panel to become visible,
+                  then scroll directly to the signal board.
+                */
+                window.setTimeout(() => {
+                    const signalBoard = document.querySelector(
+                        ".nt-signal-board-shell"
+                    );
+        
+                    if (signalBoard) {
+                        signalBoard.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start"
+                        });
+                    }
+                }, 80);
+            });
+        }
 
         const scaleToggle = document.getElementById(
             "nt-market-hero-scale-toggle"
