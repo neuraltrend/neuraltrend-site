@@ -6750,8 +6750,40 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const context = canvas.getContext("2d");
 
+        /*
+          Adds a restrained glow only to the AI strategy curve.
+          It does not affect the Buy & Hold line, axes, or labels.
+        */
+        const ntHeroStrategyGlow = {
+            id: "ntHeroStrategyGlow",
+        
+            beforeDatasetDraw(chart, args) {
+                if (args.index !== 0) {
+                    return;
+                }
+        
+                const ctx = chart.ctx;
+        
+                ctx.save();
+                ctx.shadowColor = "rgba(96, 165, 250, 0.58)";
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            },
+        
+            afterDatasetDraw(chart, args) {
+                if (args.index !== 0) {
+                    return;
+                }
+        
+                chart.ctx.restore();
+            }
+        };
+        
         ntHeroPerformanceChart = new Chart(context, {
             type: "line",
+
+            plugins: [ntHeroStrategyGlow],
 
             data: {
                 labels: dates,
@@ -6761,14 +6793,21 @@ document.addEventListener("DOMContentLoaded", function() {
                         label: "NeuralTrend Strategy",
                         data: strategyDisplayData,
 
-                        borderColor: "#60A5FA",
-                        backgroundColor: "rgba(96, 165, 250, 0.10)",
-
-                        borderWidth: 2.7,
+                        borderColor: "#6BB6FF",
+                        backgroundColor: "rgba(107, 182, 255, 0.10)",
+                        
+                        borderWidth: 3.2,
+                        borderCapStyle: "round",
+                        borderJoinStyle: "round",
+                        
                         pointRadius: 0,
-                        pointHoverRadius: 4,
-
-                        tension: 0.18,
+                        pointHoverRadius: 4.5,
+                        pointHoverBackgroundColor: "#FFFFFF",
+                        pointHoverBorderColor: "#60A5FA",
+                        pointHoverBorderWidth: 2,
+                        
+                        tension: 0.24,
+                        cubicInterpolationMode: "monotone",
 
                         /*
                           Fill the space between this curve and dataset 1.
@@ -6781,8 +6820,8 @@ document.addEventListener("DOMContentLoaded", function() {
                         */
                         fill: {
                             target: 1,
-                            above: "rgba(34, 197, 94, 0.16)",
-                            below: "rgba(239, 68, 68, 0.14)"
+                            above: "rgba(34, 197, 94, 0.21)",
+                            below: "rgba(239, 68, 68, 0.18)"
                         }
                     },
 
@@ -6790,16 +6829,22 @@ document.addEventListener("DOMContentLoaded", function() {
                         label: `Buy & Hold (${heroAssetLabel(ntHeroTicker)})`,
                         data: buyHoldDisplayData,
 
-                        borderColor: "rgba(216, 180, 254, 0.88)",
+                        borderColor: "rgba(216, 180, 254, 0.66)",
                         backgroundColor: "transparent",
-
-                        borderWidth: 1.8,
-                        borderDash: [6, 5],
-
+                        
+                        borderWidth: 1.55,
+                        borderDash: [7, 6],
+                        borderCapStyle: "round",
+                        borderJoinStyle: "round",
+                        
                         pointRadius: 0,
                         pointHoverRadius: 4,
-
-                        tension: 0.18,
+                        pointHoverBackgroundColor: "#FFFFFF",
+                        pointHoverBorderColor: "#C084FC",
+                        pointHoverBorderWidth: 2,
+                        
+                        tension: 0.24,
+                        cubicInterpolationMode: "monotone",
                         fill: false
                     }
                 ]
@@ -6810,9 +6855,21 @@ document.addEventListener("DOMContentLoaded", function() {
                 maintainAspectRatio: false,
 
                 animation: {
-                    duration: 900,
-                    easing: "easeOutQuart"
+                    duration: 1050,
+                    easing: "easeOutCubic"
                 },
+
+                animations: {
+                x: {
+                    duration: 1050,
+                    easing: "easeOutCubic"
+                },
+            
+                y: {
+                    duration: 1050,
+                    easing: "easeOutCubic"
+                }
+            },
 
                 interaction: {
                     mode: "index",
@@ -6841,15 +6898,37 @@ document.addEventListener("DOMContentLoaded", function() {
                         mode: "index",
                         intersect: false,
 
-                        backgroundColor: "rgba(2, 6, 23, 0.94)",
-                        titleColor: "#FFFFFF",
-                        bodyColor: "#FFFFFF",
-
-                        borderColor: "rgba(148, 163, 184, 0.24)",
+                        backgroundColor: "rgba(2, 6, 23, 0.97)",
+                        titleColor: "#F8FAFC",
+                        bodyColor: "#E2E8F0",
+                        
+                        borderColor: "rgba(148, 163, 184, 0.28)",
                         borderWidth: 1,
-
-                        padding: 11,
+                        
+                        cornerRadius: 12,
+                        padding: 13,
                         displayColors: true,
+                        boxWidth: 9,
+                        boxHeight: 9,
+                        boxPadding: 6,
+                        
+                        titleFont: {
+                            size: 12,
+                            weight: "700"
+                        },
+                        
+                        bodyFont: {
+                            size: 12,
+                            weight: "700"
+                        },
+                        
+                        footerFont: {
+                            size: 11,
+                            weight: "600"
+                        },
+                        
+                        caretSize: 6,
+                        caretPadding: 9,
 
                         callbacks: {
                             title(items) {
@@ -6874,6 +6953,38 @@ document.addEventListener("DOMContentLoaded", function() {
                                 }
                             
                                 return `${label}: ${formatHeroPercent(value)}`;
+                            },
+
+                            footer(items) {
+                                if (!Array.isArray(items) || items.length < 2) {
+                                    return "";
+                                }
+                            
+                                const strategyValue = Number(items[0]?.parsed?.y);
+                                const buyHoldValue = Number(items[1]?.parsed?.y);
+                            
+                                if (
+                                    !Number.isFinite(strategyValue) ||
+                                    !Number.isFinite(buyHoldValue)
+                                ) {
+                                    return "";
+                                }
+                            
+                                if (ntHeroLogScale) {
+                                    const difference =
+                                        ((strategyValue / buyHoldValue) - 1) * 100;
+                            
+                                    const sign = difference > 0 ? "+" : "";
+                            
+                                    return `AI relative performance: ${sign}${difference.toFixed(1)}%`;
+                                }
+                            
+                                const difference =
+                                    strategyValue - buyHoldValue;
+                            
+                                const sign = difference > 0 ? "+" : "";
+                            
+                                return `AI outperformance: ${sign}${difference.toFixed(1)} pts`;
                             }
                         }
                     }
@@ -6882,8 +6993,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 scales: {
                     x: {
                         grid: {
-                            color: "rgba(148, 163, 184, 0.08)",
-                            drawTicks: false
+                            color: "rgba(148, 163, 184, 0.055)",
+                            drawTicks: false,
+                            lineWidth: 1
                         },
 
                         border: {
@@ -6924,7 +7036,18 @@ document.addEventListener("DOMContentLoaded", function() {
                             : "linear",
                         
                         grid: {
-                            color: "rgba(148, 163, 184, 0.10)",
+                            color(context) {
+                                return Number(context.tick?.value) === 0
+                                    ? "rgba(226, 232, 240, 0.22)"
+                                    : "rgba(148, 163, 184, 0.065)";
+                            },
+                        
+                            lineWidth(context) {
+                                return Number(context.tick?.value) === 0
+                                    ? 1.3
+                                    : 1;
+                            },
+                        
                             drawTicks: false
                         },
 
