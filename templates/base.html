@@ -8375,6 +8375,143 @@
             }
         }
 
+        /* ==================================================
+           FINAL HOMEPAGE HERO POLISH
+        ================================================== */
+        
+        /* Slightly rebalance the two hero columns */
+        @media (min-width: 1101px) {
+            .nt-market-hero-grid {
+                grid-template-columns:
+                    minmax(400px, 0.95fr)
+                    minmax(650px, 1.45fr) !important;
+        
+                gap: 32px !important;
+                padding: 34px 36px !important;
+            }
+        }
+        
+        /* Give the copy a little more breathing room */
+        .nt-market-hero-copy {
+            padding-top: 2px;
+        }
+        
+        .nt-market-hero-title {
+            margin: 0 !important;
+        }
+        
+        .nt-market-hero-subtitle {
+            margin-top: 26px !important;
+            max-width: 570px;
+        }
+        
+        /* Strengthen the CTA hierarchy */
+        .nt-market-hero-actions {
+            margin-top: 24px !important;
+            gap: 12px !important;
+        }
+        
+        .nt-market-hero-btn-primary {
+            min-height: 46px;
+            padding: 11px 19px;
+            background: #ffffff !important;
+            color: #0F172A !important;
+            border: 1px solid #ffffff;
+            box-shadow: 0 8px 20px rgba(2, 6, 23, 0.22);
+        }
+        
+        .nt-market-hero-btn-primary:hover {
+            background: #EFF6FF !important;
+            transform: translateY(-1px);
+            box-shadow: 0 11px 25px rgba(2, 6, 23, 0.27);
+        }
+        
+        .nt-market-hero-btn-secondary {
+            min-height: 46px;
+            padding: 11px 18px;
+            background: transparent !important;
+            color: rgba(255, 255, 255, 0.90) !important;
+            border: 1px solid rgba(255, 255, 255, 0.28) !important;
+            box-shadow: none !important;
+        }
+        
+        .nt-market-hero-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.44) !important;
+            color: #ffffff !important;
+        }
+        
+        /* Make the chart more visually dominant */
+        .nt-market-hero-chart-shell {
+            height: 315px !important;
+        }
+        
+        /* Slightly enlarge the performance cards */
+        .nt-market-hero-metrics {
+            gap: 13px !important;
+        }
+        
+        .nt-market-hero-metric-card {
+            min-height: 108px !important;
+            padding: 16px 18px !important;
+            gap: 14px !important;
+        }
+        
+        .nt-market-hero-metric-icon {
+            width: 52px !important;
+            height: 52px !important;
+            flex-basis: 52px !important;
+            font-size: 25px !important;
+        }
+        
+        .nt-market-hero-metric-value {
+            margin-top: 6px !important;
+            font-size: clamp(25px, 2.15vw, 34px) !important;
+        }
+        
+        .nt-market-hero-metric-label {
+            font-size: 10.5px !important;
+        }
+        
+        .nt-market-hero-metric-subtitle {
+            margin-top: 7px !important;
+            font-size: 10.5px !important;
+        }
+        
+        /* Keep tablet layout comfortable */
+        @media (max-width: 1100px) {
+            .nt-market-hero-grid {
+                gap: 28px !important;
+            }
+        
+            .nt-market-hero-chart-shell {
+                height: 320px !important;
+            }
+        }
+        
+        /* Avoid making mobile unnecessarily tall */
+        @media (max-width: 700px) {
+            .nt-market-hero-subtitle {
+                margin-top: 18px !important;
+            }
+        
+            .nt-market-hero-chart-shell {
+                height: 280px !important;
+            }
+        
+            .nt-market-hero-metric-card {
+                min-height: 98px !important;
+                padding: 14px !important;
+            }
+        
+            .nt-market-hero-metric-icon {
+                width: 46px !important;
+                height: 46px !important;
+                flex-basis: 46px !important;
+                font-size: 22px !important;
+            }
+        }
+
     </style>
 
 </head>
