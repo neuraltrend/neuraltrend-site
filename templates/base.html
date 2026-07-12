@@ -8875,6 +8875,94 @@
         }
     }
 
+    /* ==================================================
+       MODEL SELECTOR → DASHBOARD CONTINUITY
+    ================================================== */
+    
+    .nt-product-selector {
+        position: relative;
+        z-index: 2;
+        margin-bottom: 18px !important;
+    }
+    
+    .nt-model-content {
+        position: relative;
+        z-index: 1;
+        padding: 18px;
+        border: 1px solid var(--nt-border);
+        border-radius: 20px;
+        background:
+            linear-gradient(
+                180deg,
+                #F8FAFC 0%,
+                #FFFFFF 150px
+            );
+        box-shadow:
+            0 8px 24px rgba(15, 23, 42, 0.055);
+    }
+
+    .nt-model-content > .nt-model-panel {
+        padding: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+    }
+
+    .nt-model-panel > .nt-model-panel-header:first-child {
+        padding: 16px 16px 0 16px !important;
+        border-radius: 16px 16px 0 0 !important;
+    }
+    
+    .nt-model-panel > .nt-model-summary-grid {
+        padding: 0 16px 16px 16px !important;
+        margin-bottom: 18px !important;
+        border-radius: 0 0 16px 16px !important;
+    }
+    
+    .nt-model-panel-title {
+        font-size: 20px !important;
+    }
+    
+    .nt-model-panel-description {
+        max-width: 900px;
+    }
+
+    .nt-product-card-grid {
+        margin-bottom: 0 !important;
+    }
+    
+    .nt-epoch-subworkspace {
+        margin-top: 16px !important;
+    }
+
+    @media (min-width: 701px) {
+        .nt-product-card.active::after {
+            border-top-color: #CBD5E1 !important;
+            filter: drop-shadow(0 2px 1px rgba(15, 23, 42, 0.08));
+        }
+    }
+
+    @media (max-width: 700px) {
+        .nt-model-content {
+            padding: 12px;
+            border-radius: 16px;
+        }
+    
+        .nt-product-selector {
+            margin-bottom: 14px !important;
+        }
+    
+        .nt-model-panel > .nt-model-panel-header:first-child {
+            padding: 14px 14px 0 14px !important;
+        }
+    
+        .nt-model-panel > .nt-model-summary-grid {
+            padding: 0 14px 14px 14px !important;
+        }
+    }
+
     </style>
 
 </head>
