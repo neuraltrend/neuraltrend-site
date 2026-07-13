@@ -9287,6 +9287,186 @@
         }
     }
 
+    /* ==================================================
+       EQUITY PREVIEW — SAFE, NARROWLY SCOPED POLISH
+       Does not affect the four performance cards
+    ================================================== */
+    
+    #equity-preview-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-top: 16px !important;
+    }
+    
+    #equity-preview-container .nt-preview-wrapper {
+        width: 100% !important;
+        margin-top: 0 !important;
+        display: block !important;
+    }
+    
+    #equity-preview-container .nt-preview-card {
+        width: 100% !important;
+        max-width: 100% !important;
+    
+        padding: 16px !important;
+        border-radius: 16px !important;
+    
+        border: 1px solid var(--nt-border) !important;
+        background: #FFFFFF !important;
+    
+        box-shadow:
+            0 3px 14px rgba(15, 23, 42, 0.045) !important;
+    }
+    
+    /* Header */
+    
+    #equity-preview-container .nt-preview-header {
+        display: flex !important;
+        align-items: flex-start !important;
+        justify-content: space-between !important;
+    
+        gap: 16px !important;
+        margin-bottom: 12px !important;
+    }
+    
+    #equity-preview-container .nt-preview-title {
+        margin: 0 !important;
+    
+        color: var(--nt-dark) !important;
+        font-size: 17px !important;
+        line-height: 1.25 !important;
+        font-weight: 900 !important;
+        letter-spacing: -0.01em;
+    }
+    
+    #equity-preview-container .nt-preview-subtitle {
+        max-width: 720px;
+        margin: 4px 0 0 0 !important;
+    
+        color: var(--nt-neutral) !important;
+        font-size: 11.5px !important;
+        line-height: 1.45 !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Metadata chips */
+    
+    #equity-preview-container .nt-preview-meta {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-wrap: wrap !important;
+    
+        margin-top: 9px !important;
+    }
+    
+    #equity-preview-container .nt-preview-chip {
+        min-height: 27px;
+        padding: 4px 8px !important;
+    
+        border-radius: 999px !important;
+        border: 1px solid rgba(203, 213, 225, 0.9) !important;
+    
+        background: #F8FAFC !important;
+        color: var(--nt-neutral) !important;
+    
+        font-size: 10.5px !important;
+        line-height: 1.2 !important;
+        font-weight: 750 !important;
+    }
+    
+    #equity-preview-container .nt-preview-chip strong {
+        color: var(--nt-dark) !important;
+        font-weight: 900 !important;
+    }
+    
+    /* Header actions */
+    
+    #equity-preview-container .nt-preview-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 7px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    #equity-preview-container .nt-scale-btn {
+        min-height: 36px !important;
+        padding: 7px 12px !important;
+    
+        border-radius: 999px !important;
+        border: 1px solid var(--nt-border) !important;
+    
+        background: #FFFFFF !important;
+        color: var(--nt-dark) !important;
+    
+        font-size: 11px !important;
+        line-height: 1 !important;
+        font-weight: 850 !important;
+    
+        box-shadow: none !important;
+    }
+    
+    #equity-preview-container .nt-scale-btn:hover {
+        background: #F1F5F9 !important;
+        border-color: #CBD5E1 !important;
+    }
+    
+    /* Chart shell */
+    
+    #equity-preview-container .nt-preview-chart {
+        position: relative !important;
+    
+        width: 100% !important;
+        height: 390px !important;
+    
+        padding: 8px !important;
+        overflow: hidden !important;
+    
+        border-radius: 14px !important;
+        border: 1px solid rgba(226, 232, 240, 0.95) !important;
+    
+        background:
+            linear-gradient(
+                180deg,
+                #FFFFFF 0%,
+                #F8FAFC 100%
+            ) !important;
+    }
+    
+    /* Canvas should fill the available chart area */
+    
+    #equity-preview-container .nt-preview-chart canvas,
+    #equity-preview-container #equity-preview-chart {
+        width: 100% !important;
+        height: 100% !important;
+    }
+    
+    /* Responsive */
+    
+    @media (max-width: 760px) {
+        #equity-preview-container .nt-preview-card {
+            padding: 13px !important;
+            border-radius: 14px !important;
+        }
+    
+        #equity-preview-container .nt-preview-header {
+            flex-direction: column !important;
+            gap: 11px !important;
+        }
+    
+        #equity-preview-container .nt-preview-actions {
+            width: 100% !important;
+        }
+    
+        #equity-preview-container .nt-scale-btn {
+            width: 100% !important;
+        }
+    
+        #equity-preview-container .nt-preview-chart {
+            height: 310px !important;
+        }
+    }
+
     </style>
 
 </head>
