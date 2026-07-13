@@ -389,40 +389,6 @@
             font-weight: 600;
         }
         
-        .nt-model-tabs {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 18px 0 22px 0;
-        }
-        
-        .nt-model-tab {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            padding: 9px 14px;
-            border-radius: 999px;
-            border: 1px solid var(--nt-border);
-            background: #ffffff;
-            color: var(--nt-dark);
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 850;
-            transition: all 0.15s ease;
-        }
-        
-        .nt-model-tab:hover {
-            background: #F1F5F9;
-            border-color: #CBD5E1;
-        }
-        
-        .nt-model-tab.active {
-            background: var(--nt-dark);
-            border-color: var(--nt-dark);
-            color: #ffffff;
-        }
-        
         .nt-models-container {
             display: flex;
             flex-direction: column;
@@ -1604,46 +1570,6 @@
            Model tabs: show one model at a time
         ================================ */
         
-        .nt-model-tabs {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 18px 0 22px 0;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            padding-bottom: 4px;
-        }
-        
-        .nt-model-tab {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-            padding: 9px 14px;
-            border-radius: 999px;
-            border: 1px solid var(--nt-border);
-            background: #ffffff;
-            color: var(--nt-dark);
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 850;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            white-space: nowrap;
-            flex: 0 0 auto;
-        }
-        
-        .nt-model-tab:hover {
-            background: #F1F5F9;
-            border-color: #CBD5E1;
-        }
-        
-        .nt-model-tab.active {
-            background: var(--nt-dark);
-            border-color: var(--nt-dark);
-            color: #ffffff;
-        }
-        
         /* Hide inactive model panels */
         .nt-model-panel {
             display: none;
@@ -2040,37 +1966,6 @@
            Vertical model selector
         ================================ */
         
-        .nt-model-layout {
-            display: grid;
-            grid-template-columns: 240px minmax(0, 1fr);
-            gap: 22px;
-            align-items: start;
-        }
-        
-        .nt-model-sidebar {
-            position: sticky;
-            top: calc(var(--nav-height) + 24px);
-            align-self: start;
-        }
-        
-        .nt-model-sidebar-card {
-            background: #ffffff;
-            border: 1px solid var(--nt-border);
-            border-radius: 18px;
-            box-shadow: 0 2px 14px rgba(15, 23, 42, 0.06);
-            padding: 14px;
-        }
-        
-        .nt-model-sidebar-title {
-            margin: 0 0 12px 0;
-            font-size: 12px;
-            line-height: 1.2;
-            font-weight: 850;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: var(--nt-blue);
-        }
-        
         .nt-model-tabs {
             display: flex;
             flex-direction: column;
@@ -2112,19 +2007,6 @@
             border-color: var(--nt-dark);
             color: #ffffff;
             box-shadow: 0 6px 16px rgba(15, 23, 42, 0.14);
-        }
-        
-        .nt-model-tab-name {
-            font-size: 14px;
-            line-height: 1.25;
-            font-weight: 900;
-        }
-        
-        .nt-model-tab-desc {
-            font-size: 12px;
-            line-height: 1.35;
-            font-weight: 600;
-            opacity: 0.78;
         }
         
         .nt-model-content {
@@ -3012,12 +2894,6 @@
             border-color: rgba(22, 163, 74, 0.20);
         }
         
-        .nt-model-status-badge.badge-preview {
-            color: var(--nt-blue);
-            background: rgba(37, 99, 235, 0.10);
-            border-color: rgba(37, 99, 235, 0.20);
-        }
-        
         .nt-model-status-badge.badge-dev {
             color: #D97706;
             background: rgba(217, 119, 6, 0.10);
@@ -3029,27 +2905,6 @@
             color: #ffffff;
             background: rgba(255, 255, 255, 0.16);
             border-color: rgba(255, 255, 255, 0.24);
-        }
-
-        /* Active pointer for main model menu */
-        @media (min-width: 981px) {
-            .nt-model-tab {
-                position: relative;
-            }
-        
-            .nt-model-tab.active::after {
-                content: "";
-                position: absolute;
-                right: -24px;
-                top: 50%;
-                transform: translateY(-50%);
-                width: 0;
-                height: 0;
-                border-top: 11px solid transparent;
-                border-bottom: 11px solid transparent;
-                border-left: 12px solid var(--nt-dark);
-                z-index: 5;
-            }
         }
 
         /* ===============================
@@ -8551,10 +8406,6 @@
             display: block !important;
         }
         
-        .nt-model-sidebar {
-            display: none !important;
-        }
-        
         .nt-model-content {
             width: 100%;
             min-width: 0;
@@ -8679,12 +8530,6 @@
             border-left: 13px solid transparent;
             border-right: 13px solid transparent;
             border-top: 13px solid #172554;
-        }
-        
-        .nt-product-card.active .nt-product-card-icon {
-            color: #FFFFFF;
-            background: rgba(255, 255, 255, 0.13);
-            border: 1px solid rgba(255, 255, 255, 0.10);
         }
         
         .nt-product-card-name {
