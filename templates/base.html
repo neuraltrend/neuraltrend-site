@@ -9287,6 +9287,217 @@
         }
     }
 
+    /* ==================================================
+       SIGNAL OVERVIEW — PREMIUM TABLE POLISH
+    ================================================== */
+    
+    #epochsignaler-section .nt-signal-table-card {
+        border-radius: 16px !important;
+        border: 1px solid var(--nt-border) !important;
+        background: #FFFFFF !important;
+        box-shadow:
+            0 3px 14px rgba(15, 23, 42, 0.05) !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+    }
+    
+    /* Header */
+    
+    #epochsignaler-section .nt-signal-header {
+        min-height: 66px;
+        padding: 10px 12px !important;
+        background:
+            linear-gradient(
+                180deg,
+                #F8FAFC 0%,
+                #F1F5F9 100%
+            ) !important;
+        border-bottom: 1px solid var(--nt-border) !important;
+        color: var(--nt-dark) !important;
+        font-size: 11.5px !important;
+        font-weight: 850 !important;
+    }
+    
+    /* Keep header text visually quiet */
+    
+    #epochsignaler-section .nt-header-title {
+        margin-bottom: 6px !important;
+        color: var(--nt-dark);
+        font-size: 11px !important;
+        line-height: 1.2;
+        font-weight: 900 !important;
+        letter-spacing: 0.01em;
+    }
+    
+    /* Sortable headers */
+    
+    #epochsignaler-section .nt-header-right {
+        color: var(--nt-dark);
+        transition:
+            color 0.15s ease,
+            background 0.15s ease;
+    }
+    
+    #epochsignaler-section .nt-header-right:hover {
+        color: var(--nt-blue) !important;
+    }
+    
+    #epochsignaler-section .nt-sort-indicator {
+        margin-top: 4px !important;
+        color: #94A3B8 !important;
+        font-size: 10px !important;
+    }
+    
+    /* Filter dropdowns */
+    
+    #epochsignaler-section .nt-signal-filter-select {
+        width: 82px !important;
+        min-height: 27px;
+        padding: 4px 8px !important;
+        border-radius: 999px !important;
+        border: 1px solid rgba(203, 213, 225, 0.95) !important;
+        background: #FFFFFF !important;
+        color: var(--nt-neutral) !important;
+        font-size: 10.5px !important;
+        font-weight: 750 !important;
+        box-shadow: none !important;
+    }
+    
+    #epochsignaler-section .nt-signal-filter-select:hover {
+        border-color: rgba(37, 99, 235, 0.34) !important;
+        color: var(--nt-dark) !important;
+    }
+    
+    #epochsignaler-section .nt-signal-filter-select:focus {
+        border-color: var(--nt-blue) !important;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08) !important;
+    }
+    
+    #epochsignaler-section .nt-filter-active {
+        background: rgba(37, 99, 235, 0.07) !important;
+        border-color: rgba(37, 99, 235, 0.32) !important;
+        color: var(--nt-blue) !important;
+    }
+    
+    /* Table body */
+    
+    #epochsignaler-section #signal-board {
+        max-height: 310px !important;
+        background: #FFFFFF;
+    }
+    
+    #epochsignaler-section #signal-board .signal-row {
+        min-height: 48px;
+        padding: 0 12px;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.75);
+        color: var(--nt-dark);
+        font-size: 12.5px !important;
+        transition:
+            background 0.14s ease,
+            box-shadow 0.14s ease;
+    }
+    
+    #epochsignaler-section #signal-board .signal-row:last-child {
+        border-bottom: none;
+    }
+    
+    #epochsignaler-section #signal-board .signal-row:hover {
+        background: rgba(37, 99, 235, 0.035) !important;
+    }
+    
+    #epochsignaler-section #signal-board .signal-row.selected {
+        background:
+            linear-gradient(
+                90deg,
+                rgba(37, 99, 235, 0.10),
+                rgba(37, 99, 235, 0.035)
+            ) !important;
+        box-shadow:
+            inset 3px 0 0 var(--nt-blue) !important;
+    }
+    
+    /* Asset name */
+    
+    #epochsignaler-section .signal-ticker {
+        color: var(--nt-dark) !important;
+        font-size: 13px !important;
+        font-weight: 900 !important;
+        letter-spacing: -0.01em;
+    }
+    
+    /* Numeric cells */
+    
+    #epochsignaler-section .signal-cell-right {
+        font-size: 12px !important;
+        font-weight: 750;
+        font-variant-numeric: tabular-nums;
+    }
+    
+    /* Signal pills */
+    
+    #epochsignaler-section .signal-badge {
+        min-width: 62px !important;
+        padding: 4px 9px !important;
+        font-size: 10.5px !important;
+        line-height: 1.15 !important;
+        font-weight: 900 !important;
+        letter-spacing: 0.02em;
+    }
+    
+    /* Return values */
+    
+    #epochsignaler-section .return-value {
+        font-size: 12px !important;
+        font-weight: 850 !important;
+    }
+    
+    /* Custom scrollbar */
+    
+    #epochsignaler-section #signal-board {
+        scrollbar-width: thin;
+        scrollbar-color: #CBD5E1 transparent;
+    }
+    
+    #epochsignaler-section #signal-board::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    #epochsignaler-section #signal-board::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    #epochsignaler-section #signal-board::-webkit-scrollbar-thumb {
+        background: #CBD5E1;
+        border-radius: 999px;
+    }
+    
+    #epochsignaler-section #signal-board::-webkit-scrollbar-thumb:hover {
+        background: #94A3B8;
+    }
+    
+    /* Mobile/tablet */
+    
+    @media (max-width: 980px) {
+        #epochsignaler-section .nt-signal-header,
+        #epochsignaler-section #signal-board .signal-row {
+            min-width: 920px;
+        }
+    }
+    
+    @media (max-width: 700px) {
+        #epochsignaler-section .nt-signal-table-card {
+            border-radius: 14px !important;
+        }
+    
+        #epochsignaler-section .nt-signal-header {
+            min-height: 62px;
+        }
+    
+        #epochsignaler-section #signal-board {
+            max-height: 280px !important;
+        }
+    }
+
     </style>
 
 </head>
