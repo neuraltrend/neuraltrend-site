@@ -9100,6 +9100,193 @@
         }
     }
 
+    /* ==================================================
+       SIGNAL OVERVIEW — COMPACT CONTROL PANEL
+    ================================================== */
+    
+    #epochsignaler-section .nt-controls-card {
+        margin-bottom: 12px !important;
+        padding: 13px 14px !important;
+        border-radius: 15px !important;
+        background: #FFFFFF !important;
+        box-shadow:
+            0 2px 10px rgba(15, 23, 42, 0.045) !important;
+    }
+    
+    /* Shorter heading area */
+    
+    #epochsignaler-section .nt-controls-top {
+        align-items: center !important;
+        margin-bottom: 11px !important;
+        gap: 12px !important;
+    }
+    
+    #epochsignaler-section .nt-section-eyebrow {
+        margin-bottom: 3px !important;
+        font-size: 10px !important;
+    }
+    
+    #epochsignaler-section .nt-controls-title {
+        font-size: 15px !important;
+        line-height: 1.2 !important;
+    }
+    
+    #epochsignaler-section .nt-controls-subtitle {
+        margin-top: 3px !important;
+        font-size: 11px !important;
+        line-height: 1.4 !important;
+    }
+    
+    /* Three controls in one compact row */
+    
+    #epochsignaler-section .nt-controls-grid {
+        display: grid !important;
+        grid-template-columns:
+            minmax(240px, 1fr)
+            auto
+            auto !important;
+        gap: 12px !important;
+        align-items: end !important;
+    }
+    
+    #epochsignaler-section .nt-control-group {
+        gap: 5px !important;
+        min-width: 0;
+    }
+    
+    #epochsignaler-section .nt-control-label {
+        font-size: 10.5px !important;
+        line-height: 1.2 !important;
+        font-weight: 850 !important;
+        color: var(--nt-neutral) !important;
+    }
+    
+    /* Search field */
+    
+    #epochsignaler-section .nt-search-input {
+        height: 38px !important;
+        padding: 7px 12px 7px 36px !important;
+        font-size: 13px !important;
+    }
+    
+    #epochsignaler-section .nt-search-icon {
+        left: 12px !important;
+        font-size: 13px !important;
+    }
+    
+    /* Horizon segmented control */
+    
+    #epochsignaler-section .nt-period-pills {
+        gap: 3px !important;
+        padding: 3px !important;
+    }
+    
+    #epochsignaler-section .period-pill {
+        min-height: 32px !important;
+        padding: 6px 9px !important;
+        font-size: 11px !important;
+    }
+    
+    /* Asset segmented control */
+    
+    #epochsignaler-section .nt-asset-pills {
+        gap: 3px !important;
+        padding: 3px !important;
+    }
+    
+    #epochsignaler-section .asset-pill {
+        min-height: 32px !important;
+        padding: 6px 10px !important;
+        font-size: 11px !important;
+    }
+    
+    /* Reset View button */
+    
+    #epochsignaler-section .nt-reset-btn {
+        min-height: 36px !important;
+        padding: 7px 12px !important;
+        font-size: 11px !important;
+    }
+    
+    /* Keep all compact controls vertically aligned */
+    
+    #epochsignaler-section .nt-period-control,
+    #epochsignaler-section .nt-asset-control {
+        align-items: center !important;
+    }
+    
+    /* Active filter row */
+    
+    #epochsignaler-section .nt-active-filter-row {
+        margin: 8px 0 10px 0 !important;
+        padding: 7px 9px !important;
+        min-height: 38px;
+        gap: 8px !important;
+        border-radius: 12px !important;
+    }
+    
+    #epochsignaler-section .nt-active-filter-label {
+        font-size: 10px !important;
+    }
+    
+    #epochsignaler-section .nt-active-chip {
+        padding: 4px 7px !important;
+        font-size: 10.5px !important;
+    }
+    
+    #epochsignaler-section .nt-active-clear-btn {
+        padding: 5px 7px !important;
+        font-size: 10.5px !important;
+    }
+    
+    /* Tablet */
+    
+    @media (max-width: 1050px) {
+        #epochsignaler-section .nt-controls-grid {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+        }
+    
+        #epochsignaler-section .nt-period-control,
+        #epochsignaler-section .nt-asset-control {
+            align-items: flex-start !important;
+        }
+    
+        #epochsignaler-section .nt-period-pills,
+        #epochsignaler-section .nt-asset-pills {
+            width: fit-content;
+            max-width: 100%;
+            flex-wrap: wrap;
+        }
+    }
+    
+    /* Mobile */
+    
+    @media (max-width: 600px) {
+        #epochsignaler-section .nt-controls-card {
+            padding: 12px !important;
+        }
+    
+        #epochsignaler-section .nt-controls-top {
+            align-items: flex-start !important;
+            flex-direction: column !important;
+        }
+    
+        #epochsignaler-section .nt-reset-btn {
+            width: 100% !important;
+        }
+    
+        #epochsignaler-section .nt-period-pills,
+        #epochsignaler-section .nt-asset-pills {
+            width: 100%;
+        }
+    
+        #epochsignaler-section .period-pill,
+        #epochsignaler-section .asset-pill {
+            flex: 1 1 auto;
+        }
+    }
+
     </style>
 
 </head>
