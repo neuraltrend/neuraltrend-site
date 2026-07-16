@@ -7705,7 +7705,7 @@
             width: 100%;
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 13px;
+            gap: 12px;
         }
         
         .nt-market-hero-metric-card {
@@ -7713,10 +7713,8 @@
             min-height: 100px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            text-align: center;
+            gap: 13px;
             padding: 14px 16px;
-        
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.10);
             background:
@@ -7775,11 +7773,27 @@
         
         /* AI card */
         
+        .nt-market-hero-metric-ai .nt-market-hero-metric-icon {
+            color: #60A5FA;
+            border: 1px solid rgba(96, 165, 250, 0.55);
+            box-shadow:
+                inset 0 0 18px rgba(96, 165, 250, 0.09),
+                0 0 15px rgba(96, 165, 250, 0.08);
+        }
+        
         .nt-market-hero-metric-ai .nt-market-hero-metric-value {
             color: #60A5FA;
         }
         
         /* Buy and hold card */
+        
+        .nt-market-hero-metric-buyhold .nt-market-hero-metric-icon {
+            color: #C084FC;
+            border: 1px solid rgba(192, 132, 252, 0.55);
+            box-shadow:
+                inset 0 0 18px rgba(192, 132, 252, 0.09),
+                0 0 15px rgba(192, 132, 252, 0.08);
+        }
         
         .nt-market-hero-metric-buyhold .nt-market-hero-metric-value {
             color: #C084FC;
@@ -7787,8 +7801,21 @@
         
         /* Outperformance card */
         
+        .nt-market-hero-metric-alpha .nt-market-hero-metric-icon {
+            color: #86EFAC;
+            border: 1px solid rgba(134, 239, 172, 0.55);
+            box-shadow:
+                inset 0 0 18px rgba(134, 239, 172, 0.09),
+                0 0 15px rgba(134, 239, 172, 0.08);
+        }
+        
         .nt-market-hero-metric-alpha .nt-market-hero-metric-value {
             color: #86EFAC;
+        }
+        
+        .nt-market-hero-metric-alpha.is-negative .nt-market-hero-metric-icon {
+            color: #FCA5A5;
+            border-color: rgba(252, 165, 165, 0.55);
         }
         
         .nt-market-hero-metric-alpha.is-negative .nt-market-hero-metric-value {
@@ -8209,9 +8236,22 @@
             height: 315px !important;
         }
         
+        /* Slightly enlarge the performance cards */
+        .nt-market-hero-metrics {
+            gap: 13px !important;
+        }
+        
         .nt-market-hero-metric-card {
             min-height: 108px !important;
             padding: 16px 18px !important;
+            gap: 14px !important;
+        }
+        
+        .nt-market-hero-metric-icon {
+            width: 52px !important;
+            height: 52px !important;
+            flex-basis: 52px !important;
+            font-size: 25px !important;
         }
         
         .nt-market-hero-metric-value {
@@ -8253,6 +8293,13 @@
                 min-height: 98px !important;
                 padding: 14px !important;
             }
+        
+            .nt-market-hero-metric-icon {
+                width: 46px !important;
+                height: 46px !important;
+                flex-basis: 46px !important;
+                font-size: 22px !important;
+            }
         }
 
         /* Premium hero chart legend */
@@ -8277,6 +8324,10 @@
         }
 
         /* Clean spacing between hero and products */
+        
+        .nt-market-hero {
+            margin-bottom: 34px;
+        }
         
         .nt-models-section {
             margin-top: 0;
