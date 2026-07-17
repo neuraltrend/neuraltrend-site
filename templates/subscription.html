@@ -133,11 +133,25 @@ Upgrade to NeuralTrend Pro to unlock all supported assets, full signal history, 
 
 <script>
     async function startStripeCheckoutFromSubscriptionPage() {
+        const button = document.getElementById("subscription-pro-action-btn");
+
+        if (button?.disabled) {
+            return;
+        }
+
+        const originalButtonText = button?.textContent || "Upgrade to Pro";
+
         ntTrack("upgrade_clicked", {
             source: "subscription_page"
         });
-        
+
         try {
+            if (button) {
+                button.disabled = true;
+                button.classList.add("nt-pricing-btn-disabled");
+                button.textContent = "Opening secure checkout…";
+            }
+
             const meResponse = await fetch("/me", { cache: "no-store" });
             const me = await meResponse.json();
 
@@ -145,7 +159,7 @@ Upgrade to NeuralTrend Pro to unlock all supported assets, full signal history, 
                 ntTrack("upgrade_requires_login", {
                     source: "subscription_page"
                 });
-                
+
                 if (typeof openNeuralTrendLoginModal === "function") {
                     openNeuralTrendLoginModal();
                 } else {
@@ -158,7 +172,7 @@ Upgrade to NeuralTrend Pro to unlock all supported assets, full signal history, 
                 ntTrack("billing_portal_clicked", {
                     source: "subscription_page"
                 });
-                
+
                 await startBillingPortalFromSubscriptionPage();
                 return;
             }
@@ -167,19 +181,37 @@ Upgrade to NeuralTrend Pro to unlock all supported assets, full signal history, 
                 method: "POST"
             });
 
-            const data = await response.json();
+            const data = await response.json().catch(() => ({}));
 
-            if (data.url) {
-                ntTrackAndGo("checkout_started", data.url);
+            if (response.status === 409 && data.manage_billing) {
+                alert(
+                    data.error ||
+                    "A subscription already exists for this account. Opening billing management."
+                );
+                await startBillingPortalFromSubscriptionPage();
                 return;
-            } else {
-                ntTrack("checkout_start_failed");
-                alert(data.error || "Could not start checkout.");
             }
+
+            if (!response.ok || !data.url) {
+                ntTrack("checkout_start_failed", {
+                    status: response.status
+                });
+                alert(data.error || "Could not start checkout.");
+                return;
+            }
+
+            ntTrackAndGo("checkout_started", data.url);
 
         } catch (error) {
             console.error("Checkout error:", error);
             alert("Could not start checkout. Please try again.");
+
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.classList.remove("nt-pricing-btn-disabled");
+                button.textContent = originalButtonText;
+            }
         }
     }
 
