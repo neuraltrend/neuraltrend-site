@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 import pandas as pd
 import os
 from functools import lru_cache
-from extensions import db, bcrypt, login_manager
+from extensions import db, bcrypt, login_manager, csrf
 from models import User, LiveSimulation, LiveSimulationTrade, LiveSimulationEquity
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Mail, Message
@@ -15,6 +15,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 import stripe
 import traceback
 import secrets
+from flask_wtf.csrf import CSRFError
 
 app = Flask(__name__)
 
@@ -56,6 +57,11 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = True  # important on Render HTTPS
 
+# CSRF tokens are bound to the current Flask session. A longer time limit avoids
+# interrupting users who keep the dashboard open for several hours.
+app.config["WTF_CSRF_TIME_LIMIT"] = 12 * 60 * 60
+app.config["WTF_CSRF_SSL_STRICT"] = True
+
 # Stripe
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 STRIPE_PRO_PRICE_ID = os.environ.get("STRIPE_PRO_PRICE_ID")
@@ -64,6 +70,7 @@ STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
 db.init_app(app)
 bcrypt.init_app(app)
 login_manager.init_app(app)
+csrf.init_app(app)
 login_manager.login_view = "login"
 
 @login_manager.unauthorized_handler
@@ -89,6 +96,49 @@ def ratelimit_handler(e):
     return jsonify({
         "error": "Too many requests. Please slow down and try again shortly."
     }), 429
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(error):
+    message = (
+        "Your security token is missing or expired. "
+        "Refresh the page and try again."
+    )
+
+    wants_json = (
+        request.is_json
+        or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or request.path.startswith((
+            "/signup",
+            "/login",
+            "/logout",
+            "/resend-verification",
+            "/request-password-reset",
+            "/request-delete-account",
+            "/live-simulations",
+            "/backtest",
+            "/equity",
+            "/create-checkout-session",
+            "/billing-portal",
+        ))
+    )
+
+    app.logger.warning(
+        "CSRF validation failed for path=%s method=%s reason=%s",
+        request.path,
+        request.method,
+        error.description,
+    )
+
+    if wants_json:
+        return jsonify({
+            "error": message,
+            "code": "csrf_failed",
+        }), 400
+
+    return render_template(
+        "csrf_error.html",
+        reason=message,
+    ), 400
 
 def get_serializer():
     return URLSafeTimedSerializer(app.config["SECRET_KEY"])
@@ -2833,6 +2883,7 @@ def billing_portal():
 
 @app.route("/stripe/webhook", methods=["POST"])
 @limiter.exempt
+@csrf.exempt
 def stripe_webhook():
     payload = request.data
     sig_header = request.headers.get("Stripe-Signature")
