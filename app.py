@@ -14,6 +14,7 @@ from flask_limiter.util import get_remote_address
 from werkzeug.middleware.proxy_fix import ProxyFix
 import stripe
 import traceback
+import secrets
 
 app = Flask(__name__)
 
@@ -2239,25 +2240,204 @@ def signals_summary():
     
     return jsonify(safe_results)
 
-@app.route("/create-checkout-session", methods=["POST"])
-@login_required
-def create_checkout_session():
-    if not STRIPE_PRO_PRICE_ID:
-        return jsonify({"error": "Stripe price ID is not configured."}), 500
+def stripe_to_dict(obj):
+    if isinstance(obj, dict):
+        return obj
+
+    if hasattr(obj, "_to_dict_recursive"):
+        return obj._to_dict_recursive()
+
+    if hasattr(obj, "to_dict_recursive"):
+        return obj.to_dict_recursive()
+
+    return dict(obj)
+
+
+BLOCKING_STRIPE_SUBSCRIPTION_STATUSES = {
+    "active",
+    "trialing",
+    "past_due",
+    "unpaid",
+    "incomplete",
+    "paused",
+}
+
+CHECKOUT_ATTEMPT_TTL = timedelta(minutes=15)
+
+
+def stripe_subscription_uses_pro_price(subscription):
+    subscription = stripe_to_dict(subscription)
+    items = ((subscription.get("items") or {}).get("data") or [])
+
+    return any(
+        (item.get("price") or {}).get("id") == STRIPE_PRO_PRICE_ID
+        for item in items
+    )
+
+
+def find_existing_blocking_pro_subscription(customer_id):
+    subscriptions = stripe.Subscription.list(
+        customer=customer_id,
+        status="all",
+        limit=100,
+    )
+    subscriptions = stripe_to_dict(subscriptions)
+
+    for subscription in subscriptions.get("data", []):
+        if (
+            subscription.get("status") in BLOCKING_STRIPE_SUBSCRIPTION_STATUSES
+            and stripe_subscription_uses_pro_price(subscription)
+        ):
+            return subscription
+
+    return None
+
+
+def retrieve_open_checkout_session(session_id):
+    if not session_id:
+        return None
 
     try:
-        customer_id = current_user.stripe_customer_id
+        checkout_session = stripe.checkout.Session.retrieve(session_id)
+    except stripe.error.InvalidRequestError:
+        return None
+
+    checkout_session = stripe_to_dict(checkout_session)
+
+    if (
+        checkout_session.get("status") == "open"
+        and checkout_session.get("url")
+    ):
+        return checkout_session
+
+    return None
+
+
+@app.route("/create-checkout-session", methods=["POST"])
+@login_required
+@limiter.limit("5 per minute")
+def create_checkout_session():
+    if not stripe.api_key or not STRIPE_PRO_PRICE_ID:
+        return jsonify({"error": "Checkout is temporarily unavailable."}), 503
+
+    try:
+        now = datetime.utcnow()
+
+        user = (
+            User.query
+            .filter_by(id=current_user.id)
+            .with_for_update()
+            .one()
+        )
+
+        if is_paid_user(user):
+            db.session.commit()
+            return jsonify({
+                "error": "A Pro subscription is already active.",
+                "manage_billing": True,
+            }), 409
+
+        open_session = retrieve_open_checkout_session(
+            user.pending_checkout_session_id
+        )
+
+        if open_session:
+            db.session.commit()
+            return jsonify({
+                "url": open_session["url"],
+                "reused": True,
+            })
+
+        user.pending_checkout_session_id = None
+
+        if user.stripe_customer_id:
+            existing_subscription = find_existing_blocking_pro_subscription(
+                user.stripe_customer_id
+            )
+
+            if existing_subscription:
+                status = existing_subscription.get("status") or "inactive"
+
+                user.stripe_subscription_id = existing_subscription.get("id")
+                user.subscription_status = status
+                user.subscription_type = (
+                    "pro" if status in PAID_SUBSCRIPTION_STATUSES else "free"
+                )
+                user.subscription_updated_at = now
+                db.session.commit()
+
+                return jsonify({
+                    "error": "A subscription already exists for this account.",
+                    "manage_billing": True,
+                    "subscription_status": status,
+                }), 409
+
+        attempt_is_fresh = (
+            user.checkout_attempt_id
+            and user.checkout_attempt_started_at
+            and now - user.checkout_attempt_started_at < CHECKOUT_ATTEMPT_TTL
+        )
+
+        if not attempt_is_fresh:
+            user.checkout_attempt_id = secrets.token_urlsafe(24)
+            user.checkout_attempt_started_at = now
+
+        attempt_id = user.checkout_attempt_id
+        customer_id = user.stripe_customer_id
+        user_id = user.id
+        user_email = user.email
+
+        # Save/reuse the attempt token before calling Stripe. Concurrent retries
+        # therefore use the same Stripe idempotency keys.
+        db.session.commit()
 
         if not customer_id:
             customer = stripe.Customer.create(
-                email=current_user.email,
-                metadata={"user_id": current_user.id}
+                email=user_email,
+                metadata={"user_id": str(user_id)},
+                idempotency_key=f"nt-customer-{attempt_id}",
+            )
+            customer_id = customer.id
+
+            user = (
+                User.query
+                .filter_by(id=user_id)
+                .with_for_update()
+                .one()
             )
 
-            current_user.stripe_customer_id = customer.id
+            if user.stripe_customer_id:
+                customer_id = user.stripe_customer_id
+            else:
+                user.stripe_customer_id = customer_id
+
             db.session.commit()
 
-            customer_id = customer.id
+        # Check Stripe again after customer creation, immediately before Checkout.
+        existing_subscription = find_existing_blocking_pro_subscription(customer_id)
+
+        if existing_subscription:
+            status = existing_subscription.get("status") or "inactive"
+
+            user = (
+                User.query
+                .filter_by(id=user_id)
+                .with_for_update()
+                .one()
+            )
+            user.stripe_subscription_id = existing_subscription.get("id")
+            user.subscription_status = status
+            user.subscription_type = (
+                "pro" if status in PAID_SUBSCRIPTION_STATUSES else "free"
+            )
+            user.subscription_updated_at = datetime.utcnow()
+            db.session.commit()
+
+            return jsonify({
+                "error": "A subscription already exists for this account.",
+                "manage_billing": True,
+                "subscription_status": status,
+            }), 409
 
         checkout_session = stripe.checkout.Session.create(
             customer=customer_id,
@@ -2270,23 +2450,51 @@ def create_checkout_session():
                 }
             ],
             success_url=f"{BASE_URL}/?checkout=success",
-            cancel_url=f"{BASE_URL}/?checkout=cancelled",
+            cancel_url=f"{BASE_URL}/subscription?checkout=cancelled",
+            client_reference_id=str(user_id),
             metadata={
-                "user_id": str(current_user.id),
-                "user_email": current_user.email
+                "user_id": str(user_id),
             },
             subscription_data={
                 "metadata": {
-                    "user_id": str(current_user.id),
-                    "user_email": current_user.email
+                    "user_id": str(user_id),
                 }
-            }
+            },
+            idempotency_key=f"nt-checkout-{attempt_id}",
         )
+
+        user = (
+            User.query
+            .filter_by(id=user_id)
+            .with_for_update()
+            .one()
+        )
+        user.stripe_customer_id = customer_id
+        user.pending_checkout_session_id = checkout_session.id
+        db.session.commit()
 
         return jsonify({"url": checkout_session.url})
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except stripe.error.StripeError:
+        db.session.rollback()
+        app.logger.exception(
+            "Stripe checkout failed for user_id=%s",
+            current_user.id,
+        )
+        return jsonify({
+            "error": "Could not start checkout. Please try again."
+        }), 502
+
+    except Exception:
+        db.session.rollback()
+        app.logger.exception(
+            "Checkout failed for user_id=%s",
+            current_user.id,
+        )
+        return jsonify({
+            "error": "Could not start checkout. Please try again."
+        }), 500
+
 
 @app.route("/billing-portal", methods=["POST"])
 @login_required
@@ -2304,18 +2512,6 @@ def billing_portal():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-def stripe_to_dict(obj):
-    if isinstance(obj, dict):
-        return obj
-
-    if hasattr(obj, "_to_dict_recursive"):
-        return obj._to_dict_recursive()
-
-    if hasattr(obj, "to_dict_recursive"):
-        return obj.to_dict_recursive()
-
-    return dict(obj)
 
 @app.route("/stripe/webhook", methods=["POST"])
 @limiter.exempt
