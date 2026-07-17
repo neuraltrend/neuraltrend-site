@@ -37,6 +37,39 @@ class User(UserMixin, db.Model):
 
     stripe_customer_id = db.Column(
         db.String(255),
+        nullable=True,
+        unique=True,
+        index=True
+    )
+
+    stripe_subscription_id = db.Column(
+        db.String(255),
+        nullable=True,
+        unique=True,
+        index=True
+    )
+
+    pending_checkout_session_id = db.Column(
+        db.String(255),
+        nullable=True,
+        unique=True,
+        index=True
+    )
+
+    checkout_attempt_id = db.Column(
+        db.String(64),
+        nullable=True,
+        unique=True,
+        index=True
+    )
+
+    checkout_attempt_started_at = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
+    subscription_updated_at = db.Column(
+        db.DateTime,
         nullable=True
     )
 
