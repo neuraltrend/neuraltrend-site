@@ -9332,17 +9332,37 @@
     // Delete Account
     // ------------------
     async function deleteAccount() {
-        const confirmDelete = confirm("Are you sure you want to permanently delete your account?");
-    
+        const confirmDelete = confirm(
+            "This will send a secure confirmation email. Nothing is deleted by " +
+            "this click. On the final confirmation page, any active Pro " +
+            "subscription will be canceled immediately before the account is " +
+            "permanently deleted. Continue?"
+        );
+
         if (!confirmDelete) return;
-    
-        const response = await fetch("/request-delete-account", {
-            method: "POST"
-        });
-    
-        const data = await response.json();
-    
-        alert(data.message);
+
+        try {
+            const response = await fetch("/request-delete-account", {
+                method: "POST",
+                cache: "no-store"
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.error || "Could not send the deletion confirmation email.");
+                return;
+            }
+
+            alert(
+                data.message ||
+                "Check your email. Nothing has been deleted yet."
+            );
+
+        } catch (error) {
+            console.error("Account deletion request failed:", error);
+            alert("Could not send the deletion confirmation email. Please try again.");
+        }
     }
     
     // ------------------
