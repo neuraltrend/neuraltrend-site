@@ -9,6 +9,7 @@ Flask-Login
 Flask-Bcrypt
 Flask-Mail
 Flask-Limiter
+Flask-WTF>=1.2,<2.0
 psycopg2-binary
 itsdangerous
 python-dotenv
