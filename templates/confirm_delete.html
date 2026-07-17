@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Account Deletion | NeuralTrend{% endblock %}
+
+{% block meta_description %}
+Securely confirm permanent deletion of a NeuralTrend account.
+{% endblock %}
+
+{% block content %}
+<main>
+    <div class="nt-page-container">
+        <section class="nt-delete-page" aria-labelledby="nt-delete-title">
+            <div class="nt-delete-card">
+
+                {% if deleted %}
+                    <div class="nt-delete-icon nt-delete-icon-success" aria-hidden="true">✓</div>
+
+                    <div class="nt-section-eyebrow">Account Deleted</div>
+
+                    <h1 id="nt-delete-title" class="nt-delete-title">
+                        Your NeuralTrend account has been deleted
+                    </h1>
+
+                    <p class="nt-delete-text">
+                        The local account and its saved simulations were permanently removed.
+                    </p>
+
+                    {% if canceled_subscription_count > 0 %}
+                        <div class="nt-delete-notice nt-delete-notice-success">
+                            {{ canceled_subscription_count }} active Stripe subscription{% if canceled_subscription_count != 1 %}s were{% else %} was{% endif %}
+                            canceled before account deletion. No future recurring subscription charge should be created for {{ masked_email }}.
+                        </div>
+                    {% endif %}
+
+                    <p class="nt-delete-small">
+                        Stripe may retain transaction and invoice records where required for financial, fraud-prevention, or legal purposes.
+                    </p>
+
+                    <a href="{{ url_for('index') }}" class="nt-delete-primary-link">
+                        Return to NeuralTrend
+                    </a>
+
+                {% else %}
+                    <div class="nt-delete-icon" aria-hidden="true">!</div>
+
+                    <div class="nt-section-eyebrow">Final Confirmation</div>
+
+                    <h1 id="nt-delete-title" class="nt-delete-title">
+                        Permanently delete your account?
+                    </h1>
+
+                    <p class="nt-delete-text">
+                        You are confirming deletion for <strong>{{ masked_email }}</strong>.
+                        This action cannot be undone.
+                    </p>
+
+                    {% if has_stripe_billing %}
+                        <div class="nt-delete-notice nt-delete-notice-warning">
+                            Any open Stripe Checkout Session will be expired and every active subscription connected to this account will be canceled immediately before deletion. This does not automatically issue a refund for previously paid time.
+                        </div>
+                    {% endif %}
+
+                    <ul class="nt-delete-list">
+                        <li>Your NeuralTrend login will stop working.</li>
+                        <li>Your live simulations, trades, and saved equity history will be removed.</li>
+                        <li>Your email can be used later to create a new account.</li>
+                    </ul>
+
+                    {% if error %}
+                        <div class="nt-delete-error" role="alert">
+                            {{ error }}
+                        </div>
+                    {% endif %}
+
+                    {% if can_confirm %}
+                        <form
+                            method="post"
+                            action="{{ url_for('confirm_delete', token=token) }}"
+                            class="nt-delete-form"
+                            autocomplete="off"
+                        >
+                            <div class="nt-delete-field">
+                                <label for="delete-password">Account password</label>
+                                <input
+                                    id="delete-password"
+                                    name="password"
+                                    type="password"
+                                    autocomplete="current-password"
+                                    required
+                                >
+                            </div>
+
+                            <div class="nt-delete-field">
+                                <label for="delete-confirmation">
+                                    Type <strong>DELETE</strong> exactly
+                                </label>
+                                <input
+                                    id="delete-confirmation"
+                                    name="confirmation"
+                                    type="text"
+                                    inputmode="text"
+                                    autocapitalize="characters"
+                                    autocomplete="off"
+                                    pattern="DELETE"
+                                    placeholder="DELETE"
+                                    required
+                                >
+                            </div>
+
+                            <div class="nt-delete-actions">
+                                <button type="submit" class="nt-delete-danger-button">
+                                    Cancel billing and delete account
+                                </button>
+
+                                <a href="{{ url_for('index') }}" class="nt-delete-cancel-link">
+                                    Keep my account
+                                </a>
+                            </div>
+                        </form>
+                    {% else %}
+                        <a href="{{ url_for('index') }}" class="nt-delete-primary-link">
+                            Return to NeuralTrend
+                        </a>
+                    {% endif %}
+                {% endif %}
+
+            </div>
+        </section>
+    </div>
+</main>
+
+<style>
+    .nt-delete-page {
+        display: flex;
+        justify-content: center;
+        padding: 42px 0 80px;
+    }
+
+    .nt-delete-card {
+        width: min(680px, 100%);
+        padding: 30px;
+        border: 1px solid var(--nt-border);
+        border-radius: 22px;
+        background: #ffffff;
+        box-shadow: 0 12px 34px rgba(15, 23, 42, 0.10);
+    }
+
+    .nt-delete-icon {
+        width: 48px;
+        height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 14px;
+        border-radius: 50%;
+        background: rgba(220, 38, 38, 0.10);
+        color: var(--nt-negative);
+        font-size: 24px;
+        font-weight: 900;
+    }
+
+    .nt-delete-icon-success {
+        background: rgba(22, 163, 74, 0.10);
+        color: var(--nt-positive);
+    }
+
+    .nt-delete-title {
+        margin: 5px 0 10px;
+        color: var(--nt-dark);
+        font-size: 28px;
+        line-height: 1.2;
+    }
+
+    .nt-delete-text,
+    .nt-delete-small {
+        color: var(--nt-neutral);
+        line-height: 1.6;
+    }
+
+    .nt-delete-small {
+        font-size: 12px;
+    }
+
+    .nt-delete-notice,
+    .nt-delete-error {
+        margin: 18px 0;
+        padding: 14px 16px;
+        border-radius: 14px;
+        font-size: 13px;
+        font-weight: 650;
+        line-height: 1.55;
+    }
+
+    .nt-delete-notice-warning {
+        border: 1px solid rgba(217, 119, 6, 0.28);
+        background: rgba(217, 119, 6, 0.08);
+        color: #92400E;
+    }
+
+    .nt-delete-notice-success {
+        border: 1px solid rgba(22, 163, 74, 0.25);
+        background: rgba(22, 163, 74, 0.08);
+        color: #166534;
+    }
+
+    .nt-delete-error {
+        border: 1px solid rgba(220, 38, 38, 0.28);
+        background: rgba(220, 38, 38, 0.08);
+        color: #991B1B;
+    }
+
+    .nt-delete-list {
+        margin: 18px 0;
+        padding-left: 22px;
+        color: var(--nt-dark);
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    .nt-delete-form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-top: 22px;
+    }
+
+    .nt-delete-field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .nt-delete-field label {
+        color: var(--nt-dark);
+        font-size: 13px;
+        font-weight: 850;
+    }
+
+    .nt-delete-field input {
+        width: 100%;
+        border: 1px solid var(--nt-border);
+        border-radius: 12px;
+        background: #ffffff;
+        color: var(--nt-dark);
+        padding: 11px 12px;
+        font-size: 14px;
+        outline: none;
+    }
+
+    .nt-delete-field input:focus {
+        border-color: var(--nt-negative);
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.10);
+    }
+
+    .nt-delete-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+    }
+
+    .nt-delete-danger-button,
+    .nt-delete-primary-link,
+    .nt-delete-cancel-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        padding: 11px 16px;
+        font-size: 13px;
+        font-weight: 900;
+        text-decoration: none;
+    }
+
+    .nt-delete-danger-button {
+        border: none;
+        background: var(--nt-negative);
+        color: #ffffff;
+        cursor: pointer;
+    }
+
+    .nt-delete-danger-button:hover {
+        background: #B91C1C;
+    }
+
+    .nt-delete-primary-link {
+        margin-top: 12px;
+        background: var(--nt-dark);
+        color: #ffffff;
+    }
+
+    .nt-delete-cancel-link {
+        border: 1px solid var(--nt-border);
+        background: #ffffff;
+        color: var(--nt-dark);
+    }
+
+    @media (max-width: 640px) {
+        .nt-delete-page {
+            padding: 24px 0 60px;
+        }
+
+        .nt-delete-card {
+            padding: 22px 18px;
+            border-radius: 18px;
+        }
+
+        .nt-delete-title {
+            font-size: 23px;
+        }
+
+        .nt-delete-actions > * {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
