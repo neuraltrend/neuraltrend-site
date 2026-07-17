@@ -1637,6 +1637,59 @@ def reset_password(token):
 
     return render_template("reset_password.html")
 
+def mask_email_for_display(email):
+    clean_email = normalize_email(email)
+
+    if "@" not in clean_email:
+        return "your account"
+
+    local_part, domain = clean_email.split("@", 1)
+
+    if len(local_part) <= 2:
+        masked_local = local_part[:1] + "*"
+    else:
+        masked_local = local_part[:1] + ("*" * min(len(local_part) - 2, 8)) + local_part[-1:]
+
+    return f"{masked_local}@{domain}"
+
+
+def render_delete_confirmation_page(
+    *,
+    token,
+    user=None,
+    error=None,
+    deleted=False,
+    canceled_subscription_count=0,
+    status_code=200,
+):
+    response = app.make_response(render_template(
+        "confirm_delete.html",
+        token=token,
+        masked_email=(
+            mask_email_for_display(user.email)
+            if user is not None else "your account"
+        ),
+        has_stripe_billing=bool(
+            user is not None
+            and (
+                getattr(user, "stripe_customer_id", None)
+                or getattr(user, "stripe_subscription_id", None)
+                or getattr(user, "pending_checkout_session_id", None)
+            )
+        ),
+        can_confirm=(user is not None and not deleted),
+        error=error,
+        deleted=deleted,
+        canceled_subscription_count=canceled_subscription_count,
+    ))
+    response.status_code = status_code
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    return response
+
+
 @app.route("/request-delete-account", methods=["POST"])
 @login_required
 @limiter.limit("2 per minute")
@@ -1647,54 +1700,192 @@ def request_delete_account():
     delete_url = f"{BASE_URL}/confirm-delete/{token}"
 
     msg = Message(
-        subject="Confirm account deletion",
+        subject="Confirm your NeuralTrend account deletion",
         sender=app.config["MAIL_USERNAME"],
         recipients=[user.email]
     )
 
     msg.body = f"""
-    Click the link below to permanently delete your account:
+    A request was made to delete your NeuralTrend account.
+
+    Open the secure confirmation page below:
 
     {delete_url}
 
-    This link expires in 1 hour.
+    Opening the link does not delete the account. To complete deletion, you must
+    enter the account password and type DELETE. If the account has an active
+    NeuralTrend Pro subscription, final confirmation will cancel it immediately
+    before the NeuralTrend account is removed.
+
+    This link expires in 1 hour. If you did not request deletion, ignore this email.
+
+    NeuralTrend
     """
 
     try:
         mail.send(msg)
-        print("Delete email sent to:", user.email)
-    except Exception as e:
-        print("EMAIL ERROR (delete):", str(e))
-        return jsonify({"error": "Email failed"}), 500
-    
-    return jsonify({"message": "Deletion confirmation email sent"})
+        app.logger.info("Account deletion email sent for user_id=%s", user.id)
+    except Exception:
+        app.logger.exception(
+            "Could not send account deletion email for user_id=%s",
+            user.id,
+        )
+        return jsonify({
+            "error": "Could not send the confirmation email. Please try again."
+        }), 502
 
-@app.route("/confirm-delete/<token>")
+    return jsonify({
+        "message": (
+            "Check your email for the final confirmation page. "
+            "Nothing has been deleted yet."
+        )
+    })
+
+
+@app.route("/confirm-delete/<token>", methods=["GET", "POST"])
+@limiter.limit("10 per hour")
 def confirm_delete(token):
     email = confirm_delete_token(token)
 
     if not email:
-        return "Invalid or expired link"
+        return render_delete_confirmation_page(
+            token=token,
+            error="This deletion link is invalid or has expired.",
+            status_code=400,
+        )
 
-    user = User.query.filter_by(email=email).first()
+    user = User.query.filter_by(email=normalize_email(email)).first()
 
     if not user:
-        return "User not found"
+        return render_delete_confirmation_page(
+            token=token,
+            deleted=True,
+            status_code=200,
+        )
 
-    logout_user()  # 🔑 IMPORTANT FIX
+    if request.method == "GET":
+        return render_delete_confirmation_page(
+            token=token,
+            user=user,
+        )
 
-    db.session.delete(user)
-    db.session.commit()
+    password = request.form.get("password", "")
+    confirmation = request.form.get("confirmation", "").strip()
 
-    return "Your account has been permanently deleted"
-    
-# force delete user
-# UPDATE users
-# SET
-#     stripe_customer_id = NULL,
-#     subscription_type = 'free',
-#     subscription_status = 'inactive'
-# WHERE email = 'test-user-email@example.com';
+    if confirmation != "DELETE":
+        return render_delete_confirmation_page(
+            token=token,
+            user=user,
+            error="Type DELETE exactly to confirm permanent account deletion.",
+            status_code=400,
+        )
+
+    if not password or not bcrypt.check_password_hash(user.password_hash, password):
+        return render_delete_confirmation_page(
+            token=token,
+            user=user,
+            error="The password is incorrect.",
+            status_code=400,
+        )
+
+    user_id = user.id
+
+    try:
+        billing_result = cancel_stripe_billing_for_account_deletion(user)
+    except stripe.error.StripeError:
+        db.session.rollback()
+        app.logger.exception(
+            "Stripe prevented safe account deletion for user_id=%s",
+            user_id,
+        )
+        return render_delete_confirmation_page(
+            token=token,
+            user=user,
+            error=(
+                "We could not safely cancel the billing connection, so your "
+                "account was not deleted. Please try again or contact support."
+            ),
+            status_code=502,
+        )
+    except Exception:
+        db.session.rollback()
+        app.logger.exception(
+            "Account deletion billing cleanup failed for user_id=%s",
+            user_id,
+        )
+        return render_delete_confirmation_page(
+            token=token,
+            user=user,
+            error=(
+                "We could not safely complete account deletion. Your account "
+                "has not been removed. Please try again or contact support."
+            ),
+            status_code=500,
+        )
+
+    canceled_subscription_ids = billing_result["canceled_subscription_ids"]
+
+    try:
+        user = (
+            User.query
+            .filter_by(id=user_id)
+            .with_for_update()
+            .first()
+        )
+
+        if not user:
+            return render_delete_confirmation_page(
+                token=token,
+                deleted=True,
+                canceled_subscription_count=len(canceled_subscription_ids),
+            )
+
+        # Save the Stripe cleanup state first. If the final database deletion
+        # fails, the account remains but recurring billing has still stopped.
+        user.subscription_type = "free"
+        user.subscription_status = (
+            "canceled" if canceled_subscription_ids else "inactive"
+        )
+        user.stripe_subscription_id = None
+        user.pending_checkout_session_id = None
+        user.checkout_attempt_id = None
+        user.checkout_attempt_started_at = None
+        user.subscription_updated_at = datetime.utcnow()
+        db.session.commit()
+
+        if current_user.is_authenticated and current_user.id == user_id:
+            logout_user()
+
+        db.session.delete(user)
+        db.session.commit()
+
+    except Exception:
+        db.session.rollback()
+        app.logger.exception(
+            "Database account deletion failed after billing cleanup for user_id=%s",
+            user_id,
+        )
+        return render_delete_confirmation_page(
+            token=token,
+            user=user,
+            error=(
+                "Billing was stopped, but the website account could not be "
+                "removed. Please retry this confirmation or contact support."
+            ),
+            status_code=500,
+        )
+
+    app.logger.info(
+        "Account permanently deleted: user_id=%s canceled_subscriptions=%s",
+        user_id,
+        len(canceled_subscription_ids),
+    )
+
+    return render_delete_confirmation_page(
+        token=token,
+        deleted=True,
+        canceled_subscription_count=len(canceled_subscription_ids),
+    )
 
 @app.route("/")
 def index():
@@ -2311,6 +2502,133 @@ def retrieve_open_checkout_session(session_id):
         return checkout_session
 
     return None
+
+
+def cancel_stripe_subscription_immediately(subscription_id):
+    """Cancel a Stripe subscription now without creating prorations."""
+    cancel_method = getattr(stripe.Subscription, "cancel", None)
+
+    if callable(cancel_method):
+        # Stripe defaults invoice_now and prorate to false for immediate
+        # cancellation, which avoids creating a proration invoice.
+        return cancel_method(subscription_id)
+
+    # Compatibility fallback for older stripe-python resource objects.
+    subscription = stripe.Subscription.retrieve(subscription_id)
+    instance_cancel = getattr(subscription, "cancel", None)
+
+    if callable(instance_cancel):
+        return instance_cancel()
+
+    instance_delete = getattr(subscription, "delete", None)
+
+    if callable(instance_delete):
+        return instance_delete()
+
+    raise RuntimeError(
+        "The installed Stripe SDK does not expose subscription cancellation."
+    )
+
+
+def cancel_stripe_billing_for_account_deletion(user):
+    """
+    Stop all Stripe billing paths before deleting a local account.
+
+    - Expires an unfinished Checkout Session so it cannot be completed later.
+    - Cancels every non-terminal subscription belonging to the Stripe customer.
+    - Does not delete the Stripe customer or financial records.
+    """
+    result = {
+        "expired_checkout_session": False,
+        "canceled_subscription_ids": [],
+    }
+
+    customer_id = getattr(user, "stripe_customer_id", None)
+    stored_subscription_id = getattr(user, "stripe_subscription_id", None)
+    pending_checkout_session_id = getattr(
+        user,
+        "pending_checkout_session_id",
+        None,
+    )
+
+    if not any([
+        customer_id,
+        stored_subscription_id,
+        pending_checkout_session_id,
+    ]):
+        return result
+
+    if not stripe.api_key:
+        raise RuntimeError(
+            "Stripe is not configured, so billing safety cannot be verified."
+        )
+
+    if pending_checkout_session_id:
+        try:
+            checkout_session = stripe.checkout.Session.retrieve(
+                pending_checkout_session_id
+            )
+            checkout_session = stripe_to_dict(checkout_session)
+
+            if checkout_session.get("status") == "open":
+                stripe.checkout.Session.expire(pending_checkout_session_id)
+                result["expired_checkout_session"] = True
+
+        except stripe.error.InvalidRequestError:
+            # A missing/expired Session cannot accept a payment in this mode.
+            app.logger.warning(
+                "Pending Checkout Session was not found during deletion: user_id=%s session_id=%s",
+                user.id,
+                pending_checkout_session_id,
+            )
+
+    subscription_ids_to_cancel = set()
+
+    if stored_subscription_id:
+        try:
+            subscription = stripe.Subscription.retrieve(stored_subscription_id)
+            subscription = stripe_to_dict(subscription)
+            subscription_customer_id = subscription.get("customer")
+
+            if (
+                customer_id
+                and subscription_customer_id
+                and subscription_customer_id != customer_id
+            ):
+                raise RuntimeError(
+                    "Stored Stripe subscription does not belong to the saved customer."
+                )
+
+            if subscription.get("status") in BLOCKING_STRIPE_SUBSCRIPTION_STATUSES:
+                subscription_ids_to_cancel.add(subscription.get("id"))
+
+        except stripe.error.InvalidRequestError:
+            app.logger.warning(
+                "Stored Stripe subscription was not found during deletion: user_id=%s subscription_id=%s",
+                user.id,
+                stored_subscription_id,
+            )
+
+    if customer_id:
+        subscriptions = stripe.Subscription.list(
+            customer=customer_id,
+            status="all",
+            limit=100,
+        )
+        subscriptions = stripe_to_dict(subscriptions)
+
+        for subscription in subscriptions.get("data", []):
+            if subscription.get("status") in BLOCKING_STRIPE_SUBSCRIPTION_STATUSES:
+                subscription_id = subscription.get("id")
+
+                if subscription_id:
+                    subscription_ids_to_cancel.add(subscription_id)
+
+    for subscription_id in sorted(subscription_ids_to_cancel):
+        cancel_stripe_subscription_immediately(subscription_id)
+        result["canceled_subscription_ids"].append(subscription_id)
+
+    return result
 
 
 @app.route("/create-checkout-session", methods=["POST"])
