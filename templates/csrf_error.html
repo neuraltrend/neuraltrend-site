@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Security Check Failed | NeuralTrend{% endblock %}
+
+{% block meta_description %}
+Your NeuralTrend security token expired or could not be verified.
+{% endblock %}
+
+{% block content %}
+<main>
+    <div class="nt-page-container">
+        <section style="max-width:680px;margin:42px auto 80px;padding:30px;border:1px solid var(--nt-border);border-radius:22px;background:#fff;box-shadow:0 12px 34px rgba(15,23,42,.10);">
+            <div class="nt-section-eyebrow">Security Check</div>
+            <h1 style="margin:8px 0 12px;color:var(--nt-dark);font-size:28px;">Please refresh this page</h1>
+            <p style="color:var(--nt-neutral);line-height:1.6;">
+                {{ reason }}
+            </p>
+            <a href="{{ request.url }}" style="display:inline-flex;margin-top:12px;padding:10px 16px;border-radius:999px;background:var(--nt-dark);color:#fff;text-decoration:none;font-weight:850;">
+                Refresh page
+            </a>
+        </section>
+    </div>
+</main>
+{% endblock %}

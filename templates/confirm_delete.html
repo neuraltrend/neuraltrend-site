@@ -79,6 +79,8 @@ Securely confirm permanent deletion of a NeuralTrend account.
                             class="nt-delete-form"
                             autocomplete="off"
                         >
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
                             <div class="nt-delete-field">
                                 <label for="delete-password">Account password</label>
                                 <input
