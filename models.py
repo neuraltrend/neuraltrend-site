@@ -73,8 +73,63 @@ class User(UserMixin, db.Model):
         nullable=True
     )
 
+    stripe_last_event_id = db.Column(
+        db.String(255),
+        nullable=True
+    )
+
+    stripe_last_event_created_at = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
     def __repr__(self):
         return f"<User {self.email}>"
+
+class StripeWebhookEvent(db.Model):
+    __tablename__ = "stripe_webhook_events"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    stripe_event_id = db.Column(
+        db.String(255),
+        nullable=False,
+        unique=True
+    )
+
+    event_type = db.Column(db.String(255), nullable=False, index=True)
+    stripe_object_id = db.Column(db.String(255), nullable=True, index=True)
+    livemode = db.Column(db.Boolean, nullable=False)
+    event_created_at = db.Column(db.DateTime, nullable=True)
+
+    processing_status = db.Column(
+        db.String(30),
+        nullable=False,
+        default="processing",
+        index=True
+    )
+
+    processing_started_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow
+    )
+
+    received_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow
+    )
+
+    processed_at = db.Column(db.DateTime, nullable=True)
+    error_message = db.Column(db.String(1000), nullable=True)
+
+    def __repr__(self):
+        return (
+            f"<StripeWebhookEvent {self.stripe_event_id} "
+            f"{self.processing_status}>"
+        )
+
 
 class LiveSimulation(db.Model):
     __tablename__ = "live_simulations"

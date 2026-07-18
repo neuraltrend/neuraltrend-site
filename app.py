@@ -6,7 +6,13 @@ import pandas as pd
 import os
 from functools import lru_cache
 from extensions import db, bcrypt, login_manager, csrf
-from models import User, LiveSimulation, LiveSimulationTrade, LiveSimulationEquity
+from models import (
+    User,
+    LiveSimulation,
+    LiveSimulationTrade,
+    LiveSimulationEquity,
+    StripeWebhookEvent,
+)
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Mail, Message
 from flask_limiter import Limiter
@@ -16,6 +22,7 @@ import stripe
 import traceback
 import secrets
 from flask_wtf.csrf import CSRFError
+from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
 
@@ -2881,6 +2888,292 @@ def billing_portal():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+def stripe_api_key_livemode(api_key):
+    """Return True for live keys, False for test keys, or None if unknown."""
+    key = str(api_key or "")
+
+    if key.startswith(("sk_live_", "rk_live_")):
+        return True
+
+    if key.startswith(("sk_test_", "rk_test_")):
+        return False
+
+    return None
+
+
+STRIPE_EXPECTED_LIVEMODE = stripe_api_key_livemode(stripe.api_key)
+STRIPE_WEBHOOK_PROCESSING_LEASE = timedelta(minutes=5)
+STRIPE_HANDLED_WEBHOOK_EVENTS = {
+    "checkout.session.completed",
+    "checkout.session.expired",
+    "customer.subscription.created",
+    "customer.subscription.updated",
+    "customer.subscription.deleted",
+}
+
+
+def stripe_id(value):
+    """Return an ID whether Stripe supplied a string or an expanded object."""
+    if isinstance(value, str):
+        return value
+
+    if isinstance(value, dict):
+        return value.get("id")
+
+    if value is None:
+        return None
+
+    return getattr(value, "id", None)
+
+
+def stripe_timestamp_to_datetime(value):
+    try:
+        return datetime.utcfromtimestamp(int(value))
+    except (TypeError, ValueError, OSError, OverflowError):
+        return None
+
+
+def stripe_object_matches_expected_mode(obj):
+    obj = stripe_to_dict(obj)
+    object_livemode = obj.get("livemode")
+
+    if object_livemode is None or STRIPE_EXPECTED_LIVEMODE is None:
+        return True
+
+    return bool(object_livemode) == STRIPE_EXPECTED_LIVEMODE
+
+
+def find_user_for_stripe_event(customer_id=None, metadata=None, client_reference_id=None):
+    """
+    Resolve a Stripe event only through immutable identifiers.
+
+    Email fallback is intentionally not used because an address can be deleted
+    and later registered by a different local account.
+    """
+    metadata = metadata or {}
+    user_by_customer = None
+    user_by_reference = None
+
+    if customer_id:
+        user_by_customer = User.query.filter_by(
+            stripe_customer_id=customer_id
+        ).first()
+
+    reference_id = metadata.get("user_id") or client_reference_id
+
+    if reference_id:
+        try:
+            user_by_reference = User.query.get(int(reference_id))
+        except (TypeError, ValueError):
+            app.logger.warning(
+                "Stripe event contained an invalid user reference: %r",
+                reference_id,
+            )
+
+    if (
+        user_by_customer
+        and user_by_reference
+        and user_by_customer.id != user_by_reference.id
+    ):
+        app.logger.error(
+            "Stripe event identity conflict: customer_id=%s customer_user_id=%s metadata_user_id=%s",
+            customer_id,
+            user_by_customer.id,
+            user_by_reference.id,
+        )
+        return None
+
+    user = user_by_customer or user_by_reference
+
+    if not user:
+        return None
+
+    if (
+        customer_id
+        and user.stripe_customer_id
+        and user.stripe_customer_id != customer_id
+    ):
+        app.logger.error(
+            "Stripe customer mismatch for user_id=%s saved=%s event=%s",
+            user.id,
+            user.stripe_customer_id,
+            customer_id,
+        )
+        return None
+
+    return user
+
+
+def list_customer_pro_subscriptions(customer_id):
+    subscriptions = stripe.Subscription.list(
+        customer=customer_id,
+        status="all",
+        limit=100,
+    )
+    subscriptions = stripe_to_dict(subscriptions)
+
+    return [
+        subscription
+        for subscription in subscriptions.get("data", [])
+        if (
+            stripe_object_matches_expected_mode(subscription)
+            and stripe_subscription_uses_pro_price(subscription)
+        )
+    ]
+
+
+def select_authoritative_pro_subscription(subscriptions):
+    """Choose the subscription that should define the current access state."""
+    status_rank = {
+        "active": 100,
+        "trialing": 90,
+        "past_due": 80,
+        "unpaid": 70,
+        "paused": 60,
+        "incomplete": 50,
+        "canceled": 20,
+        "incomplete_expired": 10,
+    }
+
+    if not subscriptions:
+        return None
+
+    return max(
+        subscriptions,
+        key=lambda subscription: (
+            status_rank.get(subscription.get("status"), 0),
+            int(subscription.get("created") or 0),
+        ),
+    )
+
+
+def update_user_stripe_event_audit(user, event):
+    event_created_at = stripe_timestamp_to_datetime(event.get("created"))
+    saved_created_at = getattr(user, "stripe_last_event_created_at", None)
+
+    # Keep the greatest Stripe event timestamp for audit purposes. We still
+    # reconcile against Stripe's current subscription state even for an older
+    # delivery, so out-of-order events cannot restore stale access.
+    if (
+        event_created_at
+        and (saved_created_at is None or event_created_at >= saved_created_at)
+    ):
+        user.stripe_last_event_created_at = event_created_at
+        user.stripe_last_event_id = event.get("id")
+
+
+def sync_user_pro_access_from_stripe(user, customer_id, event, fallback_status="inactive"):
+    """
+    Reconcile access from Stripe's current state instead of trusting event order.
+    """
+    if user.stripe_customer_id and user.stripe_customer_id != customer_id:
+        raise RuntimeError("Stripe customer does not match the local user.")
+
+    subscriptions = list_customer_pro_subscriptions(customer_id)
+    selected = select_authoritative_pro_subscription(subscriptions)
+
+    user.stripe_customer_id = customer_id
+    user.subscription_updated_at = datetime.utcnow()
+    update_user_stripe_event_audit(user, event)
+
+    if selected:
+        status = selected.get("status") or fallback_status
+        user.stripe_subscription_id = selected.get("id")
+        user.subscription_status = status
+        user.subscription_type = (
+            "pro" if status in PAID_SUBSCRIPTION_STATUSES else "free"
+        )
+    else:
+        user.stripe_subscription_id = None
+        user.subscription_type = "free"
+        user.subscription_status = fallback_status or "inactive"
+
+    db.session.commit()
+
+    if not is_paid_user(user):
+        freeze_locked_live_simulations_for_user(user)
+        enforce_free_live_simulation_limit_for_user(user)
+
+    return selected
+
+
+def begin_stripe_webhook_event(event):
+    """
+    Claim a Stripe event for processing.
+
+    Processed/ignored events are acknowledged immediately. Failed events may be
+    retried. A short lease lets a later retry recover if a worker crashed while
+    the event was marked as processing.
+    """
+    event_id = event.get("id")
+
+    if not event_id:
+        raise ValueError("Stripe event is missing its ID.")
+
+    now = datetime.utcnow()
+    existing = StripeWebhookEvent.query.filter_by(
+        stripe_event_id=event_id
+    ).first()
+
+    if existing:
+        if existing.processing_status in {"processed", "ignored"}:
+            return existing, "duplicate"
+
+        lease_is_active = (
+            existing.processing_status == "processing"
+            and existing.processing_started_at
+            and now - existing.processing_started_at < STRIPE_WEBHOOK_PROCESSING_LEASE
+        )
+
+        if lease_is_active:
+            return existing, "processing"
+
+        existing.processing_status = "processing"
+        existing.processing_started_at = now
+        existing.processed_at = None
+        existing.error_message = None
+        db.session.commit()
+        return existing, "claimed"
+
+    data_object = ((event.get("data") or {}).get("object") or {})
+    data_object = stripe_to_dict(data_object)
+
+    record = StripeWebhookEvent(
+        stripe_event_id=event_id,
+        event_type=event.get("type") or "unknown",
+        stripe_object_id=stripe_id(data_object.get("id")),
+        livemode=bool(event.get("livemode")),
+        event_created_at=stripe_timestamp_to_datetime(event.get("created")),
+        processing_status="processing",
+        processing_started_at=now,
+    )
+    db.session.add(record)
+
+    try:
+        db.session.commit()
+        return record, "claimed"
+    except IntegrityError:
+        # A concurrent delivery inserted the same event first.
+        db.session.rollback()
+        existing = StripeWebhookEvent.query.filter_by(
+            stripe_event_id=event_id
+        ).first()
+
+        if existing and existing.processing_status in {"processed", "ignored"}:
+            return existing, "duplicate"
+
+        return existing, "processing"
+
+
+def finish_stripe_webhook_event(record, status, error_message=None):
+    record.processing_status = status
+    record.processed_at = datetime.utcnow()
+    record.error_message = (
+        str(error_message)[:1000] if error_message else None
+    )
+    db.session.commit()
+
+
 @app.route("/stripe/webhook", methods=["POST"])
 @limiter.exempt
 @csrf.exempt
@@ -2888,169 +3181,232 @@ def stripe_webhook():
     payload = request.data
     sig_header = request.headers.get("Stripe-Signature")
 
+    if not stripe.api_key or not STRIPE_PRO_PRICE_ID or not STRIPE_WEBHOOK_SECRET:
+        app.logger.error(
+            "Stripe webhook configuration is incomplete: api_key=%s price_id=%s webhook_secret=%s",
+            bool(stripe.api_key),
+            bool(STRIPE_PRO_PRICE_ID),
+            bool(STRIPE_WEBHOOK_SECRET),
+        )
+        return "Webhook unavailable", 503
+
     try:
         event = stripe.Webhook.construct_event(
             payload,
             sig_header,
-            STRIPE_WEBHOOK_SECRET
+            STRIPE_WEBHOOK_SECRET,
         )
-
-        # IMPORTANT:
-        # Convert StripeObject into a normal Python dict so .get() works safely.
         event = stripe_to_dict(event)
 
-    except ValueError as e:
-        print("STRIPE WEBHOOK ERROR: invalid payload")
-        print(str(e))
+    except ValueError:
+        app.logger.warning("Stripe webhook rejected an invalid payload.")
         return "Invalid payload", 400
 
-    except Exception as e:
-        print("STRIPE WEBHOOK ERROR: event construction/signature failed")
-        print("Error type:", type(e).__name__)
-        print("Error message:", str(e))
-        traceback.print_exc()
-        return "Invalid signature or webhook construction failed", 400
+    except stripe.error.SignatureVerificationError:
+        app.logger.warning("Stripe webhook rejected an invalid signature.")
+        return "Invalid signature", 400
+
+    except Exception:
+        app.logger.exception("Stripe webhook construction failed.")
+        return "Webhook construction failed", 400
+
+    if STRIPE_EXPECTED_LIVEMODE is None:
+        app.logger.error(
+            "Stripe key mode could not be determined from the configured API key."
+        )
+        return "Stripe environment is not configured safely", 503
+
+    if bool(event.get("livemode")) != STRIPE_EXPECTED_LIVEMODE:
+        app.logger.error(
+            "Stripe webhook mode mismatch: event_id=%s event_livemode=%s expected_livemode=%s",
+            event.get("id"),
+            event.get("livemode"),
+            STRIPE_EXPECTED_LIVEMODE,
+        )
+        return "Stripe environment mismatch", 400
 
     try:
-        event_type = event["type"]
-        data_object = event["data"]["object"]
+        record, claim_status = begin_stripe_webhook_event(event)
+    except Exception:
+        db.session.rollback()
+        app.logger.exception(
+            "Could not record Stripe webhook event_id=%s",
+            event.get("id"),
+        )
+        return "Webhook event recording failed", 500
 
-        print("STRIPE WEBHOOK EVENT:", event_type)
+    if claim_status == "duplicate":
+        return "Already processed", 200
 
-        def find_user_for_stripe_event(customer_id=None, metadata=None):
-            metadata = metadata or {}
-            user = None
+    if claim_status == "processing":
+        # A non-2xx response asks Stripe to retry later if the current worker
+        # crashes before completing the event.
+        return "Event is already processing", 409
 
-            # 1. Match by saved Stripe customer ID
-            if customer_id:
-                user = User.query.filter_by(
-                    stripe_customer_id=customer_id
-                ).first()
+    event_type = event.get("type")
+    data_object = stripe_to_dict(((event.get("data") or {}).get("object") or {}))
 
-            # 2. Match by metadata user_id
-            if not user:
-                metadata_user_id = metadata.get("user_id")
+    try:
+        if event_type not in STRIPE_HANDLED_WEBHOOK_EVENTS:
+            finish_stripe_webhook_event(record, "ignored")
+            return "Ignored", 200
 
-                if metadata_user_id:
-                    try:
-                        user = User.query.get(int(metadata_user_id))
-                    except Exception as e:
-                        print("Could not use metadata user_id:", metadata_user_id, str(e))
+        if event_type == "checkout.session.expired":
+            customer_id = stripe_id(data_object.get("customer"))
+            metadata = data_object.get("metadata") or {}
+            user = find_user_for_stripe_event(
+                customer_id=customer_id,
+                metadata=metadata,
+                client_reference_id=data_object.get("client_reference_id"),
+            )
 
-            # 3. Match by metadata email
-            if not user:
-                metadata_email = metadata.get("user_email")
+            if user and user.pending_checkout_session_id == data_object.get("id"):
+                user.pending_checkout_session_id = None
+                update_user_stripe_event_audit(user, event)
+                db.session.commit()
 
-                if metadata_email:
-                    user = User.query.filter_by(
-                        email=normalize_email(metadata_email)
-                    ).first()
-
-            # 4. Fallback: retrieve Stripe customer and match by customer email
-            if not user and customer_id:
-                try:
-                    customer = stripe.Customer.retrieve(customer_id)
-                    customer = stripe_to_dict(customer)
-
-                    customer_email = normalize_email(customer.get("email"))
-
-                    if customer_email:
-                        user = User.query.filter_by(email=customer_email).first()
-
-                except Exception as e:
-                    print("Could not retrieve Stripe customer:", customer_id, str(e))
-
-            return user
+            finish_stripe_webhook_event(record, "processed")
+            return "OK", 200
 
         if event_type == "checkout.session.completed":
-            customer_id = data_object.get("customer")
-            subscription_id = data_object.get("subscription")
-            metadata = data_object.get("metadata", {}) or {}
+            customer_id = stripe_id(data_object.get("customer"))
+            subscription_id = stripe_id(data_object.get("subscription"))
+            metadata = data_object.get("metadata") or {}
 
-            user = find_user_for_stripe_event(
-                customer_id=customer_id,
-                metadata=metadata
-            )
-
-            print(
-                "CHECKOUT COMPLETED:",
-                "customer_id=", customer_id,
-                "subscription_id=", subscription_id,
-                "metadata=", metadata,
-                "user_found=", bool(user),
-                "user_email=", getattr(user, "email", None)
-            )
-
-            if user:
-                user.stripe_customer_id = customer_id
-                user.subscription_type = "pro"
-                user.subscription_status = "active"
-
-                if hasattr(user, "stripe_subscription_id"):
-                    user.stripe_subscription_id = subscription_id
-
-                db.session.commit()
-
-                print("USER UPGRADED TO PRO:", user.email)
-
-        elif event_type in [
-            "customer.subscription.created",
-            "customer.subscription.updated",
-            "customer.subscription.deleted"
-        ]:
-            customer_id = data_object.get("customer")
-            status = data_object.get("status")
-            subscription_id = data_object.get("id")
-            metadata = data_object.get("metadata", {}) or {}
-
-            user = find_user_for_stripe_event(
-                customer_id=customer_id,
-                metadata=metadata
-            )
-
-            print(
-                "SUBSCRIPTION EVENT:",
-                "customer_id=", customer_id,
-                "status=", status,
-                "subscription_id=", subscription_id,
-                "metadata=", metadata,
-                "user_found=", bool(user),
-                "user_email=", getattr(user, "email", None)
-            )
-
-            if user:
-                user.stripe_customer_id = customer_id
-
-                if status in PAID_SUBSCRIPTION_STATUSES:
-                    user.subscription_type = "pro"
-                    user.subscription_status = status
-                else:
-                    user.subscription_type = "free"
-                    user.subscription_status = status or "inactive"
-
-                if hasattr(user, "stripe_subscription_id"):
-                    user.stripe_subscription_id = subscription_id
-
-                db.session.commit()
-
-                if not is_paid_user(user):
-                    freeze_locked_live_simulations_for_user(user)
-                    enforce_free_live_simulation_limit_for_user(user)
-
-                print(
-                    "USER SUBSCRIPTION UPDATED:",
-                    user.email,
-                    user.subscription_type,
-                    user.subscription_status
+            if (
+                data_object.get("mode") != "subscription"
+                or data_object.get("status") != "complete"
+                or data_object.get("payment_status") not in {"paid", "no_payment_required"}
+                or not customer_id
+                or not subscription_id
+            ):
+                finish_stripe_webhook_event(
+                    record,
+                    "ignored",
+                    "Checkout Session did not represent a completed subscription payment.",
                 )
+                return "Ignored", 200
 
+            user = find_user_for_stripe_event(
+                customer_id=customer_id,
+                metadata=metadata,
+                client_reference_id=data_object.get("client_reference_id"),
+            )
+
+            if not user:
+                finish_stripe_webhook_event(
+                    record,
+                    "ignored",
+                    "No unambiguous local user matched the Checkout Session.",
+                )
+                return "Ignored", 200
+
+            if (
+                user.pending_checkout_session_id
+                and user.pending_checkout_session_id != data_object.get("id")
+            ):
+                finish_stripe_webhook_event(
+                    record,
+                    "ignored",
+                    "Checkout Session did not match the user's pending Session.",
+                )
+                return "Ignored", 200
+
+            subscription = stripe.Subscription.retrieve(subscription_id)
+            subscription = stripe_to_dict(subscription)
+
+            if (
+                stripe_id(subscription.get("customer")) != customer_id
+                or not stripe_object_matches_expected_mode(subscription)
+                or not stripe_subscription_uses_pro_price(subscription)
+            ):
+                finish_stripe_webhook_event(
+                    record,
+                    "ignored",
+                    "Subscription customer, environment, or Pro Price validation failed.",
+                )
+                return "Ignored", 200
+
+            user.pending_checkout_session_id = None
+            db.session.commit()
+            sync_user_pro_access_from_stripe(
+                user,
+                customer_id,
+                event,
+                fallback_status=subscription.get("status") or "inactive",
+            )
+
+            finish_stripe_webhook_event(record, "processed")
+            return "OK", 200
+
+        # Subscription lifecycle events are accepted only when they refer to
+        # the configured NeuralTrend Pro Price. We then retrieve the customer's
+        # current Stripe state, which makes event delivery order irrelevant.
+        customer_id = stripe_id(data_object.get("customer"))
+        subscription_id = stripe_id(data_object.get("id"))
+        metadata = data_object.get("metadata") or {}
+
+        if (
+            not customer_id
+            or not subscription_id
+            or not stripe_object_matches_expected_mode(data_object)
+            or not stripe_subscription_uses_pro_price(data_object)
+        ):
+            finish_stripe_webhook_event(
+                record,
+                "ignored",
+                "Subscription event did not match the configured Pro Price or environment.",
+            )
+            return "Ignored", 200
+
+        user = find_user_for_stripe_event(
+            customer_id=customer_id,
+            metadata=metadata,
+        )
+
+        if not user:
+            finish_stripe_webhook_event(
+                record,
+                "ignored",
+                "No unambiguous local user matched the subscription event.",
+            )
+            return "Ignored", 200
+
+        sync_user_pro_access_from_stripe(
+            user,
+            customer_id,
+            event,
+            fallback_status=data_object.get("status") or "inactive",
+        )
+
+        finish_stripe_webhook_event(record, "processed")
         return "OK", 200
 
-    except Exception as e:
-        print("STRIPE WEBHOOK PROCESSING ERROR")
-        print("Event type:", event.get("type") if event else None)
-        print("Error type:", type(e).__name__)
-        print("Error message:", str(e))
-        traceback.print_exc()
+    except Exception as error:
+        db.session.rollback()
+        app.logger.exception(
+            "Stripe webhook processing failed: event_id=%s event_type=%s",
+            event.get("id"),
+            event_type,
+        )
+
+        try:
+            fresh_record = StripeWebhookEvent.query.filter_by(
+                stripe_event_id=event.get("id")
+            ).first()
+
+            if fresh_record:
+                finish_stripe_webhook_event(
+                    fresh_record,
+                    "failed",
+                    error,
+                )
+        except Exception:
+            db.session.rollback()
+            app.logger.exception(
+                "Could not mark Stripe event as failed: event_id=%s",
+                event.get("id"),
+            )
 
         return "Webhook processing failed", 500
+
