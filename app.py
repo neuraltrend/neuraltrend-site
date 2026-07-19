@@ -1742,7 +1742,9 @@ def render_delete_confirmation_page(
     response.status_code = status_code
     response.headers["Cache-Control"] = "no-store, max-age=0"
     response.headers["Pragma"] = "no-cache"
-    response.headers["Referrer-Policy"] = "no-referrer"
+    # Keep the deletion token private from external sites while allowing the
+    # same-origin POST referrer required by Flask-WTF HTTPS CSRF validation.
+    response.headers["Referrer-Policy"] = "same-origin"
     response.headers["X-Robots-Tag"] = "noindex, nofollow"
     return response
 
