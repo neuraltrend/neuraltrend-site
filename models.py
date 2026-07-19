@@ -10,6 +10,31 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
 
+    # One-time password-reset state. Only a SHA-256 digest of the random
+    # reset nonce is stored; requesting a new link replaces the old digest.
+    password_reset_token_hash = db.Column(
+        db.String(64),
+        nullable=True,
+        index=True,
+    )
+
+    password_reset_requested_at = db.Column(
+        db.DateTime,
+        nullable=True,
+    )
+
+    password_changed_at = db.Column(
+        db.DateTime,
+        nullable=True,
+    )
+
+    # Incrementing this value invalidates every older authenticated session.
+    auth_version = db.Column(
+        db.Integer,
+        nullable=False,
+        default=1,
+    )
+
     is_verified = db.Column(db.Boolean, default=False)
 
     failed_attempts = db.Column(db.Integer, default=0)

@@ -1,4 +1,14 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory, Response
+from flask import (
+    Flask,
+    render_template,
+    request,
+    jsonify,
+    send_from_directory,
+    Response,
+    session,
+    redirect,
+    url_for,
+)
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -21,6 +31,9 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 import stripe
 import traceback
 import secrets
+import hashlib
+import hmac
+import time
 from flask_wtf.csrf import CSRFError
 from sqlalchemy.exc import IntegrityError
 
@@ -96,7 +109,45 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    try:
+        return db.session.get(User, int(user_id))
+    except (TypeError, ValueError):
+        return None
+
+
+@app.before_request
+def enforce_authenticated_session_version():
+    """
+    Revoke existing authenticated sessions after a password reset.
+
+    Existing sessions created before this migration are adopted at the user's
+    current version. Future password resets increment the version, causing all
+    older sessions to be logged out on their next request.
+    """
+    if not current_user.is_authenticated:
+        return None
+
+    current_version = int(getattr(current_user, "auth_version", 1) or 1)
+    stored_version = session.get("auth_version")
+
+    if stored_version is None:
+        # Sessions created before auth-version tracking cannot be proven current.
+        # Log them out once during deployment rather than allowing them to bypass
+        # future password-reset revocation.
+        logout_user()
+        session.pop("auth_version", None)
+        return None
+
+    try:
+        stored_version = int(stored_version)
+    except (TypeError, ValueError):
+        stored_version = -1
+
+    if stored_version != current_version:
+        logout_user()
+        session.pop("auth_version", None)
+
+    return None
     
 @app.errorhandler(429)
 def ratelimit_handler(e):
@@ -198,19 +249,173 @@ def send_verification_email(user_email):
 def normalize_email(email):
     return str(email or "").strip().lower()
 
-def generate_reset_token(email):
-    return get_serializer().dumps(email, salt="password-reset")
+PASSWORD_MIN_LENGTH = 15
+PASSWORD_MAX_LENGTH = 64
+PASSWORD_MAX_UTF8_BYTES = 72
+PASSWORD_RESET_TOKEN_SECONDS = 60 * 60
+PASSWORD_RESET_GRANT_SECONDS = 15 * 60
 
-def confirm_reset_token(token, expiration=3600):
+
+def validate_password(password):
+    """
+    Validate passwords consistently for signup and password reset.
+
+    The 72-byte encoded limit prevents silent bcrypt truncation. Passwords may
+    otherwise contain spaces, Unicode, and punctuation; no composition rules
+    are imposed.
+    """
+    if not isinstance(password, str):
+        return "Password is required."
+
+    if len(password) < PASSWORD_MIN_LENGTH:
+        return f"Password must be at least {PASSWORD_MIN_LENGTH} characters."
+
+    if len(password) > PASSWORD_MAX_LENGTH:
+        return f"Password must be {PASSWORD_MAX_LENGTH} characters or fewer."
+
+    if len(password.encode("utf-8")) > PASSWORD_MAX_UTF8_BYTES:
+        return (
+            "Password is too long when encoded. Use fewer multi-byte "
+            "characters or a shorter passphrase."
+        )
+
+    return None
+
+
+def hash_password_reset_nonce(nonce):
+    return hashlib.sha256(str(nonce).encode("utf-8")).hexdigest()
+
+
+def generate_reset_token(user):
+    """
+    Create a cryptographically random, one-time reset nonce.
+
+    Only its SHA-256 digest is stored. Requesting a new link replaces the
+    digest, immediately invalidating every older reset link for the account.
+    """
+    nonce = secrets.token_urlsafe(32)
+    user.password_reset_token_hash = hash_password_reset_nonce(nonce)
+    user.password_reset_requested_at = datetime.utcnow()
+
+    return get_serializer().dumps(
+        {
+            "email": user.email,
+            "nonce": nonce,
+        },
+        salt="password-reset",
+    )
+
+
+def confirm_reset_token(token, expiration=PASSWORD_RESET_TOKEN_SECONDS):
     try:
-        email = get_serializer().loads(
+        payload = get_serializer().loads(
             token,
             salt="password-reset",
-            max_age=expiration
+            max_age=expiration,
         )
     except Exception:
         return None
-    return email
+
+    if not isinstance(payload, dict):
+        return None
+
+    email = normalize_email(payload.get("email"))
+    nonce = payload.get("nonce")
+
+    if not email or not isinstance(nonce, str) or not nonce:
+        return None
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user or not user.password_reset_token_hash:
+        return None
+
+    candidate_hash = hash_password_reset_nonce(nonce)
+
+    if not hmac.compare_digest(
+        user.password_reset_token_hash,
+        candidate_hash,
+    ):
+        return None
+
+    return user, candidate_hash
+
+
+def clear_password_reset_session():
+    for key in (
+        "password_reset_user_id",
+        "password_reset_token_hash",
+        "password_reset_granted_at",
+        "password_reset_invalid",
+    ):
+        session.pop(key, None)
+
+
+def establish_password_reset_session(user, token_hash):
+    clear_password_reset_session()
+    session["password_reset_user_id"] = int(user.id)
+    session["password_reset_token_hash"] = token_hash
+    session["password_reset_granted_at"] = int(time.time())
+
+
+def get_password_reset_user_from_session():
+    user_id = session.get("password_reset_user_id")
+    token_hash = session.get("password_reset_token_hash")
+    granted_at = session.get("password_reset_granted_at")
+
+    try:
+        user_id = int(user_id)
+        granted_at = int(granted_at)
+    except (TypeError, ValueError):
+        clear_password_reset_session()
+        return None
+
+    if time.time() - granted_at > PASSWORD_RESET_GRANT_SECONDS:
+        clear_password_reset_session()
+        return None
+
+    if not isinstance(token_hash, str) or not token_hash:
+        clear_password_reset_session()
+        return None
+
+    user = db.session.get(User, user_id)
+
+    if not user or not user.password_reset_token_hash:
+        clear_password_reset_session()
+        return None
+
+    if not hmac.compare_digest(user.password_reset_token_hash, token_hash):
+        clear_password_reset_session()
+        return None
+
+    return user
+
+
+def send_password_changed_email(user_email):
+    msg = Message(
+        subject="Your NeuralTrend password was changed",
+        sender=app.config["MAIL_USERNAME"],
+        recipients=[user_email],
+    )
+
+    msg.body = f"""Hi,
+
+The password for your NeuralTrend account was changed successfully.
+
+If you made this change, no further action is required.
+
+If you did not change your password, contact NeuralTrend immediately and do not reuse the previous password.
+
+NeuralTrend
+"""
+
+    try:
+        mail.send(msg)
+    except Exception:
+        app.logger.exception(
+            "Could not send password-change notification to %s",
+            user_email,
+        )
 
 def generate_delete_token(email):
     return get_serializer().dumps(email, salt="delete-account")
@@ -1200,6 +1405,10 @@ def signup():
     if not email or not password:
         return jsonify({"error": "Email and password required"}), 400
 
+    password_error = validate_password(password)
+    if password_error:
+        return jsonify({"error": password_error}), 400
+
     existing_user = User.query.filter_by(email=email).first()
 
     if existing_user:
@@ -1271,13 +1480,18 @@ def verify_email(token):
 @app.route("/login", methods=["POST"])
 @limiter.limit("5 per minute")
 def login():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
 
     email = normalize_email(data.get("email"))
     password = data.get("password")
 
-    if not email or not password:
+    if not email or not isinstance(password, str) or not password:
         return jsonify({"error": "Email and password required"}), 400
+
+    # Bound work before invoking bcrypt. Existing NeuralTrend passwords were
+    # created with bcrypt, whose input must not exceed 72 encoded bytes.
+    if len(password.encode("utf-8")) > PASSWORD_MAX_UTF8_BYTES:
+        return jsonify({"error": "Invalid email or password"}), 401
 
     user = User.query.filter_by(email=email).first()
 
@@ -1323,6 +1537,7 @@ def login():
     db.session.commit()
     
     login_user(user)
+    session["auth_version"] = int(getattr(user, "auth_version", 1) or 1)
 
     return jsonify({
         "message": "Logged in successfully",
@@ -1334,6 +1549,8 @@ def login():
 @login_required
 def logout():
     logout_user()
+    session.pop("auth_version", None)
+    clear_password_reset_session()
     return jsonify({"message": "Logged out"})
 
 @app.route("/me")
@@ -1644,55 +1861,158 @@ def update_live_simulation_status(simulation_id):
 @app.route("/request-password-reset", methods=["POST"])
 @limiter.limit("3 per minute")
 def request_password_reset():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     email = normalize_email(data.get("email"))
 
-    user = User.query.filter_by(email=email).first()
+    user = User.query.filter_by(email=email).first() if email else None
 
     if user:
-        token = generate_reset_token(email)
+        token = generate_reset_token(user)
+        db.session.commit()
+
         reset_url = f"{BASE_URL}/reset-password/{token}"
 
         msg = Message(
-            subject="Reset your password",
+            subject="Reset your NeuralTrend password",
             sender=app.config["MAIL_USERNAME"],
-            recipients=[email]
+            recipients=[user.email],
         )
 
-        msg.body = f"Reset your password:\n\n{reset_url}"
+        msg.body = f"""Hi,
+
+Use the secure link below to reset your NeuralTrend password:
+
+{reset_url}
+
+The link expires in 1 hour. Requesting a new reset email invalidates every older reset link.
+
+If you did not request this change, you can ignore this email.
+
+NeuralTrend
+"""
 
         try:
             mail.send(msg)
-            print("RESET EMAIL SENT:", email)
-        except Exception as e:
-            print("EMAIL ERROR:", str(e))
+            app.logger.info("Password reset email sent for user_id=%s", user.id)
+        except Exception:
+            app.logger.exception(
+                "Could not send password reset email for user_id=%s",
+                user.id,
+            )
 
-    # Always return same message
-    return jsonify({"message": "If account exists, email sent"})
+    # Use the same response whether or not the account exists.
+    return jsonify({
+        "message": (
+            "If an account exists for that email, a password-reset link "
+            "has been sent."
+        )
+    })
 
-@app.route("/reset-password/<token>", methods=["GET", "POST"])
-def reset_password(token):
-    email = confirm_reset_token(token)
 
-    if not email:
-        return "Invalid or expired token"
+@app.route("/reset-password/<token>", methods=["GET"])
+@limiter.limit("10 per minute")
+def begin_password_reset(token):
+    result = confirm_reset_token(token)
 
-    user = User.query.filter_by(email=email).first()
+    if not result:
+        clear_password_reset_session()
+        session["password_reset_invalid"] = True
+    else:
+        user, token_hash = result
+        establish_password_reset_session(user, token_hash)
+
+    response = redirect(url_for("reset_password"))
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
+
+
+@app.route("/reset-password", methods=["GET", "POST"])
+@limiter.limit("10 per minute")
+def reset_password():
+    invalid_link = bool(session.pop("password_reset_invalid", False))
+    user = get_password_reset_user_from_session()
+
     if not user:
-        return "User not found"
+        response = render_template(
+            "reset_password.html",
+            invalid=True,
+            success=False,
+            error=(
+                "This password-reset link is invalid, expired, already used, "
+                "or was replaced by a newer request."
+            ),
+        )
+        rendered = app.make_response((response, 400))
+        rendered.headers["Cache-Control"] = "no-store, max-age=0"
+        rendered.headers["Pragma"] = "no-cache"
+        rendered.headers["Referrer-Policy"] = "same-origin"
+        return rendered
+
+    error = None
 
     if request.method == "POST":
         new_password = request.form.get("password")
+        confirm_password = request.form.get("confirm_password")
 
-        if not new_password:
-            return "Password required"
+        error = validate_password(new_password)
 
-        user.password_hash = bcrypt.generate_password_hash(new_password).decode("utf-8")
-        db.session.commit()
+        if not error and new_password != confirm_password:
+            error = "The two password entries do not match."
 
-        return "Password reset successful! You can now log in."
+        if not error and bcrypt.check_password_hash(user.password_hash, new_password):
+            error = "Choose a password different from your current password."
 
-    return render_template("reset_password.html")
+        if not error:
+            reset_user_id = user.id
+            reset_user_email = user.email
+
+            user.password_hash = bcrypt.generate_password_hash(
+                new_password
+            ).decode("utf-8")
+            user.password_reset_token_hash = None
+            user.password_reset_requested_at = None
+            user.password_changed_at = datetime.utcnow()
+            user.auth_version = int(user.auth_version or 1) + 1
+            user.failed_attempts = 0
+            user.locked_until = None
+            db.session.commit()
+
+            if current_user.is_authenticated and current_user.id == reset_user_id:
+                logout_user()
+                session.pop("auth_version", None)
+
+            clear_password_reset_session()
+            send_password_changed_email(reset_user_email)
+
+            response = render_template(
+                "reset_password.html",
+                invalid=False,
+                success=True,
+                error=None,
+            )
+            rendered = app.make_response(response)
+            rendered.headers["Cache-Control"] = "no-store, max-age=0"
+            rendered.headers["Pragma"] = "no-cache"
+            rendered.headers["Referrer-Policy"] = "same-origin"
+            return rendered
+
+    response = render_template(
+        "reset_password.html",
+        invalid=invalid_link,
+        success=False,
+        error=error,
+        masked_email=mask_email_for_display(user.email),
+        password_min_length=PASSWORD_MIN_LENGTH,
+        password_max_length=PASSWORD_MAX_LENGTH,
+    )
+    rendered = app.make_response((response, 400 if error else 200))
+    rendered.headers["Cache-Control"] = "no-store, max-age=0"
+    rendered.headers["Pragma"] = "no-cache"
+    rendered.headers["Referrer-Policy"] = "same-origin"
+    return rendered
+
 
 def mask_email_for_display(email):
     clean_email = normalize_email(email)
