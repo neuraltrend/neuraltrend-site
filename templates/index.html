@@ -2035,7 +2035,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                 <div class="nt-backtest-results-header">
                     <div>
                         <div class="nt-section-eyebrow">Backtest Results</div>
-                        <h3 class="nt-backtest-results-title">${ticker} Backtest Results</h3>
+                        <h3 class="nt-backtest-results-title">${escapeHTML(ticker)} Backtest Results</h3>
                         <p class="nt-backtest-results-subtitle">
                             AI strategy performance compared with buy & hold. Transaction cost: ${(transaction_cost_rate * 100).toFixed(2)}% per trade.
                         </p>
@@ -2978,34 +2978,39 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
     }
     
     function renderBoard(data) {
-        board.innerHTML = data.map(item => `
-            <div
-                class="signal-row"
-                data-ticker="${item.ticker}"
-                onclick="loadTicker('${item.ticker}')"
-                style="
-                    display: grid;
-                    grid-template-columns: 160px 100px 100px 100px 100px 140px 160px 120px;
-                    align-items: center;
-                    padding: 7px 10px;
-                    border-bottom: 1px solid #eee;
-                    cursor: pointer;
-                    box-sizing: border-box;
-                    width: 100%;
-                "
-            >
-                <div class="signal-ticker">${item.ticker}</div>
-    
-                <div class="signal-cell-left">${formatSignal(item.today_signal, item.signals_locked)}</div>
-                <div class="signal-cell-left">${formatSignal(item.yesterday_signal, item.signals_locked)}</div>
-                <div class="signal-cell-left">${formatSignal(item.last_week_signal, item.signals_locked)}</div>
-                <div class="signal-cell-left">${formatSignal(item.last_month_signal, item.signals_locked)}</div>
-    
-                <div class="signal-cell-right">${formatPercent(item.buy_hold_annual_return)}</div>
-                <div class="signal-cell-right">${formatPercent(item.strategy_annual_return)}</div>
-                <div class="signal-cell-right">${formatMultiple(item.outperformance)}</div>
-            </div>
-        `).join('');
+        board.innerHTML = data.map(item => {
+            const safeTicker = escapeHTML(item.ticker || "");
+
+            return `
+                <div
+                    class="signal-row"
+                    data-ticker="${safeTicker}"
+                    role="button"
+                    tabindex="0"
+                    style="
+                        display: grid;
+                        grid-template-columns: 160px 100px 100px 100px 100px 140px 160px 120px;
+                        align-items: center;
+                        padding: 7px 10px;
+                        border-bottom: 1px solid #eee;
+                        cursor: pointer;
+                        box-sizing: border-box;
+                        width: 100%;
+                    "
+                >
+                    <div class="signal-ticker">${safeTicker}</div>
+        
+                    <div class="signal-cell-left">${formatSignal(item.today_signal, item.signals_locked)}</div>
+                    <div class="signal-cell-left">${formatSignal(item.yesterday_signal, item.signals_locked)}</div>
+                    <div class="signal-cell-left">${formatSignal(item.last_week_signal, item.signals_locked)}</div>
+                    <div class="signal-cell-left">${formatSignal(item.last_month_signal, item.signals_locked)}</div>
+        
+                    <div class="signal-cell-right">${formatPercent(item.buy_hold_annual_return)}</div>
+                    <div class="signal-cell-right">${formatPercent(item.strategy_annual_return)}</div>
+                    <div class="signal-cell-right">${formatMultiple(item.outperformance)}</div>
+                </div>
+            `;
+        }).join("");
     
         highlightSelectedTicker();
     }
@@ -3023,6 +3028,24 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
     ================================ */
     
     const board = document.getElementById('signal-board');
+
+    function activateSignalBoardRow(event) {
+        const row = event.target.closest(".signal-row[data-ticker]");
+        if (!row || !board.contains(row)) return;
+
+        if (event.type === "keydown" && event.key !== "Enter" && event.key !== " ") {
+            return;
+        }
+
+        if (event.type === "keydown") {
+            event.preventDefault();
+        }
+
+        loadTicker(row.dataset.ticker);
+    }
+
+    board.addEventListener("click", activateSignalBoardRow);
+    board.addEventListener("keydown", activateSignalBoardRow);
     
     board.innerHTML = `
         <div style="text-align:center; color:#888; padding:20px;">
@@ -4500,11 +4523,14 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
     
         const allOptions = getVisibleLiveSimTickerOptions();
     
-        select.innerHTML = allOptions.map(option => `
-            <option value="${escapeHTML(option.value)}">
-                ${escapeHTML(option.label)}
-            </option>
-        `).join("");
+        const optionElements = allOptions.map(option => {
+            const optionElement = document.createElement("option");
+            optionElement.value = String(option.value || "");
+            optionElement.textContent = String(option.label || option.value || "");
+            return optionElement;
+        });
+
+        select.replaceChildren(...optionElements);
     
         const preferredKey = normalizeTickerForCompare(preferredTicker);
         const preferredMatch = allOptions.find(option =>
@@ -4616,11 +4642,14 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
     }
 
     function liveSimStatusBadgeHTML(status) {
-        const cleanStatus = String(status || "active").toLowerCase();
+        const requestedStatus = String(status || "active").toLowerCase();
+        const cleanStatus = ["active", "paused", "archived"].includes(requestedStatus)
+            ? requestedStatus
+            : "active";
     
         return `
-            <span class="nt-live-sim-status-badge ${escapeHTML(cleanStatus)}">
-                ${escapeHTML(cleanStatus)}
+            <span class="nt-live-sim-status-badge ${cleanStatus}">
+                ${cleanStatus}
             </span>
         `;
     }

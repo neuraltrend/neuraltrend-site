@@ -9159,6 +9159,91 @@
     const authMessage = document.getElementById("authMessage");
     const userArea = document.getElementById("user-area");
 
+    function replaceElementChildren(element, ...children) {
+        if (!element) return;
+        element.replaceChildren(...children);
+    }
+
+    function renderLoggedOutUserArea() {
+        if (!userArea) return;
+
+        const loginLink = document.createElement("a");
+        loginLink.href = "#";
+        loginLink.id = "login-btn";
+        loginLink.textContent = "Login";
+
+        replaceElementChildren(userArea, loginLink);
+    }
+
+    function renderVerificationRequiredMessage(message) {
+        if (!authMessage) return;
+
+        const messageText = document.createTextNode(
+            String(message || "Please verify your account before logging in.")
+        );
+        const lineBreak = document.createElement("br");
+        const resendButton = document.createElement("button");
+
+        resendButton.type = "button";
+        resendButton.id = "inline-resend-verification";
+        resendButton.style.marginTop = "10px";
+        resendButton.textContent = "Resend verification email";
+
+        replaceElementChildren(authMessage, messageText, lineBreak, resendButton);
+    }
+
+    function createUserMenuAction(label, handler, { danger = false } = {}) {
+        const action = document.createElement("div");
+        action.setAttribute("role", "button");
+        action.tabIndex = 0;
+        action.textContent = label;
+
+        if (danger) {
+            action.style.color = "red";
+        }
+
+        action.addEventListener("click", handler);
+        action.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                handler();
+            }
+        });
+
+        return action;
+    }
+
+    function renderAuthenticatedUserArea(email) {
+        if (!userArea) return;
+
+        const menu = document.createElement("div");
+        menu.className = "user-menu";
+        menu.id = "userMenu";
+
+        const pill = document.createElement("div");
+        pill.className = "user-pill";
+        pill.append(document.createTextNode(String(email || "")));
+
+        const arrow = document.createElement("span");
+        arrow.className = "arrow";
+        arrow.textContent = "▼";
+        pill.append(arrow);
+
+        const dropdown = document.createElement("div");
+        dropdown.className = "dropdown";
+        dropdown.id = "dropdownMenu";
+        dropdown.style.display = "none";
+
+        dropdown.append(
+            createUserMenuAction("Manage Subscription", manageSubscriptionFromUserMenu),
+            createUserMenuAction("Logout", logout),
+            createUserMenuAction("Delete Account", deleteAccount, { danger: true })
+        );
+
+        menu.append(pill, dropdown);
+        replaceElementChildren(userArea, menu);
+    }
+
     function openNeuralTrendLoginModal(message = "Create a free account or log in to continue.") {
         const loginModal = document.getElementById("loginModal");
         const emailInput = document.getElementById("emailInput");
@@ -9283,12 +9368,7 @@
             authMessage.innerText = data.error || "Login failed.";
         
             if (data.verification_required) {
-                authMessage.innerHTML = `
-                    ${data.error}<br>
-                    <button type="button" id="inline-resend-verification" style="margin-top:10px;">
-                        Resend verification email
-                    </button>
-                `;
+                renderVerificationRequiredMessage(data.error);
             }
         }
     });
@@ -9312,7 +9392,7 @@
             method: "POST"
         });
     
-        userArea.innerHTML = `<a href="#" id="login-btn">Login</a>`;
+        renderLoggedOutUserArea();
         location.reload();
     }
 
@@ -9431,23 +9511,9 @@
         }
     
         if (data.email) {
-            userArea.innerHTML = `
-                <div class="user-menu" id="userMenu">
-                    <div class="user-pill">
-                        ${data.email}
-                        <span class="arrow">▼</span>
-                    </div>
-            
-                    <div class="dropdown" id="dropdownMenu" style="display:none;">
-                        <div onclick="manageSubscriptionFromUserMenu()">Manage Subscription</div>
-                        <div onclick="logout()">Logout</div>
-                        <div onclick="deleteAccount()" style="color:red;">Delete Account</div>
-                    </div>
-                </div>
-            `;
+            renderAuthenticatedUserArea(data.email);
         } else {
-            // 🔑 reset to login button if not authenticated
-            userArea.innerHTML = `<a href="#" id="login-btn">Login</a>`;
+            renderLoggedOutUserArea();
         }
     }
     
