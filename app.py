@@ -28,12 +28,16 @@ from flask_mail import Mail, Message
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.exceptions import RequestEntityTooLarge
 import stripe
 import traceback
 import secrets
 import hashlib
 import hmac
 import time
+import math
+import re
+import unicodedata
 from flask_wtf.csrf import CSRFError
 from sqlalchemy.exc import IntegrityError
 
@@ -81,6 +85,11 @@ app.config["SESSION_COOKIE_SECURE"] = True  # important on Render HTTPS
 # interrupting users who keep the dashboard open for several hours.
 app.config["WTF_CSRF_TIME_LIMIT"] = 12 * 60 * 60
 app.config["WTF_CSRF_SSL_STRICT"] = True
+
+# Bound browser request bodies. NeuralTrend forms and JSON payloads are tiny;
+# rejecting oversized bodies reduces accidental/malicious memory and parser use.
+app.config["MAX_CONTENT_LENGTH"] = 64 * 1024  # 64 KiB
+app.config["MAX_FORM_MEMORY_SIZE"] = 64 * 1024
 
 # Stripe
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
@@ -154,6 +163,14 @@ def ratelimit_handler(e):
     return jsonify({
         "error": "Too many requests. Please slow down and try again shortly."
     }), 429
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def request_too_large_handler(error):
+    return jsonify({
+        "error": "Request body is too large."
+    }), 413
+
 
 @app.errorhandler(CSRFError)
 def handle_csrf_error(error):
@@ -248,6 +265,100 @@ def send_verification_email(user_email):
 
 def normalize_email(email):
     return str(email or "").strip().lower()
+
+
+EMAIL_MAX_LENGTH = 254
+SIMULATION_NAME_MAX_LENGTH = 120
+MIN_INITIAL_CASH = 1.0
+MAX_INITIAL_CASH = 1_000_000_000.0
+
+
+def validate_email_address(email):
+    """Return a user-facing validation error, or None when the email is usable."""
+    if not isinstance(email, str):
+        return "Enter a valid email address."
+
+    email = email.strip()
+    if not email or len(email) > EMAIL_MAX_LENGTH:
+        return "Enter a valid email address."
+
+    if any(ch.isspace() or unicodedata.category(ch).startswith("C") for ch in email):
+        return "Enter a valid email address."
+
+    if email.count("@") != 1:
+        return "Enter a valid email address."
+
+    local_part, domain = email.rsplit("@", 1)
+    if not local_part or len(local_part) > 64 or not domain:
+        return "Enter a valid email address."
+
+    try:
+        ascii_domain = domain.encode("idna").decode("ascii")
+    except UnicodeError:
+        return "Enter a valid email address."
+
+    if len(ascii_domain) > 253 or "." not in ascii_domain:
+        return "Enter a valid email address."
+
+    label_pattern = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$")
+    if any(not label_pattern.fullmatch(label) for label in ascii_domain.split(".")):
+        return "Enter a valid email address."
+
+    # Keep the local-part validation deliberately conservative and compatible
+    # with the addresses accepted by the current account UI.
+    if not re.fullmatch(r"[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+", local_part):
+        return "Enter a valid email address."
+
+    return None
+
+
+def get_json_object():
+    """Return a JSON object or None. Arrays/scalars are not valid API bodies here."""
+    data = request.get_json(silent=True)
+    return data if isinstance(data, dict) else None
+
+
+def parse_finite_number(value, field_name, minimum=None, maximum=None):
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{field_name} must be a valid number.")
+
+    if not math.isfinite(number):
+        raise ValueError(f"{field_name} must be a finite number.")
+
+    if minimum is not None and number < minimum:
+        raise ValueError(f"{field_name} must be at least {minimum:g}.")
+
+    if maximum is not None and number > maximum:
+        raise ValueError(f"{field_name} must be no more than {maximum:g}.")
+
+    return number
+
+
+def validate_simulation_name(value, allow_empty=False):
+    if not isinstance(value, str):
+        return None, "Simulation name must be text."
+
+    clean = value.strip()
+
+    if not clean:
+        if allow_empty:
+            return "", None
+        return None, "Simulation name cannot be empty."
+
+    if len(clean) > SIMULATION_NAME_MAX_LENGTH:
+        return None, f"Simulation name must be {SIMULATION_NAME_MAX_LENGTH} characters or fewer."
+
+    if any(unicodedata.category(ch).startswith("C") for ch in clean):
+        return None, "Simulation name contains unsupported control characters."
+
+    # Names are later displayed in several dashboard components. Reject markup
+    # delimiters here as defense-in-depth; the frontend must still escape output.
+    if any(ch in clean for ch in "<>{}"):
+        return None, "Simulation name cannot contain <, >, {, or }."
+
+    return clean, None
 
 PASSWORD_MIN_LENGTH = 15
 PASSWORD_MAX_LENGTH = 64
@@ -427,52 +538,70 @@ def confirm_delete_token(token, expiration=3600):
         return None
     return email
 
+ALLOWED_DURATION_DELTAS = {
+    "1d": timedelta(days=1),
+    "1w": timedelta(weeks=1),
+    "1m": relativedelta(months=1),
+    "1mo": relativedelta(months=1),
+    "3m": relativedelta(months=3),
+    "3mo": relativedelta(months=3),
+    "6m": relativedelta(months=6),
+    "6mo": relativedelta(months=6),
+    "1y": relativedelta(years=1),
+    "1yr": relativedelta(years=1),
+    "2y": relativedelta(years=2),
+    "2yr": relativedelta(years=2),
+    "3y": relativedelta(years=3),
+    "3yr": relativedelta(years=3),
+    "5y": relativedelta(years=5),
+    "5yr": relativedelta(years=5),
+    "10y": relativedelta(years=10),
+    "10yr": relativedelta(years=10),
+}
+
+
 def parse_duration(duration: str):
-    """Return a relativedelta or timedelta from strings like '1mo','3mo','6mo','1yr','10d','2w'."""
-    s = duration.strip().lower()
-    if s.endswith("mo") or s.endswith("m"):   # support '1m' or '1mo'
-        return relativedelta(months=int(s.rstrip('mo').rstrip('m')))
-    if s.endswith("yr") or s.endswith("y"):
-        return relativedelta(years=int(s.rstrip('yr').rstrip('y')))
-    if s.endswith("w"):
-        return timedelta(weeks=int(s[:-1]))
-    if s.endswith("d"):
-        return timedelta(days=int(s[:-1]))
-    raise ValueError(f"Unsupported duration: {duration}")
+    """Parse only the bounded durations that NeuralTrend's UI supports."""
+    if not isinstance(duration, str):
+        raise ValueError("Unsupported duration.")
+
+    clean = duration.strip().lower()
+    delta = ALLOWED_DURATION_DELTAS.get(clean)
+
+    if delta is None:
+        raise ValueError("Unsupported duration. Choose a listed NeuralTrend horizon.")
+
+    return delta
+
 
 def duration_to_days(duration_str: str):
     delta = parse_duration(duration_str)
 
     if isinstance(delta, timedelta):
         return delta.days
-    elif isinstance(delta, relativedelta):
-        # Approximate 1 month = 30 days, 1 year = 365 days
-        return delta.years * 365 + delta.months * 30 + delta.days
-    else:
-        raise ValueError(f"Unsupported delta type: {type(delta)}")
+
+    # The dashboard uses calendar slicing; these values are bounded approximations
+    # used only to select a window from local market CSVs.
+    return delta.years * 365 + delta.months * 30 + delta.days
+
 
 def parse_position_fraction(value):
-    """
-    Converts values like '100_pct', '50_pct', '25_pct', '100%', or '50'
-    into decimal fractions: 1.0, 0.5, 0.25.
-    """
+    """Convert a finite percentage in (0, 100] to a decimal fraction."""
     if value is None:
         return 1.0
 
-    s = str(value).strip().lower()
-    s = s.replace("_pct", "")
-    s = s.replace("pct", "")
-    s = s.replace("%", "")
+    text = str(value).strip().lower()
+    text = text.replace("_pct", "").replace("pct", "").replace("%", "")
 
-    try:
-        pct = float(s)
-    except ValueError:
-        raise ValueError(f"Unsupported position size: {value}")
-
-    if pct <= 0 or pct > 100:
-        raise ValueError("Position size must be greater than 0 and less than or equal to 100.")
+    pct = parse_finite_number(
+        text,
+        "Position size",
+        minimum=1.0,
+        maximum=100.0,
+    )
 
     return pct / 100.0
+
 
 def get_csv_version():
     """
@@ -524,7 +653,11 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "ZIG-USD", "ZKJ-USD", "ZRX-USD"]
 
 TOP_FREE_TICKERS = {"BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD"}
-ADMIN_ONLY_TICKERS = {"MU", "TSM", "ASML", "JNJ", "AVGO", "AMZN", "BRKB"}
+ADMIN_ONLY_TICKERS = {"GOOGL", "MU", "TSM", "ASML", "JNJ", "AVGO", "AMZN", "BRKB"}
+ALL_SUPPORTED_TICKERS = frozenset(
+    str(ticker).strip().upper()
+    for ticker in [*SUPPORTED_TICKERS, *ADMIN_ONLY_TICKERS]
+)
 
 FREE_LIVE_SIMULATION_LIMIT = 5
 PAID_LIVE_SIMULATION_LIMIT = 100
@@ -583,6 +716,10 @@ def can_view_full_signals_for_ticker(user, ticker):
 def require_signal_access_or_403(ticker):
     ticker = normalize_ticker(ticker)
 
+    support_error = require_supported_ticker_or_400(ticker)
+    if support_error:
+        return support_error
+
     visibility_error = require_ticker_visible_or_404(ticker)
     if visibility_error:
         return visibility_error
@@ -599,11 +736,53 @@ def require_signal_access_or_403(ticker):
 def normalize_ticker(ticker):
     return str(ticker or "").strip().upper()
 
+
+def is_supported_ticker(ticker):
+    return normalize_ticker(ticker) in ALL_SUPPORTED_TICKERS
+
+
+def require_supported_ticker_or_400(ticker):
+    clean = normalize_ticker(ticker)
+    if clean not in ALL_SUPPORTED_TICKERS:
+        return jsonify({"error": "Unsupported asset ticker."}), 400
+    return None
+
+
+def get_epoch_csv_path(ticker):
+    """Return a canonical local CSV path only for an allowlisted ticker."""
+    clean = normalize_ticker(ticker)
+    if clean not in ALL_SUPPORTED_TICKERS:
+        raise ValueError("Unsupported asset ticker.")
+
+    base_symbol = clean.split("-", 1)[0]
+    if not re.fullmatch(r"[A-Z0-9.]{1,20}", base_symbol):
+        raise ValueError("Unsupported asset ticker.")
+
+    data_root = os.path.realpath(DATA_DIR)
+    csv_path = os.path.realpath(os.path.join(data_root, f"epoch_{base_symbol}.csv"))
+
+    try:
+        inside_data_dir = os.path.commonpath([data_root, csv_path]) == data_root
+    except ValueError:
+        inside_data_dir = False
+
+    if not inside_data_dir:
+        raise ValueError("Unsupported asset ticker.")
+
+    if not os.path.isfile(csv_path):
+        raise FileNotFoundError("Market data is unavailable for this asset.")
+
+    return csv_path
+
+
 def is_admin_only_ticker(ticker):
     return normalize_ticker(ticker) in ADMIN_ONLY_TICKERS
 
 def can_user_see_ticker(user, ticker):
     ticker = normalize_ticker(ticker)
+
+    if ticker not in ALL_SUPPORTED_TICKERS:
+        return False
 
     if is_admin_only_ticker(ticker) and not is_admin_user(user):
         return False
@@ -666,23 +845,22 @@ def get_all_signal_board_tickers():
     )
 
 def compute_signals_for_ticker(ticker, period_days=365*10, csv_version=None):
+    ticker = normalize_ticker(ticker)
+    if ticker not in ALL_SUPPORTED_TICKERS:
+        raise ValueError("Unsupported asset ticker.")
+
+    if not isinstance(period_days, int) or period_days < 1 or period_days > 3650:
+        raise ValueError("Unsupported signal period.")
+
     effective_csv_version = csv_version if csv_version is not None else get_csv_version()
     cache_key = (ticker, period_days, effective_csv_version)
     if cache_key in cache:
         return cache[cache_key]
 
-    base_symbol = ticker.split('-')[0]
-    csv_filename = f"epoch_{base_symbol}.csv"
-    csv_path = os.path.join(app.root_path, 'data', csv_filename)
-
     # -------------------------------
-    # Load full data first
+    # Load validated full data first
     # -------------------------------
-    df = pd.read_csv(csv_path, usecols=['Date', 'Close', 'epoch_signal'], parse_dates=['Date'])
-    df.set_index('Date', inplace=True)
-    df['Close'] = pd.to_numeric(df['Close'], errors='coerce')
-    df['epoch_signal'] = pd.to_numeric(df['epoch_signal'], errors='coerce')
-    df = df.dropna()
+    df = load_epoch_csv_for_ticker(ticker)
 
     if len(df) < 2:
         print(f"{ticker}: not enough data")
@@ -790,12 +968,8 @@ def load_epoch_csv_for_ticker(ticker: str) -> pd.DataFrame:
     ETH-USD -> data/epoch_ETH.csv
     AAPL -> data/epoch_AAPL.csv
     """
-    base_symbol = ticker.split("-")[0]
-    csv_filename = f"epoch_{base_symbol}.csv"
-    csv_path = os.path.join(app.root_path, "data", csv_filename)
-
-    if not os.path.exists(csv_path):
-        raise FileNotFoundError(f"No CSV found for {ticker}: {csv_filename}")
+    ticker = normalize_ticker(ticker)
+    csv_path = get_epoch_csv_path(ticker)
 
     df = pd.read_csv(
         csv_path,
@@ -807,11 +981,19 @@ def load_epoch_csv_for_ticker(ticker: str) -> pd.DataFrame:
     df["epoch_signal"] = pd.to_numeric(df["epoch_signal"], errors="coerce")
 
     df = df.dropna(subset=["Date", "Close", "epoch_signal"]).copy()
+
+    finite_close = df["Close"].map(math.isfinite)
+    finite_signal = df["epoch_signal"].map(math.isfinite)
+    valid_signal = df["epoch_signal"].isin([-1, 0, 1])
+
+    df = df[finite_close & finite_signal & valid_signal & (df["Close"] > 0)].copy()
+    df["epoch_signal"] = df["epoch_signal"].astype(int)
     df = df.sort_values("Date")
+    df = df.drop_duplicates(subset=["Date"], keep="last")
     df.set_index("Date", inplace=True)
 
     if len(df) < 1:
-        raise ValueError(f"CSV for {ticker} has no valid rows.")
+        raise ValueError("Market data has no valid rows for this asset.")
 
     return df
 
@@ -1324,6 +1506,9 @@ def build_live_sim_horizon_returns(sim):
 def can_use_live_simulation_ticker(user, ticker):
     ticker = normalize_ticker(ticker)
 
+    if ticker not in ALL_SUPPORTED_TICKERS:
+        return False
+
     # Admin-only assets are blocked for non-admin users,
     # including subscribed/Pro users.
     if not can_user_see_ticker(user, ticker):
@@ -1335,7 +1520,11 @@ def can_use_live_simulation_ticker(user, ticker):
     return ticker in TOP_FREE_TICKERS
 
 def require_live_simulation_ticker_access(ticker):
-    ticker = str(ticker or "").strip().upper()
+    ticker = normalize_ticker(ticker)
+
+    support_error = require_supported_ticker_or_400(ticker)
+    if support_error:
+        return support_error
 
     if can_use_live_simulation_ticker(current_user, ticker):
         return None
@@ -1394,16 +1583,20 @@ def buy_and_hold_vs_ai_strategy():
 @app.route("/signup", methods=["POST"])
 @limiter.limit("3 per minute")
 def signup():    
-    data = request.get_json(silent=True)
+    data = get_json_object()
 
-    if not data:
-        return jsonify({"error": "No JSON received"}), 400
+    if data is None:
+        return jsonify({"error": "A JSON object is required."}), 400
 
     email = normalize_email(data.get("email"))
     password = data.get("password")
 
     if not email or not password:
         return jsonify({"error": "Email and password required"}), 400
+
+    email_error = validate_email_address(email)
+    if email_error:
+        return jsonify({"error": email_error}), 400
 
     password_error = validate_password(password)
     if password_error:
@@ -1441,7 +1634,7 @@ def signup():
 @app.route("/resend-verification", methods=["POST"])
 @limiter.limit("3 per minute")
 def resend_verification():
-    data = request.get_json(silent=True) or {}
+    data = get_json_object() or {}
 
     email = normalize_email(data.get("email"))
 
@@ -1449,6 +1642,11 @@ def resend_verification():
         return jsonify({
             "error": "Email is required."
         }), 400
+
+    if validate_email_address(email):
+        return jsonify({
+            "message": "If this email belongs to an unverified NeuralTrend account, a new verification email has been sent. Please check your inbox and spam folder."
+        })
 
     user = User.query.filter_by(email=email).first()
 
@@ -1480,13 +1678,16 @@ def verify_email(token):
 @app.route("/login", methods=["POST"])
 @limiter.limit("5 per minute")
 def login():
-    data = request.get_json(silent=True) or {}
+    data = get_json_object() or {}
 
     email = normalize_email(data.get("email"))
     password = data.get("password")
 
     if not email or not isinstance(password, str) or not password:
         return jsonify({"error": "Email and password required"}), 400
+
+    if validate_email_address(email):
+        return jsonify({"error": "Invalid email or password"}), 401
 
     # Bound work before invoking bcrypt. Existing NeuralTrend passwords were
     # created with bcrypt, whose input must not exceed 72 encoded bytes.
@@ -1640,22 +1841,31 @@ def list_live_simulations():
 @app.route("/live-simulations", methods=["POST"])
 @login_required
 def create_live_simulation():
-    data = request.get_json(silent=True) or {}
+    data = get_json_object()
+    if data is None:
+        return jsonify({"error": "A JSON object is required."}), 400
 
-    ticker = str(data.get("ticker", "BTC-USD")).strip().upper()
-    name = str(data.get("name", "")).strip()
+    ticker = normalize_ticker(data.get("ticker", "BTC-USD"))
+    name, name_error = validate_simulation_name(
+        data.get("name", ""),
+        allow_empty=True,
+    )
+    if name_error:
+        return jsonify({"error": name_error}), 400
 
     access_error = require_live_simulation_ticker_access(ticker)
     if access_error:
         return access_error
 
     try:
-        initial_cash = float(data.get("initial_cash", 10000))
-    except (TypeError, ValueError):
-        return jsonify({"error": "Initial cash must be a valid number."}), 400
-
-    if initial_cash <= 0:
-        return jsonify({"error": "Initial cash must be greater than zero."}), 400
+        initial_cash = parse_finite_number(
+            data.get("initial_cash", 10000),
+            "Initial cash",
+            minimum=MIN_INITIAL_CASH,
+            maximum=MAX_INITIAL_CASH,
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
 
     try:
         position_fraction = parse_position_fraction(
@@ -1665,6 +1875,12 @@ def create_live_simulation():
         return jsonify({"error": str(e)}), 400
 
     position_size_pct = position_fraction * 100
+
+    # Serialize limit-sensitive operations for this account. This prevents two
+    # concurrent create requests from both observing the same available slot.
+    db.session.query(User.id).filter(
+        User.id == current_user.id
+    ).with_for_update().one()
 
     active_count = (
         LiveSimulation.query
@@ -1689,11 +1905,16 @@ def create_live_simulation():
 
     try:
         df = load_epoch_csv_for_ticker(ticker)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    except (ValueError, FileNotFoundError) as error:
+        return jsonify({"error": str(error)}), 400
+    except Exception:
+        app.logger.exception("Could not load market data for live simulation ticker=%s", ticker)
+        return jsonify({"error": "Market data is temporarily unavailable."}), 503
 
     latest_date = df.index.max().date()
     latest_price = float(df.loc[df.index.max(), "Close"])
+    if not math.isfinite(latest_price) or latest_price <= 0:
+        return jsonify({"error": "The latest market price is unavailable."}), 503
 
     transaction_cost_rate = get_transaction_cost_rate(ticker)
     asset_type = get_asset_type(ticker)
@@ -1740,8 +1961,7 @@ def create_live_simulation():
     except Exception as e:
         print("Live simulation initial update error:", str(e))
         return jsonify({
-            "error": "Simulation created, but initial update failed.",
-            "details": str(e)
+            "error": "Simulation created, but its initial market-data update failed."
         }), 500
 
     return jsonify({
@@ -1803,14 +2023,13 @@ def rename_live_simulation(simulation_id):
     if not sim:
         return jsonify({"error": "Simulation not found."}), 404
 
-    data = request.get_json(silent=True) or {}
-    new_name = str(data.get("name", "")).strip()
+    data = get_json_object()
+    if data is None:
+        return jsonify({"error": "A JSON object is required."}), 400
 
-    if not new_name:
-        return jsonify({"error": "Simulation name cannot be empty."}), 400
-
-    if len(new_name) > 120:
-        return jsonify({"error": "Simulation name must be 120 characters or fewer."}), 400
+    new_name, name_error = validate_simulation_name(data.get("name", ""))
+    if name_error:
+        return jsonify({"error": name_error}), 400
 
     sim.name = new_name
     db.session.commit()
@@ -1831,7 +2050,10 @@ def update_live_simulation_status(simulation_id):
     if not sim:
         return jsonify({"error": "Simulation not found."}), 404
 
-    data = request.get_json(silent=True) or {}
+    data = get_json_object()
+    if data is None:
+        return jsonify({"error": "A JSON object is required."}), 400
+
     new_status = str(data.get("status", "")).strip().lower()
 
     allowed_statuses = {"active", "paused", "archived"}
@@ -1850,6 +2072,31 @@ def update_live_simulation_status(simulation_id):
             "upgrade_required": True
         }), 403
 
+    # Archived simulations become open again when changed to active or paused.
+    # Re-check the plan limit so archive/reactivate cannot bypass the 5/100 cap.
+    if sim.status == "archived" and new_status in {"active", "paused"}:
+        # Serialize reactivation against creation/other reactivation requests.
+        db.session.query(User.id).filter(
+            User.id == current_user.id
+        ).with_for_update().one()
+
+        open_count = (
+            LiveSimulation.query
+            .filter(
+                LiveSimulation.user_id == current_user.id,
+                LiveSimulation.id != sim.id,
+                LiveSimulation.status.in_(["active", "paused"]),
+            )
+            .count()
+        )
+        user_limit = get_live_simulation_limit_for_user(current_user)
+        if user_limit is not None and open_count >= user_limit:
+            return jsonify({
+                "error": f"Simulation limit reached. Your current limit is {user_limit}.",
+                "upgrade_required": not is_paid_user(current_user),
+                "limit": user_limit,
+            }), 403
+
     sim.status = new_status
     db.session.commit()
 
@@ -1861,10 +2108,12 @@ def update_live_simulation_status(simulation_id):
 @app.route("/request-password-reset", methods=["POST"])
 @limiter.limit("3 per minute")
 def request_password_reset():
-    data = request.get_json(silent=True) or {}
+    data = get_json_object() or {}
     email = normalize_email(data.get("email"))
 
-    user = User.query.filter_by(email=email).first() if email else None
+    user = None
+    if email and not validate_email_address(email):
+        user = User.query.filter_by(email=email).first()
 
     if user:
         token = generate_reset_token(user)
@@ -2408,15 +2657,24 @@ def ads_txt():
 
 @app.route('/backtest', methods=['POST'])
 def backtest():
-    initial_cash = float(request.form['cash'])
-    ticker = request.form['ticker']
-    
+    ticker = normalize_ticker(request.form.get("ticker"))
+
     access_error = require_signal_access_or_403(ticker)
     if access_error:
         return access_error
-        
-    start_date = request.form['start']
-    duration = request.form["duration"]    # e.g. '1mo','3mo','6mo','1yr'
+
+    try:
+        initial_cash = parse_finite_number(
+            request.form.get("cash"),
+            "Initial cash",
+            minimum=MIN_INITIAL_CASH,
+            maximum=MAX_INITIAL_CASH,
+        )
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
+
+    start_date_text = (request.form.get("start") or "").strip()
+    duration = (request.form.get("duration") or "").strip()
     
     # Position size per signal: 100%, 50%, 25%, etc.
     try:
@@ -2426,20 +2684,30 @@ def backtest():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-    # Parse dates
-    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-    
-    # Compute intended end and cap at today
-    delta = parse_duration(duration)
-    end_date = min(start_date + delta, datetime.today().date())
-    
-    base_symbol = ticker.split("-")[0]
-    
-    # --- Load CSV of signals ---
-    csv_filename = f"epoch_{base_symbol}.csv"
-    csv_path = os.path.join(app.root_path, "data", csv_filename)
-    
-    signals_df = pd.read_csv(csv_path, parse_dates=["Date"])
+    # Parse and bound dates/horizon.
+    try:
+        start_date = datetime.strptime(start_date_text, "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({"error": "Start date must use YYYY-MM-DD."}), 400
+
+    today = datetime.utcnow().date()
+    if start_date > today:
+        return jsonify({"error": "Start date cannot be in the future."}), 400
+
+    try:
+        delta = parse_duration(duration)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
+
+    end_date = min(start_date + delta, today)
+
+    try:
+        signals_df = load_epoch_csv_for_ticker(ticker).reset_index()
+    except (ValueError, FileNotFoundError) as error:
+        return jsonify({"error": str(error)}), 400
+    except Exception:
+        app.logger.exception("Could not load backtest market data ticker=%s", ticker)
+        return jsonify({"error": "Market data is temporarily unavailable."}), 503
     
     # Filter for the desired period
     mask = (
@@ -2586,7 +2854,7 @@ def backtest():
 @app.route('/equity', methods=['POST'])
 def equity():
 
-    ticker = request.form['ticker']
+    ticker = normalize_ticker(request.form.get("ticker"))
 
     access_error = require_signal_access_or_403(ticker)
     if access_error:
@@ -2600,16 +2868,13 @@ def equity():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-    base_symbol = ticker.split('-')[0]
-    csv_filename = f"epoch_{base_symbol}.csv"
-    csv_path = os.path.join(app.root_path, 'data', csv_filename)
-
-    signals_df = pd.read_csv(csv_path, parse_dates=['Date'])
-    signals_df.set_index('Date', inplace=True)
-
-    signals_df['Close'] = pd.to_numeric(signals_df['Close'], errors='coerce')
-    signals_df['epoch_signal'] = pd.to_numeric(signals_df['epoch_signal'], errors='coerce')
-    signals_df = signals_df.dropna()
+    try:
+        signals_df = load_epoch_csv_for_ticker(ticker)
+    except (ValueError, FileNotFoundError) as error:
+        return jsonify({"error": str(error)}), 400
+    except Exception:
+        app.logger.exception("Could not load equity market data ticker=%s", ticker)
+        return jsonify({"error": "Market data is temporarily unavailable."}), 503
 
     if len(signals_df) < 2:
         return jsonify({"error": "Not enough data"}), 400
