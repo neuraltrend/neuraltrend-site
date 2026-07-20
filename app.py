@@ -960,6 +960,100 @@ def get_transaction_cost_rate(ticker: str) -> float:
     return 0.01 if is_crypto_ticker(ticker) else 0.001
 
 
+def get_return_periods_per_year(ticker: str) -> int:
+    """Return the annualization basis used for daily observations."""
+    return 365 if is_crypto_ticker(ticker) else 252
+
+
+def calculate_sharpe_from_equity_curve(
+    equity_values,
+    ticker: str,
+    risk_free_rate_annual: float = 0.01,
+) -> float:
+    """
+    Calculate annualized Sharpe from the displayed strategy equity curve.
+
+    This intentionally uses strategy-equity returns rather than underlying
+    asset-price returns, so the reported risk-adjusted result matches the
+    strategy shown to the user.
+    """
+    series = pd.Series(equity_values, dtype="float64")
+    series = series.replace([float("inf"), float("-inf")], pd.NA).dropna()
+
+    if len(series) < 3 or (series <= 0).any():
+        return 0.0
+
+    returns = (
+        series.pct_change()
+        .replace([float("inf"), float("-inf")], pd.NA)
+        .dropna()
+    )
+
+    if len(returns) < 2:
+        return 0.0
+
+    periods_per_year = get_return_periods_per_year(ticker)
+    risk_free_per_period = (1 + risk_free_rate_annual) ** (1 / periods_per_year) - 1
+    excess_returns = returns - risk_free_per_period
+    volatility = excess_returns.std(ddof=1)
+
+    if not math.isfinite(float(volatility)) or volatility <= 0:
+        return 0.0
+
+    sharpe = (excess_returns.mean() / volatility) * math.sqrt(periods_per_year)
+
+    if not math.isfinite(float(sharpe)):
+        return 0.0
+
+    return float(sharpe)
+
+
+def build_buy_and_hold_benchmark(
+    initial_cash: float,
+    prices,
+    ticker: str,
+    transaction_cost_rate: float,
+    *,
+    enforce_whole_stock_shares: bool,
+):
+    """
+    Build a buy-and-hold equity curve with entry cost and residual cash.
+
+    For real-cash stock simulations/backtests, whole shares are enforced and
+    any uninvested cash remains part of benchmark equity. For normalized
+    previews, fractional notional is allowed so a $1 base remains meaningful.
+    """
+    price_series = pd.Series(prices, dtype="float64")
+
+    if price_series.empty:
+        raise ValueError("Benchmark requires at least one price.")
+
+    if (
+        price_series.isna().any()
+        or (~price_series.map(math.isfinite)).any()
+        or (price_series <= 0).any()
+    ):
+        raise ValueError("Benchmark contains an invalid market price.")
+
+    if not math.isfinite(initial_cash) or initial_cash <= 0:
+        raise ValueError("Benchmark initial cash must be positive and finite.")
+
+    first_price = float(price_series.iloc[0])
+    gross_budget = initial_cash / (1 + transaction_cost_rate)
+    raw_quantity = gross_budget / first_price
+
+    if enforce_whole_stock_shares and not is_crypto_ticker(ticker):
+        quantity = float(math.floor(raw_quantity))
+    else:
+        quantity = float(raw_quantity)
+
+    entry_total = quantity * first_price * (1 + transaction_cost_rate)
+    residual_cash = max(0.0, float(initial_cash - entry_total))
+    equity_curve = (price_series * quantity + residual_cash).astype(float).tolist()
+
+    return quantity, residual_cash, equity_curve
+
+
 def load_epoch_csv_for_ticker(ticker: str) -> pd.DataFrame:
     """
     Loads the local epoch CSV for a ticker.
@@ -1331,7 +1425,10 @@ def update_live_simulation_from_csv(sim, user=None):
         # Daily equity point
         # --------------------
         strategy_value = sim.cash_balance + (sim.position_quantity * price)
-        benchmark_value = sim.benchmark_quantity * price
+        benchmark_value = (
+            sim.benchmark_cash_balance
+            + (sim.benchmark_quantity * price)
+        )
 
         existing_point = LiveSimulationEquity.query.filter_by(
             simulation_id=sim.id,
@@ -1920,19 +2017,19 @@ def create_live_simulation():
     asset_type = get_asset_type(ticker)
 
     # Buy & Hold benchmark:
-    # invest initial cash at the start date, including entry transaction cost.
-    benchmark_gross_budget = initial_cash / (1 + transaction_cost_rate)
-    
-    if is_crypto_ticker(ticker):
-        benchmark_quantity = benchmark_gross_budget / latest_price
-    else:
-        # Stocks: whole-share benchmark only.
-        benchmark_quantity = float(int(benchmark_gross_budget / latest_price))
-    
-        if benchmark_quantity < 1:
-            return jsonify({
-                "error": "Initial cash is too small to buy at least one whole share for the buy-and-hold benchmark."
-            }), 400
+    # include entry cost and preserve any uninvested stock cash.
+    benchmark_quantity, benchmark_cash_balance, _ = build_buy_and_hold_benchmark(
+        initial_cash=initial_cash,
+        prices=[latest_price],
+        ticker=ticker,
+        transaction_cost_rate=transaction_cost_rate,
+        enforce_whole_stock_shares=True,
+    )
+
+    if not is_crypto_ticker(ticker) and benchmark_quantity < 1:
+        return jsonify({
+            "error": "Initial cash is too small to buy at least one whole share for the buy-and-hold benchmark."
+        }), 400
 
     if not name:
         name = f"{ticker} {position_size_pct:.0f}% Live Simulation"
@@ -1948,6 +2045,7 @@ def create_live_simulation():
         position_size_pct=position_size_pct,
         transaction_cost_rate=transaction_cost_rate,
         benchmark_quantity=benchmark_quantity,
+        benchmark_cash_balance=benchmark_cash_balance,
         start_date=latest_date,
         last_processed_date=None,
         status="active"
@@ -2800,34 +2898,28 @@ def backtest():
     buy_prices = eq_df.loc[buy_dates, 'Equity']
     sell_prices = eq_df.loc[sell_dates, 'Equity']
 
-    # Buy & Hold benchmark with entry transaction cost included
+    # Buy & Hold benchmark with entry transaction cost and residual cash.
     prices = signals_df['Close'].to_numpy().flatten().astype(float)
-    
-    first_price = float(prices[0])
-    
-    benchmark_gross_budget = initial_cash / (1 + transaction_cost)
-    
-    if is_crypto_ticker(ticker):
-        benchmark_quantity = benchmark_gross_budget / first_price
-    else:
-        benchmark_quantity = float(int(benchmark_gross_budget / first_price))
-    
-    equity_curve = (prices * benchmark_quantity).tolist()
-    
+    benchmark_quantity, benchmark_cash_balance, equity_curve = (
+        build_buy_and_hold_benchmark(
+            initial_cash=initial_cash,
+            prices=prices,
+            ticker=ticker,
+            transaction_cost_rate=transaction_cost,
+            enforce_whole_stock_shares=True,
+        )
+    )
+
     final_value = float(equity_curve[-1])
     profit_factor = float(final_value / initial_cash)
 
-    returns = signals_df["Close"].pct_change().dropna()
-    risk_free_rate_annual = 0.01
-    risk_free_rate_daily = (1 + risk_free_rate_annual) ** (1/252) - 1
-    excess_returns = returns - risk_free_rate_daily
-    
-    std = excess_returns.std()
-    
-    if len(excess_returns) < 2 or std == 0 or pd.isna(std):
-        sharpe_ratio = 0.0
-    else:
-        sharpe_ratio = float((excess_returns.mean() / std) * (252 ** 0.5))
+    strategy_equity_values = (
+        eq_df['Equity'].to_numpy().flatten().astype(float).tolist()
+    )
+    sharpe_ratio = calculate_sharpe_from_equity_curve(
+        strategy_equity_values,
+        ticker,
+    )
     
     dates = signals_df.index.strftime('%Y-%m-%d').tolist()
 
@@ -2836,12 +2928,13 @@ def backtest():
         'position_size_pct': position_fraction * 100,
         'transaction_cost_rate': transaction_cost,
         'final_value': final_value,
-        'final_value_epoch': float(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()[-1]),
+        'final_value_epoch': float(strategy_equity_values[-1]),
         'profit_factor': profit_factor,
-        'profit_factor_epoch': float(eq_df['Equity'].to_numpy().flatten().astype(float).tolist()[-1])/initial_cash,
+        'profit_factor_epoch': float(strategy_equity_values[-1]) / initial_cash,
         'sharpe_ratio': sharpe_ratio,
+        'benchmark_cash_balance': benchmark_cash_balance,
         'equity_curve': equity_curve,
-        'epoch_equity_curve': eq_df['Equity'].to_numpy().flatten().astype(float).tolist(),
+        'epoch_equity_curve': strategy_equity_values,
         'dates': dates,
         'buy_dates': [d.strftime("%Y-%m-%d") for d in buy_dates],
         'buy_prices': buy_prices.tolist() if isinstance(buy_prices, pd.Series) else buy_prices,
@@ -2926,13 +3019,17 @@ def equity():
     # ---------------------------------------------------
     prices = signals_df['Close'].to_numpy().astype(float)
     
-    first_price = float(prices[0])
-    
-    # Treat the initial $1 as total cash used, including entry transaction cost.
-    benchmark_gross_budget = 1.0 / (1 + transaction_cost)
-    benchmark_quantity = benchmark_gross_budget / first_price
-    
-    buy_hold_curve = (prices * benchmark_quantity).tolist()
+    # Normalized previews intentionally allow fractional notional, including
+    # for stocks, so the $1 base remains comparable across asset prices.
+    benchmark_quantity, benchmark_cash_balance, buy_hold_curve = (
+        build_buy_and_hold_benchmark(
+            initial_cash=1.0,
+            prices=prices,
+            ticker=ticker,
+            transaction_cost_rate=transaction_cost,
+            enforce_whole_stock_shares=False,
+        )
+    )
 
     # ---------------------------------------------------
     # Buy/Sell markers
@@ -2956,8 +3053,10 @@ def equity():
     final_value_bh = buy_hold_curve[-1]
     final_value_epoch = epoch_equity_curve[-1]
 
-    returns = signals_df['Close'].pct_change().dropna()
-    sharpe_ratio = float((returns.mean() / returns.std()) * (252 ** 0.5)) if returns.std() != 0 else 0.0
+    sharpe_ratio = calculate_sharpe_from_equity_curve(
+        epoch_equity_curve,
+        ticker,
+    )
 
     dates = signals_df.index.strftime('%Y-%m-%d').tolist()
 
@@ -2969,6 +3068,7 @@ def equity():
         'profit_factor': final_value_bh,
         'profit_factor_epoch': final_value_epoch,
         'sharpe_ratio': sharpe_ratio,
+        'benchmark_cash_balance': benchmark_cash_balance,
         'equity_curve': buy_hold_curve,
         'epoch_equity_curve': epoch_equity_curve,
         'dates': dates,

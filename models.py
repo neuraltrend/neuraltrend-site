@@ -191,6 +191,7 @@ class LiveSimulation(db.Model):
     transaction_cost_rate = db.Column(db.Float, nullable=False, default=0.0)
 
     benchmark_quantity = db.Column(db.Float, nullable=False, default=0.0)
+    benchmark_cash_balance = db.Column(db.Float, nullable=False, default=0.0)
 
     start_date = db.Column(db.Date, nullable=False)
     last_processed_date = db.Column(db.Date, nullable=True)
@@ -231,6 +232,7 @@ class LiveSimulation(db.Model):
             "position_size_pct": self.position_size_pct,
             "transaction_cost_rate": self.transaction_cost_rate,
             "benchmark_quantity": self.benchmark_quantity,
+            "benchmark_cash_balance": self.benchmark_cash_balance,
             "start_date": self.start_date.isoformat() if self.start_date else None,
             "last_processed_date": self.last_processed_date.isoformat() if self.last_processed_date else None,
             "status": self.status,
