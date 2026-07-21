@@ -653,7 +653,7 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "ZIG-USD", "ZKJ-USD", "ZRX-USD"]
 
 TOP_FREE_TICKERS = {"BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD"}
-ADMIN_ONLY_TICKERS = {"GOOGL", "MU", "TSM", "ASML", "JNJ", "AVGO", "AMZN", "BRKB"}
+ADMIN_ONLY_TICKERS = {"GOOGL", "MU", "TSM", "ASML", "JNJ", "AVGO", "AMZN", "BRKB", "ABBV1", "ABBV2", "ABBV3"}
 ALL_SUPPORTED_TICKERS = frozenset(
     str(ticker).strip().upper()
     for ticker in [*SUPPORTED_TICKERS, *ADMIN_ONLY_TICKERS]
