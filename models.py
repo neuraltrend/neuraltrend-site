@@ -268,6 +268,14 @@ class LiveSimulationTrade(db.Model):
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
+    __table_args__ = (
+        db.UniqueConstraint(
+            "simulation_id",
+            "trade_date",
+            name="uq_live_simulation_trade_date"
+        ),
+    )
+
     def to_dict(self):
         return {
             "id": self.id,

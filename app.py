@@ -1297,167 +1297,423 @@ def live_sim_can_update_for_user(user, sim):
 
     return can_access_live_sim_ticker_for_user(user, sim.ticker)
 
-def update_live_simulation_from_csv(sim, user=None):
+def validate_live_simulation_accounting_state(sim):
     """
-    Reads fresh CSV rows and updates one simulation from its last processed date.
+    Reject non-finite or materially negative persisted accounting state.
 
-    Logic:
-    - If never processed, process rows from start_date onward.
-    - If already processed, process only rows after last_processed_date.
-    - BUY: invest selected % of available cash.
-    - SELL: sell selected % of current position.
-    - HOLD: do nothing.
+    Tiny floating-point residues are normalized to zero. Larger negative values
+    indicate corrupted state and must not be carried into another refresh.
     """
-    if sim.status != "active":
-        return sim
+    numeric_fields = {
+        "initial_cash": sim.initial_cash,
+        "cash_balance": sim.cash_balance,
+        "position_quantity": sim.position_quantity,
+        "position_size_pct": sim.position_size_pct,
+        "transaction_cost_rate": sim.transaction_cost_rate,
+        "benchmark_quantity": sim.benchmark_quantity,
+        "benchmark_cash_balance": sim.benchmark_cash_balance,
+    }
 
-    owner = user or getattr(sim, "user", None)
+    normalized = {}
 
-    if owner is None and getattr(sim, "user_id", None):
-        owner = User.query.get(sim.user_id)
-
-    if owner is not None and not can_access_live_sim_ticker_for_user(owner, sim.ticker):
-        return sim
-
-    df = load_epoch_csv_for_ticker(sim.ticker)
-
-    if sim.last_processed_date:
-        new_rows = df[df.index.date > sim.last_processed_date]
-    else:
-        new_rows = df[df.index.date >= sim.start_date]
-
-    if new_rows.empty:
-        return sim
-
-    position_fraction = sim.position_size_pct / 100.0
-    transaction_cost_rate = sim.transaction_cost_rate
-
-    for date_index, row in new_rows.iterrows():
-        equity_date = date_index.date()
-        price = float(row["Close"])
-        signal = int(row["epoch_signal"])
-
-        trade_executed = False
-
-        # --------------------
-        # BUY
-        # --------------------
-        if signal == 1 and sim.cash_balance > 0:
-            cash_allocation = sim.cash_balance * position_fraction
-
-            # Treat cash_allocation as total cash used, including transaction cost.
-            gross_buy_budget = cash_allocation / (1 + transaction_cost_rate)
-            raw_quantity = gross_buy_budget / price
-
-            quantity = normalize_live_quantity_for_buy(
-                ticker=sim.ticker,
-                raw_quantity=raw_quantity,
-                price=price,
-                cash_allocation=cash_allocation,
-                transaction_cost_rate=transaction_cost_rate
+    for field_name, raw_value in numeric_fields.items():
+        try:
+            value = float(raw_value)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"Live simulation {sim.id} has invalid {field_name}."
             )
 
-            if quantity > 0:
-                gross_amount = quantity * price
-                transaction_cost = gross_amount * transaction_cost_rate
-                total_cash_used = gross_amount + transaction_cost
-
-                if total_cash_used <= sim.cash_balance + 1e-9:
-                    sim.position_quantity += quantity
-                    sim.cash_balance -= total_cash_used
-
-                    db.session.add(LiveSimulationTrade(
-                        simulation_id=sim.id,
-                        trade_date=equity_date,
-                        ticker=sim.ticker,
-                        signal=1,
-                        price=price,
-                        quantity=quantity,
-                        gross_amount=gross_amount,
-                        transaction_cost=transaction_cost,
-                        cash_after=sim.cash_balance,
-                        position_after=sim.position_quantity
-                    ))
-
-                    trade_executed = True
-
-        # --------------------
-        # SELL
-        # --------------------
-        elif signal == -1 and sim.position_quantity > 0:
-            raw_quantity = sim.position_quantity * position_fraction
-
-            quantity = normalize_live_quantity_for_sell(
-                ticker=sim.ticker,
-                raw_quantity=raw_quantity,
-                current_position=sim.position_quantity
+        if not math.isfinite(value):
+            raise ValueError(
+                f"Live simulation {sim.id} has non-finite {field_name}."
             )
 
-            if quantity > 0:
-                gross_amount = quantity * price
-                transaction_cost = gross_amount * transaction_cost_rate
-                net_cash_received = gross_amount - transaction_cost
+        normalized[field_name] = value
 
-                sim.position_quantity -= quantity
-
-                if sim.position_quantity < 1e-12:
-                    sim.position_quantity = 0.0
-
-                sim.cash_balance += net_cash_received
-
-                db.session.add(LiveSimulationTrade(
-                    simulation_id=sim.id,
-                    trade_date=equity_date,
-                    ticker=sim.ticker,
-                    signal=-1,
-                    price=price,
-                    quantity=quantity,
-                    gross_amount=gross_amount,
-                    transaction_cost=transaction_cost,
-                    cash_after=sim.cash_balance,
-                    position_after=sim.position_quantity
-                ))
-
-                trade_executed = True
-
-        # --------------------
-        # Daily equity point
-        # --------------------
-        strategy_value = sim.cash_balance + (sim.position_quantity * price)
-        benchmark_value = (
-            sim.benchmark_cash_balance
-            + (sim.benchmark_quantity * price)
+    if normalized["initial_cash"] <= 0:
+        raise ValueError(
+            f"Live simulation {sim.id} has invalid initial cash."
         )
 
-        existing_point = LiveSimulationEquity.query.filter_by(
-            simulation_id=sim.id,
-            equity_date=equity_date
-        ).first()
+    if normalized["cash_balance"] < -1e-7:
+        raise ValueError(
+            f"Live simulation {sim.id} has a negative cash balance."
+        )
 
-        if existing_point:
-            existing_point.signal = signal
-            existing_point.close_price = price
-            existing_point.cash_balance = sim.cash_balance
-            existing_point.position_quantity = sim.position_quantity
-            existing_point.strategy_value = strategy_value
-            existing_point.benchmark_value = benchmark_value
+    if normalized["position_quantity"] < -1e-12:
+        raise ValueError(
+            f"Live simulation {sim.id} has a negative position."
+        )
+
+    if not 0 < normalized["position_size_pct"] <= 100:
+        raise ValueError(
+            f"Live simulation {sim.id} has invalid position size."
+        )
+
+    if not 0 <= normalized["transaction_cost_rate"] < 1:
+        raise ValueError(
+            f"Live simulation {sim.id} has invalid transaction cost."
+        )
+
+    if normalized["benchmark_quantity"] < -1e-12:
+        raise ValueError(
+            f"Live simulation {sim.id} has a negative benchmark quantity."
+        )
+
+    if normalized["benchmark_cash_balance"] < -1e-7:
+        raise ValueError(
+            f"Live simulation {sim.id} has a negative benchmark cash balance."
+        )
+
+    if abs(normalized["cash_balance"]) < 1e-10:
+        sim.cash_balance = 0.0
+
+    if abs(normalized["position_quantity"]) < 1e-12:
+        sim.position_quantity = 0.0
+
+    if abs(normalized["benchmark_quantity"]) < 1e-12:
+        sim.benchmark_quantity = 0.0
+
+    if abs(normalized["benchmark_cash_balance"]) < 1e-10:
+        sim.benchmark_cash_balance = 0.0
+
+
+def update_live_simulation_from_csv(sim, user=None):
+    """
+    Atomically process fresh CSV rows for one live simulation.
+
+    Reliability guarantees:
+    - SELECT ... FOR UPDATE serializes concurrent refreshes for this simulation.
+    - last_processed_date is re-read only after the row lock is acquired.
+    - one transaction contains every balance, trade, equity, and checkpoint update.
+    - any exception rolls the entire refresh back.
+    - existing legacy equity/trade rows are treated idempotently rather than
+      generating a second trade for the same simulation date.
+    """
+    simulation_id = getattr(sim, "id", None)
+
+    try:
+        simulation_id = int(simulation_id)
+    except (TypeError, ValueError):
+        raise ValueError("A persisted live simulation is required.")
+
+    try:
+        # populate_existing forces values already present in the identity map to
+        # be refreshed from PostgreSQL after the row lock is acquired.
+        locked_sim = (
+            db.session.query(LiveSimulation)
+            .filter(LiveSimulation.id == simulation_id)
+            .populate_existing()
+            .with_for_update()
+            .one_or_none()
+        )
+
+        if locked_sim is None:
+            db.session.rollback()
+            return None
+
+        if locked_sim.status != "active":
+            db.session.commit()
+            return locked_sim
+
+        owner = user
+
+        if (
+            owner is None
+            or getattr(owner, "id", None) != locked_sim.user_id
+        ):
+            owner = db.session.get(User, locked_sim.user_id)
+
+        if (
+            owner is not None
+            and not can_access_live_sim_ticker_for_user(
+                owner,
+                locked_sim.ticker,
+            )
+        ):
+            db.session.commit()
+            return locked_sim
+
+        validate_live_simulation_accounting_state(locked_sim)
+
+        df = load_epoch_csv_for_ticker(locked_sim.ticker)
+
+        if locked_sim.last_processed_date:
+            new_rows = df[df.index.date > locked_sim.last_processed_date]
         else:
-            db.session.add(LiveSimulationEquity(
-                simulation_id=sim.id,
+            new_rows = df[df.index.date >= locked_sim.start_date]
+
+        if new_rows.empty:
+            # Release the row lock immediately instead of holding it until the
+            # request teardown.
+            db.session.commit()
+            return locked_sim
+
+        row_dates = [date_index.date() for date_index in new_rows.index]
+
+        existing_points = (
+            LiveSimulationEquity.query
+            .filter(
+                LiveSimulationEquity.simulation_id == locked_sim.id,
+                LiveSimulationEquity.equity_date.in_(row_dates),
+            )
+            .all()
+        )
+
+        points_by_date = {
+            point.equity_date: point
+            for point in existing_points
+        }
+
+        existing_trades = (
+            LiveSimulationTrade.query
+            .filter(
+                LiveSimulationTrade.simulation_id == locked_sim.id,
+                LiveSimulationTrade.trade_date.in_(row_dates),
+            )
+            .order_by(
+                LiveSimulationTrade.trade_date.asc(),
+                LiveSimulationTrade.id.asc(),
+            )
+            .all()
+        )
+
+        trades_by_date = {}
+
+        for trade in existing_trades:
+            if trade.trade_date in trades_by_date:
+                raise RuntimeError(
+                    "Duplicate legacy trades exist for live simulation "
+                    f"{locked_sim.id} on {trade.trade_date}. "
+                    "Run the Step 10 migration preflight before deployment."
+                )
+
+            trades_by_date[trade.trade_date] = trade
+
+        position_fraction = float(locked_sim.position_size_pct) / 100.0
+        transaction_cost_rate = float(
+            locked_sim.transaction_cost_rate
+        )
+
+        for date_index, row in new_rows.iterrows():
+            equity_date = date_index.date()
+            price = float(row["Close"])
+            signal = int(row["epoch_signal"])
+
+            if (
+                not math.isfinite(price)
+                or price <= 0
+                or signal not in {-1, 0, 1}
+            ):
+                raise ValueError(
+                    f"Invalid market row for {locked_sim.ticker} "
+                    f"on {equity_date}."
+                )
+
+            existing_point = points_by_date.get(equity_date)
+
+            if existing_point is not None:
+                # A persisted daily point is the canonical post-day state. This
+                # recovers safely from a legacy stale checkpoint without
+                # executing the day's trade a second time.
+                locked_sim.cash_balance = float(
+                    existing_point.cash_balance
+                )
+                locked_sim.position_quantity = float(
+                    existing_point.position_quantity
+                )
+                locked_sim.last_processed_date = equity_date
+                validate_live_simulation_accounting_state(locked_sim)
+                continue
+
+            existing_trade = trades_by_date.get(equity_date)
+
+            if existing_trade is not None:
+                # A legacy trade without its equity point is recoverable because
+                # each trade records the post-trade cash and position state.
+                locked_sim.cash_balance = float(
+                    existing_trade.cash_after
+                )
+                locked_sim.position_quantity = float(
+                    existing_trade.position_after
+                )
+                validate_live_simulation_accounting_state(locked_sim)
+
+            else:
+                # --------------------
+                # BUY
+                # --------------------
+                if signal == 1 and locked_sim.cash_balance > 0:
+                    cash_allocation = (
+                        locked_sim.cash_balance
+                        * position_fraction
+                    )
+
+                    gross_buy_budget = (
+                        cash_allocation
+                        / (1 + transaction_cost_rate)
+                    )
+                    raw_quantity = gross_buy_budget / price
+
+                    quantity = normalize_live_quantity_for_buy(
+                        ticker=locked_sim.ticker,
+                        raw_quantity=raw_quantity,
+                        price=price,
+                        cash_allocation=cash_allocation,
+                        transaction_cost_rate=transaction_cost_rate,
+                    )
+
+                    if quantity > 0:
+                        gross_amount = quantity * price
+                        transaction_cost = (
+                            gross_amount
+                            * transaction_cost_rate
+                        )
+                        total_cash_used = (
+                            gross_amount
+                            + transaction_cost
+                        )
+
+                        if (
+                            total_cash_used
+                            <= locked_sim.cash_balance + 1e-9
+                        ):
+                            locked_sim.position_quantity += quantity
+                            locked_sim.cash_balance -= total_cash_used
+
+                            trade = LiveSimulationTrade(
+                                simulation_id=locked_sim.id,
+                                trade_date=equity_date,
+                                ticker=locked_sim.ticker,
+                                signal=1,
+                                price=price,
+                                quantity=quantity,
+                                gross_amount=gross_amount,
+                                transaction_cost=transaction_cost,
+                                cash_after=locked_sim.cash_balance,
+                                position_after=(
+                                    locked_sim.position_quantity
+                                ),
+                            )
+                            db.session.add(trade)
+                            trades_by_date[equity_date] = trade
+
+                # --------------------
+                # SELL
+                # --------------------
+                elif (
+                    signal == -1
+                    and locked_sim.position_quantity > 0
+                ):
+                    raw_quantity = (
+                        locked_sim.position_quantity
+                        * position_fraction
+                    )
+
+                    quantity = normalize_live_quantity_for_sell(
+                        ticker=locked_sim.ticker,
+                        raw_quantity=raw_quantity,
+                        current_position=(
+                            locked_sim.position_quantity
+                        ),
+                    )
+
+                    if quantity > 0:
+                        gross_amount = quantity * price
+                        transaction_cost = (
+                            gross_amount
+                            * transaction_cost_rate
+                        )
+                        net_cash_received = (
+                            gross_amount
+                            - transaction_cost
+                        )
+
+                        locked_sim.position_quantity -= quantity
+
+                        if (
+                            locked_sim.position_quantity
+                            < 1e-12
+                        ):
+                            locked_sim.position_quantity = 0.0
+
+                        locked_sim.cash_balance += net_cash_received
+
+                        trade = LiveSimulationTrade(
+                            simulation_id=locked_sim.id,
+                            trade_date=equity_date,
+                            ticker=locked_sim.ticker,
+                            signal=-1,
+                            price=price,
+                            quantity=quantity,
+                            gross_amount=gross_amount,
+                            transaction_cost=transaction_cost,
+                            cash_after=locked_sim.cash_balance,
+                            position_after=(
+                                locked_sim.position_quantity
+                            ),
+                        )
+                        db.session.add(trade)
+                        trades_by_date[equity_date] = trade
+
+                validate_live_simulation_accounting_state(locked_sim)
+
+            strategy_value = (
+                locked_sim.cash_balance
+                + (locked_sim.position_quantity * price)
+            )
+            benchmark_value = (
+                locked_sim.benchmark_cash_balance
+                + (locked_sim.benchmark_quantity * price)
+            )
+
+            if (
+                not math.isfinite(strategy_value)
+                or not math.isfinite(benchmark_value)
+                or strategy_value < -1e-7
+                or benchmark_value < -1e-7
+            ):
+                raise ValueError(
+                    "Live simulation produced invalid equity values "
+                    f"for {locked_sim.id} on {equity_date}."
+                )
+
+            point = LiveSimulationEquity(
+                simulation_id=locked_sim.id,
                 equity_date=equity_date,
-                ticker=sim.ticker,
+                ticker=locked_sim.ticker,
                 signal=signal,
                 close_price=price,
-                cash_balance=sim.cash_balance,
-                position_quantity=sim.position_quantity,
+                cash_balance=locked_sim.cash_balance,
+                position_quantity=locked_sim.position_quantity,
                 strategy_value=strategy_value,
-                benchmark_value=benchmark_value
-            ))
+                benchmark_value=benchmark_value,
+            )
+            db.session.add(point)
+            points_by_date[equity_date] = point
+            locked_sim.last_processed_date = equity_date
 
-        sim.last_processed_date = equity_date
+        # Flush first so uniqueness or database validation failures are caught
+        # inside this helper and trigger a complete rollback.
+        db.session.flush()
+        db.session.commit()
+        return locked_sim
 
-    db.session.commit()
-    return sim
+    except IntegrityError:
+        db.session.rollback()
+        app.logger.exception(
+            "Live simulation uniqueness conflict: simulation_id=%s",
+            simulation_id,
+        )
+        raise
+    except Exception:
+        db.session.rollback()
+        app.logger.exception(
+            "Live simulation refresh rolled back: simulation_id=%s",
+            simulation_id,
+        )
+        raise
 
 LIVE_SIM_HORIZON_DAYS = {
     "1d": 1,
@@ -1905,8 +2161,11 @@ def list_live_simulations():
 
         try:
             update_live_simulation_from_csv(sim, current_user)
-        except Exception as e:
-            print(f"Live simulation update error for sim {sim.id}:", str(e))
+        except Exception:
+            app.logger.exception(
+                "Live simulation list refresh failed: simulation_id=%s",
+                sim.id,
+            )
 
     sims = query.order_by(LiveSimulation.created_at.desc()).all()
 
@@ -2051,14 +2310,31 @@ def create_live_simulation():
     )
 
     db.session.add(sim)
-    db.session.commit()
 
     try:
-        update_live_simulation_from_csv(sim)
-    except Exception as e:
-        print("Live simulation initial update error:", str(e))
+        # Flush assigns the simulation ID without committing. The initial
+        # market-data processing then commits the simulation, balances, trade,
+        # equity point, and checkpoint as one atomic transaction.
+        db.session.flush()
+        sim = update_live_simulation_from_csv(sim, current_user)
+
+        if sim is None:
+            raise RuntimeError(
+                "The new live simulation disappeared before initialization."
+            )
+
+    except Exception:
+        db.session.rollback()
+        app.logger.exception(
+            "Live simulation creation rolled back for user_id=%s ticker=%s",
+            current_user.id,
+            ticker,
+        )
         return jsonify({
-            "error": "Simulation created, but its initial market-data update failed."
+            "error": (
+                "Simulation could not be created because its initial "
+                "market-data processing failed."
+            )
         }), 500
 
     return jsonify({
@@ -2083,9 +2359,29 @@ def get_live_simulation(simulation_id):
 
     if live_sim_can_update_for_user(current_user, sim):
         try:
-            update_live_simulation_from_csv(sim, current_user)
-        except Exception as e:
-            print(f"Live simulation update error for sim {sim.id}:", str(e))
+            updated_sim = update_live_simulation_from_csv(
+                sim,
+                current_user,
+            )
+
+            if updated_sim is None:
+                return jsonify({
+                    "error": "Simulation not found."
+                }), 404
+
+            sim = updated_sim
+
+        except Exception:
+            app.logger.exception(
+                "Live simulation detail refresh failed: simulation_id=%s",
+                sim.id,
+            )
+            return jsonify({
+                "error": (
+                    "The simulation could not be refreshed safely. "
+                    "No partial update was saved."
+                )
+            }), 503
 
     return jsonify({
         "simulation": live_simulation_detail(sim)
