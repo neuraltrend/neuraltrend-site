@@ -1917,6 +1917,22 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
     
     </section>
 
+    <!-- Backtest result typography overrides -->
+    <style>
+        #results .nt-backtest-results-subtitle {
+            margin: 6px 0 0 !important;
+            max-width: 980px;
+            color: var(--nt-neutral) !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            line-height: 1.55 !important;
+        }
+
+        #results .nt-backtest-results-header {
+            align-items: flex-start;
+        }
+    </style>
+
     <!-- ✅ SCRIPT -->
     <script>
     
@@ -2030,7 +2046,6 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         strategy_growth_factor,
         return_spread,
         sharpe_ratio,
-        position_size_pct = 100,
         transaction_cost_rate = 0,
         valuation_policy = "mark_to_market",
         ending_position_open = false,
@@ -2057,9 +2072,6 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                         </p>
                     </div>
         
-                    <span class="nt-result-pill">
-                        Position Size: <strong>${formatBacktestNumber(position_size_pct, 0)}%</strong>
-                    </span>
                 </div>
         
                 <div class="nt-backtest-results-grid">
