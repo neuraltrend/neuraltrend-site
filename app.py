@@ -887,53 +887,52 @@ def compute_signals_for_ticker(ticker, period_days=365*10, csv_version=None):
         return None
 
     # -------------------------------
-    # Buy & Hold return
+    # Buy & Hold terminal value
     # -------------------------------
-    bh_return = (df['Close'].iloc[-1] / df['Close'].iloc[0]) * (1 - transaction_cost) ** 2
+    # Entry cost is charged because the benchmark actually buys at the start.
+    # No artificial exit cost is charged at the horizon end: any open holding is
+    # marked to market, matching the backtest, equity preview, and live simulation.
+    buy_hold_value = (
+        (df['Close'].iloc[-1] / df['Close'].iloc[0])
+        / (1 + transaction_cost)
+    )
 
     # -------------------------------
-    # Strategy return (cash-based)
+    # Strategy terminal value (cash-based)
     # -------------------------------
     cash = 1.0
     shares = 0.0
 
     for i in range(len(df)):
-        sig = df['epoch_signal'].iloc[i]
-        price = df['Close'].iloc[i]
+        sig = int(df['epoch_signal'].iloc[i])
+        price = float(df['Close'].iloc[i])
 
         if sig == 1 and shares == 0:
-            shares = cash / price
-            shares *= (1 - transaction_cost)
-            cash = 0
+            gross_buy_budget = cash / (1 + transaction_cost)
+            shares = gross_buy_budget / price
+            cash = 0.0
 
         elif sig == -1 and shares > 0:
-            cash = shares * price
-            cash *= (1 - transaction_cost)
-            shares = 0
+            cash = (shares * price) * (1 - transaction_cost)
+            shares = 0.0
 
-    # Final liquidation
-    if shares > 0:
-        cash = shares * df['Close'].iloc[-1]
-        cash *= (1 - transaction_cost)
+    # End-of-horizon policy: mark any open position to market. Do not invent a
+    # SELL trade or charge an exit fee unless an actual SELL signal occurred.
+    strategy_value = cash + (shares * float(df['Close'].iloc[-1]))
 
-    strategy_return = cash
-
-    # -------------------------------
-    # Outperformance (relative multiple)
-    # -------------------------------
-    if bh_return and bh_return != 0:
-        outperformance = strategy_return / bh_return
-    else:
-        outperformance = None
+    buy_hold_period_return = buy_hold_value - 1
+    strategy_period_return = strategy_value - 1
+    return_spread = strategy_period_return - buy_hold_period_return
 
     output = {
         'today': int(df['epoch_signal'].iloc[-1]),
         'yesterday': int(df['epoch_signal'].iloc[-2]) if len(df) >= 2 else int(df['epoch_signal'].iloc[-1]),
         'last_week': int(df['epoch_signal'].iloc[-8]) if len(df) >= 8 else int(df['epoch_signal'].iloc[-1]),
         'last_month': int(df['epoch_signal'].iloc[-31]) if len(df) >= 31 else int(df['epoch_signal'].iloc[-1]),
-        'buy_hold_annual_return': bh_return - 1,
-        'strategy_annual_return': strategy_return - 1,
-        'outperformance': outperformance
+        'buy_hold_period_return': buy_hold_period_return,
+        'strategy_period_return': strategy_period_return,
+        # Decimal percentage-point spread: 0.12 means AI returned 12 points more.
+        'return_spread': return_spread,
     }
 
     cache[cache_key] = output
@@ -1201,10 +1200,8 @@ def live_simulation_summary(sim):
         if sim.initial_cash else 0.0
     )
 
-    outperformance = (
-        strategy_value / benchmark_value
-        if benchmark_value and benchmark_value != 0 else None
-    )
+    value_difference = strategy_value - benchmark_value
+    return_spread = strategy_return - benchmark_return
 
     trade_count = LiveSimulationTrade.query.filter_by(
         simulation_id=sim.id
@@ -1216,7 +1213,9 @@ def live_simulation_summary(sim):
         "latest_benchmark_value": benchmark_value,
         "strategy_return": strategy_return,
         "benchmark_return": benchmark_return,
-        "outperformance": outperformance,
+        "value_difference": value_difference,
+        # Decimal percentage-point spread between strategy and benchmark returns.
+        "return_spread": return_spread,
         "trade_count": trade_count,
         "latest_equity_date": latest.equity_date.isoformat() if latest else None,
         "latest_signal": int(latest.signal) if latest else None,
@@ -1574,11 +1573,11 @@ def build_live_sim_horizon_returns(sim):
         strategy_change = latest_strategy_value - base_strategy_value
         benchmark_change = latest_benchmark_value - base_benchmark_value
 
-        alpha_return = None
+        return_spread = None
         if strategy_return is not None and benchmark_return is not None:
-            alpha_return = strategy_return - benchmark_return
+            return_spread = strategy_return - benchmark_return
 
-        alpha_change = strategy_change - benchmark_change
+        value_difference = strategy_change - benchmark_change
 
         output[horizon_key] = {
             "base_date": base_date,
@@ -1586,11 +1585,11 @@ def build_live_sim_horizon_returns(sim):
 
             "strategy_return": strategy_return,
             "benchmark_return": benchmark_return,
-            "alpha_return": alpha_return,
+            "return_spread": return_spread,
 
             "strategy_change": strategy_change,
             "benchmark_change": benchmark_change,
-            "alpha_change": alpha_change,
+            "value_difference": value_difference,
 
             "strategy_value": latest_strategy_value,
             "benchmark_value": latest_benchmark_value,
@@ -2832,6 +2831,8 @@ def backtest():
     cash = initial_cash
     position = 0.0
     equity_curve = []
+    executed_buy_dates = []
+    executed_sell_dates = []
     
     for date, row in signals_df.iterrows():
         price = float(row['Close'])
@@ -2862,6 +2863,7 @@ def backtest():
                 if total_cash_used <= cash + 1e-9:
                     position += shares_to_buy
                     cash -= total_cash_used
+                    executed_buy_dates.append(date)
     
         # SELL signal:
         # Sell selected % of current position, subtracting transaction cost.
@@ -2885,18 +2887,13 @@ def backtest():
                     position = 0.0
     
                 cash += net_cash_received
+                executed_sell_dates.append(date)
     
         # Mark-to-market equity after today's action
         equity = cash + position * price
         equity_curve.append((date, equity))
         
     eq_df = pd.DataFrame(equity_curve, columns=['Date', 'Equity']).set_index('Date')
-
-     # --- Extract buy/sell points ---
-    buy_dates = signals_df.index[signals_df['epoch_signal'] == 1]
-    sell_dates = signals_df.index[signals_df['epoch_signal'] == -1]
-    buy_prices = eq_df.loc[buy_dates, 'Equity']
-    sell_prices = eq_df.loc[sell_dates, 'Equity']
 
     # Buy & Hold benchmark with entry transaction cost and residual cash.
     prices = signals_df['Close'].to_numpy().flatten().astype(float)
@@ -2911,7 +2908,7 @@ def backtest():
     )
 
     final_value = float(equity_curve[-1])
-    profit_factor = float(final_value / initial_cash)
+    buy_hold_growth_factor = float(final_value / initial_cash)
 
     strategy_equity_values = (
         eq_df['Equity'].to_numpy().flatten().astype(float).tolist()
@@ -2921,25 +2918,37 @@ def backtest():
         ticker,
     )
     
+    strategy_final_value = float(strategy_equity_values[-1])
+    strategy_growth_factor = strategy_final_value / initial_cash
+    buy_hold_period_return = buy_hold_growth_factor - 1
+    strategy_period_return = strategy_growth_factor - 1
+
     dates = signals_df.index.strftime('%Y-%m-%d').tolist()
 
     results = {
         'ticker': ticker,
         'position_size_pct': position_fraction * 100,
         'transaction_cost_rate': transaction_cost,
+        'valuation_policy': 'mark_to_market',
         'final_value': final_value,
-        'final_value_epoch': float(strategy_equity_values[-1]),
-        'profit_factor': profit_factor,
-        'profit_factor_epoch': float(strategy_equity_values[-1]) / initial_cash,
+        'final_value_epoch': strategy_final_value,
+        'buy_hold_growth_factor': buy_hold_growth_factor,
+        'strategy_growth_factor': strategy_growth_factor,
+        'buy_hold_period_return': buy_hold_period_return,
+        'strategy_period_return': strategy_period_return,
+        'return_spread': strategy_period_return - buy_hold_period_return,
         'sharpe_ratio': sharpe_ratio,
         'benchmark_cash_balance': benchmark_cash_balance,
+        'ending_cash_balance': float(cash),
+        'ending_position_quantity': float(position),
+        'ending_position_open': bool(position > 0),
         'equity_curve': equity_curve,
         'epoch_equity_curve': strategy_equity_values,
         'dates': dates,
-        'buy_dates': [d.strftime("%Y-%m-%d") for d in buy_dates],
-        'buy_prices': buy_prices.tolist() if isinstance(buy_prices, pd.Series) else buy_prices,
-        'sell_dates': [d.strftime("%Y-%m-%d") for d in sell_dates],
-        'sell_prices': sell_prices.tolist() if isinstance(sell_prices, pd.Series) else sell_prices,
+        # These are actual executed trades, not every BUY/SELL signal row.
+        'executed_buy_dates': [d.strftime("%Y-%m-%d") for d in executed_buy_dates],
+        'executed_sell_dates': [d.strftime("%Y-%m-%d") for d in executed_sell_dates],
+        'executed_trade_count': len(executed_buy_dates) + len(executed_sell_dates),
     }
 
     return jsonify(results)
@@ -2993,26 +3002,26 @@ def equity():
     cash = 1.0
     position = 0.0
     epoch_equity_curve = []
+    executed_buy_dates = []
+    executed_sell_dates = []
 
     for date, row in signals_df.iterrows():
         price = row['Close']
         signal = row['epoch_signal']
 
         if signal == 1 and cash > 0:
-            position = (cash / price) * (1 - transaction_cost)
-            cash = 0
+            gross_buy_budget = cash / (1 + transaction_cost)
+            position = gross_buy_budget / price
+            cash = 0.0
+            executed_buy_dates.append(date)
 
         elif signal == -1 and position > 0:
             cash = (position * price) * (1 - transaction_cost)
-            position = 0
+            position = 0.0
+            executed_sell_dates.append(date)
 
         equity = cash + position * price
         epoch_equity_curve.append(equity)
-
-    # Final liquidation
-    if position > 0:
-        cash = (position * signals_df['Close'].iloc[-1]) * (1 - transaction_cost)
-        epoch_equity_curve[-1] = cash
 
     # ---------------------------------------------------
     # Buy & Hold Curve (start = 1, entry cost included)
@@ -3032,22 +3041,6 @@ def equity():
     )
 
     # ---------------------------------------------------
-    # Buy/Sell markers
-    # ---------------------------------------------------
-    buy_dates = signals_df.index[signals_df['epoch_signal'] == 1]
-    sell_dates = signals_df.index[signals_df['epoch_signal'] == -1]
-
-    buy_prices = [
-        epoch_equity_curve[signals_df.index.get_loc(d)]
-        for d in buy_dates if d in signals_df.index
-    ]
-
-    sell_prices = [
-        epoch_equity_curve[signals_df.index.get_loc(d)]
-        for d in sell_dates if d in signals_df.index
-    ]
-
-    # ---------------------------------------------------
     # Final Metrics
     # ---------------------------------------------------
     final_value_bh = buy_hold_curve[-1]
@@ -3060,22 +3053,32 @@ def equity():
 
     dates = signals_df.index.strftime('%Y-%m-%d').tolist()
 
+    buy_hold_period_return = final_value_bh - 1
+    strategy_period_return = final_value_epoch - 1
+
     results = {
         'ticker': ticker,
         'transaction_cost_rate': transaction_cost,
+        'valuation_policy': 'mark_to_market',
         'final_value': final_value_bh,
         'final_value_epoch': final_value_epoch,
-        'profit_factor': final_value_bh,
-        'profit_factor_epoch': final_value_epoch,
+        'buy_hold_growth_factor': final_value_bh,
+        'strategy_growth_factor': final_value_epoch,
+        'buy_hold_period_return': buy_hold_period_return,
+        'strategy_period_return': strategy_period_return,
+        'return_spread': strategy_period_return - buy_hold_period_return,
         'sharpe_ratio': sharpe_ratio,
         'benchmark_cash_balance': benchmark_cash_balance,
+        'ending_cash_balance': float(cash),
+        'ending_position_quantity': float(position),
+        'ending_position_open': bool(position > 0),
         'equity_curve': buy_hold_curve,
         'epoch_equity_curve': epoch_equity_curve,
         'dates': dates,
-        'buy_dates': [d.strftime("%Y-%m-%d") for d in buy_dates],
-        'buy_prices': buy_prices,
-        'sell_dates': [d.strftime("%Y-%m-%d") for d in sell_dates],
-        'sell_prices': sell_prices,
+        # These are actual executed trades, not every BUY/SELL signal row.
+        'executed_buy_dates': [d.strftime("%Y-%m-%d") for d in executed_buy_dates],
+        'executed_sell_dates': [d.strftime("%Y-%m-%d") for d in executed_sell_dates],
+        'executed_trade_count': len(executed_buy_dates) + len(executed_sell_dates),
     }
 
     return jsonify(results)
@@ -3099,9 +3102,9 @@ def mask_signal_summary_row_for_user(row, user):
         "ticker": ticker,
 
         # Return columns stay visible to everyone
-        "buy_hold_annual_return": row.get("buy_hold_annual_return"),
-        "strategy_annual_return": row.get("strategy_annual_return"),
-        "outperformance": row.get("outperformance"),
+        "buy_hold_period_return": row.get("buy_hold_period_return"),
+        "strategy_period_return": row.get("strategy_period_return"),
+        "return_spread": row.get("return_spread"),
 
         # Frontend uses this to show locked/blurred cells
         "signals_locked": not full_access,
@@ -3138,9 +3141,9 @@ def compute_signals_summary_cached(csv_version, period_days):
                 'yesterday_signal': sigs['yesterday'],
                 'last_week_signal': sigs['last_week'],
                 'last_month_signal': sigs['last_month'],
-                'buy_hold_annual_return': sigs['buy_hold_annual_return'],
-                'strategy_annual_return': sigs['strategy_annual_return'],
-                'outperformance': sigs['outperformance'],
+                'buy_hold_period_return': sigs['buy_hold_period_return'],
+                'strategy_period_return': sigs['strategy_period_return'],
+                'return_spread': sigs['return_spread'],
             })
         except Exception as e:
             print(f"Skipping {t}: {e}")
