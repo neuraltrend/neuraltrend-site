@@ -293,7 +293,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                             </div>
             
                             <span class="nt-market-hero-normalized">
-                                $1 normalized · costs included
+                                $1 normalized · executed trade costs included · open positions marked to market
                             </span>
             
                         </div>
@@ -351,7 +351,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                     
                             <div class="nt-market-hero-metric-copy">
                                 <div class="nt-market-hero-metric-label">
-                                    AI Outperformance
+                                    AI Return Spread
                                     (<span class="nt-hero-metric-horizon">5Y</span>)
                                 </div>
                     
@@ -363,7 +363,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                 </div>
                     
                                 <div class="nt-market-hero-metric-subtitle">
-                                    AI minus Buy &amp; Hold
+                                    AI return minus Buy &amp; Hold return
                                 </div>
                             </div>
                         </div>   
@@ -704,11 +704,11 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                     <div class="nt-card-icon nt-icon-green">⚖</div>
                                     <div>
                                         <div class="nt-metric-label">
-                                            AI vs Buy & Hold (<span class="metric-horizon-text">5Y</span>)
+                                            AI Return Spread (<span class="metric-horizon-text">5Y</span>)
                                         </div>
                                         <div id="metric-outperformance" class="nt-metric-value return-neutral">—</div>
                                         <div class="nt-metric-sub">
-                                            Outperformance
+                                            Percentage-point difference
                                         </div>
                                     </div>
                                 </div>
@@ -899,7 +899,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                             
                                 <div 
                                     class="nt-header-right"
-                                    onclick="sortBy('buy_hold_annual_return')"
+                                    onclick="sortBy('buy_hold_period_return')"
                                 >
                                     Buy & Hold Return (<span class="metric-horizon-text">5Y</span>)<br>
                                     <span id="buy-hold-sort-indicator" class="nt-sort-indicator">▲▼</span>
@@ -907,7 +907,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                             
                                 <div 
                                     class="nt-header-right"
-                                    onclick="sortBy('strategy_annual_return')"
+                                    onclick="sortBy('strategy_period_return')"
                                 >
                                     AI Strategy Return (<span class="metric-horizon-text">5Y</span>)<br>
                                     <span id="strategy-sort-indicator" class="nt-sort-indicator">▲▼</span>
@@ -915,9 +915,9 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                             
                                 <div 
                                     class="nt-header-right"
-                                    onclick="sortBy('outperformance')"
+                                    onclick="sortBy('return_spread')"
                                 >
-                                    AI vs Buy & Hold (<span class="metric-horizon-text">5Y</span>)<br>
+                                    AI Return Spread (<span class="metric-horizon-text">5Y</span>)<br>
                                     <span id="outperformance-sort-indicator" class="nt-sort-indicator">▲▼</span>
                                 </div>
                             
@@ -978,7 +978,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                     </span>
                                     
                                     <span class="nt-preview-chip">
-                                        Costs: <strong id="preview-cost-label">Included</strong>
+                                        Costs: <strong id="preview-cost-label">Executed trades only</strong>
                                     </span>
                                 </div>
                             </div>
@@ -1071,8 +1071,8 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                 </div>
 
                 <p class="nt-backtest-note">
-                    Backtest uses the selected asset, initial cash, duration, and current signal logic. 
-                    Position size controls how much available cash is used on BUY signals and how much current position is sold on SELL signals.
+                    Backtest uses the selected asset, initial cash, duration, and current signal logic.
+                    Costs apply only when a trade executes. Any open position at the final date is marked to market; no artificial closing trade or exit fee is added.
                 </p>
             </form>
         
@@ -1429,9 +1429,9 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                             </div>
                     
                             <div class="nt-live-sim-metric-card nt-live-sim-mini-metric">
-                                <div class="nt-live-sim-metric-label">Vs B&H</div>
-                                <div id="live-sim-alpha-value" class="nt-live-sim-metric-value">—</div>
-                                <div id="live-sim-alpha-return" class="nt-live-sim-metric-sub">—</div>
+                                <div class="nt-live-sim-metric-label">Return Spread</div>
+                                <div id="live-sim-spread-value" class="nt-live-sim-metric-value">—</div>
+                                <div id="live-sim-spread-detail" class="nt-live-sim-metric-sub">—</div>
                             </div>
                     
                             <div class="nt-live-sim-metric-card nt-live-sim-mini-metric">
@@ -1990,12 +1990,16 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         });
     }
     
-    function formatBacktestReturnFromFactor(factor) {
-        if (factor === null || factor === undefined || Number.isNaN(factor)) {
+    function formatBacktestReturnFromGrowthFactor(growthFactor) {
+        if (
+            growthFactor === null ||
+            growthFactor === undefined ||
+            Number.isNaN(growthFactor)
+        ) {
             return `<span class="return-value return-neutral">—</span>`;
         }
     
-        const returnValue = factor - 1;
+        const returnValue = growthFactor - 1;
         const percent = returnValue * 100;
         const sign = percent > 0 ? "+" : "";
     
@@ -2019,15 +2023,27 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
     }
 
     function renderResults({
-        ticker, final_value, final_value_epoch, profit_factor, profit_factor_epoch, sharpe_ratio,
-        position_size_pct = 100, transaction_cost_rate = 0,
-        equity_curve, epoch_equity_curve, dates,
-        buy_dates, buy_prices, sell_dates, sell_prices
+        ticker,
+        final_value,
+        final_value_epoch,
+        buy_hold_growth_factor,
+        strategy_growth_factor,
+        return_spread,
+        sharpe_ratio,
+        position_size_pct = 100,
+        transaction_cost_rate = 0,
+        valuation_policy = "mark_to_market",
+        ending_position_open = false,
+        equity_curve,
+        epoch_equity_curve,
+        dates,
+        executed_buy_dates = [],
+        executed_sell_dates = []
     }) {
         const resultsDiv = document.getElementById('results');
     
-        const aiReturnHTML = formatBacktestReturnFromFactor(profit_factor_epoch);
-        const buyHoldReturnHTML = formatBacktestReturnFromFactor(profit_factor);
+        const aiReturnHTML = formatBacktestReturnFromGrowthFactor(strategy_growth_factor);
+        const buyHoldReturnHTML = formatBacktestReturnFromGrowthFactor(buy_hold_growth_factor);
         
         resultsDiv.innerHTML = `
             <div class="nt-backtest-results">
@@ -2037,7 +2053,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                         <div class="nt-section-eyebrow">Backtest Results</div>
                         <h3 class="nt-backtest-results-title">${escapeHTML(ticker)} Backtest Results</h3>
                         <p class="nt-backtest-results-subtitle">
-                            AI strategy performance compared with buy & hold. Transaction cost: ${(transaction_cost_rate * 100).toFixed(2)}% per trade.
+                            AI strategy performance compared with buy & hold. Transaction cost: ${(transaction_cost_rate * 100).toFixed(2)}% per executed trade. ${valuation_policy === "mark_to_market" ? "Open positions are marked to market at the final date." : ""} ${ending_position_open ? "The strategy ends with an open position." : "The strategy ends in cash."}
                         </p>
                     </div>
         
@@ -2079,9 +2095,9 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                     </div>
         
                     <div class="nt-result-card">
-                        <div class="nt-result-label">Position Size</div>
-                        <div class="nt-result-value">${formatBacktestNumber(position_size_pct, 0)}%</div>
-                        <div class="nt-result-sub">Applied per BUY/SELL signal</div>
+                        <div class="nt-result-label">AI Return Spread</div>
+                        <div class="nt-result-value">${formatPointSpread(return_spread)}</div>
+                        <div class="nt-result-sub">AI return minus Buy & Hold return</div>
                     </div>
         
                 </div>
@@ -2123,8 +2139,8 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         const equity_max = Math.max(...epoch_equity_curve);
         const offset = (equity_max - equity_min) * 0.04; // 4% of range
     
-        const adjustedBuySignals = dates.map((d, i) => buy_dates.includes(d) ? epoch_equity_curve[i] - offset : null);
-        const adjustedSellSignals = dates.map((d, i) => sell_dates.includes(d) ? epoch_equity_curve[i] + offset : null);
+        const adjustedBuySignals = dates.map((d, i) => executed_buy_dates.includes(d) ? epoch_equity_curve[i] - offset : null);
+        const adjustedSellSignals = dates.map((d, i) => executed_sell_dates.includes(d) ? epoch_equity_curve[i] + offset : null);
     
         const datasets = [
             {
@@ -2149,7 +2165,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                 fill: false
             },
             {
-                label: 'Buy Signal',
+                label: 'Executed BUY',
                 data: adjustedBuySignals,
                 pointStyle: 'triangle',
                 pointRadius: 10,
@@ -2158,7 +2174,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                 showLine: false
             },
             {
-                label: 'Sell Signal',
+                label: 'Executed SELL',
                 data: adjustedSellSignals,
                 pointStyle: 'triangle',
                 rotation: 180,
@@ -2579,9 +2595,9 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
     }
     
     function sortLabel(key) {
-        if (key === "buy_hold_annual_return") return "Buy & Hold Return";
-        if (key === "strategy_annual_return") return "AI Strategy Return";
-        if (key === "outperformance") return "AI vs Buy & Hold";
+        if (key === "buy_hold_period_return") return "Buy & Hold Return";
+        if (key === "strategy_period_return") return "AI Strategy Return";
+        if (key === "return_spread") return "AI Return Spread";
         return "";
     }
     
@@ -2611,7 +2627,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         });
 
         chips.push({
-            label: "Assumptions: $1 normalized · 100% in/out · costs included",
+            label: "Assumptions: $1 normalized · costs on executed trades · open positions marked to market",
             className: "chip-assumption"
         });
     
@@ -2759,19 +2775,6 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         return "return-neutral";
     }
     
-    function getOutperformanceClass(value) {
-        if (value === null || value === undefined || Number.isNaN(value)) {
-            return "return-neutral";
-        }
-    
-        // For outperformance multiple:
-        // > 1 means AI strategy performed better than buy & hold
-        // < 1 means AI strategy underperformed buy & hold
-        if (value > 1) return "return-positive";
-        if (value < 1) return "return-negative";
-    
-        return "return-neutral";
-    }
     
     function formatSignal(signal, locked = false) {
         if (locked) {
@@ -2804,17 +2807,17 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         `;
     }
     
-    function formatMultiple(value) {
+    function formatPointSpread(value) {
         if (value === null || value === undefined || Number.isNaN(value)) {
             return `<span class="return-value return-neutral">—</span>`;
         }
     
-        const percent = (Number(value) - 1) * 100;
-        const sign = percent > 0 ? "+" : "";
+        const points = Number(value) * 100;
+        const sign = points > 0 ? "+" : "";
     
         return `
-            <span class="return-value ${getOutperformanceClass(value)}">
-                ${sign}${percent.toFixed(1)}%
+            <span class="return-value ${getReturnClass(Number(value))}">
+                ${sign}${points.toFixed(1)} pts
             </span>
         `;
     }
@@ -2898,22 +2901,22 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         });
     
         document.getElementById("metric-strategy-return").innerHTML =
-            formatPercent(item.strategy_annual_return);
+            formatPercent(item.strategy_period_return);
     
         document.getElementById("metric-buyhold-return").innerHTML =
-            formatPercent(item.buy_hold_annual_return);
+            formatPercent(item.buy_hold_period_return);
     
         document.getElementById("metric-outperformance").innerHTML =
-            formatMultiple(item.outperformance);
+            formatPointSpread(item.return_spread);
     
         document.getElementById("metric-today-signal").innerHTML =
         formatSignal(item.today_signal, item.signals_locked);
     
         document.getElementById("metric-strategy-sub").textContent =
-            normalizedDollarText(item.strategy_annual_return);
+            normalizedDollarText(item.strategy_period_return);
     
         document.getElementById("metric-buyhold-sub").textContent =
-            normalizedDollarText(item.buy_hold_annual_return);
+            normalizedDollarText(item.buy_hold_period_return);
     
         document.getElementById("metric-signal-sub").textContent =
             item.signals_locked ? "Pro signal locked" : signalSubText(item.today_signal);
@@ -2964,15 +2967,15 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
     
         const arrow = currentSort.direction === 1 ? "▲" : "▼";
     
-        if (currentSort.key === "buy_hold_annual_return") {
+        if (currentSort.key === "buy_hold_period_return") {
             buyHoldEl.innerHTML = arrow;
         }
     
-        if (currentSort.key === "strategy_annual_return") {
+        if (currentSort.key === "strategy_period_return") {
             strategyEl.innerHTML = arrow;
         }
     
-        if (currentSort.key === "outperformance") {
+        if (currentSort.key === "return_spread") {
             outperformanceEl.innerHTML = arrow;
         }
     }
@@ -3005,9 +3008,9 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                     <div class="signal-cell-left">${formatSignal(item.last_week_signal, item.signals_locked)}</div>
                     <div class="signal-cell-left">${formatSignal(item.last_month_signal, item.signals_locked)}</div>
         
-                    <div class="signal-cell-right">${formatPercent(item.buy_hold_annual_return)}</div>
-                    <div class="signal-cell-right">${formatPercent(item.strategy_annual_return)}</div>
-                    <div class="signal-cell-right">${formatMultiple(item.outperformance)}</div>
+                    <div class="signal-cell-right">${formatPercent(item.buy_hold_period_return)}</div>
+                    <div class="signal-cell-right">${formatPercent(item.strategy_period_return)}</div>
+                    <div class="signal-cell-right">${formatPointSpread(item.return_spread)}</div>
                 </div>
             `;
         }).join("");
@@ -3415,7 +3418,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         const previewCostLabelEl = document.getElementById("preview-cost-label");
         if (previewCostLabelEl) {
             const costPct = Number(data.transaction_cost_rate || 0) * 100;
-            previewCostLabelEl.textContent = `${costPct.toFixed(2)}% per trade`;
+            previewCostLabelEl.textContent = `${costPct.toFixed(2)}% per executed trade`;
         }
     
         chartDiv.innerHTML = `
@@ -3430,8 +3433,8 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         const equity = data.epoch_equity_curve;
         const buyHold = data.equity_curve;
         const dates = data.dates;
-        const buy_dates = data.buy_dates;
-        const sell_dates = data.sell_dates;
+        const executedBuyDates = Array.isArray(data.executed_buy_dates) ? data.executed_buy_dates : [];
+        const executedSellDates = Array.isArray(data.executed_sell_dates) ? data.executed_sell_dates : [];
     
         // 🔥 Dynamic offset (same as backtest)
         const equity_min = Math.min(...equity);
@@ -3439,11 +3442,11 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         const offset = (equity_max - equity_min) * 0.04;
     
         const buySignals = dates.map((d, i) =>
-        buy_dates.includes(d) ? equity[i] : null
+        executedBuyDates.includes(d) ? equity[i] : null
         );
         
         const sellSignals = dates.map((d, i) =>
-            sell_dates.includes(d) ? equity[i] : null
+            executedSellDates.includes(d) ? equity[i] : null
         );
     
         previewChart = new Chart(ctx, {
@@ -3473,7 +3476,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                         fill: false
                     },
                     {
-                        label: "Buy Signal",
+                        label: "Executed BUY",
                         data: buySignals,
                         showLine: false,
                         pointRadius: 0,
@@ -3486,7 +3489,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                         offsetPx: 11
                     },
                     {
-                        label: "Sell Signal",
+                        label: "Executed SELL",
                         data: sellSignals,
                         showLine: false,
                         pointRadius: 0,
@@ -3537,7 +3540,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
 
     let liveSimBoardStrategyDisplayMode = "percent";
     let liveSimBoardBenchmarkDisplayMode = "percent";
-    let liveSimBoardAlphaDisplayMode = "percent";
+    let liveSimBoardSpreadDisplayMode = "percent";
     let liveSimBoardSearchQuery = "";
 
     let liveSimBoardHorizon = "since_start";
@@ -3767,8 +3770,8 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                             </th>
     
                             <th class="numeric">
-                                <button type="button" data-live-sim-board-sort="alpha">
-                                    Vs B&H ${liveSimBoardSortArrow("alpha")}
+                                <button type="button" data-live-sim-board-sort="return_spread">
+                                    Return Spread ${liveSimBoardSortArrow("return_spread")}
                                 </button>
                             </th>
                         </tr>
@@ -3815,9 +3818,9 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                             </th>
     
                             <th class="numeric">
-                                <select id="live-sim-board-alpha-mode" aria-label="Vs Buy and Hold display mode">
-                                    <option value="percent" ${liveSimBoardAlphaDisplayMode === "percent" ? "selected" : ""}>Return %</option>
-                                    <option value="value" ${liveSimBoardAlphaDisplayMode === "value" ? "selected" : ""}>$ Value</option>
+                                <select id="live-sim-board-spread-mode" aria-label="Return spread display mode">
+                                    <option value="percent" ${liveSimBoardSpreadDisplayMode === "percent" ? "selected" : ""}>Spread (pts)</option>
+                                    <option value="value" ${liveSimBoardSpreadDisplayMode === "value" ? "selected" : ""}>$ Value</option>
                                 </select>
                             </th>
                         </tr>
@@ -3833,11 +3836,11 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
 
                                     const strategyValue = liveSimBoardStrategyDollarForHorizon(sim);
                                     const benchmarkValue = liveSimBoardBenchmarkDollarForHorizon(sim);
-                                    const alphaValue = liveSimBoardAlphaDollarForHorizon(sim);
+                                    const valueDifference = liveSimBoardValueDifferenceForHorizon(sim);
                                     
                                     const strategyReturn = liveSimBoardStrategyReturnForHorizon(sim);
                                     const benchmarkReturn = liveSimBoardBenchmarkReturnForHorizon(sim);
-                                    const alphaReturn = liveSimBoardAlphaReturnForHorizon(sim);
+                                    const returnSpread = liveSimBoardReturnSpreadForHorizon(sim);
                                     
                                     const fullName = sim.name || "Simulation";
     
@@ -3900,7 +3903,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                             </td>
                                             
                                             <td class="numeric">
-                                                ${liveSimBoardReturnMetricHTML(alphaValue, alphaReturn, liveSimBoardAlphaDisplayMode)}
+                                                ${liveSimBoardSpreadMetricHTML(valueDifference, returnSpread, liveSimBoardSpreadDisplayMode)}
                                             </td>
                                         </tr>
                                     `;
@@ -3986,23 +3989,27 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                 maximumFractionDigits: 8
             })}`;
 
-        const alphaValue = liveSimAlphaValue(sim);
-        const alphaPct = liveSimAlphaPercent(sim);
-        const alphaClass = liveSimReturnClass(alphaPct);
+        const valueDifference = liveSimValueDifference(sim);
+        const returnSpread = liveSimReturnSpread(sim);
+        const spreadClass = liveSimReturnClass(returnSpread);
         
-        const alphaValueEl = document.getElementById("live-sim-alpha-value");
-        const alphaReturnEl = document.getElementById("live-sim-alpha-return");
+        const spreadValueEl = document.getElementById("live-sim-spread-value");
+        const spreadDetailEl = document.getElementById("live-sim-spread-detail");
         
-        if (alphaValueEl) {
-            const sign = alphaValue > 0 ? "+" : "";
-            alphaValueEl.textContent =
-                alphaValue === null ? "—" : `${sign}${liveSimMoney(alphaValue)}`;
+        if (spreadValueEl) {
+            spreadValueEl.textContent =
+                returnSpread === null
+                    ? "—"
+                    : `${returnSpread > 0 ? "+" : ""}${(returnSpread * 100).toFixed(2)} pts`;
+            spreadValueEl.className = `nt-live-sim-metric-value ${spreadClass}`;
         }
         
-        if (alphaReturnEl) {
-            alphaReturnEl.textContent =
-                alphaPct === null ? "—" : `Relative: ${liveSimPercent(alphaPct)}`;
-            alphaReturnEl.className = `nt-live-sim-metric-sub ${alphaClass}`;
+        if (spreadDetailEl) {
+            spreadDetailEl.textContent =
+                valueDifference === null
+                    ? "—"
+                    : `Value difference: ${liveSimSignedMoney(valueDifference)}`;
+            spreadDetailEl.className = `nt-live-sim-metric-sub ${spreadClass}`;
         }
         
         const tradeCountPill = document.getElementById("live-sim-trade-count-pill");
@@ -4022,7 +4029,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         strategyReturnEl.className = `nt-live-sim-metric-sub ${liveSimReturnClass(sim.strategy_return)}`;
     
         const benchmarkReturnEl = document.getElementById("live-sim-benchmark-return");
-        benchmarkReturnEl.textContent = `Return: ${liveSimPercent(sim.benchmark_return)} · entry cost included`;
+        benchmarkReturnEl.textContent = `Return: ${liveSimPercent(sim.benchmark_return)} · entry cost included · open holding marked to market`;
         benchmarkReturnEl.className = `nt-live-sim-metric-sub ${liveSimReturnClass(sim.benchmark_return)}`;
     
         renderLiveSimulationChart(sim);
@@ -4162,7 +4169,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         });
     }
 
-    function liveSimAlphaValue(sim) {
+    function liveSimValueDifference(sim) {
         const strategy = Number(sim.latest_strategy_value);
         const benchmark = Number(sim.latest_benchmark_value);
     
@@ -4173,15 +4180,21 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         return strategy - benchmark;
     }
     
-    function liveSimAlphaPercent(sim) {
-        const strategy = Number(sim.latest_strategy_value);
-        const benchmark = Number(sim.latest_benchmark_value);
-    
-        if (Number.isNaN(strategy) || Number.isNaN(benchmark) || benchmark === 0) {
+    function liveSimReturnSpread(sim) {
+        const explicitSpread = liveSimNumberOrNull(sim.return_spread);
+
+        if (explicitSpread !== null) {
+            return explicitSpread;
+        }
+
+        const strategyReturn = liveSimNumberOrNull(sim.strategy_return);
+        const benchmarkReturn = liveSimNumberOrNull(sim.benchmark_return);
+
+        if (strategyReturn === null || benchmarkReturn === null) {
             return null;
         }
-    
-        return (strategy / benchmark) - 1;
+
+        return strategyReturn - benchmarkReturn;
     }
 
     function setLiveSimRefreshStatus(message) {
@@ -5062,12 +5075,12 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
             return liveSimBoardBenchmarkDollarForHorizon(sim) ?? -Infinity;
         }
         
-        if (key === "alpha") {
-            if (liveSimBoardAlphaDisplayMode === "percent") {
-                return liveSimBoardAlphaReturnForHorizon(sim) ?? -Infinity;
+        if (key === "return_spread") {
+            if (liveSimBoardSpreadDisplayMode === "percent") {
+                return liveSimBoardReturnSpreadForHorizon(sim) ?? -Infinity;
             }
-        
-            return liveSimBoardAlphaDollarForHorizon(sim) ?? -Infinity;
+
+            return liveSimBoardValueDifferenceForHorizon(sim) ?? -Infinity;
         }
     
         return "";
@@ -5184,34 +5197,17 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         */
         return liveSimPercent(numberValue);
     }
-    
-    function liveSimBoardAlphaHTML(sim, displayMode = "percent") {
-        const alphaValue = liveSimAlphaValue(sim);
-        const alphaPct = liveSimAlphaPercent(sim);
-        const toneClass = liveSimBoardToneClass(alphaPct);
-    
-        if (displayMode === "value") {
-            return `
-                <div class="nt-live-sim-board-main-value ${toneClass}">
-                    ${alphaValue === null ? "—" : liveSimSignedMoney(alphaValue)}
-                </div>
-    
-                <div class="nt-live-sim-board-sub-value ${toneClass}">
-                    ${alphaPct === null ? "—" : `(${liveSimSignedPercent(alphaPct)})`}
-                </div>
-            `;
-        }
-    
-        return `
-            <div class="nt-live-sim-board-main-value ${toneClass}">
-                ${alphaPct === null ? "—" : liveSimSignedPercent(alphaPct)}
-            </div>
-    
-            <div class="nt-live-sim-board-sub-value ${toneClass}">
-                ${alphaValue === null ? "—" : `(${liveSimSignedMoney(alphaValue)})`}
-            </div>
-        `;
+
+    function formatPointSpreadText(value) {
+        const numberValue = liveSimNumberOrNull(value);
+
+        if (numberValue === null) return "—";
+
+        const points = numberValue * 100;
+        const sign = points > 0 ? "+" : "";
+        return `${sign}${points.toFixed(2)} pts`;
     }
+    
 
     function liveSimAssetTypeValue(sim) {
         const assetType = String(sim.asset_type || "").trim().toLowerCase();
@@ -5249,7 +5245,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
     
         liveSimBoardStrategyDisplayMode = "percent";
         liveSimBoardBenchmarkDisplayMode = "percent";
-        liveSimBoardAlphaDisplayMode = "percent";
+        liveSimBoardSpreadDisplayMode = "percent";
     
         liveSimBoardSortKey = "created_at";
         liveSimBoardSortDirection = "desc";   
@@ -5300,11 +5296,11 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         return liveSimBenchmarkReturnPct(sim);
     }
     
-    function liveSimBoardAlphaReturnForHorizon(sim) {
+    function liveSimBoardReturnSpreadForHorizon(sim) {
         const metrics = liveSimBoardHorizonMetrics(sim);
     
-        if (metrics && metrics.alpha_return !== null && metrics.alpha_return !== undefined) {
-            return Number(metrics.alpha_return);
+        if (metrics && metrics.return_spread !== null && metrics.return_spread !== undefined) {
+            return Number(metrics.return_spread);
         }
     
         const strategyReturn = liveSimBoardStrategyReturnForHorizon(sim);
@@ -5347,11 +5343,11 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         return value - initial;
     }
     
-    function liveSimBoardAlphaDollarForHorizon(sim) {
+    function liveSimBoardValueDifferenceForHorizon(sim) {
         const metrics = liveSimBoardHorizonMetrics(sim);
     
-        if (metrics && metrics.alpha_change !== null && metrics.alpha_change !== undefined) {
-            return Number(metrics.alpha_change);
+        if (metrics && metrics.value_difference !== null && metrics.value_difference !== undefined) {
+            return Number(metrics.value_difference);
         }
     
         const strategyChange = liveSimBoardStrategyDollarForHorizon(sim);
@@ -5362,6 +5358,38 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
         return strategyChange - benchmarkChange;
     }
     
+    function liveSimBoardSpreadMetricHTML(
+        valueDifference,
+        returnSpread,
+        displayMode = "percent"
+    ) {
+        const value = liveSimNumberOrNull(valueDifference);
+        const spread = liveSimNumberOrNull(returnSpread);
+        const toneClass = liveSimBoardToneClass(spread);
+
+        if (displayMode === "value") {
+            return `
+                <div class="nt-live-sim-board-main-value ${toneClass}">
+                    ${value === null ? "—" : liveSimSignedMoney(value)}
+                </div>
+
+                <div class="nt-live-sim-board-sub-value ${toneClass}">
+                    ${spread === null ? "—" : `(${formatPointSpreadText(spread)})`}
+                </div>
+            `;
+        }
+
+        return `
+            <div class="nt-live-sim-board-main-value ${toneClass}">
+                ${spread === null ? "—" : formatPointSpreadText(spread)}
+            </div>
+
+            <div class="nt-live-sim-board-sub-value ${toneClass}">
+                ${value === null ? "—" : `(${liveSimSignedMoney(value)})`}
+            </div>
+        `;
+    }
+
     function liveSimBoardReturnMetricHTML(value, pct, displayMode = "percent") {
         const numberValue = liveSimNumberOrNull(value);
         const pctValue = liveSimNumberOrNull(pct);
@@ -5666,8 +5694,8 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
             return;
         }
         
-        if (e.target && e.target.id === "live-sim-board-alpha-mode") {
-            liveSimBoardAlphaDisplayMode = e.target.value;
+        if (e.target && e.target.id === "live-sim-board-spread-mode") {
+            liveSimBoardSpreadDisplayMode = e.target.value;
             renderLiveSimulationList(liveSimulationsCache);
             return;
         }
@@ -6680,6 +6708,20 @@ document.addEventListener("DOMContentLoaded", function() {
                 maximumFractionDigits: 1
             })}%`;
     }
+
+    function setHeroSpreadValue(elementId, percentagePoints) {
+        const element = document.getElementById(elementId);
+
+        if (!element) return;
+
+        if (!Number.isFinite(percentagePoints)) {
+            element.textContent = "—";
+            return;
+        }
+
+        const sign = percentagePoints > 0 ? "+" : "";
+        element.textContent = `${sign}${percentagePoints.toFixed(1)} pts`;
+    }
     
     function updateHeroPerformanceMetrics(
         strategyReturns,
@@ -6692,7 +6734,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const buyHoldReturn =
             getHeroFinalValidValue(buyHoldReturns);
     
-        const outperformance =
+        const returnSpreadPoints =
             Number.isFinite(strategyReturn) &&
             Number.isFinite(buyHoldReturn)
                 ? strategyReturn - buyHoldReturn
@@ -6708,9 +6750,9 @@ document.addEventListener("DOMContentLoaded", function() {
             buyHoldReturn
         );
     
-        setHeroMetricValue(
+        setHeroSpreadValue(
             "nt-hero-outperformance",
-            outperformance
+            returnSpreadPoints
         );
     
         document
@@ -6727,8 +6769,8 @@ document.addEventListener("DOMContentLoaded", function() {
         if (alphaCard) {
             alphaCard.classList.toggle(
                 "is-negative",
-                Number.isFinite(outperformance) &&
-                outperformance < 0
+                Number.isFinite(returnSpreadPoints) &&
+                returnSpreadPoints < 0
             );
         }
     }
@@ -7056,21 +7098,13 @@ document.addEventListener("DOMContentLoaded", function() {
                                     return "";
                                 }
                             
-                                if (ntHeroLogScale) {
-                                    const difference =
-                                        ((strategyValue / buyHoldValue) - 1) * 100;
+                                const spreadPoints = ntHeroLogScale
+                                    ? (strategyValue - buyHoldValue) * 100
+                                    : strategyValue - buyHoldValue;
                             
-                                    const sign = difference > 0 ? "+" : "";
+                                const sign = spreadPoints > 0 ? "+" : "";
                             
-                                    return `AI relative performance: ${sign}${difference.toFixed(1)}%`;
-                                }
-                            
-                                const difference =
-                                    strategyValue - buyHoldValue;
-                            
-                                const sign = difference > 0 ? "+" : "";
-                            
-                                return `AI outperformance: ${sign}${difference.toFixed(1)} pts`;
+                                return `AI return spread: ${sign}${spreadPoints.toFixed(1)} pts`;
                             }
                         }
                     }
