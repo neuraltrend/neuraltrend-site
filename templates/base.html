@@ -117,6 +117,96 @@
     
       </div>
     </div>
+
+    <!-- Authenticated password-change modal -->
+    <div
+        id="changePasswordModal"
+        class="nt-account-modal"
+        aria-hidden="true"
+    >
+        <div
+            class="nt-account-modal-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="change-password-title"
+        >
+            <button
+                type="button"
+                id="change-password-close"
+                class="nt-account-modal-close"
+                aria-label="Close change-password dialog"
+            >
+                &times;
+            </button>
+
+            <div class="nt-account-modal-kicker">Account security</div>
+            <h3 id="change-password-title">Change password</h3>
+            <p class="nt-account-modal-copy">
+                Enter your current password, then choose a new passphrase.
+                Other signed-in sessions will be logged out.
+            </p>
+
+            <form id="change-password-form" novalidate>
+                <label for="change-current-password">Current password</label>
+                <input
+                    type="password"
+                    id="change-current-password"
+                    name="current_password"
+                    autocomplete="current-password"
+                    required
+                >
+
+                <label for="change-new-password">New password</label>
+                <input
+                    type="password"
+                    id="change-new-password"
+                    name="new_password"
+                    autocomplete="new-password"
+                    minlength="15"
+                    maxlength="64"
+                    required
+                >
+
+                <label for="change-confirm-password">Confirm new password</label>
+                <input
+                    type="password"
+                    id="change-confirm-password"
+                    name="confirm_password"
+                    autocomplete="new-password"
+                    minlength="15"
+                    maxlength="64"
+                    required
+                >
+
+                <p class="nt-account-password-help">
+                    Use 15–64 characters. Spaces and passphrases are allowed.
+                </p>
+
+                <p
+                    id="change-password-message"
+                    class="nt-account-modal-message"
+                    aria-live="polite"
+                ></p>
+
+                <div class="nt-account-modal-actions">
+                    <button
+                        type="button"
+                        id="change-password-cancel"
+                        class="nt-account-modal-secondary"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        id="change-password-submit"
+                        class="nt-account-modal-primary"
+                    >
+                        Change Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
     
     <!-- 100% privacy-first analytics -->
     <script src="{{ url_for('static', filename='js/neuraltrend-analytics.js') }}"></script>
