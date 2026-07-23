@@ -221,6 +221,15 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                 >
                                     10Y
                                 </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-period"
+                                    data-hero-duration="max"
+                                    title="Use all available history for this asset"
+                                >
+                                    MAX
+                                </button>
                             </div>
                         
                             <!-- ROW 2 LEFT: MORE ASSETS -->
@@ -794,6 +803,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                             <option value="3y">3Y</option>
                                             <option value="5y" selected>5Y</option>
                                             <option value="10y">10Y</option>
+                                            <option value="max">MAX</option>
                                         </select>
                         
                                         <div id="period-pill-group" class="nt-period-pills" role="group" aria-label="Return horizon">
@@ -805,6 +815,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                             <button type="button" class="period-pill" data-value="3y">3Y</button>
                                             <button type="button" class="period-pill active" data-value="5y">5Y</button>
                                             <button type="button" class="period-pill" data-value="10y">10Y</button>
+                                            <button type="button" class="period-pill" data-value="max" title="Use all available history for this asset">MAX</button>
                                         </div>
                         
                                     </div>
