@@ -1,0 +1,13 @@
+
+        #results .nt-backtest-results-subtitle {
+            margin: 6px 0 0 !important;
+            max-width: 980px;
+            color: var(--nt-neutral) !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            line-height: 1.55 !important;
+        }
+
+        #results .nt-backtest-results-header {
+            align-items: flex-start;
+        }
