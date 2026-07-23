@@ -11,3 +11,107 @@
         #results .nt-backtest-results-header {
             align-items: flex-start;
         }
+
+/* ==================================================
+   TRUST / METHODOLOGY STRIP
+================================================== */
+.nt-trust-methodology-strip {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.9fr) auto;
+    gap: 28px;
+    align-items: center;
+    margin: 18px 0 42px;
+    padding: 28px 30px;
+    border: 1px solid #cbd5e1;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 62%, #eff6ff 100%);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.055);
+}
+
+.nt-trust-methodology-copy h2 {
+    margin: 5px 0 8px;
+    color: #0f172a;
+    font-size: 24px;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+}
+
+.nt-trust-methodology-copy p {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.nt-trust-methodology-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.nt-trust-methodology-facts span {
+    display: inline-flex;
+    min-height: 30px;
+    align-items: center;
+    padding: 0 10px;
+    border: 1px solid #dbeafe;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1e40af;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.nt-trust-methodology-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 44px;
+    padding: 0 17px;
+    border-radius: 10px;
+    background: #0f172a;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: transform 0.16s ease, background 0.16s ease;
+}
+
+.nt-trust-methodology-link:hover {
+    transform: translateY(-1px);
+    background: #1e293b;
+}
+
+.nt-trust-methodology-link:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.28);
+    outline-offset: 3px;
+}
+
+@media (max-width: 1050px) {
+    .nt-trust-methodology-strip {
+        grid-template-columns: 1fr;
+    }
+
+    .nt-trust-methodology-link {
+        justify-self: start;
+    }
+}
+
+@media (max-width: 640px) {
+    .nt-trust-methodology-strip {
+        margin-bottom: 30px;
+        padding: 22px 20px;
+    }
+
+    .nt-trust-methodology-copy h2 {
+        font-size: 21px;
+    }
+
+    .nt-trust-methodology-link {
+        width: 100%;
+        white-space: normal;
+        text-align: center;
+    }
+}
