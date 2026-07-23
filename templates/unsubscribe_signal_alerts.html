@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Signal Alert Preferences | NeuralTrend{% endblock %}
+
+{% block meta_description %}
+Manage NeuralTrend email signal-change alert preferences.
+{% endblock %}
+
+{% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-watchlist.css') }}">
+{% endblock %}
+
+{% block content %}
+<main class="nt-unsubscribe-page">
+    <section class="nt-unsubscribe-card">
+        {% if success %}
+            <div class="nt-section-eyebrow">Preferences Updated</div>
+            <h1>Signal-change emails disabled</h1>
+            <p>
+                Email alerts were disabled for {{ disabled_count }} watched asset{% if disabled_count != 1 %}s{% endif %}
+                associated with <strong>{{ masked_email }}</strong>.
+            </p>
+            <p>Your saved watchlist remains available when you log in.</p>
+        {% elif not valid %}
+            <div class="nt-section-eyebrow">Invalid Link</div>
+            <h1>We could not open this preference link</h1>
+            <p>{{ error or "The unsubscribe link is invalid." }}</p>
+        {% else %}
+            <div class="nt-section-eyebrow">Email Preferences</div>
+            <h1>Disable all signal-change emails?</h1>
+            <p>
+                This will disable email alerts for every watched asset associated with
+                <strong>{{ masked_email }}</strong>. It will not delete your watchlist or account.
+            </p>
+
+            <form method="post" action="{{ url_for('unsubscribe_signal_alerts', token=token) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="nt-unsubscribe-actions">
+                    <button type="submit">Disable All Email Alerts</button>
+                    <a href="{{ url_for('index') }}#products">Keep Alerts Enabled</a>
+                </div>
+            </form>
+        {% endif %}
+
+        {% if success or not valid %}
+            <div class="nt-unsubscribe-actions">
+                <a href="{{ url_for('index') }}#products">Return to NeuralTrend</a>
+            </div>
+        {% endif %}
+    </section>
+</main>
+{% endblock %}

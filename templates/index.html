@@ -8,6 +8,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
 
 {% block page_styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-watchlist.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -813,6 +814,32 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                     <div id="metric-trade-count" class="nt-risk-metric-sub">— executed trades</div>
                                 </article>
                             </div>
+
+                            <div class="nt-watchlist-toolbar" aria-label="Selected asset watchlist controls">
+                                <button
+                                    type="button"
+                                    id="selected-watchlist-toggle"
+                                    class="nt-watchlist-primary-btn"
+                                    aria-pressed="false"
+                                >
+                                    <span id="selected-watchlist-star" aria-hidden="true">☆</span>
+                                    <span id="selected-watchlist-label">Add to Watchlist</span>
+                                </button>
+
+                                <label class="nt-watchlist-alert-control" for="selected-watchlist-alert-toggle">
+                                    <input
+                                        type="checkbox"
+                                        id="selected-watchlist-alert-toggle"
+                                        disabled
+                                    >
+                                    <span>
+                                        Email me when the published signal changes
+                                        <small id="selected-watchlist-alert-note">Pro feature · daily published signals, not real-time execution alerts</small>
+                                    </span>
+                                </label>
+
+                                <span id="selected-watchlist-message" class="nt-watchlist-message" aria-live="polite"></span>
+                            </div>
                         </div>
                         <!-- SELECTED ASSET PERFORMANCE CARDS END -->
 
@@ -906,12 +933,17 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                             <option value="all">All Assets</option>
                                             <option value="crypto" selected>Crypto Only</option>
                                             <option value="stock">Stocks Only</option>
+                                            <option value="watchlist">My Watchlist</option>
                                         </select>
                         
                                         <div id="asset-pill-group" class="nt-asset-pills" role="group" aria-label="Asset type">
                                             <button type="button" class="asset-pill" data-value="all">All</button>
                                             <button type="button" class="asset-pill active" data-value="crypto">Crypto</button>
                                             <button type="button" class="asset-pill" data-value="stock">Stocks</button>
+                                            <button type="button" class="asset-pill nt-watchlist-filter-pill" data-value="watchlist">
+                                                ★ Watchlist
+                                                <span id="watchlist-pill-count" class="nt-watchlist-pill-count">0</span>
+                                            </button>
                                         </div>
                         
                                     </div>
@@ -2065,6 +2097,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
 {% block page_scripts %}
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest.js') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-watchlist.js') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest-form.js') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-subscription-bridge.js') }}"></script>
