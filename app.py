@@ -186,6 +186,7 @@ def handle_csrf_error(error):
             "/signup",
             "/login",
             "/logout",
+            "/change-password",
             "/resend-verification",
             "/request-password-reset",
             "/request-delete-account",
@@ -623,7 +624,7 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "ACH-USD", "ADA-USD", "AERO-USD", "AEVO-USD", "AGI-USD", "AIOZ-USD", "AIT-USD", "AIXBT-USD", "AKT-USD", "ALEPH-USD",
                "ALGO-USD", "ALI-USD", "ALPH-USD", "ALT-USD", "ALU-USD", "ALVA-USD", "AMP-USD", 'AMZN', "ANKR-USD", "ANON-USD", "ANYONE-USD", "APT-USD",
                "APU-USD", "AR-USD", "ARB-USD", "ARC-USD", "ASML", "ASTR-USD", "ATLAS-USD", "ATOM-USD", "AURY-USD", "AUTOS-USD", "AVAX-USD", 'AVGO', 
-               "AXL-USD", "AXS-USD", "BAI-USD", "BAL-USD", "BANANA-USD", "BAND-USD", "BASEDAI-USD", "BAZED-USD",
+               "AXL-USD", "AXS-USD", "BAI-USD", "BAL-USD", "BAND-USD", "BANANA-USD", "BASEDAI-USD", "BAZED-USD",
                "BCUT-USD", "BEAM-USD", "BGB-USD", "BIGTIME-USD", "BLUR-USD", "BNB-USD", "BNT-USD", "BONK-USD", "BRETT-USD", 'BRKB', 
                "BYTES-USD", "CAKE-USD", "CELO-USD", "CERE-USD", "CETUS-USD", "CFG-USD", "CGPT-USD", "CHAPZ-USD", "CHAT-USD", "CHEX-USD", "CHZ-USD", 
                "COMP-USD", "COST", "COTI-USD", "CPOOL-USD", "CREDI-USD", "CREO-USD", "CRO-USD", "CROWN-USD", "CRU-USD", "CRV-USD", "CTC-USD", "CVC-USD",
@@ -2105,6 +2106,109 @@ def logout():
     session.pop("auth_version", None)
     clear_password_reset_session()
     return jsonify({"message": "Logged out"})
+
+
+@app.route("/change-password", methods=["POST"])
+@login_required
+@limiter.limit("5 per 15 minutes")
+def change_password():
+    """Change the authenticated user's password after re-authentication.
+
+    The current browser remains authenticated by adopting the incremented
+    auth_version. Every other existing session is revoked on its next request.
+    """
+    data = get_json_object()
+    if data is None:
+        return jsonify({"error": "A JSON object is required."}), 400
+
+    current_password = data.get("current_password")
+    new_password = data.get("new_password")
+    confirm_password = data.get("confirm_password")
+
+    if not isinstance(current_password, str) or not current_password:
+        return jsonify({"error": "Current password is required."}), 400
+
+    # Bound bcrypt work and prevent silent truncation behavior.
+    if len(current_password.encode("utf-8")) > PASSWORD_MAX_UTF8_BYTES:
+        return jsonify({"error": "Current password is incorrect."}), 400
+
+    if not bcrypt.check_password_hash(current_user.password_hash, current_password):
+        app.logger.warning(
+            "Authenticated password-change reauthentication failed for user_id=%s",
+            current_user.id,
+        )
+        return jsonify({"error": "Current password is incorrect."}), 400
+
+    password_error = validate_password(new_password)
+    if password_error:
+        return jsonify({"error": password_error}), 400
+
+    if new_password != confirm_password:
+        return jsonify({"error": "The two new password entries do not match."}), 400
+
+    if bcrypt.check_password_hash(current_user.password_hash, new_password):
+        return jsonify({
+            "error": "Choose a password different from your current password."
+        }), 400
+
+    user_id = current_user.id
+    user_email = current_user.email
+
+    try:
+        user = (
+            User.query
+            .filter_by(id=user_id)
+            .with_for_update()
+            .first()
+        )
+
+        if not user:
+            db.session.rollback()
+            return jsonify({"error": "Account not found."}), 404
+
+        # Re-check against the locked row in case another password change
+        # completed between the first verification and the row lock.
+        if not bcrypt.check_password_hash(user.password_hash, current_password):
+            db.session.rollback()
+            return jsonify({
+                "error": "Your password changed in another session. Please log in again."
+            }), 409
+
+        user.password_hash = bcrypt.generate_password_hash(
+            new_password
+        ).decode("utf-8")
+        user.password_changed_at = datetime.utcnow()
+        user.password_reset_token_hash = None
+        user.password_reset_requested_at = None
+        user.auth_version = int(user.auth_version or 1) + 1
+        user.failed_attempts = 0
+        user.locked_until = None
+        db.session.commit()
+
+        # Keep this browser logged in while revoking every older session.
+        session["auth_version"] = int(user.auth_version)
+        clear_password_reset_session()
+
+    except Exception:
+        db.session.rollback()
+        app.logger.exception(
+            "Authenticated password change failed for user_id=%s",
+            user_id,
+        )
+        return jsonify({
+            "error": "Could not change your password. Please try again."
+        }), 500
+
+    send_password_changed_email(user_email)
+    app.logger.info("Password changed from account menu for user_id=%s", user_id)
+
+    return jsonify({
+        "message": (
+            "Password changed successfully. Other signed-in sessions have "
+            "been logged out."
+        )
+    })
+
 
 @app.route("/me")
 def me():
