@@ -1,0 +1,186 @@
+.nt-watchlist-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--nt-border);
+    border-radius: 14px;
+    background: rgba(248, 250, 252, 0.82);
+}
+
+.nt-watchlist-primary-btn {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border: 1px solid var(--nt-border-strong, #cbd5e1);
+    border-radius: 10px;
+    background: #ffffff;
+    color: var(--nt-dark);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.nt-watchlist-primary-btn:hover:not(:disabled) {
+    border-color: #64748b;
+    box-shadow: 0 5px 14px rgba(15, 23, 42, 0.08);
+    transform: translateY(-1px);
+}
+
+.nt-watchlist-primary-btn.is-watching {
+    border-color: rgba(37, 99, 235, 0.35);
+    background: rgba(239, 246, 255, 0.95);
+    color: #1d4ed8;
+}
+
+.nt-watchlist-primary-btn:disabled {
+    cursor: wait;
+    opacity: 0.68;
+}
+
+.nt-watchlist-alert-control {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 9px;
+    color: var(--nt-dark);
+    font-size: 13px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.nt-watchlist-alert-control input {
+    width: 17px;
+    height: 17px;
+    margin-top: 1px;
+    accent-color: #2563eb;
+}
+
+.nt-watchlist-alert-control small {
+    display: block;
+    margin-top: 2px;
+    color: var(--nt-neutral);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.nt-watchlist-message {
+    min-height: 18px;
+    margin-left: auto;
+    color: var(--nt-neutral);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.nt-watchlist-message.is-success {
+    color: var(--nt-positive);
+}
+
+.nt-watchlist-message.is-error {
+    color: var(--nt-negative);
+}
+
+.nt-watchlist-filter-pill {
+    gap: 6px;
+}
+
+.nt-watchlist-pill-count {
+    min-width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.09);
+    font-size: 10px;
+    font-weight: 900;
+}
+
+.asset-pill.active .nt-watchlist-pill-count {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.nt-unsubscribe-page {
+    min-height: 62vh;
+    display: grid;
+    place-items: center;
+    padding: 56px 20px;
+}
+
+.nt-unsubscribe-card {
+    width: min(560px, 100%);
+    padding: 28px;
+    border: 1px solid var(--nt-border);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 18px 46px rgba(15, 23, 42, 0.09);
+}
+
+.nt-unsubscribe-card h1 {
+    margin: 0 0 10px;
+    color: var(--nt-dark);
+    font-size: clamp(25px, 4vw, 34px);
+    letter-spacing: -0.035em;
+}
+
+.nt-unsubscribe-card p {
+    color: var(--nt-neutral);
+    line-height: 1.65;
+}
+
+.nt-unsubscribe-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 22px;
+}
+
+.nt-unsubscribe-actions button,
+.nt-unsubscribe-actions a {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.nt-unsubscribe-actions button {
+    border: 0;
+    background: #0f172a;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.nt-unsubscribe-actions a {
+    border: 1px solid var(--nt-border);
+    color: var(--nt-dark);
+    background: #ffffff;
+}
+
+@media (max-width: 720px) {
+    .nt-watchlist-toolbar {
+        align-items: stretch;
+    }
+
+    .nt-watchlist-primary-btn,
+    .nt-watchlist-alert-control,
+    .nt-watchlist-message {
+        width: 100%;
+    }
+
+    .nt-watchlist-message {
+        margin-left: 0;
+    }
+}
