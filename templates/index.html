@@ -305,9 +305,18 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                             
                             </div>
             
-                            <span class="nt-market-hero-normalized">
-                                $1 normalized · executed trade costs included · open positions marked to market
-                            </span>
+                            <div class="nt-market-hero-footer-meta">
+                                <span class="nt-market-hero-normalized">
+                                    $1 normalized · executed trade costs included · open positions marked to market
+                                </span>
+                                <span
+                                    id="nt-hero-data-freshness"
+                                    class="nt-market-hero-freshness nt-freshness-unknown"
+                                    title="Freshness is checked when the chart loads."
+                                >
+                                    Data freshness: checking…
+                                </span>
+                            </div>
             
                         </div>
             
@@ -707,6 +716,21 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                 Return Horizon:
                                 <span id="metric-selected-horizon">5Y</span>
                             </div>
+
+                            <div id="metric-data-freshness" class="nt-data-freshness-strip" aria-live="polite">
+                                <span id="metric-freshness-badge" class="nt-freshness-badge nt-freshness-unknown">
+                                    Checking
+                                </span>
+                                <span>
+                                    Latest signal uses completed data through
+                                    <strong id="metric-data-through">—</strong>
+                                </span>
+                                <span class="nt-data-freshness-divider" aria-hidden="true">•</span>
+                                <span>
+                                    Site data file updated
+                                    <strong id="metric-site-data-updated">—</strong>
+                                </span>
+                            </div>
                         
                             <div class="nt-metric-grid">
                         
@@ -1049,6 +1073,19 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                     
                                     <span class="nt-preview-chip">
                                         Costs: <strong id="preview-cost-label">Executed trades only</strong>
+                                    </span>
+
+                                    <span class="nt-preview-chip">
+                                        Data through: <strong id="preview-data-through">—</strong>
+                                    </span>
+
+                                    <span class="nt-preview-chip nt-preview-freshness-chip">
+                                        Freshness:
+                                        <strong id="preview-freshness-badge" class="nt-inline-freshness nt-freshness-unknown">Checking</strong>
+                                    </span>
+
+                                    <span class="nt-preview-chip">
+                                        Site updated: <strong id="preview-site-data-updated">—</strong>
                                     </span>
                                 </div>
                             </div>
@@ -1458,6 +1495,15 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                             <p id="live-sim-detail-subtitle" class="nt-live-sim-dashboard-subtitle">
                                 —
                             </p>
+
+                            <div id="live-sim-data-freshness" class="nt-live-sim-freshness-strip" aria-live="polite">
+                                <span id="live-sim-freshness-badge" class="nt-freshness-badge nt-freshness-unknown">Checking</span>
+                                <span>Source data through <strong id="live-sim-data-through">—</strong></span>
+                                <span class="nt-data-freshness-divider" aria-hidden="true">•</span>
+                                <span>Simulation processed through <strong id="live-sim-simulation-through">—</strong></span>
+                                <span class="nt-data-freshness-divider" aria-hidden="true">•</span>
+                                <span>Site updated <strong id="live-sim-site-data-updated">—</strong></span>
+                            </div>
                     
                             <div id="live-sim-detail-signal-wrap" class="nt-live-sim-detail-signal-wrap">
                             </div>

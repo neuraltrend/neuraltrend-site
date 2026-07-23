@@ -119,6 +119,7 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                         <th>Sharpe</th>
                         <th>Trades</th>
                         <th>Exposure</th>
+                        <th>Data freshness</th>
                         <th>Latest signal</th>
                     </tr>
                 </thead>
@@ -138,6 +139,12 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                         <td>{{ row.sharpe_ratio }}</td>
                         <td>{{ row.executed_trade_count }}</td>
                         <td>{{ row.market_exposure }}</td>
+                        <td>
+                            <span class="nt-freshness-badge nt-freshness-{{ row.freshness.freshness_status }}">
+                                {{ row.freshness.freshness_label }}
+                            </span>
+                            <small>Through {{ row.freshness.data_through or row.coverage_end }}</small>
+                        </td>
                         <td><span class="nt-methodology-signal nt-methodology-signal-{{ row.signal_class }}">{{ row.signal }}</span></td>
                     </tr>
                     {% endfor %}
@@ -214,6 +221,40 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                 </div>
             </div>
         </div>
+    </section>
+
+    <section class="nt-methodology-shell nt-methodology-section" id="data-freshness">
+        <div class="nt-methodology-section-heading">
+            <div class="nt-methodology-kicker">Data freshness</div>
+            <h2>Each signal shows the completed data it is based on</h2>
+            <p>
+                NeuralTrend displays a data-through date, the time the deployed site data file was updated,
+                and a simple freshness state. These indicators describe the website data available to the model;
+                they are not real-time exchange timestamps or trade confirmations.
+            </p>
+        </div>
+
+        <div class="nt-methodology-assumption-grid nt-methodology-freshness-grid">
+            <article>
+                <span class="nt-freshness-badge nt-freshness-current">Current</span>
+                <h3>Within the expected cadence</h3>
+                <p>Crypto is checked against calendar days. Stocks use a weekday-aware check so weekends do not automatically make data stale.</p>
+            </article>
+            <article>
+                <span class="nt-freshness-badge nt-freshness-delayed">Delayed</span>
+                <h3>Later than usual</h3>
+                <p>The latest completed row is one update beyond the normal tolerance. Users should verify the data-through date before acting.</p>
+            </article>
+            <article>
+                <span class="nt-freshness-badge nt-freshness-stale">Stale</span>
+                <h3>Materially behind</h3>
+                <p>The latest completed row is several expected updates behind. The signal remains visible for transparency but should not be treated as current.</p>
+            </article>
+        </div>
+
+        <p class="nt-methodology-snapshot-time">
+            Stock-market holidays are not embedded in the lightweight freshness calculation, so an exchange holiday can occasionally make a current stock file appear delayed.
+        </p>
     </section>
 
     <section class="nt-methodology-shell nt-methodology-section" id="simulation-assumptions">
