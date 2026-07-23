@@ -816,3 +816,64 @@
         padding: 0 16px 20px;
     }
 }
+
+/* ==================================================
+   TRUST STEP 2 — PUBLIC RISK METRICS
+================================================== */
+
+.nt-methodology-performance-table {
+    min-width: 1420px;
+}
+
+.nt-methodology-performance-table td small {
+    display: block;
+    margin-top: 4px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.nt-methodology-risk-glossary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.nt-methodology-risk-glossary article {
+    padding: 16px 17px;
+    border: 1px solid #e2e8f0;
+    border-radius: 13px;
+    background: #f8fafc;
+}
+
+.nt-methodology-risk-glossary strong,
+.nt-methodology-risk-glossary span {
+    display: block;
+}
+
+.nt-methodology-risk-glossary strong {
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.nt-methodology-risk-glossary span {
+    margin-top: 6px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.55;
+}
+
+@media (max-width: 920px) {
+    .nt-methodology-risk-glossary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .nt-methodology-risk-glossary {
+        grid-template-columns: 1fr;
+    }
+}

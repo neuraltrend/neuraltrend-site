@@ -9425,3 +9425,156 @@ body.nt-account-modal-open {
         width: 100%;
     }
 }
+
+/* ==================================================
+   TRUST STEP 2 — RISK METRIC PRESENTATION
+================================================== */
+
+.nt-risk-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.nt-risk-metric-card {
+    min-width: 0;
+    padding: 13px 15px;
+    border: 1px solid var(--nt-border);
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.nt-risk-metric-label {
+    color: var(--nt-neutral);
+    font-size: 11px;
+    font-weight: 850;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+}
+
+.nt-risk-metric-value {
+    margin-top: 6px;
+    color: var(--nt-dark);
+    font-size: 20px;
+    font-weight: 850;
+    line-height: 1.15;
+}
+
+.nt-risk-metric-sub {
+    margin-top: 5px;
+    color: var(--nt-neutral);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.nt-preview-risk-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 9px;
+    margin: 0 0 12px;
+}
+
+.nt-preview-risk-grid article {
+    min-width: 0;
+    padding: 11px 12px;
+    border: 1px solid var(--nt-border);
+    border-radius: 11px;
+    background: #f8fafc;
+}
+
+.nt-preview-risk-grid span {
+    display: block;
+    color: var(--nt-neutral);
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.nt-preview-risk-grid strong {
+    display: block;
+    margin-top: 5px;
+    color: var(--nt-dark);
+    font-size: 17px;
+    font-weight: 850;
+    line-height: 1.2;
+}
+
+.nt-backtest-risk-section {
+    margin: 18px 0 16px;
+    padding: 16px;
+    border: 1px solid var(--nt-border);
+    border-radius: 14px;
+    background: #f8fafc;
+}
+
+.nt-backtest-risk-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 12px;
+}
+
+.nt-backtest-risk-heading h4 {
+    margin: 3px 0 0;
+    color: var(--nt-dark);
+    font-size: 16px;
+    font-weight: 850;
+}
+
+.nt-backtest-risk-heading p {
+    max-width: 500px;
+    margin: 0;
+    color: var(--nt-neutral);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.5;
+    text-align: right;
+}
+
+.nt-backtest-risk-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.nt-result-card-risk {
+    box-shadow: none;
+}
+
+.nt-result-card-risk .nt-result-value {
+    font-size: 21px;
+}
+
+@media (max-width: 1000px) {
+    .nt-risk-metric-grid,
+    .nt-preview-risk-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .nt-backtest-risk-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .nt-risk-metric-grid,
+    .nt-preview-risk-grid,
+    .nt-backtest-risk-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .nt-backtest-risk-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .nt-backtest-risk-heading p {
+        text-align: left;
+    }
+}
