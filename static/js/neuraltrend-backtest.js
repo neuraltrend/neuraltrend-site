@@ -82,7 +82,7 @@
     
         const returnValue = growthFactor - 1;
         const percent = returnValue * 100;
-        const sign = percent > 0 ? "+" : "";
+        const sign = signed && percent > 0 ? "+" : "";
     
         let cls = "return-neutral";
         if (returnValue > 0) cls = "return-positive";
@@ -103,6 +103,33 @@
         return Number(value).toFixed(decimals);
     }
 
+    function formatBacktestPercent(value, decimals = 1, colorize = false, signed = true) {
+        if (value === null || value === undefined) {
+            return colorize
+                ? `<span class="return-value return-neutral">—</span>`
+                : "—";
+        }
+
+        const numberValue = Number(value);
+        if (!Number.isFinite(numberValue)) {
+            return colorize
+                ? `<span class="return-value return-neutral">—</span>`
+                : "—";
+        }
+
+        const percent = numberValue * 100;
+        const sign = percent > 0 ? "+" : "";
+        const text = `${sign}${percent.toFixed(decimals)}%`;
+
+        if (!colorize) return text;
+
+        let cls = "return-neutral";
+        if (numberValue > 0) cls = "return-positive";
+        if (numberValue < 0) cls = "return-negative";
+
+        return `<span class="return-value ${cls}">${text}</span>`;
+    }
+
     function renderResults({
         ticker,
         final_value,
@@ -111,6 +138,12 @@
         strategy_growth_factor,
         return_spread,
         sharpe_ratio,
+        strategy_max_drawdown,
+        buy_hold_max_drawdown,
+        strategy_annualized_volatility,
+        buy_hold_annualized_volatility,
+        strategy_market_exposure,
+        executed_trade_count = 0,
         transaction_cost_rate = 0,
         valuation_policy = "mark_to_market",
         ending_position_open = false,
@@ -178,6 +211,54 @@
                     </div>
         
                 </div>
+
+                <section class="nt-backtest-risk-section" aria-label="Backtest risk context">
+                    <div class="nt-backtest-risk-heading">
+                        <div>
+                            <div class="nt-section-eyebrow">Risk Context</div>
+                            <h4>Drawdown, volatility, exposure, and activity</h4>
+                        </div>
+                        <p>Maximum drawdown is the largest peak-to-trough decline during the selected period.</p>
+                    </div>
+
+                    <div class="nt-backtest-risk-grid">
+                        <div class="nt-result-card nt-result-card-risk">
+                            <div class="nt-result-label">AI Max Drawdown</div>
+                            <div class="nt-result-value">${formatBacktestPercent(strategy_max_drawdown, 1, true)}</div>
+                            <div class="nt-result-sub">Strategy equity curve</div>
+                        </div>
+
+                        <div class="nt-result-card nt-result-card-risk">
+                            <div class="nt-result-label">Buy &amp; Hold Max Drawdown</div>
+                            <div class="nt-result-value">${formatBacktestPercent(buy_hold_max_drawdown, 1, true)}</div>
+                            <div class="nt-result-sub">Benchmark equity curve</div>
+                        </div>
+
+                        <div class="nt-result-card nt-result-card-risk">
+                            <div class="nt-result-label">AI Annualized Volatility</div>
+                            <div class="nt-result-value">${formatBacktestPercent(strategy_annualized_volatility, 1, false, false)}</div>
+                            <div class="nt-result-sub">Daily strategy-equity returns</div>
+                        </div>
+
+                        <div class="nt-result-card nt-result-card-risk">
+                            <div class="nt-result-label">B&amp;H Annualized Volatility</div>
+                            <div class="nt-result-value">${formatBacktestPercent(buy_hold_annualized_volatility, 1, false, false)}</div>
+                            <div class="nt-result-sub">Daily benchmark returns</div>
+                        </div>
+
+                        <div class="nt-result-card nt-result-card-risk">
+                            <div class="nt-result-label">Market Exposure</div>
+                            <div class="nt-result-value">${formatBacktestPercent(strategy_market_exposure, 1, false, false)}</div>
+                            <div class="nt-result-sub">Observed days holding a position</div>
+                        </div>
+
+                        <div class="nt-result-card nt-result-card-risk">
+                            <div class="nt-result-label">Executed Trades</div>
+                            <div class="nt-result-value">${Number(executed_trade_count || 0).toLocaleString()}</div>
+                            <div class="nt-result-sub">BUY and SELL executions</div>
+                        </div>
+                    </div>
+                </section>
         
                 <div class="nt-backtest-chart-card">
 

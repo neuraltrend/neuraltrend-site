@@ -613,6 +613,22 @@
         `;
     }
 
+    function formatMetricNumber(value, decimals = 2) {
+        if (value === null || value === undefined) return "—";
+        const numberValue = Number(value);
+        if (!Number.isFinite(numberValue)) return "—";
+        return numberValue.toFixed(decimals);
+    }
+
+    function formatMetricPercentText(value, decimals = 1, signed = true) {
+        if (value === null || value === undefined) return "—";
+        const numberValue = Number(value);
+        if (!Number.isFinite(numberValue)) return "—";
+        const percent = numberValue * 100;
+        const sign = signed && percent > 0 ? "+" : "";
+        return `${sign}${percent.toFixed(decimals)}%`;
+    }
+
     function durationLabel(value) {
         const labels = {
             "1w": "1W",
@@ -712,6 +728,24 @@
     
         document.getElementById("metric-signal-sub").textContent =
             item.signals_locked ? "Pro signal locked" : signalSubText(item.today_signal);
+
+        document.getElementById("metric-strategy-max-drawdown").innerHTML =
+            formatPercent(item.strategy_max_drawdown);
+
+        document.getElementById("metric-buyhold-max-drawdown").innerHTML =
+            formatPercent(item.buy_hold_max_drawdown);
+
+        document.getElementById("metric-strategy-sharpe").textContent =
+            formatMetricNumber(item.sharpe_ratio, 2);
+
+        document.getElementById("metric-market-exposure").textContent =
+            formatMetricPercentText(item.strategy_market_exposure, 1, false);
+
+        const tradeCount = Number(item.executed_trade_count);
+        document.getElementById("metric-trade-count").textContent =
+            Number.isFinite(tradeCount)
+                ? `${tradeCount.toLocaleString()} executed trades`
+                : "— executed trades";
     }
     
     let currentSort = {
@@ -1148,6 +1182,9 @@
         if (!container || !chartDiv) return;
     
         container.style.display = "block";
+
+        const riskGrid = document.getElementById("equity-preview-risk-grid");
+        if (riskGrid) riskGrid.style.display = "none";
     
         const ticker = data.ticker || currentTicker || "this asset";
     
@@ -1213,6 +1250,30 @@
             const costPct = Number(data.transaction_cost_rate || 0) * 100;
             previewCostLabelEl.textContent = `${costPct.toFixed(2)}% per executed trade`;
         }
+
+        const riskGrid = document.getElementById("equity-preview-risk-grid");
+        if (riskGrid) riskGrid.style.display = "grid";
+
+        document.getElementById("preview-strategy-max-drawdown").textContent =
+            formatMetricPercentText(data.strategy_max_drawdown, 1);
+        document.getElementById("preview-buyhold-max-drawdown").textContent =
+            formatMetricPercentText(data.buy_hold_max_drawdown, 1);
+        document.getElementById("preview-strategy-sharpe").textContent =
+            formatMetricNumber(data.sharpe_ratio, 2);
+        document.getElementById("preview-strategy-volatility").textContent =
+            formatMetricPercentText(data.strategy_annualized_volatility, 1, false);
+
+        const exposureText = formatMetricPercentText(
+            data.strategy_market_exposure,
+            1,
+            false
+        );
+        const tradeCount = Number(data.executed_trade_count);
+        const tradeText = Number.isFinite(tradeCount)
+            ? tradeCount.toLocaleString()
+            : "—";
+        document.getElementById("preview-exposure-trades").textContent =
+            `${exposureText} / ${tradeText}`;
     
         chartDiv.innerHTML = `
             <canvas id="previewChartCanvas"></canvas>
