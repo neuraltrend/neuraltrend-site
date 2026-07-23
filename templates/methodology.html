@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+
+{% block title %}Performance & Methodology | NeuralTrend{% endblock %}
+
+{% block meta_description %}
+Learn how NeuralTrend builds EpochSignaler models, separates training, validation, and test data, times daily signals, calculates historical simulations, and discloses model-history changes.
+{% endblock %}
+
+{% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-methodology.css') }}">
+{% endblock %}
+
+{% block content %}
+<main class="nt-methodology-page">
+    <section class="nt-methodology-hero">
+        <div class="nt-methodology-shell nt-methodology-hero-grid">
+            <div>
+                <div class="nt-methodology-kicker">Performance &amp; Methodology</div>
+                <h1>How NeuralTrend builds, evaluates, and reports EpochSignaler results</h1>
+                <p class="nt-methodology-lead">
+                    This page explains the data, model-development process, signal timing,
+                    simulation assumptions, retraining policy, and important limitations behind
+                    the results shown on NeuralTrend.
+                </p>
+                <div class="nt-methodology-actions">
+                    <a href="{{ url_for('index') }}#products" class="nt-methodology-primary-btn">
+                        Explore Signals
+                    </a>
+                    <a href="#historical-performance" class="nt-methodology-secondary-btn">
+                        Review Performance Snapshot
+                    </a>
+                </div>
+            </div>
+
+            <aside class="nt-methodology-trust-card" aria-label="Methodology summary">
+                <div class="nt-methodology-trust-title">Methodology at a glance</div>
+                <dl>
+                    <div>
+                        <dt>Input data</dt>
+                        <dd>Daily OHLCV plus derived technical and calendar features</dd>
+                    </div>
+                    <div>
+                        <dt>Evaluation split</dt>
+                        <dd>60% train · 20% validation · 20% test, chronological</dd>
+                    </div>
+                    <div>
+                        <dt>Model scope</dt>
+                        <dd>Separate transformer-based model for each asset</dd>
+                    </div>
+                    <div>
+                        <dt>Signal timing</dt>
+                        <dd>A signal dated today uses completed data only through yesterday</dd>
+                    </div>
+                </dl>
+            </aside>
+        </div>
+    </section>
+
+    <section class="nt-methodology-shell nt-methodology-stat-grid" aria-label="Current platform coverage">
+        <div class="nt-methodology-stat-card">
+            <strong>{{ coverage.asset_count }}</strong>
+            <span>publicly listed assets</span>
+        </div>
+        <div class="nt-methodology-stat-card">
+            <strong>{{ coverage.crypto_count }}</strong>
+            <span>crypto assets</span>
+        </div>
+        <div class="nt-methodology-stat-card">
+            <strong>{{ coverage.stock_count }}</strong>
+            <span>traditional assets</span>
+        </div>
+        <div class="nt-methodology-stat-card">
+            <strong>Daily</strong>
+            <span>signal frequency</span>
+        </div>
+    </section>
+
+    <section class="nt-methodology-shell nt-methodology-disclosure" aria-labelledby="important-context-title">
+        <div class="nt-methodology-disclosure-icon" aria-hidden="true">!</div>
+        <div>
+            <h2 id="important-context-title">Important context before interpreting performance</h2>
+            <p>
+                NeuralTrend’s historical charts are model simulations, not brokerage statements
+                and not a permanently untouched live track record. The available history includes
+                periods used for model training, validation, testing, and later production inference.
+                A dedicated immutable live-since-launch record is planned and will be reported separately.
+            </p>
+        </div>
+    </section>
+
+    <section class="nt-methodology-shell nt-methodology-section" id="model-development">
+        <div class="nt-methodology-section-heading">
+            <div class="nt-methodology-kicker">Model development</div>
+            <h2>Data and chronological evaluation</h2>
+            <p>
+                Each asset is processed independently using the same general feature and evaluation framework.
+            </p>
+        </div>
+
+        <div class="nt-methodology-card-grid">
+            <article class="nt-methodology-card">
+                <span class="nt-methodology-card-number">01</span>
+                <h3>Market data</h3>
+                <p>
+                    The independent market inputs are daily open, high, low, close, and volume data
+                    obtained through yfinance, generally from the beginning of available history through
+                    the latest available completed day.
+                </p>
+                <p>
+                    Approximately 50 technical-analysis features are constructed from OHLCV. Lower-weight
+                    calendar features, such as day of week and month of year, are also included.
+                </p>
+            </article>
+
+            <article class="nt-methodology-card">
+                <span class="nt-methodology-card-number">02</span>
+                <h3>Separate asset models</h3>
+                <p>
+                    EpochSignaler currently uses a separate transformer-based model for each asset,
+                    combined with hyperparameter optimization. The system does not currently use one
+                    shared universal model across all assets.
+                </p>
+                <p>
+                    Shared-model infrastructure for related asset classes is planned, particularly to
+                    address limited history for newer assets.
+                </p>
+            </article>
+
+            <article class="nt-methodology-card">
+                <span class="nt-methodology-card-number">03</span>
+                <h3>Fixed chronological split</h3>
+                <p>
+                    For model development, each asset’s observations are ordered by time and divided into
+                    the first 60% for training, the next 20% for validation, and the final 20% for testing.
+                    Future information is not randomly mixed into earlier partitions.
+                </p>
+                <p>
+                    The currently deployed models use a fixed holdout process rather than rolling or
+                    walk-forward testing.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <section class="nt-methodology-shell nt-methodology-section nt-methodology-section-alt" id="signal-timing">
+        <div class="nt-methodology-section-heading">
+            <div class="nt-methodology-kicker">Signal timing</div>
+            <h2>What a daily signal knows—and what it does not know</h2>
+        </div>
+
+        <div class="nt-methodology-timeline">
+            <div class="nt-methodology-timeline-item">
+                <div class="nt-methodology-timeline-marker">T−1</div>
+                <div>
+                    <h3>Completed market data</h3>
+                    <p>
+                        A signal dated day T uses completed OHLCV information only through day T−1.
+                        It does not use day T open, high, low, close, or volume data.
+                    </p>
+                </div>
+            </div>
+            <div class="nt-methodology-timeline-item">
+                <div class="nt-methodology-timeline-marker">T</div>
+                <div>
+                    <h3>Published signal date</h3>
+                    <p>
+                        The resulting BUY, HOLD, or SELL state is associated with day T. This design
+                        accommodates up to a one-day delay in upstream daily-data availability.
+                    </p>
+                </div>
+            </div>
+            <div class="nt-methodology-timeline-item">
+                <div class="nt-methodology-timeline-marker">Close</div>
+                <div>
+                    <h3>Current simulation price assumption</h3>
+                    <p>
+                        Historical simulations currently apply executions using the daily closing price
+                        stored for the signal date. Live paper simulations use the latest daily CSV close
+                        available to the website; they are not currently real-time exchange executions.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="nt-methodology-shell nt-methodology-section" id="simulation-assumptions">
+        <div class="nt-methodology-section-heading">
+            <div class="nt-methodology-kicker">Simulation assumptions</div>
+            <h2>How historical strategy results are calculated</h2>
+        </div>
+
+        <div class="nt-methodology-assumption-grid">
+            <article>
+                <h3>Signal actions</h3>
+                <p>
+                    BUY invests according to the selected position-size rule, SELL reduces the current
+                    position according to that rule, and HOLD does not execute a trade.
+                </p>
+            </article>
+            <article>
+                <h3>Transaction costs</h3>
+                <p>
+                    The current fixed assumptions are 1.00% per executed crypto side and 0.10% per
+                    executed stock side. These are modeling assumptions, not guaranteed user costs.
+                </p>
+            </article>
+            <article>
+                <h3>Open positions</h3>
+                <p>
+                    An open position at the end of a selected horizon is marked to market. NeuralTrend
+                    does not invent a final SELL or charge a final exit cost without a SELL signal.
+                </p>
+            </article>
+            <article>
+                <h3>Benchmark</h3>
+                <p>
+                    Buy &amp; Hold is measured over the same period with an entry transaction cost. For
+                    whole-share stock simulations, residual uninvested cash remains in benchmark equity.
+                </p>
+            </article>
+        </div>
+
+        <div class="nt-methodology-limitations">
+            <h3>Costs not currently modeled</h3>
+            <p>
+                Slippage, bid–ask spread variation, DEX gas costs, liquidity-dependent price impact,
+                market impact, taxes, borrow costs, and exchange-specific fee tiers are not modeled
+                separately. Actual trading results can therefore differ materially from simulations.
+            </p>
+        </div>
+    </section>
+
+    <section class="nt-methodology-shell nt-methodology-section nt-methodology-section-alt" id="retraining-policy">
+        <div class="nt-methodology-section-heading">
+            <div class="nt-methodology-kicker">Model maintenance</div>
+            <h2>Retraining and model-selection policy</h2>
+        </div>
+
+        <div class="nt-methodology-two-column">
+            <article class="nt-methodology-card">
+                <h3>Current process</h3>
+                <p>
+                    Model monitoring and retraining are currently manual. Assets with weaker recent
+                    strategy performance relative to Buy &amp; Hold—typically reviewed across approximately
+                    one week to one-to-three months—receive higher retraining priority.
+                </p>
+                <p>
+                    Depending on recent inference quality, a model may remain deployed for several weeks,
+                    several months, or longer. Automated monitoring and retraining are planned.
+                </p>
+            </article>
+
+            <article class="nt-methodology-card nt-methodology-caution-card">
+                <h3>Why this matters</h3>
+                <p>
+                    Because recent performance influences which models are retrained, aggregate historical
+                    results should not be interpreted as one model selected once and left untouched forever.
+                    Retraining can introduce model-selection effects that a fixed historical holdout does not
+                    fully capture.
+                </p>
+                <p>
+                    NeuralTrend therefore labels these results as historical model simulations and will
+                    report a separate immutable live record when that tracking system is introduced.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <section class="nt-methodology-shell nt-methodology-section" id="historical-performance">
+        <div class="nt-methodology-section-heading">
+            <div class="nt-methodology-kicker">Illustrative public assets</div>
+            <h2>Recent one-year historical performance snapshot</h2>
+            <p>
+                This fixed one-year view is shown as an illustrative, recent comparison rather than selecting
+                the strongest horizon for each asset. Results are historical simulations, include the fixed
+                transaction-cost assumptions above, and exclude slippage. Negative strategy returns remain visible.
+            </p>
+        </div>
+
+        {% if featured_performance %}
+        <div class="nt-methodology-table-wrap">
+            <table class="nt-methodology-performance-table">
+                <thead>
+                    <tr>
+                        <th>Asset</th>
+                        <th>Coverage</th>
+                        <th>Observations</th>
+                        <th>AI strategy</th>
+                        <th>Buy &amp; Hold</th>
+                        <th>Return spread</th>
+                        <th>Latest signal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in featured_performance %}
+                    <tr>
+                        <td><strong>{{ row.ticker }}</strong></td>
+                        <td>{{ row.coverage_start }} – {{ row.coverage_end }}</td>
+                        <td>{{ row.observations }}</td>
+                        <td class="{{ row.strategy_class }}">{{ row.strategy_return }}</td>
+                        <td class="{{ row.benchmark_class }}">{{ row.buy_hold_return }}</td>
+                        <td class="{{ row.spread_class }}">{{ row.return_spread }}</td>
+                        <td><span class="nt-methodology-signal nt-methodology-signal-{{ row.signal_class }}">{{ row.signal }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="nt-methodology-snapshot-time">
+            Snapshot generated from the currently deployed data files. The window and data-through dates are shown per asset.
+        </p>
+        {% else %}
+        <div class="nt-methodology-empty-state">
+            The performance snapshot is temporarily unavailable. The methodology disclosures above remain applicable.
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="nt-methodology-shell nt-methodology-section nt-methodology-section-alt" id="history-policy">
+        <div class="nt-methodology-section-heading">
+            <div class="nt-methodology-kicker">History integrity</div>
+            <h2>Historical signal preservation and revision policy</h2>
+        </div>
+
+        <div class="nt-methodology-policy-grid">
+            <article>
+                <h3>Append-only by default</h3>
+                <p>
+                    When a newly trained model is deployed, NeuralTrend normally appends new dates,
+                    features, and signals while preserving previously published historical signal rows.
+                </p>
+            </article>
+            <article>
+                <h3>Rare revisions</h3>
+                <p>
+                    A full data cleanup or correction may occasionally require historical changes. When
+                    that occurs, the affected asset, period, reason, and whether prior signals changed will
+                    be documented in the public change log below before revised results are presented.
+                </p>
+            </article>
+            <article>
+                <h3>Release audit</h3>
+                <p>
+                    The project includes a signal-history audit tool that compares previously published
+                    Date/signal rows with the next release and flags unexpected historical changes for review.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <section class="nt-methodology-shell nt-methodology-section" id="model-change-log">
+        <div class="nt-methodology-section-heading">
+            <div class="nt-methodology-kicker">Public disclosure</div>
+            <h2>Model and signal-history change log</h2>
+            <p>
+                Material methodology changes, model-history revisions, and data corrections are recorded here.
+                Routine appending of a new daily row does not require a separate entry.
+            </p>
+        </div>
+
+        <div class="nt-methodology-change-log">
+            {% for entry in change_log %}
+            <article class="nt-methodology-change-entry">
+                <div class="nt-methodology-change-meta">
+                    <time datetime="{{ entry.date }}">{{ entry.date }}</time>
+                    <span>{{ entry.scope }}</span>
+                    <span>{{ entry.change_type }}</span>
+                </div>
+                <h3>{{ entry.title }}</h3>
+                <p>{{ entry.summary }}</p>
+                <dl>
+                    <div>
+                        <dt>Historical signals changed</dt>
+                        <dd>{{ entry.historical_signals_changed }}</dd>
+                    </div>
+                    <div>
+                        <dt>Affected period</dt>
+                        <dd>{{ entry.affected_period }}</dd>
+                    </div>
+                </dl>
+            </article>
+            {% else %}
+            <div class="nt-methodology-empty-state">No material changes have been published.</div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="nt-methodology-shell nt-methodology-section nt-methodology-final-notes">
+        <div>
+            <div class="nt-methodology-kicker">Limitations</div>
+            <h2>What the results do not establish</h2>
+            <ul>
+                <li>Historical performance does not guarantee future performance.</li>
+                <li>The fixed 60/20/20 split is not equivalent to continuous walk-forward validation.</li>
+                <li>The current website does not yet provide real-time execution or an immutable live track record.</li>
+                <li>Upstream providers may discontinue assets or revise source data.</li>
+                <li>NeuralTrend does not remove assets solely because their model performed poorly.</li>
+            </ul>
+        </div>
+        <aside>
+            <h3>Use NeuralTrend as a research tool</h3>
+            <p>
+                Review current signals, assumptions, historical behavior, and paper simulations together.
+                Do not rely on a single return figure when making a financial decision.
+            </p>
+            <a href="{{ url_for('risk_disclaimer') }}">Read the Risk Disclaimer →</a>
+        </aside>
+    </section>
+</main>
+{% endblock %}
