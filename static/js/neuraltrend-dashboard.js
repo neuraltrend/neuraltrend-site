@@ -382,6 +382,7 @@
         if (value === "all") return "All Assets";
         if (value === "crypto") return "Crypto";
         if (value === "stock") return "Stocks";
+        if (value === "watchlist") return "My Watchlist";
         return value;
     }
     
@@ -518,16 +519,22 @@
             );
         }
     
-        // 2️⃣ Asset type filter
+        // 2️⃣ Asset type / watchlist filter
         if (assetTypeFilter !== "all") {
-        
+
             filtered = filtered.filter(item => {
-        
+
                 const isCrypto = item.ticker.endsWith("-USD");
-        
+
                 if (assetTypeFilter === "crypto") return isCrypto;
                 if (assetTypeFilter === "stock") return !isCrypto;
-        
+                if (assetTypeFilter === "watchlist") {
+                    return Boolean(
+                        window.neuralTrendWatchlistHasTicker
+                        && window.neuralTrendWatchlistHasTicker(item.ticker)
+                    );
+                }
+
                 return true;
             });
         }
@@ -942,6 +949,8 @@
     const board = document.getElementById('signal-board');
 
     function activateSignalBoardRow(event) {
+        if (event.target.closest("[data-watchlist-row-toggle]")) return;
+
         const row = event.target.closest(".signal-row[data-ticker]");
         if (!row || !board.contains(row)) return;
 
@@ -1136,6 +1145,13 @@
             if (!select) return;
     
             const newValue = this.dataset.value;
+
+            if (newValue === "watchlist" && !window.neuralTrendCurrentUser?.email) {
+                if (typeof openNeuralTrendLoginModal === "function") {
+                    openNeuralTrendLoginModal("Log in to save assets and view your watchlist.");
+                }
+                return;
+            }
     
             if (!newValue) return;
     
@@ -1168,6 +1184,9 @@
     function loadTicker(ticker) {
 
         currentTicker = ticker;
+        document.dispatchEvent(new CustomEvent("neuralTrendTickerSelected", {
+            detail: { ticker }
+        }));
     
         highlightSelectedTicker();
         updateSelectedPerformanceCards(ticker);
