@@ -111,27 +111,56 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                     <tr>
                         <th>Asset</th>
                         <th>Coverage</th>
-                        <th>Observations</th>
                         <th>AI strategy</th>
                         <th>Buy &amp; Hold</th>
                         <th>Return spread</th>
+                        <th>AI max drawdown</th>
+                        <th>B&amp;H max drawdown</th>
+                        <th>Sharpe</th>
+                        <th>Trades</th>
+                        <th>Exposure</th>
                         <th>Latest signal</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for row in featured_performance %}
                     <tr>
-                        <td><strong>{{ row.ticker }}</strong></td>
+                        <td>
+                            <strong>{{ row.ticker }}</strong>
+                            <small>{{ row.observations }} observations</small>
+                        </td>
                         <td>{{ row.coverage_start }} – {{ row.coverage_end }}</td>
-                        <td>{{ row.observations }}</td>
                         <td class="{{ row.strategy_class }}">{{ row.strategy_return }}</td>
                         <td class="{{ row.benchmark_class }}">{{ row.buy_hold_return }}</td>
                         <td class="{{ row.spread_class }}">{{ row.return_spread }}</td>
+                        <td class="{{ row.strategy_drawdown_class }}">{{ row.strategy_max_drawdown }}</td>
+                        <td class="{{ row.benchmark_drawdown_class }}">{{ row.buy_hold_max_drawdown }}</td>
+                        <td>{{ row.sharpe_ratio }}</td>
+                        <td>{{ row.executed_trade_count }}</td>
+                        <td>{{ row.market_exposure }}</td>
                         <td><span class="nt-methodology-signal nt-methodology-signal-{{ row.signal_class }}">{{ row.signal }}</span></td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+        <div class="nt-methodology-risk-glossary" aria-label="Risk metric definitions">
+            <article>
+                <strong>Maximum drawdown</strong>
+                <span>Largest decline from a previous equity peak to a later trough.</span>
+            </article>
+            <article>
+                <strong>Sharpe ratio</strong>
+                <span>Annualized risk-adjusted return from daily strategy-equity changes using a 1% annual risk-free assumption.</span>
+            </article>
+            <article>
+                <strong>Market exposure</strong>
+                <span>Share of observations during which the strategy held an open position.</span>
+            </article>
+            <article>
+                <strong>Executed trades</strong>
+                <span>Actual BUY and SELL actions after position and cash rules are applied.</span>
+            </article>
         </div>
         <p class="nt-methodology-snapshot-time">
             Generated from the currently deployed data files. Coverage and data-through dates are shown per asset.

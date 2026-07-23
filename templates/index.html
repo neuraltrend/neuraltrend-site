@@ -763,6 +763,32 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                 </div>
                         
                             </div>
+
+                            <div class="nt-risk-metric-grid" aria-label="Selected asset risk metrics">
+                                <article class="nt-risk-metric-card">
+                                    <div class="nt-risk-metric-label">AI Max Drawdown</div>
+                                    <div id="metric-strategy-max-drawdown" class="nt-risk-metric-value">—</div>
+                                    <div class="nt-risk-metric-sub">Largest peak-to-trough decline</div>
+                                </article>
+
+                                <article class="nt-risk-metric-card">
+                                    <div class="nt-risk-metric-label">Buy &amp; Hold Max Drawdown</div>
+                                    <div id="metric-buyhold-max-drawdown" class="nt-risk-metric-value">—</div>
+                                    <div class="nt-risk-metric-sub">Same asset and horizon</div>
+                                </article>
+
+                                <article class="nt-risk-metric-card">
+                                    <div class="nt-risk-metric-label">AI Sharpe Ratio</div>
+                                    <div id="metric-strategy-sharpe" class="nt-risk-metric-value">—</div>
+                                    <div class="nt-risk-metric-sub">Annualized from daily equity returns</div>
+                                </article>
+
+                                <article class="nt-risk-metric-card">
+                                    <div class="nt-risk-metric-label">Market Exposure</div>
+                                    <div id="metric-market-exposure" class="nt-risk-metric-value">—</div>
+                                    <div id="metric-trade-count" class="nt-risk-metric-sub">— executed trades</div>
+                                </article>
+                            </div>
                         </div>
                         <!-- SELECTED ASSET PERFORMANCE CARDS END -->
 
@@ -1033,6 +1059,29 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                                 </button>
                             </div>
                 
+                        </div>
+
+                        <div id="equity-preview-risk-grid" class="nt-preview-risk-grid" aria-label="Equity preview risk metrics">
+                            <article>
+                                <span>AI Max Drawdown</span>
+                                <strong id="preview-strategy-max-drawdown">—</strong>
+                            </article>
+                            <article>
+                                <span>B&amp;H Max Drawdown</span>
+                                <strong id="preview-buyhold-max-drawdown">—</strong>
+                            </article>
+                            <article>
+                                <span>AI Sharpe</span>
+                                <strong id="preview-strategy-sharpe">—</strong>
+                            </article>
+                            <article>
+                                <span>AI Volatility</span>
+                                <strong id="preview-strategy-volatility">—</strong>
+                            </article>
+                            <article>
+                                <span>Exposure / Trades</span>
+                                <strong id="preview-exposure-trades">—</strong>
+                            </article>
                         </div>
                 
                         <div id="equity-preview-chart" class="nt-preview-chart">
