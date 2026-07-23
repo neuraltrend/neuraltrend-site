@@ -83,7 +83,8 @@
             "1y": "1Y",
             "3y": "3Y",
             "5y": "5Y",
-            "10y": "10Y"
+            "10y": "10Y",
+            "max": "MAX"
         };
     
         return labels[duration] || String(duration || "").toUpperCase();
