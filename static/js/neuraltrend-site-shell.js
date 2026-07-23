@@ -12,6 +12,18 @@
     const authMessage = document.getElementById("authMessage");
     const userArea = document.getElementById("user-area");
 
+    const changePasswordModal = document.getElementById("changePasswordModal");
+    const changePasswordForm = document.getElementById("change-password-form");
+    const changePasswordClose = document.getElementById("change-password-close");
+    const changePasswordCancel = document.getElementById("change-password-cancel");
+    const changePasswordSubmit = document.getElementById("change-password-submit");
+    const changePasswordMessage = document.getElementById("change-password-message");
+    const changeCurrentPassword = document.getElementById("change-current-password");
+    const changeNewPassword = document.getElementById("change-new-password");
+    const changeConfirmPassword = document.getElementById("change-confirm-password");
+
+    let changePasswordReturnFocus = null;
+
     function replaceElementChildren(element, ...children) {
         if (!element) return;
         element.replaceChildren(...children);
@@ -45,52 +57,207 @@
         replaceElementChildren(authMessage, messageText, lineBreak, resendButton);
     }
 
-    function createUserMenuAction(label, handler, { danger = false } = {}) {
-        const action = document.createElement("div");
-        action.setAttribute("role", "button");
-        action.tabIndex = 0;
-        action.textContent = label;
+    function closeUserDropdown({ restoreFocus = false } = {}) {
+        const menu = document.getElementById("userMenu");
+        const dropdown = document.getElementById("dropdownMenu");
+        const trigger = menu?.querySelector(".user-pill");
+
+        if (!dropdown || !trigger) return;
+
+        dropdown.hidden = true;
+        menu.classList.remove("is-open");
+        trigger.setAttribute("aria-expanded", "false");
+
+        if (restoreFocus) {
+            trigger.focus();
+        }
+    }
+
+    function toggleUserDropdown() {
+        const menu = document.getElementById("userMenu");
+        const dropdown = document.getElementById("dropdownMenu");
+        const trigger = menu?.querySelector(".user-pill");
+
+        if (!dropdown || !trigger) return;
+
+        const willOpen = dropdown.hidden;
+        dropdown.hidden = !willOpen;
+        menu.classList.toggle("is-open", willOpen);
+        trigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
+
+        if (willOpen) {
+            dropdown.querySelector("button[role='menuitem']")?.focus();
+        }
+    }
+
+    function createUserMenuAction(
+        label,
+        handler,
+        { danger = false, icon = "", description = "" } = {}
+    ) {
+        const action = document.createElement("button");
+        action.type = "button";
+        action.className = "nt-account-menu-action";
+        action.setAttribute("role", "menuitem");
 
         if (danger) {
-            action.style.color = "red";
+            action.classList.add("nt-account-menu-action-danger");
         }
 
-        action.addEventListener("click", handler);
-        action.addEventListener("keydown", event => {
-            if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                handler();
-            }
+        const iconWrap = document.createElement("span");
+        iconWrap.className = "nt-account-menu-icon";
+        iconWrap.setAttribute("aria-hidden", "true");
+        iconWrap.textContent = icon;
+
+        const copy = document.createElement("span");
+        copy.className = "nt-account-menu-action-copy";
+
+        const labelEl = document.createElement("span");
+        labelEl.className = "nt-account-menu-action-label";
+        labelEl.textContent = label;
+        copy.append(labelEl);
+
+        if (description) {
+            const descriptionEl = document.createElement("span");
+            descriptionEl.className = "nt-account-menu-action-description";
+            descriptionEl.textContent = description;
+            copy.append(descriptionEl);
+        }
+
+        action.append(iconWrap, copy);
+        action.addEventListener("click", () => {
+            closeUserDropdown();
+            handler(action);
         });
 
         return action;
     }
 
-    function renderAuthenticatedUserArea(email) {
+    function createUserMenuDivider() {
+        const divider = document.createElement("div");
+        divider.className = "nt-account-menu-divider";
+        divider.setAttribute("role", "separator");
+        return divider;
+    }
+
+    function createUserMenuSectionLabel(label) {
+        const sectionLabel = document.createElement("div");
+        sectionLabel.className = "nt-account-menu-section-label";
+        sectionLabel.textContent = label;
+        return sectionLabel;
+    }
+
+    function renderAuthenticatedUserArea(userData) {
         if (!userArea) return;
 
+        const email = String(userData?.email || "");
+        const isPaid = Boolean(userData?.is_paid);
+        const planLabel = isPaid ? "Pro" : "Free";
+
         const menu = document.createElement("div");
-        menu.className = "user-menu";
+        menu.className = "user-menu nt-account-menu";
         menu.id = "userMenu";
 
-        const pill = document.createElement("div");
-        pill.className = "user-pill";
-        pill.append(document.createTextNode(String(email || "")));
+        const pill = document.createElement("button");
+        pill.type = "button";
+        pill.className = "user-pill nt-account-trigger";
+        pill.setAttribute("aria-haspopup", "menu");
+        pill.setAttribute("aria-expanded", "false");
+        pill.setAttribute("aria-controls", "dropdownMenu");
+
+        const avatar = document.createElement("span");
+        avatar.className = "nt-account-trigger-avatar";
+        avatar.setAttribute("aria-hidden", "true");
+        avatar.textContent = (email.charAt(0) || "U").toUpperCase();
+
+        const triggerEmail = document.createElement("span");
+        triggerEmail.className = "nt-account-trigger-email";
+        triggerEmail.textContent = email;
 
         const arrow = document.createElement("span");
         arrow.className = "arrow";
-        arrow.textContent = "▼";
-        pill.append(arrow);
+        arrow.setAttribute("aria-hidden", "true");
+        arrow.textContent = "▾";
+
+        pill.append(avatar, triggerEmail, arrow);
+        pill.addEventListener("click", event => {
+            event.stopPropagation();
+            toggleUserDropdown();
+        });
 
         const dropdown = document.createElement("div");
-        dropdown.className = "dropdown";
+        dropdown.className = "dropdown nt-account-dropdown";
         dropdown.id = "dropdownMenu";
-        dropdown.style.display = "none";
+        dropdown.setAttribute("role", "menu");
+        dropdown.setAttribute("aria-label", "Account menu");
+        dropdown.hidden = true;
+
+        const header = document.createElement("div");
+        header.className = "nt-account-menu-header";
+
+        const headerCopy = document.createElement("div");
+        headerCopy.className = "nt-account-menu-header-copy";
+
+        const headerLabel = document.createElement("span");
+        headerLabel.className = "nt-account-menu-header-label";
+        headerLabel.textContent = "Signed in as";
+
+        const headerEmail = document.createElement("span");
+        headerEmail.className = "nt-account-menu-email";
+        headerEmail.textContent = email;
+        headerEmail.title = email;
+
+        headerCopy.append(headerLabel, headerEmail);
+
+        const badge = document.createElement("span");
+        badge.className = `nt-account-plan-badge ${isPaid ? "is-pro" : "is-free"}`;
+        badge.textContent = planLabel;
+
+        header.append(headerCopy, badge);
+
+        const subscriptionLabel = isPaid
+            ? "Manage Subscription"
+            : "View Pro Plan";
+        const subscriptionDescription = isPaid
+            ? "Billing and plan settings"
+            : "See Pro features and pricing";
 
         dropdown.append(
-            createUserMenuAction("Manage Subscription", manageSubscriptionFromUserMenu),
-            createUserMenuAction("Logout", logout),
-            createUserMenuAction("Delete Account", deleteAccount, { danger: true })
+            header,
+            createUserMenuDivider(),
+            createUserMenuSectionLabel("Account"),
+            createUserMenuAction(
+                "Change Password",
+                openChangePasswordModal,
+                {
+                    icon: "🔒",
+                    description: "Update password and revoke other sessions"
+                }
+            ),
+            createUserMenuAction(
+                subscriptionLabel,
+                manageSubscriptionFromUserMenu,
+                {
+                    icon: isPaid ? "💳" : "◇",
+                    description: subscriptionDescription
+                }
+            ),
+            createUserMenuDivider(),
+            createUserMenuAction(
+                "Log Out",
+                logout,
+                { icon: "↪", description: "Sign out of this browser" }
+            ),
+            createUserMenuDivider(),
+            createUserMenuAction(
+                "Delete Account",
+                deleteAccount,
+                {
+                    danger: true,
+                    icon: "🗑",
+                    description: "Permanently remove your account"
+                }
+            )
         );
 
         menu.append(pill, dropdown);
@@ -236,6 +403,201 @@
     
         window.location.href = "/subscription";
     }
+
+    // ------------------
+    // Authenticated password change
+    // ------------------
+    function setChangePasswordMessage(message, type = "") {
+        if (!changePasswordMessage) return;
+
+        changePasswordMessage.textContent = String(message || "");
+        changePasswordMessage.className = "nt-account-modal-message";
+
+        if (type) {
+            changePasswordMessage.classList.add(`is-${type}`);
+        }
+    }
+
+    function openChangePasswordModal(triggerElement) {
+        if (!changePasswordModal || !changePasswordForm) return;
+
+        const accountTrigger = document.querySelector(
+            "#userMenu .user-pill"
+        );
+
+        changePasswordReturnFocus =
+            accountTrigger instanceof HTMLElement
+                ? accountTrigger
+                : (
+                    triggerElement instanceof HTMLElement
+                        ? triggerElement
+                        : document.activeElement
+                );
+
+        changePasswordForm.reset();
+        setChangePasswordMessage("");
+        changePasswordModal.classList.add("is-open");
+        changePasswordModal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("nt-account-modal-open");
+
+        window.requestAnimationFrame(() => {
+            changeCurrentPassword?.focus();
+        });
+    }
+
+    function closeChangePasswordModal({ restoreFocus = true } = {}) {
+        if (!changePasswordModal) return;
+
+        changePasswordModal.classList.remove("is-open");
+        changePasswordModal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("nt-account-modal-open");
+
+        if (restoreFocus && changePasswordReturnFocus instanceof HTMLElement) {
+            changePasswordReturnFocus.focus();
+        }
+
+        changePasswordReturnFocus = null;
+    }
+
+    changePasswordClose?.addEventListener("click", () => {
+        closeChangePasswordModal();
+    });
+
+    changePasswordCancel?.addEventListener("click", () => {
+        closeChangePasswordModal();
+    });
+
+    changePasswordModal?.addEventListener("click", event => {
+        if (event.target === changePasswordModal) {
+            closeChangePasswordModal();
+        }
+    });
+
+    changePasswordForm?.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const currentPassword = changeCurrentPassword?.value || "";
+        const newPassword = changeNewPassword?.value || "";
+        const confirmPassword = changeConfirmPassword?.value || "";
+
+        if (!currentPassword) {
+            setChangePasswordMessage("Enter your current password.", "error");
+            changeCurrentPassword?.focus();
+            return;
+        }
+
+        if (newPassword.length < 15 || newPassword.length > 64) {
+            setChangePasswordMessage(
+                "The new password must contain 15–64 characters.",
+                "error"
+            );
+            changeNewPassword?.focus();
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            setChangePasswordMessage(
+                "The two new password entries do not match.",
+                "error"
+            );
+            changeConfirmPassword?.focus();
+            return;
+        }
+
+        if (changePasswordSubmit) {
+            changePasswordSubmit.disabled = true;
+            changePasswordSubmit.textContent = "Changing…";
+        }
+
+        setChangePasswordMessage("Updating your password…");
+
+        try {
+            const response = await fetch("/change-password", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    current_password: currentPassword,
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setChangePasswordMessage(
+                    data.error || "Could not change your password.",
+                    "error"
+                );
+                return;
+            }
+
+            changePasswordForm.reset();
+            setChangePasswordMessage(
+                data.message || "Password changed successfully.",
+                "success"
+            );
+
+            if (typeof ntTrack === "function") {
+                ntTrack("account_password_changed");
+            }
+
+            window.setTimeout(() => {
+                closeChangePasswordModal();
+            }, 1600);
+
+        } catch (error) {
+            console.error("Password change failed:", error);
+            setChangePasswordMessage(
+                "Could not change your password. Please try again.",
+                "error"
+            );
+        } finally {
+            if (changePasswordSubmit) {
+                changePasswordSubmit.disabled = false;
+                changePasswordSubmit.textContent = "Change Password";
+            }
+        }
+    });
+
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            if (changePasswordModal?.classList.contains("is-open")) {
+                event.preventDefault();
+                closeChangePasswordModal();
+                return;
+            }
+
+            closeUserDropdown({ restoreFocus: true });
+            return;
+        }
+
+        if (
+            event.key === "Tab"
+            && changePasswordModal?.classList.contains("is-open")
+        ) {
+            const focusable = Array.from(
+                changePasswordModal.querySelectorAll(
+                    'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                )
+            );
+
+            if (!focusable.length) return;
+
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        }
+    });
     
     // ------------------
     // Logout
@@ -364,35 +726,24 @@
         }
     
         if (data.email) {
-            renderAuthenticatedUserArea(data.email);
+            renderAuthenticatedUserArea(data);
         } else {
             renderLoggedOutUserArea();
         }
     }
     
     document.addEventListener("click", function(e) {
-    
-        // ✅ Handle Login button (works even after re-render)
+        // Handle Login button even after the account area is re-rendered.
         if (e.target && e.target.id === "login-btn") {
             e.preventDefault();
             loginModal.style.display = "flex";
             loginModal.style.opacity = "1";
             return;
         }
-    
-        // ✅ Dropdown logic
+
         const menu = document.getElementById("userMenu");
-        const dropdown = document.getElementById("dropdownMenu");
-    
-        if (!menu || !dropdown) return;
-    
-        const pill = menu.querySelector(".user-pill");
-    
-        if (pill && pill.contains(e.target)) {
-            dropdown.style.display =
-                dropdown.style.display === "block" ? "none" : "block";
-        } else {
-            dropdown.style.display = "none";
+        if (menu && !menu.contains(e.target)) {
+            closeUserDropdown();
         }
     });
     
