@@ -38,6 +38,7 @@ import time
 import math
 import re
 import unicodedata
+import json
 from flask_wtf.csrf import CSRFError
 from sqlalchemy.exc import IntegrityError
 
@@ -959,6 +960,169 @@ def compute_signals_for_ticker(ticker, period_days=365*10, csv_version=None):
 
     cache[cache_key] = output
     return output
+
+
+PUBLIC_MODEL_CHANGE_LOG_PATH = os.path.join(
+    DATA_DIR,
+    "public_model_change_log.json",
+)
+
+
+def public_performance_value_class(value):
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return "nt-methodology-value-neutral"
+
+    if not math.isfinite(number) or number == 0:
+        return "nt-methodology-value-neutral"
+
+    return (
+        "nt-methodology-value-positive"
+        if number > 0
+        else "nt-methodology-value-negative"
+    )
+
+
+def format_public_percent(value, *, points=False):
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return "—"
+
+    if not math.isfinite(number):
+        return "—"
+
+    suffix = " pts" if points else "%"
+    return f"{number * 100:+.1f}{suffix}"
+
+
+def public_signal_label(value):
+    try:
+        signal = int(value)
+    except (TypeError, ValueError):
+        signal = 0
+
+    if signal == 1:
+        return "BUY", "buy"
+    if signal == -1:
+        return "SELL", "sell"
+    return "HOLD", "hold"
+
+
+def load_public_model_change_log():
+    """Load the version-controlled public model/history change log safely."""
+    try:
+        with open(PUBLIC_MODEL_CHANGE_LOG_PATH, "r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except FileNotFoundError:
+        return []
+    except (OSError, json.JSONDecodeError):
+        app.logger.exception("Could not load public model change log")
+        return []
+
+    if not isinstance(payload, list):
+        app.logger.error("Public model change log must contain a JSON list")
+        return []
+
+    required_fields = (
+        "date",
+        "scope",
+        "change_type",
+        "title",
+        "summary",
+        "historical_signals_changed",
+        "affected_period",
+    )
+    entries = []
+
+    for raw_entry in payload[:100]:
+        if not isinstance(raw_entry, dict):
+            continue
+
+        entry = {
+            field: str(raw_entry.get(field, "")).strip()[:2000]
+            for field in required_fields
+        }
+
+        if not entry["date"] or not entry["title"] or not entry["summary"]:
+            continue
+
+        entries.append(entry)
+
+    entries.sort(key=lambda item: item["date"], reverse=True)
+    return entries
+
+
+def build_methodology_featured_performance():
+    """Build a small public one-year snapshot for the four Free assets."""
+    rows = []
+    csv_version = get_csv_version()
+
+    for ticker in ("BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD"):
+        try:
+            summary = compute_signals_for_ticker(
+                ticker,
+                period_days=365,
+                csv_version=csv_version,
+            )
+            market_data = load_epoch_csv_for_ticker(ticker)
+            snapshot_start = datetime.today().date() - timedelta(days=365)
+            market_data = market_data[
+                market_data.index >= pd.to_datetime(snapshot_start)
+            ].copy()
+
+            if not summary or market_data.empty:
+                continue
+
+            strategy_return = summary.get("strategy_period_return")
+            buy_hold_return = summary.get("buy_hold_period_return")
+            return_spread = summary.get("return_spread")
+            signal, signal_class = public_signal_label(summary.get("today"))
+
+            rows.append({
+                "ticker": ticker,
+                "coverage_start": market_data.index.min().date().isoformat(),
+                "coverage_end": market_data.index.max().date().isoformat(),
+                "observations": f"{len(market_data):,}",
+                "strategy_return": format_public_percent(strategy_return),
+                "buy_hold_return": format_public_percent(buy_hold_return),
+                "return_spread": format_public_percent(
+                    return_spread,
+                    points=True,
+                ),
+                "strategy_class": public_performance_value_class(strategy_return),
+                "benchmark_class": public_performance_value_class(buy_hold_return),
+                "spread_class": public_performance_value_class(return_spread),
+                "signal": signal,
+                "signal_class": signal_class,
+            })
+        except Exception:
+            app.logger.exception(
+                "Could not build methodology snapshot for ticker=%s",
+                ticker,
+            )
+
+    return rows
+
+
+def build_methodology_coverage():
+    public_tickers = [
+        ticker
+        for ticker in SUPPORTED_TICKERS
+        if ticker not in ADMIN_ONLY_TICKERS
+    ]
+
+    return {
+        "asset_count": len(public_tickers),
+        "crypto_count": sum(
+            1 for ticker in public_tickers if ticker.endswith("-USD")
+        ),
+        "stock_count": sum(
+            1 for ticker in public_tickers if not ticker.endswith("-USD")
+        ),
+    }
+
 
 # --------------------
 # Live simulation helpers
@@ -3044,6 +3208,17 @@ def index():
 def subscription():
     return render_template("subscription.html")
 
+
+@app.route("/methodology")
+def methodology():
+    return render_template(
+        "methodology.html",
+        coverage=build_methodology_coverage(),
+        featured_performance=build_methodology_featured_performance(),
+        change_log=load_public_model_change_log(),
+    )
+
+
 @app.route("/data")
 def data():
     df = pd.read_csv(CSV_PATH)
@@ -3105,6 +3280,12 @@ def sitemap_xml():
             "lastmod": today,
             "changefreq": "weekly",
             "priority": "0.8"
+        },
+        {
+            "loc": "https://neuraltrend.org/methodology",
+            "lastmod": today,
+            "changefreq": "weekly",
+            "priority": "0.9"
         },
         {
             "loc": "https://neuraltrend.org/privacy",
