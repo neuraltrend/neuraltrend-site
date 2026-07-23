@@ -339,3 +339,170 @@ class LiveSimulationEquity(db.Model):
             "strategy_value": self.strategy_value,
             "benchmark_value": self.benchmark_value,
         }
+
+
+class WatchlistItem(db.Model):
+    __tablename__ = "watchlist_items"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    user = db.relationship(
+        "User",
+        backref=db.backref(
+            "watchlist_items",
+            lazy=True,
+            cascade="all, delete-orphan",
+            passive_deletes=True,
+        ),
+    )
+
+    ticker = db.Column(db.String(30), nullable=False, index=True)
+
+    email_alert_enabled = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False,
+    )
+
+    # Baseline used by the scheduled alert worker. Enabling alerts records the
+    # currently published signal first, so users receive only future changes.
+    last_observed_signal = db.Column(db.SmallInteger, nullable=True)
+    last_observed_signal_date = db.Column(db.Date, nullable=True)
+
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "user_id",
+            "ticker",
+            name="uq_watchlist_user_ticker",
+        ),
+        db.CheckConstraint(
+            "last_observed_signal IS NULL OR last_observed_signal IN (-1, 0, 1)",
+            name="ck_watchlist_last_observed_signal",
+        ),
+    )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "ticker": self.ticker,
+            "email_alert_enabled": bool(self.email_alert_enabled),
+            "last_observed_signal": self.last_observed_signal,
+            "last_observed_signal_date": (
+                self.last_observed_signal_date.isoformat()
+                if self.last_observed_signal_date else None
+            ),
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class SignalAlertDelivery(db.Model):
+    __tablename__ = "signal_alert_deliveries"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    watchlist_item_id = db.Column(
+        db.Integer,
+        db.ForeignKey("watchlist_items.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    ticker = db.Column(db.String(30), nullable=False, index=True)
+    signal_date = db.Column(db.Date, nullable=False, index=True)
+    previous_signal = db.Column(db.SmallInteger, nullable=False)
+    current_signal = db.Column(db.SmallInteger, nullable=False)
+
+    # Deterministic SHA-256 key prevents two cron workers from claiming the
+    # same user/ticker/date/signal transition concurrently.
+    event_key = db.Column(
+        db.String(64),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+
+    processing_status = db.Column(
+        db.String(20),
+        nullable=False,
+        default="processing",
+        index=True,
+    )
+    processing_started_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+    )
+    attempted_at = db.Column(db.DateTime, nullable=True)
+    sent_at = db.Column(db.DateTime, nullable=True)
+    error_message = db.Column(db.String(1000), nullable=True)
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+    )
+
+    watchlist_item = db.relationship(
+        "WatchlistItem",
+        backref=db.backref(
+            "alert_deliveries",
+            lazy=True,
+            cascade="all, delete-orphan",
+            passive_deletes=True,
+        ),
+    )
+
+    user = db.relationship(
+        "User",
+        backref=db.backref(
+            "signal_alert_deliveries",
+            lazy=True,
+            cascade="all, delete-orphan",
+            passive_deletes=True,
+        ),
+    )
+
+    __table_args__ = (
+        db.CheckConstraint(
+            "previous_signal IN (-1, 0, 1)",
+            name="ck_signal_alert_previous_signal",
+        ),
+        db.CheckConstraint(
+            "current_signal IN (-1, 0, 1)",
+            name="ck_signal_alert_current_signal",
+        ),
+        db.CheckConstraint(
+            "previous_signal <> current_signal",
+            name="ck_signal_alert_is_change",
+        ),
+        db.CheckConstraint(
+            "processing_status IN ('processing', 'sent', 'failed')",
+            name="ck_signal_alert_processing_status",
+        ),
+    )

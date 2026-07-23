@@ -22,6 +22,8 @@ from models import (
     LiveSimulationTrade,
     LiveSimulationEquity,
     StripeWebhookEvent,
+    WatchlistItem,
+    SignalAlertDelivery,
 )
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Mail, Message
@@ -192,6 +194,7 @@ def handle_csrf_error(error):
             "/request-password-reset",
             "/request-delete-account",
             "/live-simulations",
+            "/watchlist",
             "/backtest",
             "/equity",
             "/create-checkout-session",
@@ -748,7 +751,7 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "ACH-USD", "ADA-USD", "AERO-USD", "AEVO-USD", "AGI-USD", "AIOZ-USD", "AIT-USD", "AIXBT-USD", "AKT-USD", "ALEPH-USD",
                "ALGO-USD", "ALI-USD", "ALPH-USD", "ALT-USD", "ALU-USD", "ALVA-USD", "AMP-USD", 'AMZN', "ANKR-USD", "ANON-USD", "ANYONE-USD", "APT-USD",
                "APU-USD", "AR-USD", "ARB-USD", "ARC-USD", "ASML", "ASTR-USD", "ATLAS-USD", "ATOM-USD", "AURY-USD", "AUTOS-USD", "AVAX-USD", 'AVGO', 
-               "AXL-USD", "AXS-USD", "BAI-USD", "BAL-USD", "BANANA-USD", "BAND-USD", "BASEDAI-USD", "BAZED-USD", "BCH-USD",
+               "AXL-USD", "AXS-USD", "BAI-USD", "BAL-USD", "BANANA-USD", "BAND-USD", "BASEDAI-USD", "BAZED-USD",
                "BCUT-USD", "BEAM-USD", "BGB-USD", "BIGTIME-USD", "BLUR-USD", "BNB-USD", "BNT-USD", "BONK-USD", "BRETT-USD", 'BRKB', 
                "BYTES-USD", "CAKE-USD", "CELO-USD", "CERE-USD", "CETUS-USD", "CFG-USD", "CGPT-USD", "CHAPZ-USD", "CHAT-USD", "CHEX-USD", "CHZ-USD", 
                "COMP-USD", "COST", "COTI-USD", "CPOOL-USD", "CREDI-USD", "CREO-USD", "CRO-USD", "CROWN-USD", "CRU-USD", "CRV-USD", "CTC-USD", "CVC-USD",
@@ -786,6 +789,10 @@ ALL_SUPPORTED_TICKERS = frozenset(
 
 FREE_LIVE_SIMULATION_LIMIT = 5
 PAID_LIVE_SIMULATION_LIMIT = 100
+
+FREE_WATCHLIST_LIMIT = 4
+PAID_WATCHLIST_LIMIT = 100
+SIGNAL_ALERT_UNSUBSCRIBE_SALT = "signal-alert-unsubscribe"
 
 PAID_SUBSCRIPTION_STATUSES = {"active", "trialing"}
 
@@ -2621,7 +2628,9 @@ def me():
             "subscription_status": current_user.subscription_status,
             "is_paid": is_paid_user(current_user),
             "is_admin": is_admin_user(current_user),
-            "live_simulation_limit": get_live_simulation_limit_for_user(current_user)
+            "live_simulation_limit": get_live_simulation_limit_for_user(current_user),
+            "watchlist_limit": get_watchlist_limit_for_user(current_user),
+            "signal_email_alerts_available": is_paid_user(current_user),
         })
 
     return jsonify({
@@ -2629,8 +2638,422 @@ def me():
         "subscription_type": "anonymous",
         "subscription_status": "none",
         "is_paid": False,
-        "live_simulation_limit": 0
+        "live_simulation_limit": 0,
+        "watchlist_limit": 0,
+        "signal_email_alerts_available": False,
     })
+
+
+# --------------------
+# Watchlists and signal-change alerts
+# --------------------
+
+def get_watchlist_limit_for_user(user):
+    if is_admin_user(user):
+        return None
+    return PAID_WATCHLIST_LIMIT if is_paid_user(user) else FREE_WATCHLIST_LIMIT
+
+
+def signal_label(value):
+    try:
+        signal = int(value)
+    except (TypeError, ValueError):
+        signal = 0
+
+    if signal == 1:
+        return "BUY"
+    if signal == -1:
+        return "SELL"
+    return "HOLD"
+
+
+def get_latest_signal_snapshot(ticker):
+    clean_ticker = normalize_ticker(ticker)
+    market_data = load_epoch_csv_for_ticker(clean_ticker)
+
+    if market_data.empty:
+        raise ValueError("Market data has no valid rows for this asset.")
+
+    latest_index = market_data.index.max()
+    latest_row = market_data.loc[latest_index]
+
+    # Defensive handling in case a duplicated pandas index ever returns a frame.
+    if isinstance(latest_row, pd.DataFrame):
+        latest_row = latest_row.iloc[-1]
+
+    signal = int(latest_row["epoch_signal"])
+    close_price = float(latest_row["Close"])
+
+    if signal not in {-1, 0, 1}:
+        raise ValueError("The latest signal is invalid.")
+
+    if not math.isfinite(close_price) or close_price <= 0:
+        raise ValueError("The latest market price is invalid.")
+
+    signal_date = latest_index.date()
+
+    return {
+        "ticker": clean_ticker,
+        "signal": signal,
+        "signal_label": signal_label(signal),
+        "signal_date": signal_date,
+        "close_price": close_price,
+        **build_data_freshness_metadata(clean_ticker, signal_date),
+    }
+
+
+def watchlist_access_count_for_user(user):
+    query = WatchlistItem.query.filter_by(user_id=user.id)
+
+    if is_admin_user(user) or is_paid_user(user):
+        return query.count()
+
+    # Preserve locked Pro items after a downgrade, but do not let them consume
+    # the four Free slots available for the Free-access assets.
+    return query.filter(WatchlistItem.ticker.in_(list(TOP_FREE_TICKERS))).count()
+
+
+def serialize_watchlist_item(item, user):
+    ticker = normalize_ticker(item.ticker)
+    full_signal_access = can_view_full_signals_for_ticker(user, ticker)
+    visible_to_user = can_user_see_ticker(user, ticker)
+    locked = not (visible_to_user and full_signal_access)
+
+    payload = {
+        **item.to_dict(),
+        "ticker": ticker,
+        "locked": locked,
+        "asset_available": visible_to_user,
+        "can_enable_email_alert": bool(
+            is_paid_user(user) and visible_to_user and full_signal_access
+        ),
+        "signal": None,
+        "signal_label": None,
+        "signal_date": None,
+        "close_price": None,
+        "data_through": None,
+        "site_data_updated_at_utc": None,
+        "freshness_status": "unknown",
+        "freshness_label": "Unknown",
+    }
+
+    # Signal-board data is already loaded by the dashboard. The watchlist API
+    # returns membership and alert state only, avoiding up to 100 redundant CSV
+    # reads on every page load.
+    return payload
+
+
+def generate_signal_alert_unsubscribe_token(user):
+    return get_serializer().dumps(
+        {
+            "user_id": int(user.id),
+            "email": normalize_email(user.email),
+        },
+        salt=SIGNAL_ALERT_UNSUBSCRIBE_SALT,
+    )
+
+
+def confirm_signal_alert_unsubscribe_token(token):
+    try:
+        payload = get_serializer().loads(
+            token,
+            salt=SIGNAL_ALERT_UNSUBSCRIBE_SALT,
+        )
+    except Exception:
+        return None
+
+    if not isinstance(payload, dict):
+        return None
+
+    try:
+        user_id = int(payload.get("user_id"))
+    except (TypeError, ValueError):
+        return None
+
+    email = normalize_email(payload.get("email"))
+    user = db.session.get(User, user_id)
+
+    if not user or not email or normalize_email(user.email) != email:
+        return None
+
+    return user
+
+
+def render_signal_alert_unsubscribe_page(
+    *,
+    token,
+    user=None,
+    success=False,
+    error=None,
+    disabled_count=0,
+    status_code=200,
+):
+    response = app.make_response(render_template(
+        "unsubscribe_signal_alerts.html",
+        token=token,
+        masked_email=(
+            mask_email_for_display(user.email)
+            if user is not None else "your account"
+        ),
+        valid=(user is not None),
+        success=success,
+        error=error,
+        disabled_count=disabled_count,
+    ))
+    response.status_code = status_code
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Referrer-Policy"] = "same-origin"
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    return response
+
+
+@app.route("/watchlist", methods=["GET"])
+@login_required
+@limiter.limit("60 per minute")
+def get_watchlist():
+    items = (
+        WatchlistItem.query
+        .filter_by(user_id=current_user.id)
+        .order_by(WatchlistItem.created_at.asc(), WatchlistItem.id.asc())
+        .all()
+    )
+
+    # Downgrades or access-policy changes immediately stop email delivery while
+    # preserving the saved watchlist item for later removal or reactivation.
+    preferences_changed = False
+    for item in items:
+        if (
+            item.email_alert_enabled
+            and not (
+                is_paid_user(current_user)
+                and can_view_full_signals_for_ticker(current_user, item.ticker)
+            )
+        ):
+            item.email_alert_enabled = False
+            preferences_changed = True
+
+    if preferences_changed:
+        db.session.commit()
+
+    limit = get_watchlist_limit_for_user(current_user)
+    used_count = watchlist_access_count_for_user(current_user)
+
+    return jsonify({
+        "items": [serialize_watchlist_item(item, current_user) for item in items],
+        "limit": limit,
+        "used_count": used_count,
+        "is_paid": is_paid_user(current_user),
+        "email_alerts_available": is_paid_user(current_user),
+    })
+
+
+@app.route("/watchlist", methods=["POST"])
+@login_required
+@limiter.limit("20 per minute")
+def add_watchlist_item():
+    data = get_json_object()
+    if data is None:
+        return jsonify({"error": "A JSON object is required."}), 400
+
+    ticker = normalize_ticker(data.get("ticker"))
+
+    support_error = require_supported_ticker_or_400(ticker)
+    if support_error:
+        return support_error
+
+    visibility_error = require_ticker_visible_or_404(ticker)
+    if visibility_error:
+        return visibility_error
+
+    if not can_view_full_signals_for_ticker(current_user, ticker):
+        return jsonify({
+            "error": "This asset requires NeuralTrend Pro before it can be added to your watchlist.",
+            "upgrade_required": True,
+            "ticker": ticker,
+        }), 403
+
+    # Serialize limit-sensitive additions for this account.
+    db.session.query(User.id).filter(
+        User.id == current_user.id
+    ).with_for_update().one()
+
+    existing = WatchlistItem.query.filter_by(
+        user_id=current_user.id,
+        ticker=ticker,
+    ).first()
+
+    if existing:
+        return jsonify({
+            "message": "Asset is already on your watchlist.",
+            "item": serialize_watchlist_item(existing, current_user),
+        })
+
+    limit = get_watchlist_limit_for_user(current_user)
+    used_count = watchlist_access_count_for_user(current_user)
+
+    if limit is not None and used_count >= limit:
+        return jsonify({
+            "error": f"Watchlist limit reached. Your current limit is {limit}.",
+            "upgrade_required": not is_paid_user(current_user),
+            "limit": limit,
+        }), 403
+
+    try:
+        snapshot = get_latest_signal_snapshot(ticker)
+        item = WatchlistItem(
+            user_id=current_user.id,
+            ticker=ticker,
+            email_alert_enabled=False,
+            last_observed_signal=snapshot["signal"],
+            last_observed_signal_date=snapshot["signal_date"],
+        )
+        db.session.add(item)
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        existing = WatchlistItem.query.filter_by(
+            user_id=current_user.id,
+            ticker=ticker,
+        ).first()
+        if existing:
+            return jsonify({
+                "message": "Asset is already on your watchlist.",
+                "item": serialize_watchlist_item(existing, current_user),
+            })
+        raise
+    except (ValueError, FileNotFoundError) as error:
+        db.session.rollback()
+        return jsonify({"error": str(error)}), 400
+    except Exception:
+        db.session.rollback()
+        app.logger.exception(
+            "Could not add watchlist item user_id=%s ticker=%s",
+            current_user.id,
+            ticker,
+        )
+        return jsonify({"error": "Could not update your watchlist."}), 500
+
+    return jsonify({
+        "message": f"{ticker} added to your watchlist.",
+        "item": serialize_watchlist_item(item, current_user),
+    }), 201
+
+
+@app.route("/watchlist/<ticker>", methods=["DELETE"])
+@login_required
+@limiter.limit("20 per minute")
+def remove_watchlist_item(ticker):
+    clean_ticker = normalize_ticker(ticker)
+    item = WatchlistItem.query.filter_by(
+        user_id=current_user.id,
+        ticker=clean_ticker,
+    ).first()
+
+    if not item:
+        return jsonify({"error": "Watchlist item not found."}), 404
+
+    db.session.delete(item)
+    db.session.commit()
+
+    return jsonify({
+        "message": f"{clean_ticker} removed from your watchlist."
+    })
+
+
+@app.route("/watchlist/<ticker>/alerts", methods=["PATCH"])
+@login_required
+@limiter.limit("20 per minute")
+def update_watchlist_alert(ticker):
+    data = get_json_object()
+    if data is None:
+        return jsonify({"error": "A JSON object is required."}), 400
+
+    enabled = data.get("enabled")
+    if not isinstance(enabled, bool):
+        return jsonify({"error": "enabled must be true or false."}), 400
+
+    clean_ticker = normalize_ticker(ticker)
+    item = (
+        WatchlistItem.query
+        .filter_by(user_id=current_user.id, ticker=clean_ticker)
+        .with_for_update()
+        .first()
+    )
+
+    if not item:
+        return jsonify({"error": "Add this asset to your watchlist first."}), 404
+
+    if enabled:
+        if not is_paid_user(current_user):
+            return jsonify({
+                "error": "Email signal-change alerts are available with NeuralTrend Pro.",
+                "upgrade_required": True,
+            }), 403
+
+        if not can_view_full_signals_for_ticker(current_user, clean_ticker):
+            return jsonify({
+                "error": "This asset is not available for signal alerts.",
+            }), 403
+
+        try:
+            snapshot = get_latest_signal_snapshot(clean_ticker)
+        except (ValueError, FileNotFoundError) as error:
+            return jsonify({"error": str(error)}), 400
+
+        # Establish the current published signal as the baseline. This prevents
+        # enabling alerts from sending a retroactive or misleading change email.
+        item.last_observed_signal = snapshot["signal"]
+        item.last_observed_signal_date = snapshot["signal_date"]
+
+    item.email_alert_enabled = enabled
+    db.session.commit()
+
+    return jsonify({
+        "message": (
+            f"Email signal-change alerts enabled for {clean_ticker}."
+            if enabled else
+            f"Email signal-change alerts disabled for {clean_ticker}."
+        ),
+        "item": serialize_watchlist_item(item, current_user),
+    })
+
+
+@app.route("/signal-alerts/unsubscribe/<token>", methods=["GET", "POST"])
+@limiter.limit("10 per hour")
+def unsubscribe_signal_alerts(token):
+    user = confirm_signal_alert_unsubscribe_token(token)
+
+    if not user:
+        return render_signal_alert_unsubscribe_page(
+            token=token,
+            error="This unsubscribe link is invalid.",
+            status_code=400,
+        )
+
+    if request.method == "GET":
+        return render_signal_alert_unsubscribe_page(
+            token=token,
+            user=user,
+        )
+
+    items = WatchlistItem.query.filter_by(
+        user_id=user.id,
+        email_alert_enabled=True,
+    ).all()
+
+    for item in items:
+        item.email_alert_enabled = False
+
+    db.session.commit()
+
+    return render_signal_alert_unsubscribe_page(
+        token=token,
+        user=user,
+        success=True,
+        disabled_count=len(items),
+    )
+
 
 # --------------------
 # Live simulation API
