@@ -877,3 +877,19 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Trust Step 3 — methodology freshness explanation */
+.nt-methodology-freshness-grid article {
+    align-items: flex-start;
+}
+
+.nt-methodology-freshness-grid .nt-freshness-badge {
+    margin-bottom: 8px;
+}
+
+.nt-methodology-performance-table td .nt-freshness-badge + small {
+    display: block;
+    margin-top: 5px;
+    color: #64748B;
+    white-space: nowrap;
+}

@@ -9578,3 +9578,181 @@ body.nt-account-modal-open {
         text-align: left;
     }
 }
+
+/* ==================================================
+   TRUST STEP 3 — DATA FRESHNESS
+================================================== */
+.nt-data-freshness-strip,
+.nt-live-sim-freshness-strip {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px 10px;
+    margin: -3px 0 12px;
+    padding: 8px 10px;
+    border: 1px solid rgba(203, 213, 225, 0.82);
+    border-radius: 11px;
+    background: #F8FAFC;
+    color: #475569;
+    font-size: 11px;
+    line-height: 1.45;
+    font-weight: 650;
+}
+
+.nt-data-freshness-strip strong,
+.nt-live-sim-freshness-strip strong {
+    color: #0F172A;
+    font-weight: 850;
+}
+
+.nt-data-freshness-divider {
+    color: #94A3B8;
+}
+
+.nt-freshness-badge,
+.nt-inline-freshness {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: fit-content;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    white-space: nowrap;
+    font-weight: 850;
+    letter-spacing: 0.01em;
+}
+
+.nt-freshness-badge {
+    min-height: 23px;
+    padding: 3px 8px;
+    font-size: 10px;
+}
+
+.nt-inline-freshness {
+    padding: 1px 6px;
+    font-size: inherit;
+}
+
+.nt-freshness-current {
+    color: #166534 !important;
+    background: #ECFDF3 !important;
+    border-color: #BBF7D0 !important;
+}
+
+.nt-freshness-delayed {
+    color: #92400E !important;
+    background: #FFFBEB !important;
+    border-color: #FDE68A !important;
+}
+
+.nt-freshness-stale {
+    color: #991B1B !important;
+    background: #FEF2F2 !important;
+    border-color: #FECACA !important;
+}
+
+.nt-freshness-unknown {
+    color: #475569 !important;
+    background: #F1F5F9 !important;
+    border-color: #CBD5E1 !important;
+}
+
+.signal-ticker-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    gap: 2px;
+}
+
+.signal-freshness-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    max-width: 150px;
+    color: #64748B;
+    background: transparent !important;
+    border: 0 !important;
+    font-size: 9.5px;
+    line-height: 1.2;
+    font-weight: 750;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.signal-freshness-dot {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 6px;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+.nt-preview-freshness-chip strong {
+    line-height: 1;
+}
+
+.nt-market-hero-footer-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    text-align: right;
+}
+
+.nt-market-hero-freshness {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 3px 7px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.74) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    font-size: 9.5px;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.nt-market-hero-freshness.nt-freshness-current {
+    color: #BBF7D0 !important;
+    border-color: rgba(74, 222, 128, 0.26) !important;
+    background: rgba(22, 163, 74, 0.14) !important;
+}
+
+.nt-market-hero-freshness.nt-freshness-delayed {
+    color: #FDE68A !important;
+    border-color: rgba(250, 204, 21, 0.26) !important;
+    background: rgba(202, 138, 4, 0.14) !important;
+}
+
+.nt-market-hero-freshness.nt-freshness-stale {
+    color: #FECACA !important;
+    border-color: rgba(248, 113, 113, 0.28) !important;
+    background: rgba(220, 38, 38, 0.14) !important;
+}
+
+.nt-live-sim-freshness-strip {
+    margin: 9px 0 12px;
+}
+
+@media (max-width: 700px) {
+    .nt-data-freshness-strip,
+    .nt-live-sim-freshness-strip {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .nt-data-freshness-divider {
+        display: none;
+    }
+
+    .nt-market-hero-footer-meta {
+        align-items: flex-start;
+        text-align: left;
+    }
+}
