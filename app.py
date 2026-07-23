@@ -632,13 +632,123 @@ def get_csv_version():
     # If no CSVs exist, still return something
     return max(mtimes) if mtimes else 0
 
+
+FRESHNESS_STATUS_LABELS = {
+    "current": "Current",
+    "delayed": "Delayed",
+    "stale": "Stale",
+    "unknown": "Unknown",
+}
+
+
+def utc_timestamp_string(value):
+    """Serialize a naive UTC datetime as an explicit ISO-8601 UTC timestamp."""
+    if not isinstance(value, datetime):
+        return None
+    return value.replace(microsecond=0).isoformat() + "Z"
+
+
+def count_market_weekdays_after(data_date, current_date):
+    """Count Monday-Friday dates after data_date through current_date."""
+    if not data_date or not current_date or data_date >= current_date:
+        return 0
+
+    count = 0
+    cursor = data_date + timedelta(days=1)
+    while cursor <= current_date:
+        if cursor.weekday() < 5:
+            count += 1
+        cursor += timedelta(days=1)
+    return count
+
+
+def build_data_freshness_metadata(ticker, data_through=None):
+    """
+    Describe the freshness of the latest deployed market-data row.
+
+    Crypto uses calendar-day lag because it trades continuously. Stocks use a
+    weekday-aware lag so Friday data can remain current through a weekend.
+    Exchange holidays are not modeled by this lightweight status indicator and
+    are disclosed in the methodology page.
+    """
+    clean_ticker = normalize_ticker(ticker)
+    checked_at = datetime.utcnow()
+
+    try:
+        if isinstance(data_through, pd.Timestamp):
+            data_date = data_through.date()
+        elif isinstance(data_through, datetime):
+            data_date = data_through.date()
+        elif hasattr(data_through, "isoformat") and not isinstance(data_through, str):
+            data_date = data_through
+        elif isinstance(data_through, str) and data_through.strip():
+            data_date = datetime.strptime(data_through.strip()[:10], "%Y-%m-%d").date()
+        else:
+            market_data = load_epoch_csv_for_ticker(clean_ticker)
+            data_date = market_data.index.max().date()
+
+        csv_path = get_epoch_csv_path(clean_ticker)
+        site_data_updated_at = datetime.utcfromtimestamp(os.path.getmtime(csv_path))
+        today_utc = checked_at.date()
+
+        if is_crypto_ticker(clean_ticker):
+            lag_count = max((today_utc - data_date).days, 0)
+            lag_unit = "calendar_days"
+            expected_update_cadence = "Daily, including weekends"
+        else:
+            lag_count = count_market_weekdays_after(data_date, today_utc)
+            lag_unit = "market_weekdays"
+            expected_update_cadence = "Market weekdays"
+
+        if lag_count <= 1:
+            status = "current"
+        elif lag_count == 2:
+            status = "delayed"
+        else:
+            status = "stale"
+
+        if status == "current":
+            message = "Latest completed data is within the expected update cadence."
+        elif status == "delayed":
+            message = "Latest completed data is later than the usual update cadence."
+        else:
+            message = "Latest completed data is materially older than the usual update cadence."
+
+        return {
+            "data_through": data_date.isoformat(),
+            "site_data_updated_at_utc": utc_timestamp_string(site_data_updated_at),
+            "freshness_checked_at_utc": utc_timestamp_string(checked_at),
+            "freshness_status": status,
+            "freshness_label": FRESHNESS_STATUS_LABELS[status],
+            "freshness_lag_count": lag_count,
+            "freshness_lag_unit": lag_unit,
+            "expected_update_cadence": expected_update_cadence,
+            "freshness_message": message,
+        }
+    except Exception:
+        app.logger.exception(
+            "Could not determine data freshness for ticker=%s",
+            clean_ticker,
+        )
+        return {
+            "data_through": None,
+            "site_data_updated_at_utc": None,
+            "freshness_checked_at_utc": utc_timestamp_string(checked_at),
+            "freshness_status": "unknown",
+            "freshness_label": FRESHNESS_STATUS_LABELS["unknown"],
+            "freshness_lag_count": None,
+            "freshness_lag_unit": None,
+            "expected_update_cadence": None,
+            "freshness_message": "Freshness could not be determined for this asset.",
+        }
+
 cache = {}  # simple in-memory cache per ticker
 
 SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL', 'GOOGL', 'MSFT', "1INCH-USD", "3ULL-USD", "AAVE-USD","ABBV", "ACE-USD",
                "ACH-USD", "ADA-USD", "AERO-USD", "AEVO-USD", "AGI-USD", "AIOZ-USD", "AIT-USD", "AIXBT-USD", "AKT-USD", "ALEPH-USD",
                "ALGO-USD", "ALI-USD", "ALPH-USD", "ALT-USD", "ALU-USD", "ALVA-USD", "AMP-USD", 'AMZN', "ANKR-USD", "ANON-USD", "ANYONE-USD", "APT-USD",
                "APU-USD", "AR-USD", "ARB-USD", "ARC-USD", "ASML", "ASTR-USD", "ATLAS-USD", "ATOM-USD", "AURY-USD", "AUTOS-USD", "AVAX-USD", 'AVGO', 
-               "AXL-USD", "AXS-USD", "BAI-USD", "BAL-USD", "BANANA-USD", "BAND-USD", "BASEDAI-USD", "BAZED-USD", "BCH-USD",
+               "AXL-USD", "AXS-USD", "BAI-USD", "BAL-USD", "BANANA-USD", "BAND-USD", "BASEDAI-USD", "BAZED-USD",
                "BCUT-USD", "BEAM-USD", "BGB-USD", "BIGTIME-USD", "BLUR-USD", "BNB-USD", "BNT-USD", "BONK-USD", "BRETT-USD", 'BRKB', 
                "BYTES-USD", "CAKE-USD", "CELO-USD", "CERE-USD", "CETUS-USD", "CFG-USD", "CGPT-USD", "CHAPZ-USD", "CHAT-USD", "CHEX-USD", "CHZ-USD", 
                "COMP-USD", "COST", "COTI-USD", "CPOOL-USD", "CREDI-USD", "CREO-USD", "CRO-USD", "CROWN-USD", "CRU-USD", "CRV-USD", "CTC-USD", "CVC-USD",
@@ -974,6 +1084,9 @@ def compute_signals_for_ticker(ticker, period_days=365*10, csv_version=None):
         "observation_count": len(df),
         "coverage_start": df.index.min().date().isoformat(),
         "coverage_end": df.index.max().date().isoformat(),
+        # Freshness itself is calculated per request so it can become delayed or
+        # stale even when the process-level performance cache remains populated.
+        "data_through": df.index.max().date().isoformat(),
     }
 
     cache[cache_key] = output
@@ -1136,6 +1249,10 @@ def build_methodology_featured_performance():
                 "benchmark_drawdown_class": public_performance_value_class(buy_hold_max_drawdown),
                 "signal": signal,
                 "signal_class": signal_class,
+                "freshness": build_data_freshness_metadata(
+                    ticker,
+                    summary.get("data_through") or market_data.index.max().date(),
+                ),
             })
         except Exception:
             app.logger.exception(
@@ -1486,6 +1603,11 @@ def live_simulation_summary(sim):
         simulation_id=sim.id
     ).count()
 
+    source_freshness = build_data_freshness_metadata(
+        sim.ticker,
+        latest_csv_date,
+    )
+
     data = sim.to_dict()
     data.update({
         "latest_strategy_value": strategy_value,
@@ -1500,6 +1622,8 @@ def live_simulation_summary(sim):
         "latest_signal": int(latest.signal) if latest else None,
         "latest_close_price": float(latest.close_price) if latest else None,
         "latest_csv_date": latest_csv_date.isoformat() if latest_csv_date else None,
+        "simulation_through": latest.equity_date.isoformat() if latest else None,
+        **source_freshness,
         "is_current_with_csv": (
             sim.last_processed_date == latest_csv_date
             if sim.last_processed_date and latest_csv_date else False
@@ -3816,6 +3940,12 @@ def equity():
         'executed_buy_dates': [d.strftime("%Y-%m-%d") for d in executed_buy_dates],
         'executed_sell_dates': [d.strftime("%Y-%m-%d") for d in executed_sell_dates],
         'executed_trade_count': len(executed_buy_dates) + len(executed_sell_dates),
+        'coverage_start': signals_df.index.min().date().isoformat(),
+        'coverage_end': signals_df.index.max().date().isoformat(),
+        **build_data_freshness_metadata(
+            ticker,
+            signals_df.index.max().date(),
+        ),
     }
 
     return jsonify(results)
@@ -3849,10 +3979,20 @@ def mask_signal_summary_row_for_user(row, user):
         "sharpe_ratio": row.get("sharpe_ratio"),
         "strategy_market_exposure": row.get("strategy_market_exposure"),
         "executed_trade_count": row.get("executed_trade_count"),
+        "observation_count": row.get("observation_count"),
+        "coverage_start": row.get("coverage_start"),
+        "coverage_end": row.get("coverage_end"),
 
         # Frontend uses this to show locked/blurred cells
         "signals_locked": not full_access,
     }
+
+    safe_row.update(
+        build_data_freshness_metadata(
+            ticker,
+            row.get("data_through") or row.get("coverage_end"),
+        )
+    )
 
     if full_access:
         safe_row.update({
@@ -3895,6 +4035,10 @@ def compute_signals_summary_cached(csv_version, period_days):
                 'sharpe_ratio': sigs['sharpe_ratio'],
                 'strategy_market_exposure': sigs['strategy_market_exposure'],
                 'executed_trade_count': sigs['executed_trade_count'],
+                'observation_count': sigs['observation_count'],
+                'coverage_start': sigs['coverage_start'],
+                'coverage_end': sigs['coverage_end'],
+                'data_through': sigs['data_through'],
             })
         except Exception as e:
             print(f"Skipping {t}: {e}")
