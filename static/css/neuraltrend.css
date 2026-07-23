@@ -9382,3 +9382,46 @@ body.nt-account-modal-open {
         width: 100%;
     }
 }
+
+/* ==================================================
+   MAX HORIZON + MAIN MODEL ACTIVE POINTER
+================================================== */
+
+/* The extra MAX option can wrap cleanly on narrower dashboard widths. */
+#period-pill-group {
+    flex-wrap: wrap;
+    border-radius: 16px;
+}
+
+/* Keep the selected model card's downward pointer visible. The card previously
+   clipped its own pseudo-element because it used overflow:hidden. */
+@media (min-width: 701px) {
+    .nt-product-card.active {
+        overflow: visible !important;
+    }
+
+    .nt-product-card.active::after {
+        content: "" !important;
+        position: absolute !important;
+        left: 50% !important;
+        right: auto !important;
+        top: auto !important;
+        bottom: -13px !important;
+        transform: translateX(-50%) !important;
+        width: 0 !important;
+        height: 0 !important;
+        border-left: 13px solid transparent !important;
+        border-right: 13px solid transparent !important;
+        border-bottom: 0 !important;
+        border-top: 13px solid var(--nt-dark) !important;
+        filter: drop-shadow(0 2px 1px rgba(15, 23, 42, 0.10));
+        z-index: 8 !important;
+        pointer-events: none;
+    }
+}
+
+@media (max-width: 700px) {
+    #period-pill-group {
+        width: 100%;
+    }
+}
