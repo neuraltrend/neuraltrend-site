@@ -8923,3 +8923,462 @@
             padding: 0 14px 14px 14px !important;
         }
     }
+
+/* ==================================================
+   ACCOUNT MENU + AUTHENTICATED PASSWORD CHANGE
+================================================== */
+
+.nt-account-menu {
+    position: relative;
+    cursor: default;
+}
+
+.nt-account-trigger {
+    max-width: 260px;
+    min-height: 42px;
+    border: 0;
+    font: inherit;
+    line-height: 1;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.nt-account-trigger-avatar {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 25px;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #0f172a;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.nt-account-trigger-email {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nt-account-trigger .arrow {
+    flex: 0 0 auto;
+    color: #64748b;
+    font-size: 12px;
+    transition: transform 0.16s ease;
+}
+
+.nt-account-menu.is-open .nt-account-trigger .arrow {
+    transform: rotate(180deg);
+}
+
+.nt-account-trigger:focus-visible,
+.nt-account-menu-action:focus-visible,
+.nt-account-modal button:focus-visible,
+.nt-account-modal input:focus-visible {
+    outline: 3px solid rgba(59, 130, 246, 0.34) !important;
+    outline-offset: 2px;
+}
+
+.dropdown.nt-account-dropdown {
+    position: absolute;
+    z-index: 1600;
+    top: calc(100% + 10px);
+    right: 0;
+    width: min(310px, calc(100vw - 28px));
+    min-width: 280px;
+    padding: 8px;
+    overflow: visible;
+    border: 1px solid rgba(226, 232, 240, 0.96);
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow:
+        0 22px 55px rgba(15, 23, 42, 0.18),
+        0 4px 14px rgba(15, 23, 42, 0.08);
+    cursor: default;
+}
+
+.dropdown.nt-account-dropdown[hidden] {
+    display: none !important;
+}
+
+.dropdown.nt-account-dropdown::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    right: 22px;
+    width: 11px;
+    height: 11px;
+    border-top: 1px solid rgba(226, 232, 240, 0.96);
+    border-left: 1px solid rgba(226, 232, 240, 0.96);
+    background: #ffffff;
+    transform: rotate(45deg);
+}
+
+/* Neutralize the legacy .dropdown div rules for the new structured menu. */
+.dropdown.nt-account-dropdown div {
+    padding: 0;
+    cursor: default;
+    background: transparent;
+}
+
+.dropdown.nt-account-dropdown div:hover {
+    background: transparent;
+}
+
+.nt-account-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 10px 9px !important;
+}
+
+.nt-account-menu-header-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nt-account-menu-header-label {
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.nt-account-menu-email {
+    overflow: hidden;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nt-account-plan-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-width: 46px;
+    min-height: 25px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.nt-account-plan-badge.is-free {
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #475569;
+}
+
+.nt-account-plan-badge.is-pro {
+    border: 1px solid rgba(37, 99, 235, 0.20);
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.nt-account-menu-divider {
+    height: 1px;
+    margin: 5px 4px;
+    background: #e8edf4 !important;
+}
+
+.nt-account-menu-section-label {
+    padding: 7px 10px 4px !important;
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.dropdown .nt-account-menu-action {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 11px;
+    padding: 10px;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    color: #1e293b;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        background-color 0.14s ease,
+        color 0.14s ease,
+        transform 0.14s ease;
+}
+
+.dropdown .nt-account-menu-action:hover {
+    background: #f4f7fb;
+    transform: translateX(1px);
+}
+
+.nt-account-menu-icon {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 15px;
+}
+
+.nt-account-menu-action-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nt-account-menu-action-label {
+    color: inherit;
+    font-size: 13px;
+    font-weight: 820;
+    line-height: 1.25;
+}
+
+.nt-account-menu-action-description {
+    color: #94a3b8;
+    font-size: 10.5px;
+    font-weight: 650;
+    line-height: 1.3;
+}
+
+.dropdown .nt-account-menu-action-danger {
+    color: #b91c1c;
+}
+
+.dropdown .nt-account-menu-action-danger:hover {
+    background: #fff1f2;
+}
+
+.nt-account-menu-action-danger .nt-account-menu-icon {
+    background: #fff1f2;
+    color: #dc2626;
+}
+
+body.nt-account-modal-open {
+    overflow: hidden;
+}
+
+.nt-account-modal {
+    position: fixed;
+    z-index: 3000;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.56);
+    backdrop-filter: blur(5px);
+}
+
+.nt-account-modal.is-open {
+    display: flex;
+}
+
+.nt-account-modal-panel {
+    position: relative;
+    width: min(440px, 100%);
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    padding: 28px;
+    border: 1px solid rgba(226, 232, 240, 0.96);
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.30);
+}
+
+.nt-account-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.nt-account-modal-close:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.nt-account-modal-kicker {
+    margin-bottom: 7px;
+    color: #2563eb;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.nt-account-modal h3 {
+    margin: 0;
+    padding-right: 34px;
+    color: #0f172a;
+    font-size: 24px;
+    line-height: 1.2;
+}
+
+.nt-account-modal-copy {
+    margin: 10px 0 20px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.nt-account-modal form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nt-account-modal label {
+    margin-top: 5px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.nt-account-modal input {
+    width: 100%;
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 11px;
+    background: #ffffff;
+    color: #0f172a;
+    font: inherit;
+    font-size: 14px;
+    transition:
+        border-color 0.14s ease,
+        box-shadow 0.14s ease;
+}
+
+.nt-account-modal input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+}
+
+.nt-account-password-help {
+    margin: 2px 0 0;
+    color: #94a3b8;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.nt-account-modal-message {
+    min-height: 20px;
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.nt-account-modal-message.is-error {
+    color: #b91c1c;
+}
+
+.nt-account-modal-message.is-success {
+    color: #15803d;
+}
+
+.nt-account-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.nt-account-modal-actions button {
+    min-height: 42px;
+    padding: 10px 15px;
+    border-radius: 11px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.nt-account-modal-secondary {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+}
+
+.nt-account-modal-secondary:hover {
+    background: #f8fafc;
+}
+
+.nt-account-modal-primary {
+    border: 1px solid #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.nt-account-modal-primary:hover {
+    border-color: #1d4ed8;
+    background: #1d4ed8;
+}
+
+.nt-account-modal-primary:disabled {
+    cursor: wait;
+    opacity: 0.68;
+}
+
+@media (max-width: 700px) {
+    .nt-account-trigger {
+        max-width: 190px;
+    }
+
+    .dropdown.nt-account-dropdown {
+        position: fixed;
+        top: 72px;
+        right: 12px;
+        width: min(310px, calc(100vw - 24px));
+        min-width: 0;
+    }
+
+    .dropdown.nt-account-dropdown::before {
+        display: none;
+    }
+
+    .nt-account-modal-panel {
+        padding: 24px 18px 20px;
+        border-radius: 17px;
+    }
+
+    .nt-account-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .nt-account-modal-actions button {
+        width: 100%;
+    }
+}
