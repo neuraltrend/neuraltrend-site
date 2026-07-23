@@ -877,85 +877,103 @@ def compute_signals_for_ticker(ticker, period_days=365*10, csv_version=None):
     if cache_key in cache:
         return cache[cache_key]
 
-    # -------------------------------
-    # Load validated full data first
-    # -------------------------------
     df = load_epoch_csv_for_ticker(ticker)
 
     if len(df) < 2:
-        print(f"{ticker}: not enough data")
+        app.logger.info("Not enough data for signal summary ticker=%s", ticker)
         return None
 
-    # -------------------------------
-    # Determine asset type
-    # -------------------------------
     is_crypto = ticker.endswith("-USD")
 
     if is_crypto:
-        # Calendar slicing for bounded horizons. MAX keeps the full CSV.
         if period_days is not None:
             start_date = datetime.today().date() - pd.Timedelta(days=period_days)
             df = df[df.index >= pd.to_datetime(start_date)].copy()
-        transaction_cost = 0.01 # 1% per transaction (per side)
+        transaction_cost = 0.01
     else:
-        # Stocks use trading-day approximations for bounded horizons. MAX keeps
-        # every available validated trading row.
         if period_days is not None:
-            trading_days_per_year = 252
-            trading_days = int(period_days * (trading_days_per_year / 365))
+            trading_days = int(period_days * (252 / 365))
             df = df.tail(trading_days).copy()
-        transaction_cost = 0.001 # 0.1% per transaction (per side)
+        transaction_cost = 0.001
 
     if len(df) < 2:
         return None
 
-    # -------------------------------
-    # Buy & Hold terminal value
-    # -------------------------------
-    # Entry cost is charged because the benchmark actually buys at the start.
-    # No artificial exit cost is charged at the horizon end: any open holding is
-    # marked to market, matching the backtest, equity preview, and live simulation.
-    buy_hold_value = (
-        (df['Close'].iloc[-1] / df['Close'].iloc[0])
-        / (1 + transaction_cost)
-    )
+    prices = df["Close"].astype(float)
 
-    # -------------------------------
-    # Strategy terminal value (cash-based)
-    # -------------------------------
+    # Normalized Buy & Hold benchmark. Entry cost is included and the open
+    # holding is marked to market at the final observation without an invented
+    # exit trade or exit fee.
+    benchmark_quantity = (
+        (1.0 / (1 + transaction_cost))
+        / float(prices.iloc[0])
+    )
+    buy_hold_equity_curve = (
+        prices * benchmark_quantity
+    ).astype(float).tolist()
+
     cash = 1.0
     shares = 0.0
+    strategy_equity_curve = []
+    exposure_flags = []
+    executed_trade_count = 0
 
-    for i in range(len(df)):
-        sig = int(df['epoch_signal'].iloc[i])
-        price = float(df['Close'].iloc[i])
+    for date_index, row in df.iterrows():
+        signal = int(row["epoch_signal"])
+        price = float(row["Close"])
 
-        if sig == 1 and shares == 0:
+        if signal == 1 and shares == 0:
             gross_buy_budget = cash / (1 + transaction_cost)
             shares = gross_buy_budget / price
             cash = 0.0
+            executed_trade_count += 1
 
-        elif sig == -1 and shares > 0:
+        elif signal == -1 and shares > 0:
             cash = (shares * price) * (1 - transaction_cost)
             shares = 0.0
+            executed_trade_count += 1
 
-    # End-of-horizon policy: mark any open position to market. Do not invent a
-    # SELL trade or charge an exit fee unless an actual SELL signal occurred.
-    strategy_value = cash + (shares * float(df['Close'].iloc[-1]))
+        strategy_equity_curve.append(cash + shares * price)
+        exposure_flags.append(shares > 0)
 
+    buy_hold_value = float(buy_hold_equity_curve[-1])
+    strategy_value = float(strategy_equity_curve[-1])
     buy_hold_period_return = buy_hold_value - 1
     strategy_period_return = strategy_value - 1
     return_spread = strategy_period_return - buy_hold_period_return
 
     output = {
-        'today': int(df['epoch_signal'].iloc[-1]),
-        'yesterday': int(df['epoch_signal'].iloc[-2]) if len(df) >= 2 else int(df['epoch_signal'].iloc[-1]),
-        'last_week': int(df['epoch_signal'].iloc[-8]) if len(df) >= 8 else int(df['epoch_signal'].iloc[-1]),
-        'last_month': int(df['epoch_signal'].iloc[-31]) if len(df) >= 31 else int(df['epoch_signal'].iloc[-1]),
-        'buy_hold_period_return': buy_hold_period_return,
-        'strategy_period_return': strategy_period_return,
+        "today": int(df["epoch_signal"].iloc[-1]),
+        "yesterday": int(df["epoch_signal"].iloc[-2]),
+        "last_week": int(df["epoch_signal"].iloc[-8]) if len(df) >= 8 else int(df["epoch_signal"].iloc[-1]),
+        "last_month": int(df["epoch_signal"].iloc[-31]) if len(df) >= 31 else int(df["epoch_signal"].iloc[-1]),
+        "buy_hold_period_return": buy_hold_period_return,
+        "strategy_period_return": strategy_period_return,
         # Decimal percentage-point spread: 0.12 means AI returned 12 points more.
-        'return_spread': return_spread,
+        "return_spread": return_spread,
+        "strategy_max_drawdown": calculate_max_drawdown(
+            [1.0, *strategy_equity_curve]
+        ),
+        "buy_hold_max_drawdown": calculate_max_drawdown(
+            [1.0, *buy_hold_equity_curve]
+        ),
+        "strategy_annualized_volatility": calculate_annualized_volatility(
+            strategy_equity_curve,
+            ticker,
+        ),
+        "buy_hold_annualized_volatility": calculate_annualized_volatility(
+            buy_hold_equity_curve,
+            ticker,
+        ),
+        "sharpe_ratio": calculate_sharpe_from_equity_curve(
+            strategy_equity_curve,
+            ticker,
+        ),
+        "strategy_market_exposure": calculate_market_exposure(exposure_flags),
+        "executed_trade_count": executed_trade_count,
+        "observation_count": len(df),
+        "coverage_start": df.index.min().date().isoformat(),
+        "coverage_end": df.index.max().date().isoformat(),
     }
 
     cache[cache_key] = output
@@ -995,6 +1013,18 @@ def format_public_percent(value, *, points=False):
 
     suffix = " pts" if points else "%"
     return f"{number * 100:+.1f}{suffix}"
+
+
+def format_public_unsigned_percent(value):
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return "—"
+
+    if not math.isfinite(number):
+        return "—"
+
+    return f"{number * 100:.1f}%"
 
 
 def public_signal_label(value):
@@ -1078,6 +1108,9 @@ def build_methodology_featured_performance():
             strategy_return = summary.get("strategy_period_return")
             buy_hold_return = summary.get("buy_hold_period_return")
             return_spread = summary.get("return_spread")
+            strategy_max_drawdown = summary.get("strategy_max_drawdown")
+            buy_hold_max_drawdown = summary.get("buy_hold_max_drawdown")
+            strategy_market_exposure = summary.get("strategy_market_exposure")
             signal, signal_class = public_signal_label(summary.get("today"))
 
             rows.append({
@@ -1091,9 +1124,16 @@ def build_methodology_featured_performance():
                     return_spread,
                     points=True,
                 ),
+                "strategy_max_drawdown": format_public_percent(strategy_max_drawdown),
+                "buy_hold_max_drawdown": format_public_percent(buy_hold_max_drawdown),
+                "sharpe_ratio": f"{float(summary.get('sharpe_ratio') or 0):.2f}",
+                "executed_trade_count": f"{int(summary.get('executed_trade_count') or 0):,}",
+                "market_exposure": format_public_unsigned_percent(strategy_market_exposure),
                 "strategy_class": public_performance_value_class(strategy_return),
                 "benchmark_class": public_performance_value_class(buy_hold_return),
                 "spread_class": public_performance_value_class(return_spread),
+                "strategy_drawdown_class": public_performance_value_class(strategy_max_drawdown),
+                "benchmark_drawdown_class": public_performance_value_class(buy_hold_max_drawdown),
                 "signal": signal,
                 "signal_class": signal_class,
             })
@@ -1191,6 +1231,59 @@ def calculate_sharpe_from_equity_curve(
         return 0.0
 
     return float(sharpe)
+
+
+def calculate_max_drawdown(equity_values) -> float:
+    """Return the largest peak-to-trough decline as a negative decimal."""
+    series = pd.Series(equity_values, dtype="float64")
+    series = series.replace([float("inf"), float("-inf")], pd.NA).dropna()
+
+    if series.empty or (series <= 0).any():
+        return 0.0
+
+    running_peak = series.cummax()
+    drawdowns = (series / running_peak) - 1
+    maximum_drawdown = float(drawdowns.min())
+
+    if not math.isfinite(maximum_drawdown):
+        return 0.0
+
+    return min(0.0, maximum_drawdown)
+
+
+def calculate_annualized_volatility(equity_values, ticker: str) -> float:
+    """Annualize daily equity-return volatility using the asset calendar."""
+    series = pd.Series(equity_values, dtype="float64")
+    series = series.replace([float("inf"), float("-inf")], pd.NA).dropna()
+
+    if len(series) < 3 or (series <= 0).any():
+        return 0.0
+
+    returns = (
+        series.pct_change()
+        .replace([float("inf"), float("-inf")], pd.NA)
+        .dropna()
+    )
+
+    if len(returns) < 2:
+        return 0.0
+
+    volatility = returns.std(ddof=1) * math.sqrt(
+        get_return_periods_per_year(ticker)
+    )
+
+    if not math.isfinite(float(volatility)):
+        return 0.0
+
+    return max(0.0, float(volatility))
+
+
+def calculate_market_exposure(exposure_flags) -> float:
+    """Return the share of displayed observations with an open strategy position."""
+    flags = [bool(value) for value in exposure_flags]
+    if not flags:
+        return 0.0
+    return float(sum(flags) / len(flags))
 
 
 def build_buy_and_hold_benchmark(
@@ -3433,6 +3526,7 @@ def backtest():
     cash = initial_cash
     position = 0.0
     equity_curve = []
+    exposure_flags = []
     executed_buy_dates = []
     executed_sell_dates = []
     
@@ -3494,6 +3588,7 @@ def backtest():
         # Mark-to-market equity after today's action
         equity = cash + position * price
         equity_curve.append((date, equity))
+        exposure_flags.append(position > 0)
         
     eq_df = pd.DataFrame(equity_curve, columns=['Date', 'Equity']).set_index('Date')
 
@@ -3519,6 +3614,21 @@ def backtest():
         strategy_equity_values,
         ticker,
     )
+    strategy_max_drawdown = calculate_max_drawdown(
+        [initial_cash, *strategy_equity_values]
+    )
+    buy_hold_max_drawdown = calculate_max_drawdown(
+        [initial_cash, *equity_curve]
+    )
+    strategy_annualized_volatility = calculate_annualized_volatility(
+        strategy_equity_values,
+        ticker,
+    )
+    buy_hold_annualized_volatility = calculate_annualized_volatility(
+        equity_curve,
+        ticker,
+    )
+    strategy_market_exposure = calculate_market_exposure(exposure_flags)
     
     strategy_final_value = float(strategy_equity_values[-1])
     strategy_growth_factor = strategy_final_value / initial_cash
@@ -3540,6 +3650,11 @@ def backtest():
         'strategy_period_return': strategy_period_return,
         'return_spread': strategy_period_return - buy_hold_period_return,
         'sharpe_ratio': sharpe_ratio,
+        'strategy_max_drawdown': strategy_max_drawdown,
+        'buy_hold_max_drawdown': buy_hold_max_drawdown,
+        'strategy_annualized_volatility': strategy_annualized_volatility,
+        'buy_hold_annualized_volatility': buy_hold_annualized_volatility,
+        'strategy_market_exposure': strategy_market_exposure,
         'benchmark_cash_balance': benchmark_cash_balance,
         'ending_cash_balance': float(cash),
         'ending_position_quantity': float(position),
@@ -3606,6 +3721,7 @@ def equity():
     cash = 1.0
     position = 0.0
     epoch_equity_curve = []
+    exposure_flags = []
     executed_buy_dates = []
     executed_sell_dates = []
 
@@ -3626,6 +3742,7 @@ def equity():
 
         equity = cash + position * price
         epoch_equity_curve.append(equity)
+        exposure_flags.append(position > 0)
 
     # ---------------------------------------------------
     # Buy & Hold Curve (start = 1, entry cost included)
@@ -3654,6 +3771,17 @@ def equity():
         epoch_equity_curve,
         ticker,
     )
+    strategy_max_drawdown = calculate_max_drawdown([1.0, *epoch_equity_curve])
+    buy_hold_max_drawdown = calculate_max_drawdown([1.0, *buy_hold_curve])
+    strategy_annualized_volatility = calculate_annualized_volatility(
+        epoch_equity_curve,
+        ticker,
+    )
+    buy_hold_annualized_volatility = calculate_annualized_volatility(
+        buy_hold_curve,
+        ticker,
+    )
+    strategy_market_exposure = calculate_market_exposure(exposure_flags)
 
     dates = signals_df.index.strftime('%Y-%m-%d').tolist()
 
@@ -3672,6 +3800,11 @@ def equity():
         'strategy_period_return': strategy_period_return,
         'return_spread': strategy_period_return - buy_hold_period_return,
         'sharpe_ratio': sharpe_ratio,
+        'strategy_max_drawdown': strategy_max_drawdown,
+        'buy_hold_max_drawdown': buy_hold_max_drawdown,
+        'strategy_annualized_volatility': strategy_annualized_volatility,
+        'buy_hold_annualized_volatility': buy_hold_annualized_volatility,
+        'strategy_market_exposure': strategy_market_exposure,
         'benchmark_cash_balance': benchmark_cash_balance,
         'ending_cash_balance': float(cash),
         'ending_position_quantity': float(position),
@@ -3709,6 +3842,13 @@ def mask_signal_summary_row_for_user(row, user):
         "buy_hold_period_return": row.get("buy_hold_period_return"),
         "strategy_period_return": row.get("strategy_period_return"),
         "return_spread": row.get("return_spread"),
+        "strategy_max_drawdown": row.get("strategy_max_drawdown"),
+        "buy_hold_max_drawdown": row.get("buy_hold_max_drawdown"),
+        "strategy_annualized_volatility": row.get("strategy_annualized_volatility"),
+        "buy_hold_annualized_volatility": row.get("buy_hold_annualized_volatility"),
+        "sharpe_ratio": row.get("sharpe_ratio"),
+        "strategy_market_exposure": row.get("strategy_market_exposure"),
+        "executed_trade_count": row.get("executed_trade_count"),
 
         # Frontend uses this to show locked/blurred cells
         "signals_locked": not full_access,
@@ -3748,6 +3888,13 @@ def compute_signals_summary_cached(csv_version, period_days):
                 'buy_hold_period_return': sigs['buy_hold_period_return'],
                 'strategy_period_return': sigs['strategy_period_return'],
                 'return_spread': sigs['return_spread'],
+                'strategy_max_drawdown': sigs['strategy_max_drawdown'],
+                'buy_hold_max_drawdown': sigs['buy_hold_max_drawdown'],
+                'strategy_annualized_volatility': sigs['strategy_annualized_volatility'],
+                'buy_hold_annualized_volatility': sigs['buy_hold_annualized_volatility'],
+                'sharpe_ratio': sigs['sharpe_ratio'],
+                'strategy_market_exposure': sigs['strategy_market_exposure'],
+                'executed_trade_count': sigs['executed_trade_count'],
             })
         except Exception as e:
             print(f"Skipping {t}: {e}")
