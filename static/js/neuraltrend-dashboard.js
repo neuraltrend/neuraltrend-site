@@ -629,6 +629,63 @@
         return `${sign}${percent.toFixed(decimals)}%`;
     }
 
+
+    function ntSafeFreshnessStatus(value) {
+        const status = String(value || "unknown").toLowerCase();
+        return ["current", "delayed", "stale", "unknown"].includes(status)
+            ? status
+            : "unknown";
+    }
+
+    function ntFormatDataDate(value, short = false) {
+        if (!value) return "—";
+        const date = ntParseChartDate(value);
+        if (Number.isNaN(date.getTime())) return String(value).slice(0, 10) || "—";
+        return date.toLocaleDateString(undefined, short ? {
+            month: "short",
+            day: "numeric"
+        } : {
+            year: "numeric",
+            month: "short",
+            day: "numeric"
+        });
+    }
+
+    function ntFormatUtcDataTimestamp(value) {
+        if (!value) return "—";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "—";
+        return new Intl.DateTimeFormat(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: "UTC",
+            timeZoneName: "short"
+        }).format(date);
+    }
+
+    function ntApplyFreshnessBadge(element, data, compact = false) {
+        if (!element) return;
+        const status = ntSafeFreshnessStatus(data?.freshness_status);
+        const label = String(data?.freshness_label || "Unknown");
+        element.className = compact
+            ? `nt-inline-freshness nt-freshness-${status}`
+            : `nt-freshness-badge nt-freshness-${status}`;
+        element.textContent = label;
+        element.title = String(
+            data?.freshness_message ||
+            "Freshness could not be determined for this asset."
+        );
+    }
+
+    function ntFreshnessCompactText(data) {
+        const label = String(data?.freshness_label || "Unknown");
+        const dateText = ntFormatDataDate(data?.data_through, true);
+        return `${label} · ${dateText}`;
+    }
+
     function durationLabel(value) {
         const labels = {
             "1w": "1W",
@@ -746,6 +803,23 @@
             Number.isFinite(tradeCount)
                 ? `${tradeCount.toLocaleString()} executed trades`
                 : "— executed trades";
+
+        const dataThroughEl = document.getElementById("metric-data-through");
+        if (dataThroughEl) {
+            dataThroughEl.textContent = ntFormatDataDate(item.data_through);
+        }
+
+        const siteUpdatedEl = document.getElementById("metric-site-data-updated");
+        if (siteUpdatedEl) {
+            siteUpdatedEl.textContent = ntFormatUtcDataTimestamp(
+                item.site_data_updated_at_utc
+            );
+        }
+
+        ntApplyFreshnessBadge(
+            document.getElementById("metric-freshness-badge"),
+            item
+        );
     }
     
     let currentSort = {
@@ -827,7 +901,16 @@
                         width: 100%;
                     "
                 >
-                    <div class="signal-ticker">${safeTicker}</div>
+                    <div class="signal-ticker-stack">
+                        <div class="signal-ticker">${safeTicker}</div>
+                        <div
+                            class="signal-freshness-meta nt-freshness-${ntSafeFreshnessStatus(item.freshness_status)}"
+                            title="${escapeHTML(item.freshness_message || "Freshness unavailable.")}"
+                        >
+                            <span class="signal-freshness-dot" aria-hidden="true"></span>
+                            <span>${escapeHTML(ntFreshnessCompactText(item))}</span>
+                        </div>
+                    </div>
         
                     <div class="signal-cell-left">${formatSignal(item.today_signal, item.signals_locked)}</div>
                     <div class="signal-cell-left">${formatSignal(item.yesterday_signal, item.signals_locked)}</div>
@@ -1197,6 +1280,16 @@
         if (previewTickerEl) {
             previewTickerEl.textContent = ticker;
         }
+
+        const previewDataThrough = document.getElementById("preview-data-through");
+        if (previewDataThrough) previewDataThrough.textContent = "—";
+        const previewSiteUpdated = document.getElementById("preview-site-data-updated");
+        if (previewSiteUpdated) previewSiteUpdated.textContent = "—";
+        ntApplyFreshnessBadge(
+            document.getElementById("preview-freshness-badge"),
+            { freshness_status: "unknown", freshness_label: "Locked", freshness_message: "Upgrade to load this asset's data freshness." },
+            true
+        );
     
         chartDiv.innerHTML = `
             <div class="nt-pro-lock-card">
@@ -1250,6 +1343,24 @@
             const costPct = Number(data.transaction_cost_rate || 0) * 100;
             previewCostLabelEl.textContent = `${costPct.toFixed(2)}% per executed trade`;
         }
+
+        const previewDataThrough = document.getElementById("preview-data-through");
+        if (previewDataThrough) {
+            previewDataThrough.textContent = ntFormatDataDate(data.data_through);
+        }
+
+        const previewSiteUpdated = document.getElementById("preview-site-data-updated");
+        if (previewSiteUpdated) {
+            previewSiteUpdated.textContent = ntFormatUtcDataTimestamp(
+                data.site_data_updated_at_utc
+            );
+        }
+
+        ntApplyFreshnessBadge(
+            document.getElementById("preview-freshness-badge"),
+            data,
+            true
+        );
 
         const riskGrid = document.getElementById("equity-preview-risk-grid");
         if (riskGrid) riskGrid.style.display = "grid";
@@ -1823,6 +1934,32 @@
     
         document.getElementById("live-sim-detail-subtitle").textContent =
             `${sim.ticker} · ${Number(sim.position_size_pct).toFixed(0)}% per signal · Started ${sim.start_date} · ${sim.status || "active"}`;
+
+        const liveDataThrough = document.getElementById("live-sim-data-through");
+        if (liveDataThrough) {
+            liveDataThrough.textContent = ntFormatDataDate(
+                sim.data_through || sim.latest_csv_date
+            );
+        }
+
+        const liveSimulationThrough = document.getElementById("live-sim-simulation-through");
+        if (liveSimulationThrough) {
+            liveSimulationThrough.textContent = ntFormatDataDate(
+                sim.simulation_through || sim.latest_equity_date
+            );
+        }
+
+        const liveSiteUpdated = document.getElementById("live-sim-site-data-updated");
+        if (liveSiteUpdated) {
+            liveSiteUpdated.textContent = ntFormatUtcDataTimestamp(
+                sim.site_data_updated_at_utc
+            );
+        }
+
+        ntApplyFreshnessBadge(
+            document.getElementById("live-sim-freshness-badge"),
+            sim
+        );
 
         const detailSignalWrap = document.getElementById("live-sim-detail-signal-wrap");
             if (detailSignalWrap) {

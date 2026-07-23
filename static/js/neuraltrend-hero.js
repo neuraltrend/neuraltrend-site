@@ -307,6 +307,26 @@
         }
     }
 
+    function updateHeroDataFreshness(data) {
+        const element = document.getElementById("nt-hero-data-freshness");
+        if (!element) return;
+
+        const status = typeof ntSafeFreshnessStatus === "function"
+            ? ntSafeFreshnessStatus(data?.freshness_status)
+            : "unknown";
+        const label = String(data?.freshness_label || "Unknown");
+        const dataDate = typeof ntFormatDataDate === "function"
+            ? ntFormatDataDate(data?.data_through, true)
+            : String(data?.data_through || "—");
+        const updated = typeof ntFormatUtcDataTimestamp === "function"
+            ? ntFormatUtcDataTimestamp(data?.site_data_updated_at_utc)
+            : String(data?.site_data_updated_at_utc || "—");
+
+        element.className = `nt-market-hero-freshness nt-freshness-${status}`;
+        element.textContent = `Data through ${dataDate} · ${label}`;
+        element.title = `${String(data?.freshness_message || "Freshness unavailable.")} Site data file updated ${updated}.`;
+    }
+
     function updateHeroAssetText() {
         const asset = heroAssetLabel(ntHeroTicker);
 
@@ -353,6 +373,7 @@
         ntHeroLastDuration = duration;
         
         updateHeroAssetText();
+        updateHeroDataFreshness(data);
         const canvas = document.getElementById(
             "nt-market-hero-chart"
         );
