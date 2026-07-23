@@ -576,7 +576,20 @@ def parse_duration(duration: str):
 
 
 def duration_to_days(duration_str: str):
-    delta = parse_duration(duration_str)
+    """
+    Convert a dashboard horizon to an approximate day count.
+
+    ``max`` is intentionally represented by ``None`` so callers can use the
+    complete validated CSV history without inventing an arbitrary year cap.
+    Backtest durations still use ``parse_duration`` directly and therefore keep
+    their existing bounded-duration behavior.
+    """
+    clean = str(duration_str or "").strip().lower()
+
+    if clean == "max":
+        return None
+
+    delta = parse_duration(clean)
 
     if isinstance(delta, timedelta):
         return delta.days
@@ -850,7 +863,12 @@ def compute_signals_for_ticker(ticker, period_days=365*10, csv_version=None):
     if ticker not in ALL_SUPPORTED_TICKERS:
         raise ValueError("Unsupported asset ticker.")
 
-    if not isinstance(period_days, int) or period_days < 1 or period_days > 3650:
+    # ``None`` means MAX: use every validated row available for this asset.
+    if period_days is not None and (
+        not isinstance(period_days, int)
+        or period_days < 1
+        or period_days > 3650
+    ):
         raise ValueError("Unsupported signal period.")
 
     effective_csv_version = csv_version if csv_version is not None else get_csv_version()
@@ -873,15 +891,18 @@ def compute_signals_for_ticker(ticker, period_days=365*10, csv_version=None):
     is_crypto = ticker.endswith("-USD")
 
     if is_crypto:
-        # calendar slicing
-        start_date = datetime.today().date() - pd.Timedelta(days=period_days)
-        df = df[df.index >= pd.to_datetime(start_date)].copy()
+        # Calendar slicing for bounded horizons. MAX keeps the full CSV.
+        if period_days is not None:
+            start_date = datetime.today().date() - pd.Timedelta(days=period_days)
+            df = df[df.index >= pd.to_datetime(start_date)].copy()
         transaction_cost = 0.01 # 1% per transaction (per side)
     else:
-        # stock → use trading days
-        trading_days_per_year = 252
-        trading_days = int(period_days * (trading_days_per_year / 365))
-        df = df.tail(trading_days).copy()
+        # Stocks use trading-day approximations for bounded horizons. MAX keeps
+        # every available validated trading row.
+        if period_days is not None:
+            trading_days_per_year = 252
+            trading_days = int(period_days * (trading_days_per_year / 365))
+            df = df.tail(trading_days).copy()
         transaction_cost = 0.001 # 0.1% per transaction (per side)
 
     if len(df) < 2:
@@ -3382,11 +3403,13 @@ def equity():
         return jsonify({"error": "Not enough data"}), 400
 
     # ---------------------------------------------------
-    # Slice from duration ago until today
+    # Slice from duration ago until the latest row. MAX keeps every available
+    # validated row for the selected asset.
     # ---------------------------------------------------
-    end_date = signals_df.index.max()
-    start_date = end_date - pd.Timedelta(days=period_days)
-    signals_df = signals_df[signals_df.index >= start_date].copy()
+    if period_days is not None:
+        end_date = signals_df.index.max()
+        start_date = end_date - pd.Timedelta(days=period_days)
+        signals_df = signals_df[signals_df.index >= start_date].copy()
 
     if len(signals_df) < 2:
         return jsonify({"error": "Not enough data in selected duration"}), 400
