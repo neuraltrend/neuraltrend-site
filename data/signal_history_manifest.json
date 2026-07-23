@@ -1,0 +1,1991 @@
+{
+  "files": {
+    "epoch_1INCH.csv": {
+      "content_sha256": "0ee80b091fe0c1a26e1e74dafa7b6cfb1dd71f16795d4055bb871f80fec32b4e",
+      "first_date": "2021-12-05",
+      "last_date": "2026-07-22",
+      "row_count": 1691
+    },
+    "epoch_3ULL.csv": {
+      "content_sha256": "cec1af2558a2854f7ebe33de6b30c5e0b5a82b5b023ee10cfb2b6420687fc311",
+      "first_date": "2024-06-19",
+      "last_date": "2026-07-22",
+      "row_count": 764
+    },
+    "epoch_AAPL.csv": {
+      "content_sha256": "a4121e2b847f4a3256b20cf4d4988c897f353fd93ffefc0ee205a2c0059da7e1",
+      "first_date": "1981-12-08",
+      "last_date": "2026-07-21",
+      "row_count": 11223
+    },
+    "epoch_AAVE.csv": {
+      "content_sha256": "f74877a43164bb950657970395d522ab21d3c492da97baa591c298cd0146a499",
+      "first_date": "2021-08-18",
+      "last_date": "2026-07-22",
+      "row_count": 1800
+    },
+    "epoch_ABBV.csv": {
+      "content_sha256": "c1de6a92a14f4bea2d4c712cdcc6197580a6c6c5611ca6acec947b5567ac257b",
+      "first_date": "2013-12-19",
+      "last_date": "2026-07-21",
+      "row_count": 3163
+    },
+    "epoch_ACE.csv": {
+      "content_sha256": "f798f002e37f02d9ba139a0514b6405590d5ebd91d6f5d5498107e869c702428",
+      "first_date": "2024-07-21",
+      "last_date": "2026-07-22",
+      "row_count": 732
+    },
+    "epoch_ACH.csv": {
+      "content_sha256": "15a413f2fec9614c940118470e3b833b3b6ea20cf537a737d474f57d6f75e597",
+      "first_date": "2021-08-16",
+      "last_date": "2026-07-22",
+      "row_count": 1802
+    },
+    "epoch_ADA.csv": {
+      "content_sha256": "71430efdd768c49517bba7e8f97eca99fac22f4c614b518d1cd71cd6237b8ca6",
+      "first_date": "2018-09-11",
+      "last_date": "2026-07-22",
+      "row_count": 2872
+    },
+    "epoch_AERO.csv": {
+      "content_sha256": "947c436148db80e20bea787111d509d9a238e9f67e5e64662a0ae4a0bd70e5ed",
+      "first_date": "2024-11-03",
+      "last_date": "2026-07-22",
+      "row_count": 627
+    },
+    "epoch_AEVO.csv": {
+      "content_sha256": "8c049a77b390afa4cbacc453789d2f028c3ae6f85fa0c9aea26117871bb60dd7",
+      "first_date": "2025-01-27",
+      "last_date": "2026-07-22",
+      "row_count": 542
+    },
+    "epoch_AGI.csv": {
+      "content_sha256": "08e9e01cda39d67b2914c5cec6de72fc81da9bbd53478a215953a38b0934256d",
+      "first_date": "2024-03-29",
+      "last_date": "2026-07-22",
+      "row_count": 846
+    },
+    "epoch_AIOZ.csv": {
+      "content_sha256": "7861f355d6d40981f3fe00c66e6eb4123ea8970423147e6cdeaec168408be2ef",
+      "first_date": "2022-02-07",
+      "last_date": "2026-07-22",
+      "row_count": 1627
+    },
+    "epoch_AIT.csv": {
+      "content_sha256": "8e0609f7e9c36dba47e30042a86300b33f3acbfac67249b0b849fd608f1728c4",
+      "first_date": "2024-06-25",
+      "last_date": "2026-07-22",
+      "row_count": 758
+    },
+    "epoch_AIXBT.csv": {
+      "content_sha256": "a8a1d1e588b2a2f3c6a8808b3320fcf50ca17d7a91aed614b941cea526f9fa0b",
+      "first_date": "2025-08-19",
+      "last_date": "2026-07-22",
+      "row_count": 338
+    },
+    "epoch_AKT.csv": {
+      "content_sha256": "42b8483fce4c5c7fdc322d6c1efbee9ba49b98ac4be1b2e00ae2fcbcc1575fc3",
+      "first_date": "2021-05-20",
+      "last_date": "2026-07-22",
+      "row_count": 1890
+    },
+    "epoch_ALEPH.csv": {
+      "content_sha256": "edb721e95b602d4ab79d235d19f312839a02d9dc4be47e3e74129be8c355bb3e",
+      "first_date": "2021-02-15",
+      "last_date": "2026-07-22",
+      "row_count": 1984
+    },
+    "epoch_ALGO.csv": {
+      "content_sha256": "5f61d0c08666a03317f19617a1e2231aee86e9200f7ebf7404cae74a3135cf68",
+      "first_date": "2020-01-30",
+      "last_date": "2026-07-22",
+      "row_count": 2366
+    },
+    "epoch_ALI.csv": {
+      "content_sha256": "b0ffc2d0e899e90d22a0ac77089fb23b954f6845a1a5246aa5e1df6bc86cdcd7",
+      "first_date": "2022-10-01",
+      "last_date": "2026-07-22",
+      "row_count": 1391
+    },
+    "epoch_ALPH.csv": {
+      "content_sha256": "1b27f0a86eff705ec8f68b184664e42757003a45912bd2a80e12f19453f092ca",
+      "first_date": "2022-09-15",
+      "last_date": "2026-07-22",
+      "row_count": 1407
+    },
+    "epoch_ALT.csv": {
+      "content_sha256": "1a133250f4c06a78eeadae90821b2b9b7d6eb2e2167c69f8aad8840eedf480fa",
+      "first_date": "2024-04-11",
+      "last_date": "2026-07-22",
+      "row_count": 833
+    },
+    "epoch_ALU.csv": {
+      "content_sha256": "92e38413d7fc8a2d8c2628556630a7a37486fcfe9d59a29c05efc95b1cfe74e5",
+      "first_date": "2022-04-30",
+      "last_date": "2026-07-22",
+      "row_count": 1545
+    },
+    "epoch_ALVA.csv": {
+      "content_sha256": "203c508e883ab88cc2e517ed54836d5c26ea7a3c05d44961e706af13e5ead063",
+      "first_date": "2024-11-08",
+      "last_date": "2026-07-22",
+      "row_count": 622
+    },
+    "epoch_AMP.csv": {
+      "content_sha256": "39524a5160a65282ff874eedf21270ccf115b360e6042cb12d17f754b7060610",
+      "first_date": "2021-06-23",
+      "last_date": "2026-07-22",
+      "row_count": 1856
+    },
+    "epoch_AMZN.csv": {
+      "content_sha256": "cc09a8e04d08f1d3d92399b634007b7c75e6e3a44c4198fcb934b4d23baff90d",
+      "first_date": "1998-07-20",
+      "last_date": "2026-07-22",
+      "row_count": 7045
+    },
+    "epoch_ANKR.csv": {
+      "content_sha256": "7aeb40bdaae73ac8920e3ef31a6265cc55d558100f59b23655956328fd745957",
+      "first_date": "2020-03-02",
+      "last_date": "2026-07-22",
+      "row_count": 2334
+    },
+    "epoch_ANON.csv": {
+      "content_sha256": "c6dd06616c624ede171181285a4456bafe30fcdf066b80fc91338243866decf2",
+      "first_date": "2025-08-30",
+      "last_date": "2026-07-22",
+      "row_count": 327
+    },
+    "epoch_ANYONE.csv": {
+      "content_sha256": "50cf5c091a8d1aee665d7860c505ffa491d2658cd7e866a18c3997675a72c1a9",
+      "first_date": "2025-04-19",
+      "last_date": "2026-07-22",
+      "row_count": 460
+    },
+    "epoch_APT.csv": {
+      "content_sha256": "a4146c51c9bc616e0d1aaf2de863efcd5c83593377f579b462368f75db6552af",
+      "first_date": "2023-06-15",
+      "last_date": "2026-07-22",
+      "row_count": 1134
+    },
+    "epoch_APU.csv": {
+      "content_sha256": "8cfb8bf18f7cd18d68d5380047a80ebfd3901a5a3d2356e4cfe68d49cb778ac6",
+      "first_date": "2025-04-04",
+      "last_date": "2026-07-22",
+      "row_count": 475
+    },
+    "epoch_AR.csv": {
+      "content_sha256": "a4180cf9f089b108e170603429e3ddc259b1ac4dcc84fd3c1688527ea1954e00",
+      "first_date": "2021-03-30",
+      "last_date": "2026-07-22",
+      "row_count": 1941
+    },
+    "epoch_ARB.csv": {
+      "content_sha256": "05e7f40ba93ec100321f4b02adf07c59633b5d8f5bed8a72ea6f3d25005dd214",
+      "first_date": "2024-04-01",
+      "last_date": "2026-07-22",
+      "row_count": 843
+    },
+    "epoch_ARC.csv": {
+      "content_sha256": "36eddd11e54c990ed0ee5512c2ea0c33ac0f6c321fa72dd0c66d46574c53c376",
+      "first_date": "2025-03-20",
+      "last_date": "2026-07-22",
+      "row_count": 490
+    },
+    "epoch_ASML.csv": {
+      "content_sha256": "dbaa20f96a9942f5432c0ee114493618d64af9b04ac818cbb6204fb93f37792b",
+      "first_date": "1996-08-05",
+      "last_date": "2026-07-21",
+      "row_count": 7537
+    },
+    "epoch_ASTR.csv": {
+      "content_sha256": "7c2140f2690cc88eea30d0b36e1583b3ab0399bc45e4fafd1cc5773140499352",
+      "first_date": "2023-01-17",
+      "last_date": "2026-07-22",
+      "row_count": 1283
+    },
+    "epoch_ATLAS.csv": {
+      "content_sha256": "69b5bc37fc109d7b881b2755f0c01b65edb0ef023d0cb3bfa5ac170d2060cb33",
+      "first_date": "2022-05-07",
+      "last_date": "2026-07-22",
+      "row_count": 1538
+    },
+    "epoch_ATOM.csv": {
+      "content_sha256": "6f82c9f8d24c1f2113235dfc3a77ed1a56315162edfa482007da133c24a90db3",
+      "first_date": "2019-11-08",
+      "last_date": "2026-07-22",
+      "row_count": 2449
+    },
+    "epoch_AURY.csv": {
+      "content_sha256": "878875fc19297592e09a24853925c52c824f6734e40ce7edc6beed316dd1d4ab",
+      "first_date": "2022-11-02",
+      "last_date": "2026-07-22",
+      "row_count": 1359
+    },
+    "epoch_AUTOS.csv": {
+      "content_sha256": "3bebd73884c8b6d34ac8bbda146ba036e45af6193391fc225388d1cc9b31fe7b",
+      "first_date": "2025-06-12",
+      "last_date": "2026-07-22",
+      "row_count": 406
+    },
+    "epoch_AVAX.csv": {
+      "content_sha256": "8d436921a53edbcd21cedce08ee14574ae100f01a4963d2e10264bcf96588fdd",
+      "first_date": "2021-08-01",
+      "last_date": "2026-07-22",
+      "row_count": 1817
+    },
+    "epoch_AVGO.csv": {
+      "content_sha256": "1d092991bc212e6c928885ca6a01c04bd861661fa708e57da77c855c825aff2e",
+      "first_date": "2010-07-21",
+      "last_date": "2026-07-21",
+      "row_count": 4024
+    },
+    "epoch_AXL.csv": {
+      "content_sha256": "7ccf7c631a77e810e3af6ce3be67681acceb2f48b1f0a3ef1ce71578c3c536a9",
+      "first_date": "2023-09-17",
+      "last_date": "2026-07-22",
+      "row_count": 1040
+    },
+    "epoch_AXS.csv": {
+      "content_sha256": "446fdfbd5951872487a40513162aa7b5a8e0eccbd12d87a4f99f35a82c2e8bc3",
+      "first_date": "2021-09-18",
+      "last_date": "2026-07-22",
+      "row_count": 1769
+    },
+    "epoch_BAI.csv": {
+      "content_sha256": "feef01928697588d27d3de03ab85d62919272d206db3c42f68b89be93c40fa64",
+      "first_date": "2024-03-11",
+      "last_date": "2026-07-22",
+      "row_count": 821
+    },
+    "epoch_BAL.csv": {
+      "content_sha256": "9df8ba6cce7b94bfa7480c58a5c6a3cf90120524dbf8ba5485adbde66a43be71",
+      "first_date": "2021-03-09",
+      "last_date": "2026-07-22",
+      "row_count": 1962
+    },
+    "epoch_BANANA.csv": {
+      "content_sha256": "e26796435b30d9d42bf77868f0a7b9a8fcc11c0245b8cc16484d7d9c5a303061",
+      "first_date": "2024-05-25",
+      "last_date": "2026-07-22",
+      "row_count": 789
+    },
+    "epoch_BAND.csv": {
+      "content_sha256": "5b89e5603a557096ea2e789dba838e449646dee8faa69168ad8b450263237910",
+      "first_date": "2020-09-30",
+      "last_date": "2026-07-22",
+      "row_count": 2122
+    },
+    "epoch_BASEDAI.csv": {
+      "content_sha256": "a13e173a19b87f4f99faa5f8cefd1aa617318975eea0031c960733f378ee8b15",
+      "first_date": "2025-03-10",
+      "last_date": "2026-07-22",
+      "row_count": 500
+    },
+    "epoch_BAZED.csv": {
+      "content_sha256": "b69ded857573ea3fbfd6a47c7c2fd602e7546ab4bc14235f6517930d0d2bbf39",
+      "first_date": "2024-07-17",
+      "last_date": "2026-07-22",
+      "row_count": 634
+    },
+    "epoch_BCH.csv": {
+      "content_sha256": "4edcae67eaf6bf7663437e12a0c7f85fe7a2e090c0c5e8fca3980212df4b5c74",
+      "first_date": "2018-09-05",
+      "last_date": "2026-07-22",
+      "row_count": 2878
+    },
+    "epoch_BCUT.csv": {
+      "content_sha256": "6726f925d24dbcb027c0234fbaa9ed5c523903a256c20ceaf08540beee386616",
+      "first_date": "2024-08-01",
+      "last_date": "2026-07-22",
+      "row_count": 721
+    },
+    "epoch_BEAM.csv": {
+      "content_sha256": "3e658232da4fec4b9d537464b00ff70c5910cee1dcd79ccc1b2cfb03a7375a9d",
+      "first_date": "2024-10-25",
+      "last_date": "2026-07-22",
+      "row_count": 636
+    },
+    "epoch_BGB.csv": {
+      "content_sha256": "6156084a5565fd7e58e6463d7e0f98a4451bcdd43f5bf179229fbd3d41a26566",
+      "first_date": "2022-04-28",
+      "last_date": "2026-07-22",
+      "row_count": 1547
+    },
+    "epoch_BIGTIME.csv": {
+      "content_sha256": "a215061912cda80212ef418897eb506c048f489247c347ed22e5637753a15468",
+      "first_date": "2024-10-22",
+      "last_date": "2026-07-22",
+      "row_count": 639
+    },
+    "epoch_BLUR.csv": {
+      "content_sha256": "2e2f1a9b88affe2ad5f74a25af9187f7871c5bfb4f6e94d2316e9cdde8d242b8",
+      "first_date": "2024-02-12",
+      "last_date": "2026-07-22",
+      "row_count": 892
+    },
+    "epoch_BNB.csv": {
+      "content_sha256": "1ae094424ecbc0058636b5f5e69b6ecebc77f27f75485caaf5f6bf773b738fab",
+      "first_date": "2018-08-30",
+      "last_date": "2026-07-22",
+      "row_count": 2884
+    },
+    "epoch_BNT.csv": {
+      "content_sha256": "6454887d3760f14da4675781744503eadfbfaf9688fd84500a05edf3e86a41a6",
+      "first_date": "2018-09-21",
+      "last_date": "2026-07-22",
+      "row_count": 2862
+    },
+    "epoch_BONK.csv": {
+      "content_sha256": "32d995fc5604ef9ca3309d9b549855ababea8fac64f1b42c5755742f534aaa2d",
+      "first_date": "2024-07-07",
+      "last_date": "2026-07-22",
+      "row_count": 746
+    },
+    "epoch_BRETT.csv": {
+      "content_sha256": "851458d220c97eb1be21f29b085b7f775b74ab9b116ab272c00dc24629b052ac",
+      "first_date": "2024-11-18",
+      "last_date": "2026-07-22",
+      "row_count": 612
+    },
+    "epoch_BRKB.csv": {
+      "content_sha256": "23c6b0297c66d35774265ffa62583f82f19e9d9c5b9a2e8b4c9c51d940a616ab",
+      "first_date": "1997-04-02",
+      "last_date": "2026-07-21",
+      "row_count": 7371
+    },
+    "epoch_BTC.csv": {
+      "content_sha256": "a14766cd87e239883163e2c676ca96f5556a58812ecad959fd17275af82120f3",
+      "first_date": "2015-09-27",
+      "last_date": "2026-07-22",
+      "row_count": 3952
+    },
+    "epoch_BYTES.csv": {
+      "content_sha256": "8ec05c026fe1461bf4a85bc8ce30cbc6244b861a6b827fa0a1f055b6779d1283",
+      "first_date": "2024-07-23",
+      "last_date": "2026-07-22",
+      "row_count": 730
+    },
+    "epoch_CAKE.csv": {
+      "content_sha256": "139d0713f388692644339c84d87d7a060a0c2d5b98cba6ce5d909c1a14333481",
+      "first_date": "2021-08-18",
+      "last_date": "2026-07-22",
+      "row_count": 1800
+    },
+    "epoch_CELO.csv": {
+      "content_sha256": "1ea1e71465b4a81924722c998d987026a88310d374303f66b346e0f1f946c741",
+      "first_date": "2021-04-03",
+      "last_date": "2026-07-22",
+      "row_count": 1937
+    },
+    "epoch_CERE.csv": {
+      "content_sha256": "267a7d711b32ff89313102878dc9e208f5c76fd3083a17879568531432cf4831",
+      "first_date": "2022-11-17",
+      "last_date": "2026-07-22",
+      "row_count": 1344
+    },
+    "epoch_CETUS.csv": {
+      "content_sha256": "2ab1ea239c4493af6bfe6185a90a85fda69763b479184dd6aa11125a78e91667",
+      "first_date": "2024-02-26",
+      "last_date": "2026-07-22",
+      "row_count": 878
+    },
+    "epoch_CFG.csv": {
+      "content_sha256": "489dac9f5ad4738f09e0f6ebaab0bd0a1b495f465b64025016538e94fbd89383",
+      "first_date": "2022-06-01",
+      "last_date": "2026-07-22",
+      "row_count": 1513
+    },
+    "epoch_CGPT.csv": {
+      "content_sha256": "56cc07dccf6708de336decd389eb5ba89ee1f15598a824a5f2879a07f264f5d2",
+      "first_date": "2024-02-02",
+      "last_date": "2026-07-22",
+      "row_count": 902
+    },
+    "epoch_CHAPZ.csv": {
+      "content_sha256": "3a5e8a55b838fe765ca72a7bc353b2b8072443fda54babb6cb76f61898bd8721",
+      "first_date": "2024-03-11",
+      "last_date": "2026-07-22",
+      "row_count": 864
+    },
+    "epoch_CHAT.csv": {
+      "content_sha256": "1debe76701adf6f9b24eb47e533fc3ff8069c7316e6fdf74976b6490f9b9510a",
+      "first_date": "2024-09-20",
+      "last_date": "2026-07-22",
+      "row_count": 671
+    },
+    "epoch_CHEX.csv": {
+      "content_sha256": "8112b464a9cbca59c3b4b9beef79e70c1d0e1a263ee1c607e538ddf62167f657",
+      "first_date": "2022-03-07",
+      "last_date": "2026-07-22",
+      "row_count": 1599
+    },
+    "epoch_CHZ.csv": {
+      "content_sha256": "95c5a1f3c216d47c493f2c5983cb1d2aff1ad8d87c3a8c188ab8f588ec4ec5a4",
+      "first_date": "2020-07-15",
+      "last_date": "2026-07-22",
+      "row_count": 2199
+    },
+    "epoch_COMP.csv": {
+      "content_sha256": "b37af0d2ebef85b5c2cdfebed0dff0521f9032199054f50aadf2330ea9254203",
+      "first_date": "2021-06-06",
+      "last_date": "2026-07-22",
+      "row_count": 1873
+    },
+    "epoch_COST.csv": {
+      "content_sha256": "52bf4fa358d729c82654c7cbdbd85dc9e36ec263fe9918e986d7b18d60e0ac9f",
+      "first_date": "1988-07-05",
+      "last_date": "2026-07-21",
+      "row_count": 9582
+    },
+    "epoch_COTI.csv": {
+      "content_sha256": "8a1b25bfe1b32dae5718e85d26f358bf2403acc387bf9a38c5e33ebebc618e0a",
+      "first_date": "2020-01-19",
+      "last_date": "2026-07-22",
+      "row_count": 2377
+    },
+    "epoch_CPOOL.csv": {
+      "content_sha256": "cebf96ee9dc62b3b3bedeb0c3b6bccdaf0d8f2dcd26fa661288812425d6e89d4",
+      "first_date": "2022-05-28",
+      "last_date": "2026-07-22",
+      "row_count": 1517
+    },
+    "epoch_CREDI.csv": {
+      "content_sha256": "2152794bc91860647d55cb8d8454b3247fa2b46e5b464de7a537c1c902461706",
+      "first_date": "2022-10-16",
+      "last_date": "2026-07-22",
+      "row_count": 1376
+    },
+    "epoch_CREO.csv": {
+      "content_sha256": "04aeb32313c379946802e9da0e37680b2ce180cdafa973ac90143a235015b2bd",
+      "first_date": "2023-03-13",
+      "last_date": "2026-07-22",
+      "row_count": 1228
+    },
+    "epoch_CRO.csv": {
+      "content_sha256": "5f6922ea9e78343a3dc52884acbfc1034458a4fbecf2aeefd89298edacdd2c0e",
+      "first_date": "2019-08-02",
+      "last_date": "2026-07-22",
+      "row_count": 2547
+    },
+    "epoch_CROWN.csv": {
+      "content_sha256": "4b509a3930fee3db108f481a906cb9a37ddb9a576899ae4e69b1cf2da4ec0897",
+      "first_date": "2024-03-24",
+      "last_date": "2026-07-22",
+      "row_count": 851
+    },
+    "epoch_CRU.csv": {
+      "content_sha256": "0ddc47d017b1f9987d7628abd34aec4fee89e0781d8ae1c61002c31497e2eac5",
+      "first_date": "2021-08-07",
+      "last_date": "2026-07-22",
+      "row_count": 1811
+    },
+    "epoch_CRV.csv": {
+      "content_sha256": "86db7901a42c6a46343d2cace9e2ff488b50f34a16d5bbce70fe8caa2b46770f",
+      "first_date": "2021-07-16",
+      "last_date": "2026-07-22",
+      "row_count": 1833
+    },
+    "epoch_CTC.csv": {
+      "content_sha256": "c05c961a4a4051b6ed6054adfee3e9e49f5bfa2a78939fe9f7ff49d905fd73e1",
+      "first_date": "2020-11-24",
+      "last_date": "2026-07-22",
+      "row_count": 2067
+    },
+    "epoch_CVC.csv": {
+      "content_sha256": "6943aad6845f36e61f9e84e146b634809f507d69e5a8f06f19ce08ed52c5f047",
+      "first_date": "2018-08-08",
+      "last_date": "2026-07-22",
+      "row_count": 2906
+    },
+    "epoch_DARK.csv": {
+      "content_sha256": "e12afb1a6caa38a4b8e235ae069424934d0e7445af5ead90efdd49f1d22f1c2d",
+      "first_date": "2021-10-15",
+      "last_date": "2026-07-22",
+      "row_count": 1742
+    },
+    "epoch_DCK.csv": {
+      "content_sha256": "9782f6d6f9b1f3af03d8f8ef40512329224eb229c88128ed783583a73892de08",
+      "first_date": "2024-06-25",
+      "last_date": "2026-07-22",
+      "row_count": 758
+    },
+    "epoch_DEVVE.csv": {
+      "content_sha256": "0cfd3314ce0ef7d2bb9447f6182beba45bcb674773febc9e6add7fc99e7b293e",
+      "first_date": "2024-10-02",
+      "last_date": "2026-07-22",
+      "row_count": 659
+    },
+    "epoch_DEXE.csv": {
+      "content_sha256": "a8cd13181118483748908e9763beb69d48a4da1e9a693d3fd1d1b3fbe272b862",
+      "first_date": "2021-05-10",
+      "last_date": "2026-07-22",
+      "row_count": 1900
+    },
+    "epoch_DIMO.csv": {
+      "content_sha256": "0240ae32e3bdfc9bb1a9b7e1d4c8c90eaeddea1afd517f66f9844042dc9f1da4",
+      "first_date": "2023-12-15",
+      "last_date": "2026-07-22",
+      "row_count": 951
+    },
+    "epoch_DIO.csv": {
+      "content_sha256": "d85818a70496dce866af9eef06d6613c722e9da52dcb694535df7d0d41afc237",
+      "first_date": "2023-05-15",
+      "last_date": "2026-07-22",
+      "row_count": 1165
+    },
+    "epoch_DOGE.csv": {
+      "content_sha256": "538a9b00aa5af0094cad498b475602211f3771123f843b75eab086e5d336c5db",
+      "first_date": "2018-10-09",
+      "last_date": "2026-07-22",
+      "row_count": 2844
+    },
+    "epoch_DOME.csv": {
+      "content_sha256": "aba73c5f85a9807b440582bd5aeb06ed132a4922df3dc09c99f9d7740d93a49d",
+      "first_date": "2023-01-04",
+      "last_date": "2026-07-17",
+      "row_count": 1220
+    },
+    "epoch_DOMI.csv": {
+      "content_sha256": "53993b48a44279fb17e0f98cd346fc754a0fee144993d6a4f29f0b5acad17c9c",
+      "first_date": "2022-10-22",
+      "last_date": "2026-07-22",
+      "row_count": 1370
+    },
+    "epoch_DOT.csv": {
+      "content_sha256": "047aba9d962978dc75483ab1209b647763945f187e5f34c617b607a3b330ce56",
+      "first_date": "2021-04-30",
+      "last_date": "2026-07-22",
+      "row_count": 1910
+    },
+    "epoch_DRIFT.csv": {
+      "content_sha256": "a6cc995e0220aca1f7b1a4eaf8773412b553f90e7ec747aa4b638e03139b04ba",
+      "first_date": "2025-03-19",
+      "last_date": "2026-07-22",
+      "row_count": 491
+    },
+    "epoch_DSYNC.csv": {
+      "content_sha256": "662913508be5e08f22a66d5aafbcf11c3943ec96e48dd180b980aafdf4d2f0d1",
+      "first_date": "2025-01-08",
+      "last_date": "2026-07-22",
+      "row_count": 561
+    },
+    "epoch_DYDX.csv": {
+      "content_sha256": "a9993d8893db31d8db6e75710c84784510a01fa497b77b4682022faeaee08e1f",
+      "first_date": "2022-05-15",
+      "last_date": "2026-07-22",
+      "row_count": 1488
+    },
+    "epoch_DYM.csv": {
+      "content_sha256": "c6a6e51242a26cdbbe22f96596b4eb08a52aa51e6c035a71b3b654ce7f5e24bc",
+      "first_date": "2025-01-04",
+      "last_date": "2026-07-22",
+      "row_count": 565
+    },
+    "epoch_EDU.csv": {
+      "content_sha256": "c635d99b7d427038136fed84c52c82c24c1cd823e18b367ca155a588565b1532",
+      "first_date": "2024-01-24",
+      "last_date": "2026-07-22",
+      "row_count": 911
+    },
+    "epoch_ENA.csv": {
+      "content_sha256": "7302949fa0e626856afcf6e2170eb620c6b0b9f117cf15505bd182a014a8f3ab",
+      "first_date": "2025-03-18",
+      "last_date": "2026-07-22",
+      "row_count": 492
+    },
+    "epoch_ENJ.csv": {
+      "content_sha256": "6b807b733ff7c4586511163db8513b02ed42c45a29d5a38159bb64ed81170d7e",
+      "first_date": "2018-10-05",
+      "last_date": "2026-07-22",
+      "row_count": 2848
+    },
+    "epoch_ENQAI.csv": {
+      "content_sha256": "56bac3b787ee2318c6df3c5da49bb0d4f93b13e12c1b6500cf696cc7e2f320a7",
+      "first_date": "2024-02-20",
+      "last_date": "2026-07-22",
+      "row_count": 884
+    },
+    "epoch_ETH.csv": {
+      "content_sha256": "59c917c588471be46ab79b8ebb88070561e9f44d48c966e4e88bbf56bbebd1a6",
+      "first_date": "2018-07-31",
+      "last_date": "2026-07-22",
+      "row_count": 2914
+    },
+    "epoch_FAR.csv": {
+      "content_sha256": "5f86fa9178b4978522105fd97d9d886dbfed7fc8fc28227132ec94f7e3ba27d3",
+      "first_date": "2024-12-29",
+      "last_date": "2026-07-22",
+      "row_count": 571
+    },
+    "epoch_FET.csv": {
+      "content_sha256": "ec57d4320a1ba9a9c609da544752cec81146fb2a232bbb3132d1cd73a1e8e228",
+      "first_date": "2019-10-14",
+      "last_date": "2026-07-22",
+      "row_count": 2474
+    },
+    "epoch_FIDA.csv": {
+      "content_sha256": "3ed024570ec098abae5cb0118414f71fd71548166868f846035b08cf9b7310a1",
+      "first_date": "2022-01-07",
+      "last_date": "2026-07-22",
+      "row_count": 1658
+    },
+    "epoch_FIL.csv": {
+      "content_sha256": "acb61aa9f58b0e0db2e78f5fe582982f4603bc0853326d1cd00eefb343068b5c",
+      "first_date": "2018-09-17",
+      "last_date": "2026-07-22",
+      "row_count": 2866
+    },
+    "epoch_FLIP.csv": {
+      "content_sha256": "09ceb12c2d63713bd963329d86a803625219f892b40fe5127c8472c4f05c310e",
+      "first_date": "2024-06-27",
+      "last_date": "2026-07-22",
+      "row_count": 756
+    },
+    "epoch_FLOW.csv": {
+      "content_sha256": "5786fc494e9d0c4cb6f8c6d7d35f30d8a167f51cd3001f93ce5289ee64229d65",
+      "first_date": "2021-12-23",
+      "last_date": "2026-07-22",
+      "row_count": 1673
+    },
+    "epoch_FLR.csv": {
+      "content_sha256": "a754a078b2fad85b9c504c70abefe3a9bf43f88e568ce313e9e854c3b08129e0",
+      "first_date": "2023-09-30",
+      "last_date": "2026-07-22",
+      "row_count": 1027
+    },
+    "epoch_FLUX.csv": {
+      "content_sha256": "0e8e700d8a7b7d62da08fd574f286e50d7190bf8c9f363334de72ab7b1af2427",
+      "first_date": "2019-08-03",
+      "last_date": "2026-07-22",
+      "row_count": 2546
+    },
+    "epoch_FOXY.csv": {
+      "content_sha256": "8cbf48292de10f7da8c7ca98bf0e6188a665275b99203eebbdaf6e01702b3543",
+      "first_date": "2024-08-11",
+      "last_date": "2026-07-22",
+      "row_count": 711
+    },
+    "epoch_FUELX.csv": {
+      "content_sha256": "19f7554032a147ce01452319eaee4d35f3e12c4de96c6339a2317e59e29bfa7c",
+      "first_date": "2025-03-27",
+      "last_date": "2026-07-22",
+      "row_count": 454
+    },
+    "epoch_FYN.csv": {
+      "content_sha256": "3da6531e70aaf5cf155d5c4ae37102c25513b75ae0793c6d8a0312ab513d8090",
+      "first_date": "2022-12-08",
+      "last_date": "2026-07-22",
+      "row_count": 1323
+    },
+    "epoch_GEAR.csv": {
+      "content_sha256": "630e33a054273f34a1b3919e9d03dd33c4cc12ed35ed51cc4d8bd4741076b863",
+      "first_date": "2024-01-05",
+      "last_date": "2026-07-22",
+      "row_count": 930
+    },
+    "epoch_GFAL.csv": {
+      "content_sha256": "514e6618b82deef970c1d9c93db183ab1b3bad18f2b29d81386236de5aa84668",
+      "first_date": "2024-02-27",
+      "last_date": "2026-07-22",
+      "row_count": 877
+    },
+    "epoch_GHX.csv": {
+      "content_sha256": "843d5c59042bf190a7d79a196961d36a8a08e3c5e6fd4f1b6a047a942dc49992",
+      "first_date": "2022-01-31",
+      "last_date": "2026-07-22",
+      "row_count": 1634
+    },
+    "epoch_GLQ.csv": {
+      "content_sha256": "b3975fa065dcb8df4a080052903a6602c9092661f252d0d8f80ab11b0ee8fc9b",
+      "first_date": "2022-02-24",
+      "last_date": "2026-07-22",
+      "row_count": 1610
+    },
+    "epoch_GMEE.csv": {
+      "content_sha256": "20a6a8e67216b6a901edd4251bd622d4c21c7b1ebc8d6cc0c7edab52a6be8938",
+      "first_date": "2022-01-05",
+      "last_date": "2026-07-22",
+      "row_count": 1660
+    },
+    "epoch_GMRX.csv": {
+      "content_sha256": "c6b0818010d9e68664e52165867a70c22a5839736fc41433fda0beedaad1c57a",
+      "first_date": "2024-07-25",
+      "last_date": "2026-07-22",
+      "row_count": 728
+    },
+    "epoch_GMT.csv": {
+      "content_sha256": "ef4b2dfc2a55348f9ad98b2649bb75f26a45e684ce46d5caf0c05350f7968a23",
+      "first_date": "2022-10-08",
+      "last_date": "2026-07-22",
+      "row_count": 1384
+    },
+    "epoch_GMX.csv": {
+      "content_sha256": "caed9d0d55cc309b56c9e182d3d9fe14478aa73b47814a1e37f31a3de4b1b087",
+      "first_date": "2022-09-21",
+      "last_date": "2026-07-22",
+      "row_count": 1401
+    },
+    "epoch_GODS.csv": {
+      "content_sha256": "a8df776c74e6d400f092f6487cda6b4ea39f1619535594a849a8bf33353381cc",
+      "first_date": "2022-05-27",
+      "last_date": "2026-07-22",
+      "row_count": 1518
+    },
+    "epoch_GOOGL.csv": {
+      "content_sha256": "43c6bce684598fe08d9057847d0737d86ab8341a97706b9c950d319b67bc668a",
+      "first_date": "2005-06-27",
+      "last_date": "2026-07-21",
+      "row_count": 5299
+    },
+    "epoch_GPU.csv": {
+      "content_sha256": "e5fe6727660fd09017c8db51efe24dff388190aff163555fd011854fdd2f68bc",
+      "first_date": "2024-07-17",
+      "last_date": "2026-07-22",
+      "row_count": 736
+    },
+    "epoch_GRIFFAIN.csv": {
+      "content_sha256": "0209b59abfe6cf3f54276b856e5443975c995e1aeb58f176aa609aeeca7a7c1e",
+      "first_date": "2025-10-27",
+      "last_date": "2026-07-22",
+      "row_count": 269
+    },
+    "epoch_GRT.csv": {
+      "content_sha256": "ebd55ab5ae1dd0976b439a74d8864a630ebfea1708a249728eb8b22dfe39cb97",
+      "first_date": "2021-11-08",
+      "last_date": "2026-07-22",
+      "row_count": 1718
+    },
+    "epoch_GSWIFT.csv": {
+      "content_sha256": "f3b38e7ce284fdc8914f44806bc30ef135300e088ead951bb10a25c2f9a2eaa8",
+      "first_date": "2024-07-03",
+      "last_date": "2026-07-22",
+      "row_count": 749
+    },
+    "epoch_GTAI.csv": {
+      "content_sha256": "3e88556384894f2fd5400131d18c46f8d3cf9f61b31831464151a6bcabd6a8c2",
+      "first_date": "2024-02-26",
+      "last_date": "2026-07-22",
+      "row_count": 878
+    },
+    "epoch_GTC.csv": {
+      "content_sha256": "606b0ecb73725d0ca5001cfb15e86f841ae6e459eddc6c4a6a7afbb370a8ba1a",
+      "first_date": "2022-04-29",
+      "last_date": "2026-07-22",
+      "row_count": 1546
+    },
+    "epoch_HASHAI.csv": {
+      "content_sha256": "bbf2be231273699bac00f337cac171bbcddab81da8ae45373518269d057ff87a",
+      "first_date": "2025-01-10",
+      "last_date": "2026-07-22",
+      "row_count": 559
+    },
+    "epoch_HBAR.csv": {
+      "content_sha256": "6296ee00f71371961924d07a39a5b7cc54a33e96ef496591c9cb0469943f58c4",
+      "first_date": "2020-09-14",
+      "last_date": "2026-07-22",
+      "row_count": 2138
+    },
+    "epoch_HEART.csv": {
+      "content_sha256": "0197090d42d6bd6f34a89f72e43661d77b13553566e3f8b8449c55f3a56e3182",
+      "first_date": "2022-11-05",
+      "last_date": "2026-07-22",
+      "row_count": 1356
+    },
+    "epoch_HELLO.csv": {
+      "content_sha256": "6969c708b2b4977f8b39f60ef277c815a59998d3079cfbfa0825dc08bb99643e",
+      "first_date": "2023-05-10",
+      "last_date": "2026-07-22",
+      "row_count": 1170
+    },
+    "epoch_HNT.csv": {
+      "content_sha256": "b0c2715ae46478daa04fd144b2626bf476e6a66aac49fb852f59557b38d98dd9",
+      "first_date": "2021-02-21",
+      "last_date": "2026-07-22",
+      "row_count": 1978
+    },
+    "epoch_HONEY.csv": {
+      "content_sha256": "24f534f9afa73c0342ff7cef5db13c01613fe13038f95debaaa15662e18a8c36",
+      "first_date": "2023-06-28",
+      "last_date": "2026-07-22",
+      "row_count": 1121
+    },
+    "epoch_HXD.csv": {
+      "content_sha256": "999cca50418c627f9388ae9b39137958c52cd0f54c5a6610f5170e2279bfa6dd",
+      "first_date": "2024-03-19",
+      "last_date": "2026-07-22",
+      "row_count": 856
+    },
+    "epoch_HYPC.csv": {
+      "content_sha256": "dda4b5e7edc9c85415315a4337d98acff57a91b928d7ddd5a5c3607c4ea83177",
+      "first_date": "2024-01-14",
+      "last_date": "2026-07-22",
+      "row_count": 915
+    },
+    "epoch_HYPE.csv": {
+      "content_sha256": "c1df6b740e4874be6f204e6db925879bfb209ad2371e508e4b057de270c0ad21",
+      "first_date": "2025-10-05",
+      "last_date": "2026-07-22",
+      "row_count": 290
+    },
+    "epoch_IAG.csv": {
+      "content_sha256": "f8c189759d5e727d5fd9a149929cc288534a2dc5c691f81c89b2607b95b411d5",
+      "first_date": "2022-04-13",
+      "last_date": "2026-07-22",
+      "row_count": 1562
+    },
+    "epoch_ICP.csv": {
+      "content_sha256": "dd98eccb889d8225866c1c4e3c9ae9facb14aae8f19e900ffefef05dc1ef42ba",
+      "first_date": "2022-05-18",
+      "last_date": "2026-07-22",
+      "row_count": 1527
+    },
+    "epoch_ILV.csv": {
+      "content_sha256": "210d284dca92e29fde3518a96e23ee59a0a98aa58fc32364a04ecf9037609725",
+      "first_date": "2022-02-20",
+      "last_date": "2026-07-22",
+      "row_count": 1614
+    },
+    "epoch_IMX.csv": {
+      "content_sha256": "b75c511b2fa11a742cfe8a2b51dc231931079674d19cb7921763e04fa5d1bc19",
+      "first_date": "2022-09-16",
+      "last_date": "2026-07-22",
+      "row_count": 1406
+    },
+    "epoch_INJ.csv": {
+      "content_sha256": "7eba5ba8cc073e4117c62f10cfdda34c5b6b0904a200c36c5f09ce88d7636a58",
+      "first_date": "2021-10-21",
+      "last_date": "2026-07-22",
+      "row_count": 1736
+    },
+    "epoch_INSP.csv": {
+      "content_sha256": "373db7878712c99e9ed98160efecbfab93cc1a6d8a45c39e0ed5d31d9f3139ab",
+      "first_date": "2024-08-07",
+      "last_date": "2026-07-22",
+      "row_count": 715
+    },
+    "epoch_IOTX.csv": {
+      "content_sha256": "46c6494e596f4e0f8ff577ae385418153cd4a5abe1e80337f2f51e68d83f8c00",
+      "first_date": "2019-05-22",
+      "last_date": "2026-07-22",
+      "row_count": 2619
+    },
+    "epoch_IVPAY.csv": {
+      "content_sha256": "dcf9e3050621f9380ee893a537bc308a849f1fc1e62167d7ffd8416464c73ed1",
+      "first_date": "2024-11-04",
+      "last_date": "2026-07-22",
+      "row_count": 626
+    },
+    "epoch_JASMY.csv": {
+      "content_sha256": "f74da3dd81bb0fc012488994145652d1879d5f8815e7dd7f958335ab19825778",
+      "first_date": "2021-11-16",
+      "last_date": "2026-07-22",
+      "row_count": 1710
+    },
+    "epoch_JNJ.csv": {
+      "content_sha256": "7fdd14cf3b95b7c796f4a3d4facf7dc76cce004a61c17256539ba2a55b1f0647",
+      "first_date": "1962-12-20",
+      "last_date": "2026-07-21",
+      "row_count": 16000
+    },
+    "epoch_JOE.csv": {
+      "content_sha256": "f11ceaed88893e5954a1bb470c1122f7099f8786ebfc258c0a7295313ffb8da3",
+      "first_date": "2022-07-24",
+      "last_date": "2026-07-22",
+      "row_count": 1460
+    },
+    "epoch_JST.csv": {
+      "content_sha256": "9cdfb938bd0322102af64f199cbe21613ba76700e5de1fabbb7ea6d62f6d62e8",
+      "first_date": "2021-01-23",
+      "last_date": "2026-07-22",
+      "row_count": 2007
+    },
+    "epoch_JTO.csv": {
+      "content_sha256": "4d896eea1e2f83461f8760adbda0fb346fb7bc8a00de1b02c7b85fed11b9d3e3",
+      "first_date": "2024-05-31",
+      "last_date": "2026-07-22",
+      "row_count": 783
+    },
+    "epoch_JUP.csv": {
+      "content_sha256": "4f62ef6542972c4696e65c65d06458b8beb7cdd998b6622276847a41f7a07b17",
+      "first_date": "2024-02-17",
+      "last_date": "2026-07-22",
+      "row_count": 887
+    },
+    "epoch_KARATE.csv": {
+      "content_sha256": "2dbbcdc7f049726b1c14fbfbc0c2317a431f2d8d6352413957f919a5fa4508f9",
+      "first_date": "2024-01-24",
+      "last_date": "2026-07-22",
+      "row_count": 887
+    },
+    "epoch_KARRAT.csv": {
+      "content_sha256": "091203c266373a5dd2a9c95bc1362e0df9b51c3a400b352c87c03f8966a4d66a",
+      "first_date": "2024-08-24",
+      "last_date": "2026-07-22",
+      "row_count": 698
+    },
+    "epoch_KAS.csv": {
+      "content_sha256": "a6105579e3cbfbeba43cfe091a3cdc730dfc72e2a8828e1bb43571376e2dbb1f",
+      "first_date": "2023-03-24",
+      "last_date": "2026-07-22",
+      "row_count": 1217
+    },
+    "epoch_KATA.csv": {
+      "content_sha256": "db2cd0042844afcf1d167a40d5d57a040f939db7c411b3f2430a1683715a60a2",
+      "first_date": "2022-11-08",
+      "last_date": "2026-07-22",
+      "row_count": 1353
+    },
+    "epoch_KOMPETE.csv": {
+      "content_sha256": "7460f9906f668bb5cc793d1e39cff93fd0a748f73ad338cfc9f09d0cd8325254",
+      "first_date": "2023-03-06",
+      "last_date": "2026-07-22",
+      "row_count": 1235
+    },
+    "epoch_KRL.csv": {
+      "content_sha256": "44d6ae65020344081677d1c7560b8516537b4e9bff50a8c37a8339b4234af963",
+      "first_date": "2019-03-16",
+      "last_date": "2026-07-22",
+      "row_count": 2686
+    },
+    "epoch_LAI.csv": {
+      "content_sha256": "87dedb31e04996b64a4049b94924300598999ce53b8a5e04eb7fdc5b4e9ad6cd",
+      "first_date": "2024-02-01",
+      "last_date": "2026-06-14",
+      "row_count": 836
+    },
+    "epoch_LEO.csv": {
+      "content_sha256": "2185a02380159cb95402ebe3760a092e755f6124a1011ea0cea21aac2c1ee407",
+      "first_date": "2019-12-16",
+      "last_date": "2026-07-22",
+      "row_count": 2411
+    },
+    "epoch_LFNTY.csv": {
+      "content_sha256": "879a2c85e9379927d2e525ae088939d9d0d1a6e5e3b52acc58dbfd092df915f5",
+      "first_date": "2023-03-10",
+      "last_date": "2026-07-22",
+      "row_count": 1231
+    },
+    "epoch_LIKE.csv": {
+      "content_sha256": "0e1654ed0677a6e8cf1b608128b89d03e5ef76919f0e9b1520d3ad138c1c896b",
+      "first_date": "2022-08-06",
+      "last_date": "2026-07-22",
+      "row_count": 1447
+    },
+    "epoch_LINK.csv": {
+      "content_sha256": "5fe478180cd012c2d22f32e937dd8386f25b387e4ce95ee0ff1a766c61bc754d",
+      "first_date": "2018-07-22",
+      "last_date": "2026-07-22",
+      "row_count": 2923
+    },
+    "epoch_LMWR.csv": {
+      "content_sha256": "5d2c9a79099a856307e32795e96d5ec08f5f065bbf5bef1cbfb387ae86d5c42b",
+      "first_date": "2024-03-02",
+      "last_date": "2026-07-22",
+      "row_count": 873
+    },
+    "epoch_LPT.csv": {
+      "content_sha256": "fdc13b6fd9921802e0e1b86297ada486da61b005e09b78b98143e7308831a353",
+      "first_date": "2019-09-24",
+      "last_date": "2026-07-22",
+      "row_count": 2494
+    },
+    "epoch_LRC.csv": {
+      "content_sha256": "9a1b240319342132147d14948ba4cfb59d5c2a95e9c9d9aa0e904905704b89cf",
+      "first_date": "2018-09-01",
+      "last_date": "2026-07-22",
+      "row_count": 2882
+    },
+    "epoch_LTC.csv": {
+      "content_sha256": "7204565ab9c6127689f64edb67e8178c2e916fc8c9f7226918b9b88775642875",
+      "first_date": "2015-08-29",
+      "last_date": "2026-07-22",
+      "row_count": 3981
+    },
+    "epoch_MA.csv": {
+      "content_sha256": "86ff8d17a062fbce32afc6e2dc56553a962074137421b5864240e40d306ddcf5",
+      "first_date": "2008-04-22",
+      "last_date": "2026-07-21",
+      "row_count": 4590
+    },
+    "epoch_MAGIC.csv": {
+      "content_sha256": "5e89950978a81e918fe2a949ef4f2685d1bfe44b5f4857453950fdb731b44232",
+      "first_date": "2022-11-24",
+      "last_date": "2026-07-22",
+      "row_count": 1337
+    },
+    "epoch_MASK.csv": {
+      "content_sha256": "bcbd96d95057c1f00a4bbc4adb5e04b53ed804b5ba8eff4bca4305c3d6c94a5f",
+      "first_date": "2021-10-29",
+      "last_date": "2026-07-22",
+      "row_count": 1728
+    },
+    "epoch_MAVIA.csv": {
+      "content_sha256": "0eb4286855fe06b3f922658ae56c518de33568564dd4829407dcac7713e4a432",
+      "first_date": "2024-09-21",
+      "last_date": "2026-07-22",
+      "row_count": 670
+    },
+    "epoch_MBS.csv": {
+      "content_sha256": "9a11781f7c6dd88844e507fe9fa549fd8bb3934808b3a57157cdc007127cbc5e",
+      "first_date": "2022-09-24",
+      "last_date": "2026-07-22",
+      "row_count": 1388
+    },
+    "epoch_META.csv": {
+      "content_sha256": "a73542057a620755804c5589869131757c9b4ae197dfdda484cf4bf8d623d21d",
+      "first_date": "2013-06-03",
+      "last_date": "2026-07-22",
+      "row_count": 3304
+    },
+    "epoch_METIS.csv": {
+      "content_sha256": "0b059201ca92fd19dcd13077a8b1ec07fafdce0b558b71b0e34e2ffb3ad84789",
+      "first_date": "2022-04-05",
+      "last_date": "2026-07-22",
+      "row_count": 1570
+    },
+    "epoch_MEW.csv": {
+      "content_sha256": "9d27108337fa6b49941586760fe8c4644e20da7a78ce6e9c73b306c669b2827a",
+      "first_date": "2025-01-27",
+      "last_date": "2026-07-22",
+      "row_count": 542
+    },
+    "epoch_MINA.csv": {
+      "content_sha256": "050cf1ac338c4f53eb460b7343ee7c9107b9ddad997041e169f8ff61bc72ada7",
+      "first_date": "2022-03-14",
+      "last_date": "2026-07-22",
+      "row_count": 1592
+    },
+    "epoch_ML.csv": {
+      "content_sha256": "a5fd4f43472cb483574435bb5ca08154db013e814a28cfc9b4a9b058b12f25c3",
+      "first_date": "2022-11-21",
+      "last_date": "2026-07-22",
+      "row_count": 1340
+    },
+    "epoch_MLN.csv": {
+      "content_sha256": "cf25dda21d59e9c7613d9578983e37aca8cc09c5b0180321675e1a2f1767ccaf",
+      "first_date": "2018-11-20",
+      "last_date": "2026-07-22",
+      "row_count": 2802
+    },
+    "epoch_MNDE.csv": {
+      "content_sha256": "0c864641c75cab6e82f78b7db6c99a97011f52cb5c5b9b9e117046477c6dd841",
+      "first_date": "2022-09-21",
+      "last_date": "2026-07-22",
+      "row_count": 1401
+    },
+    "epoch_MNT.csv": {
+      "content_sha256": "98461d58c6fe41d200a280e8badf708cca10d7c9153838cc083d930b1f95fa30",
+      "first_date": "2024-03-17",
+      "last_date": "2026-07-22",
+      "row_count": 858
+    },
+    "epoch_MOODENG.csv": {
+      "content_sha256": "1349f77b05cf05ef8813841928432bd8bbbbe124af547ea473358d07875bf68c",
+      "first_date": "2025-05-24",
+      "last_date": "2026-07-22",
+      "row_count": 425
+    },
+    "epoch_MPLX.csv": {
+      "content_sha256": "13fd65870af5c5dea37bf9fe044696a4a56e08a111f5b2534bb138f446d75bf8",
+      "first_date": "2023-05-18",
+      "last_date": "2026-07-22",
+      "row_count": 1162
+    },
+    "epoch_MSFT.csv": {
+      "content_sha256": "874348eda759e5ec8629a2c211cc119c7c4c3332d250e2e76f22768261520b29",
+      "first_date": "1987-04-15",
+      "last_date": "2026-07-20",
+      "row_count": 9889
+    },
+    "epoch_MU.csv": {
+      "content_sha256": "e5001a21aaa8477533a37074aaefabeec041c901f12d4d66649916ac27fb0e2b",
+      "first_date": "1986-04-02",
+      "last_date": "2026-07-20",
+      "row_count": 10152
+    },
+    "epoch_MUBI.csv": {
+      "content_sha256": "ba580a4feac3b43c2040c3a09d2bacb27fd7c926ac1ecbe03a43142f99d5c037",
+      "first_date": "2024-04-11",
+      "last_date": "2026-07-22",
+      "row_count": 833
+    },
+    "epoch_MXM.csv": {
+      "content_sha256": "4f2d020727ba2dd0376a4c1c3f09653a0ac153dd3bbbda1080e641c8645bdbad",
+      "first_date": "2024-06-30",
+      "last_date": "2026-07-22",
+      "row_count": 753
+    },
+    "epoch_MYRIA.csv": {
+      "content_sha256": "5bbcaca9e1c0a350c043bd050e064efd1096faea9c9e15c5c28aac5152146a90",
+      "first_date": "2024-01-02",
+      "last_date": "2026-07-22",
+      "row_count": 933
+    },
+    "epoch_MYRO.csv": {
+      "content_sha256": "ab29d9fab91fc4adee353fb0fccd3ddfc286fb3198c35ade6970875cd303dc75",
+      "first_date": "2024-02-07",
+      "last_date": "2026-07-22",
+      "row_count": 897
+    },
+    "epoch_MZERO.csv": {
+      "content_sha256": "9e25802556bfaab41e0813c4f2272bb463a01dc7d3e720a3b42cf119cb57316d",
+      "first_date": "2024-08-15",
+      "last_date": "2026-02-16",
+      "row_count": 551
+    },
+    "epoch_NAKA.csv": {
+      "content_sha256": "ee519f66111908d464f4b49c1a623caf6918dae2f44bb02dd5dacbeccde52784",
+      "first_date": "2022-08-04",
+      "last_date": "2026-07-22",
+      "row_count": 1449
+    },
+    "epoch_NEAR.csv": {
+      "content_sha256": "18392d7ac3c4c689987ec493949db9a476bb122c235e7f58fc2ba90bae32c81e",
+      "first_date": "2021-05-21",
+      "last_date": "2026-07-22",
+      "row_count": 1889
+    },
+    "epoch_NEON.csv": {
+      "content_sha256": "48d51fad7f6b7b154dabaf030a38721baddd19d2e7c061abbf6d8434607e9d8b",
+      "first_date": "2024-02-13",
+      "last_date": "2026-07-22",
+      "row_count": 891
+    },
+    "epoch_NEURAL.csv": {
+      "content_sha256": "f220efe5391c8f2c5a79363afa5e2e496dad3495f38a68cfd31a15f31d6039b0",
+      "first_date": "2025-01-28",
+      "last_date": "2026-07-22",
+      "row_count": 541
+    },
+    "epoch_NEXO.csv": {
+      "content_sha256": "959a16c83d77a95ab5c3cb4981829116c0649a9bbc6ec12022e1236c785aea55",
+      "first_date": "2019-01-10",
+      "last_date": "2026-07-22",
+      "row_count": 2751
+    },
+    "epoch_NMT.csv": {
+      "content_sha256": "7c0dee02b9209ff8b3b0d0d005c79137ba2d9bac0fc4f5c03bac7cd9fb6d280a",
+      "first_date": "2024-06-21",
+      "last_date": "2026-07-22",
+      "row_count": 762
+    },
+    "epoch_NOS.csv": {
+      "content_sha256": "cf5731ab8db1176891365bd189ed08ca2e635b85739b0ef8bca0c97f92d769ca",
+      "first_date": "2022-10-06",
+      "last_date": "2026-07-22",
+      "row_count": 1386
+    },
+    "epoch_NTRN.csv": {
+      "content_sha256": "ea4f0740d1deb2aea1a211f02433be4ce576fb01f5b88e3a619e9d7556dd6af9",
+      "first_date": "2024-02-08",
+      "last_date": "2026-07-22",
+      "row_count": 896
+    },
+    "epoch_NU.csv": {
+      "content_sha256": "2adbbf4d030613fdae49eb4040792170b0e7ab8dd6313f9b87f22cff71fa58bf",
+      "first_date": "2021-09-02",
+      "last_date": "2026-07-22",
+      "row_count": 1735
+    },
+    "epoch_NVDA.csv": {
+      "content_sha256": "8563f40535b6b2cf7bc232bdea76c8017828496f1011a11655c27f509e85ba4b",
+      "first_date": "2000-03-27",
+      "last_date": "2026-07-20",
+      "row_count": 6617
+    },
+    "epoch_NXRA.csv": {
+      "content_sha256": "2fe41e71166fc1c920288f3d3c209578924bb2cf79c36a572235c8eaf31b69b3",
+      "first_date": "2024-02-12",
+      "last_date": "2026-07-22",
+      "row_count": 892
+    },
+    "epoch_OCT.csv": {
+      "content_sha256": "33cdbc62cef1a4d0236388f27a5edf3bf8e00e9a5bd2417201ddd6680546c2f8",
+      "first_date": "2022-09-12",
+      "last_date": "2026-05-27",
+      "row_count": 1354
+    },
+    "epoch_OGN.csv": {
+      "content_sha256": "27007e7b9b9c730f7426ef6868bb6c7705896bfe65177c75686c7d404391ec09",
+      "first_date": "2020-12-25",
+      "last_date": "2026-07-22",
+      "row_count": 2036
+    },
+    "epoch_OKB.csv": {
+      "content_sha256": "67c7df3325d6d81e8eebc9d1d71e422c2dff1e6b84c8b3bd486379e92521dc7e",
+      "first_date": "2020-01-31",
+      "last_date": "2026-07-22",
+      "row_count": 2365
+    },
+    "epoch_OLAS.csv": {
+      "content_sha256": "c5eb1b16c820d093817e0fb1b5532b2c1f08e86c5cc1f1a3043f043e7e7ccc9f",
+      "first_date": "2024-09-14",
+      "last_date": "2026-07-22",
+      "row_count": 677
+    },
+    "epoch_OMG.csv": {
+      "content_sha256": "d7e3595231bc5e8853598d7c18d7c84d5b17542eb187e25b857f05f1cc88c73a",
+      "first_date": "2018-06-06",
+      "last_date": "2026-07-22",
+      "row_count": 2969
+    },
+    "epoch_ONDO.csv": {
+      "content_sha256": "b3c4b26c94dbb4d1428eeba47d17c74414b28ccebe1bff072e84342b097d2355",
+      "first_date": "2024-10-09",
+      "last_date": "2026-07-22",
+      "row_count": 652
+    },
+    "epoch_OP.csv": {
+      "content_sha256": "26816de15eacb2437c5020f092f90f8d94fa81a8502403c1e52cfe1066185f0d",
+      "first_date": "2023-01-21",
+      "last_date": "2026-07-22",
+      "row_count": 1279
+    },
+    "epoch_ORAI.csv": {
+      "content_sha256": "f9ea688bd0e1649bb72288644dc67ff874bb1a8effaaac034e8ee41e6435e525",
+      "first_date": "2021-10-29",
+      "last_date": "2026-07-22",
+      "row_count": 1728
+    },
+    "epoch_ORCA.csv": {
+      "content_sha256": "0ddb36dcca8df004710a212f1faa6f84138603bca5e06e3668b0d987a874315c",
+      "first_date": "2022-05-03",
+      "last_date": "2026-07-22",
+      "row_count": 1542
+    },
+    "epoch_ORCL.csv": {
+      "content_sha256": "facfe85cf2f881e971898f09e0aebaf640685689f469076968c659614f74b8d7",
+      "first_date": "1987-02-03",
+      "last_date": "2026-07-20",
+      "row_count": 9939
+    },
+    "epoch_ORDI.csv": {
+      "content_sha256": "199dead9d42eb0939b2e2975af0e66794c3134fe4891c05352c5b58729f845c4",
+      "first_date": "2024-02-18",
+      "last_date": "2026-07-22",
+      "row_count": 886
+    },
+    "epoch_OTK.csv": {
+      "content_sha256": "bebc4cfe5367c1ae5ef6743e631005f7ffe68875586c5350115bf8ba6a271d31",
+      "first_date": "2023-11-19",
+      "last_date": "2026-07-22",
+      "row_count": 977
+    },
+    "epoch_OXT.csv": {
+      "content_sha256": "62e8094f56920ec58144422850b0a978bd6c8bbfbd0f09589fc2e5fe5706a1de",
+      "first_date": "2020-08-19",
+      "last_date": "2026-07-22",
+      "row_count": 2164
+    },
+    "epoch_PAAL.csv": {
+      "content_sha256": "54049d58aeceb07ca53d75d9771af852948ff364c6765b820e25bad029b38265",
+      "first_date": "2024-07-04",
+      "last_date": "2026-07-22",
+      "row_count": 749
+    },
+    "epoch_PAID.csv": {
+      "content_sha256": "0fffb3b99cead25af534d9941e16a4b7442f301592a05c95c6c6dcaec8f5a968",
+      "first_date": "2021-09-07",
+      "last_date": "2026-07-22",
+      "row_count": 1740
+    },
+    "epoch_PANDORA.csv": {
+      "content_sha256": "affe6ee12a9228667d4cef4d42b334f73a91005836a620758846af15da8b2429",
+      "first_date": "2024-02-18",
+      "last_date": "2026-07-22",
+      "row_count": 886
+    },
+    "epoch_PDA.csv": {
+      "content_sha256": "4c192f7958bbc088e200e86736589367cdbd941dacf739dc622d49c9e45728a4",
+      "first_date": "2024-03-04",
+      "last_date": "2026-07-22",
+      "row_count": 871
+    },
+    "epoch_PENDLE.csv": {
+      "content_sha256": "7326664e789f7ba360e983df2da0913f9ca5c4f0f96949dbd9a3bde15c020fc4",
+      "first_date": "2022-02-28",
+      "last_date": "2026-07-22",
+      "row_count": 1606
+    },
+    "epoch_PENG.csv": {
+      "content_sha256": "d6365fe78fc89d851fb4b66bf6551b3e992fc33c706c3f69d79d21c129b0e34e",
+      "first_date": "2024-07-02",
+      "last_date": "2026-07-22",
+      "row_count": 751
+    },
+    "epoch_PENGU.csv": {
+      "content_sha256": "19da9be9b1502189587b8041e60f0b95361dc79cf7c9eb82753bbc2b1a802c23",
+      "first_date": "2025-04-11",
+      "last_date": "2026-07-22",
+      "row_count": 468
+    },
+    "epoch_PEPE.csv": {
+      "content_sha256": "8ad3f9e46f8c84608b853b231e2945fe5c212b95775d8a16a515e2d25bef1da1",
+      "first_date": "2024-03-07",
+      "last_date": "2026-07-17",
+      "row_count": 810
+    },
+    "epoch_PERP.csv": {
+      "content_sha256": "91da830cabb10fd8396ec2f1f9980f9bec6464f04b2478fcb35427b5fe235e8e",
+      "first_date": "2021-07-25",
+      "last_date": "2026-07-22",
+      "row_count": 1824
+    },
+    "epoch_PHA.csv": {
+      "content_sha256": "07bbbf30a7e13e50910274377b046671817e64ca45896c80e55963182cd1c2ae",
+      "first_date": "2021-09-12",
+      "last_date": "2026-07-22",
+      "row_count": 1775
+    },
+    "epoch_PIN.csv": {
+      "content_sha256": "d2459625175de4e787ad5d034e857a7a36cb46c1376a96055688533ce09926f0",
+      "first_date": "2025-07-15",
+      "last_date": "2026-07-22",
+      "row_count": 373
+    },
+    "epoch_PIXEL.csv": {
+      "content_sha256": "22d6f9769f06290f98a6e72fe21c8f43e9be84c161ba1994d0f2e239d13da8f1",
+      "first_date": "2025-02-03",
+      "last_date": "2026-07-22",
+      "row_count": 535
+    },
+    "epoch_POL.csv": {
+      "content_sha256": "a0f09b9f9b2ad8ba0456ab1699290a764e606f36842142d2eb94556c3193e035",
+      "first_date": "2024-09-14",
+      "last_date": "2026-07-22",
+      "row_count": 677
+    },
+    "epoch_POLS.csv": {
+      "content_sha256": "47796228de1b7cca7b00ad367e21325f9c2d4d980d6cc6e0505c5256f248b291",
+      "first_date": "2021-05-05",
+      "last_date": "2026-07-22",
+      "row_count": 1905
+    },
+    "epoch_POLYX.csv": {
+      "content_sha256": "e359e2608af75b3df8ab77f590e0c9e8aed44ebaf10ac59a4677826538cfa848",
+      "first_date": "2023-03-20",
+      "last_date": "2026-07-22",
+      "row_count": 1221
+    },
+    "epoch_PORTAL.csv": {
+      "content_sha256": "4cee841bafd0f4fa933036ac1e5667c4018668c5b7035a3bb35a859a09f0bc7b",
+      "first_date": "2024-10-23",
+      "last_date": "2026-07-22",
+      "row_count": 638
+    },
+    "epoch_PRIME.csv": {
+      "content_sha256": "f3a28e05184c8d58e7ea9325b5561484a0090ca5dfabab4d327a075c3dff515b",
+      "first_date": "2023-06-21",
+      "last_date": "2026-07-22",
+      "row_count": 1128
+    },
+    "epoch_PROPC.csv": {
+      "content_sha256": "e8e6afb94235667124ec226a1a6a9aa58054f092a571e36ce0f5d95d066bc8ff",
+      "first_date": "2024-05-24",
+      "last_date": "2026-07-22",
+      "row_count": 790
+    },
+    "epoch_PYR.csv": {
+      "content_sha256": "9e7147c8d44aa825100adc87446743c8adf69cd861c94e70c67cc144d36ff878",
+      "first_date": "2022-04-28",
+      "last_date": "2026-07-22",
+      "row_count": 1547
+    },
+    "epoch_PYTH.csv": {
+      "content_sha256": "22f4e4f69922563762a7bae20e78264cb43fe49e6fd69481d4ae2318a93f4b47",
+      "first_date": "2024-10-24",
+      "last_date": "2026-07-22",
+      "row_count": 637
+    },
+    "epoch_QANX.csv": {
+      "content_sha256": "618fb30bc67729fd40e9507983e2fd55e95d3eabfca0417acbb07a064c0646e9",
+      "first_date": "2022-07-24",
+      "last_date": "2026-07-22",
+      "row_count": 1460
+    },
+    "epoch_QI.csv": {
+      "content_sha256": "a7e9db960539a186a6909c28e753c38a73637ec83337f981f9417a96ff9d5195",
+      "first_date": "2022-08-03",
+      "last_date": "2026-07-22",
+      "row_count": 1450
+    },
+    "epoch_QNT.csv": {
+      "content_sha256": "495615ae3538ae5f7576f06edf2415f4c2298a09cdb38c0dd87f5a689056c6ae",
+      "first_date": "2019-06-19",
+      "last_date": "2026-07-22",
+      "row_count": 2591
+    },
+    "epoch_RARE.csv": {
+      "content_sha256": "38f1061fe4b6c2eb9110f67b93fb64458490381ffc91b26d2d6c2f4c49b93564",
+      "first_date": "2022-06-03",
+      "last_date": "2026-07-22",
+      "row_count": 1511
+    },
+    "epoch_RARI.csv": {
+      "content_sha256": "46c2481b2e545f2e86d5a781af436bd22baefb7f1a196dd3e5f34bdb16dfb67c",
+      "first_date": "2021-08-02",
+      "last_date": "2026-07-22",
+      "row_count": 1816
+    },
+    "epoch_RAY.csv": {
+      "content_sha256": "e5928c57f9242320bcf36b5b823d1fd9ef08971ebbd7a9fb7b51725f53d5f6a7",
+      "first_date": "2021-11-16",
+      "last_date": "2026-07-22",
+      "row_count": 1710
+    },
+    "epoch_RDT.csv": {
+      "content_sha256": "7b10837828f7453b6cea7b72eb2125a46f42047b0d51ed400fe06632f8910857",
+      "first_date": "2022-07-24",
+      "last_date": "2026-07-04",
+      "row_count": 1328
+    },
+    "epoch_REN.csv": {
+      "content_sha256": "35c7b05e903529168472f16546235fd171cc65a0ac18b22286198a8127a12088",
+      "first_date": "2018-12-21",
+      "last_date": "2026-07-22",
+      "row_count": 2771
+    },
+    "epoch_RENDER.csv": {
+      "content_sha256": "8bf7d40af8a7f7a6c1c05e9a09bddc1812686983abd616569986523734122838",
+      "first_date": "2021-05-20",
+      "last_date": "2026-07-22",
+      "row_count": 1889
+    },
+    "epoch_REQ.csv": {
+      "content_sha256": "f902e24e0f2a3826bb96f4c2d77a0c90d52b4b2f9aca1c866f66cb5575d5f013",
+      "first_date": "2018-08-18",
+      "last_date": "2026-07-22",
+      "row_count": 2896
+    },
+    "epoch_RIO.csv": {
+      "content_sha256": "3b3d510918746528fb416816b9c1887644f68ba812cbaa4da8b9a6f4c35f3c6a",
+      "first_date": "2021-05-06",
+      "last_date": "2026-07-22",
+      "row_count": 1904
+    },
+    "epoch_RLB.csv": {
+      "content_sha256": "ae1f0d588b12dd7fec9ab45859d4083e92ea3b6c8846ede17f2461d3f5523821",
+      "first_date": "2023-01-15",
+      "last_date": "2026-07-22",
+      "row_count": 1285
+    },
+    "epoch_RMRK.csv": {
+      "content_sha256": "cc8d84e35cc099d57edd5eb2267b1b611624cc1ab534cc49deb69f3c7884bc65",
+      "first_date": "2022-09-16",
+      "last_date": "2026-07-22",
+      "row_count": 1406
+    },
+    "epoch_RON.csv": {
+      "content_sha256": "c92a92473124eeecc025401a2befa9556fce90cd4729a10ef272a3e2c2b0cf6e",
+      "first_date": "2022-11-17",
+      "last_date": "2026-07-22",
+      "row_count": 1344
+    },
+    "epoch_ROOT.csv": {
+      "content_sha256": "4a83ec085450b94f5a31b243e18a12f3368185ec7c23c6aab98810e33f21e6de",
+      "first_date": "2024-05-12",
+      "last_date": "2026-07-22",
+      "row_count": 802
+    },
+    "epoch_RSC.csv": {
+      "content_sha256": "d6b5e186136891d106c8070175e5b865900f8aad07882d7a4b1c70325b6b5071",
+      "first_date": "2024-06-27",
+      "last_date": "2026-07-22",
+      "row_count": 756
+    },
+    "epoch_RSR.csv": {
+      "content_sha256": "b4d2c407b437cfe75425fcd35383b39d3e200f6f4152bfa878d116fdcd45774f",
+      "first_date": "2020-05-20",
+      "last_date": "2026-07-22",
+      "row_count": 2255
+    },
+    "epoch_RSS3.csv": {
+      "content_sha256": "d41e1619638c46a0c05ec434d6e307b823e58e9f82209f8c013bbc29690f5ccb",
+      "first_date": "2023-02-10",
+      "last_date": "2026-07-22",
+      "row_count": 1259
+    },
+    "epoch_RST.csv": {
+      "content_sha256": "d48004c25a8f174ddadd05b73050548157a91486ad6caf454ddece17a4dc1e4d",
+      "first_date": "2025-02-01",
+      "last_date": "2026-02-09",
+      "row_count": 336
+    },
+    "epoch_RSTK.csv": {
+      "content_sha256": "4cab96015afe37f0a79df3876515ebbcc0a27defec293a807fde02eeed7ad77b",
+      "first_date": "2024-03-18",
+      "last_date": "2025-12-22",
+      "row_count": 645
+    },
+    "epoch_RUNE.csv": {
+      "content_sha256": "5de0a23d1efcf64c0e727d1d20d4ac25cfd1c6acb86374c89b351583c7537e9f",
+      "first_date": "2020-03-23",
+      "last_date": "2026-07-22",
+      "row_count": 2313
+    },
+    "epoch_SAFE.csv": {
+      "content_sha256": "cb95a0404ef21b3bc8c2d23f23520bd995636aa7e712e71e5d2ba9d29fd49342",
+      "first_date": "2025-04-27",
+      "last_date": "2026-07-22",
+      "row_count": 452
+    },
+    "epoch_SC.csv": {
+      "content_sha256": "3a11434ab6b6e6a8dbeb2a30dc0a89c4472b11c7d2dfd90face0a0dce51ee8af",
+      "first_date": "2018-10-29",
+      "last_date": "2026-07-22",
+      "row_count": 2824
+    },
+    "epoch_SCAR.csv": {
+      "content_sha256": "fdbad07a3bd25664981d390e011a033cbddd061140932330498a5fca39e94ae6",
+      "first_date": "2022-11-24",
+      "last_date": "2026-05-05",
+      "row_count": 1098
+    },
+    "epoch_SEI.csv": {
+      "content_sha256": "66f3e31eaff8e24a67faa05f97a5613371f7988bce0bb84cefd02a6482d290d4",
+      "first_date": "2024-09-01",
+      "last_date": "2026-07-22",
+      "row_count": 690
+    },
+    "epoch_SENATE.csv": {
+      "content_sha256": "41b3a46cf9bd9a07ac11888dc8564728c3b19e33a61a96745321cd3752ab0c28",
+      "first_date": "2022-11-29",
+      "last_date": "2026-07-22",
+      "row_count": 1305
+    },
+    "epoch_SERSH.csv": {
+      "content_sha256": "9cf4330d5d50f3c3947e6ed592ab8312a7370accf5997b5dc5ad1007718ba2a8",
+      "first_date": "2024-02-12",
+      "last_date": "2026-07-22",
+      "row_count": 892
+    },
+    "epoch_SHDW.csv": {
+      "content_sha256": "a5e900266bfffd125f988234625e58aca65ede3eef242e2d86365eca9c8ad90a",
+      "first_date": "2022-09-30",
+      "last_date": "2026-07-22",
+      "row_count": 1392
+    },
+    "epoch_SHIB.csv": {
+      "content_sha256": "b451fa64ce5aaf35489568691e1481e13b0eeb29b53afad3877412e18bdb0e57",
+      "first_date": "2021-12-11",
+      "last_date": "2026-07-18",
+      "row_count": 1649
+    },
+    "epoch_SHIDO.csv": {
+      "content_sha256": "5377bc4edf7ef97079dd4468363e9c215f04a27ef5d754d693db8e930dc4d69d",
+      "first_date": "2025-06-29",
+      "last_date": "2026-07-22",
+      "row_count": 389
+    },
+    "epoch_SHRAP.csv": {
+      "content_sha256": "9c069750900787cf74c71667068e4993d7173be67cc988105359ccb2e7c0e6e5",
+      "first_date": "2024-01-23",
+      "last_date": "2026-07-22",
+      "row_count": 912
+    },
+    "epoch_SIDUS.csv": {
+      "content_sha256": "3587d26d203a78ceabfef39b1ab72bdf2ace23bfe4552c4ffcb039f62952c268",
+      "first_date": "2022-11-15",
+      "last_date": "2026-07-22",
+      "row_count": 1346
+    },
+    "epoch_SIPHER.csv": {
+      "content_sha256": "625a3ce54406a1d3e7ce7f4cc2f4c8a899d6c443d601606b043acfa70a0007b7",
+      "first_date": "2022-09-25",
+      "last_date": "2026-07-22",
+      "row_count": 1394
+    },
+    "epoch_SKL.csv": {
+      "content_sha256": "daefb1dc25de9c0f80f6d67c4e82150a6346fc00198e90197a167afd8ba336c8",
+      "first_date": "2021-10-28",
+      "last_date": "2026-07-22",
+      "row_count": 1729
+    },
+    "epoch_SNS.csv": {
+      "content_sha256": "67b32b25aabad5ec6cb85eb48a33506d3b4399ff5c39cfd1adf048cd2ce2e84d",
+      "first_date": "2022-12-22",
+      "last_date": "2026-07-22",
+      "row_count": 1290
+    },
+    "epoch_SOL.csv": {
+      "content_sha256": "56f5f0df3325261013127baef68778e3374f60c38efe35eafdce72362e512ca8",
+      "first_date": "2020-11-28",
+      "last_date": "2026-07-22",
+      "row_count": 2063
+    },
+    "epoch_SPEC.csv": {
+      "content_sha256": "df11ce7097d259cc64a4fbae5e20caa4d77caed502e0c6a438ade4e7cdb5e64e",
+      "first_date": "2025-08-15",
+      "last_date": "2026-07-22",
+      "row_count": 342
+    },
+    "epoch_SPELL.csv": {
+      "content_sha256": "861474bfbda9d4bf297e5fb4947200771dbf79734294b9bb9ae17a9a377cc1cc",
+      "first_date": "2022-04-16",
+      "last_date": "2026-07-22",
+      "row_count": 1559
+    },
+    "epoch_SRM.csv": {
+      "content_sha256": "ce99b32f129c4a6bbdbd704ad6114c6b10408f0dfe38349095875d3b64f7962f",
+      "first_date": "2021-05-20",
+      "last_date": "2026-07-22",
+      "row_count": 1890
+    },
+    "epoch_SSV.csv": {
+      "content_sha256": "bf757d7491ebde3caa69fa234280bee2f0d95c50f7324468b643701c2686b9cf",
+      "first_date": "2022-08-28",
+      "last_date": "2026-07-22",
+      "row_count": 1425
+    },
+    "epoch_STEP.csv": {
+      "content_sha256": "c4aed65c7ee46dc2a4ad76cdfb0201a17274aaf2e7238e27d4969d382741b732",
+      "first_date": "2022-03-05",
+      "last_date": "2026-07-22",
+      "row_count": 1601
+    },
+    "epoch_STG.csv": {
+      "content_sha256": "2f4a2f0ec44708460e8109a1d6df1b0c8d85f9d5703a9f5f47ba144411a2c9da",
+      "first_date": "2023-01-09",
+      "last_date": "2026-07-22",
+      "row_count": 1291
+    },
+    "epoch_STORJ.csv": {
+      "content_sha256": "74ba2eb3296002f0260a627a68f7802378d5e5f5c5a838ce7f59a34fc9f7c8a9",
+      "first_date": "2018-06-23",
+      "last_date": "2026-07-22",
+      "row_count": 2952
+    },
+    "epoch_STRK.csv": {
+      "content_sha256": "07bbbaaab81de13247a0641302c542ac1b4976663bb01c5e9440bcb63d58f063",
+      "first_date": "2024-10-21",
+      "last_date": "2026-07-22",
+      "row_count": 640
+    },
+    "epoch_SUI.csv": {
+      "content_sha256": "fa79d6f92ba710bf346c18a9b60fcd489aebdfd6bd36b9a0ce192382396f5008",
+      "first_date": "2024-05-05",
+      "last_date": "2026-07-22",
+      "row_count": 809
+    },
+    "epoch_SUNDOG.csv": {
+      "content_sha256": "450605e737211ac214daa057776ef2b4cd0539578d7aadfd0a0aad36e0e32faa",
+      "first_date": "2024-11-12",
+      "last_date": "2026-07-22",
+      "row_count": 618
+    },
+    "epoch_SUPER.csv": {
+      "content_sha256": "d07618281732fc99d8b6ef309a8ade16178dcdaa7954ad4fceefbcac70854c21",
+      "first_date": "2022-01-29",
+      "last_date": "2026-07-22",
+      "row_count": 1636
+    },
+    "epoch_TAI.csv": {
+      "content_sha256": "cbdfab29dc9ab1ea5fddff625b2b9a0f9ff1672bab8eea1b90fa160c9e7e1c3a",
+      "first_date": "2025-01-27",
+      "last_date": "2026-07-22",
+      "row_count": 542
+    },
+    "epoch_TAO.csv": {
+      "content_sha256": "6b303300ad201add9700bd2e10961f9e4a163638c49b24cff8a4425da258f268",
+      "first_date": "2023-10-27",
+      "last_date": "2026-07-22",
+      "row_count": 1000
+    },
+    "epoch_TCEHY.csv": {
+      "content_sha256": "6b9f536e0864979000106b0958263bcbe3c717adaa099b277c2a580a5587f645",
+      "first_date": "2011-12-19",
+      "last_date": "2026-07-20",
+      "row_count": 3665
+    },
+    "epoch_TET.csv": {
+      "content_sha256": "40188004df7b8ed0324199c69d0fa9bbd6eceebe267431c0170495294eac7b7e",
+      "first_date": "2024-04-11",
+      "last_date": "2026-07-22",
+      "row_count": 833
+    },
+    "epoch_TFUEL.csv": {
+      "content_sha256": "393f2299476a7a3ff0fc367895f4add9a12d9c5891ed55707375b972c8adfcfa",
+      "first_date": "2020-03-02",
+      "last_date": "2026-07-22",
+      "row_count": 2334
+    },
+    "epoch_THETA.csv": {
+      "content_sha256": "2a2d32484152302b441ce045278b094e2730e6bcaeddb84de0e52385c39a0c47",
+      "first_date": "2018-08-19",
+      "last_date": "2026-07-22",
+      "row_count": 2895
+    },
+    "epoch_TLOS.csv": {
+      "content_sha256": "a389c267c0a8cb8bf8f493e522862ea0e176d541c185ca2a2917a01623a82b94",
+      "first_date": "2020-05-01",
+      "last_date": "2026-07-22",
+      "row_count": 2274
+    },
+    "epoch_TON.csv": {
+      "content_sha256": "4faecf2439a08062f7df7ed57c5209ecd654fe6d57672691a61ebcd5ba903262",
+      "first_date": "2022-06-01",
+      "last_date": "2026-07-11",
+      "row_count": 1502
+    },
+    "epoch_TRAC.csv": {
+      "content_sha256": "a8d86691e7cb1dec9d375a18fab3911ddf0d519a5ada0a1d3d871728d775880e",
+      "first_date": "2018-10-26",
+      "last_date": "2026-07-22",
+      "row_count": 2827
+    },
+    "epoch_TRIAS.csv": {
+      "content_sha256": "f858af0a119dd8d22ab9e0be2639cd3d4752be45b91b863d26361e916863f4c5",
+      "first_date": "2022-02-24",
+      "last_date": "2026-07-22",
+      "row_count": 1610
+    },
+    "epoch_TRU.csv": {
+      "content_sha256": "79d6af0a79ab3f815a1eb9bcc1d9572926257700efc81637d76c2b39cea6de00",
+      "first_date": "2021-10-13",
+      "last_date": "2026-07-22",
+      "row_count": 1744
+    },
+    "epoch_TSLA.csv": {
+      "content_sha256": "fa110964b1b94ce1703d0e531d040a6c903e933b46fa48e6c8a242841a004b44",
+      "first_date": "2012-07-26",
+      "last_date": "2026-07-20",
+      "row_count": 3514
+    },
+    "epoch_TSM.csv": {
+      "content_sha256": "b246c9ff08d8fd35f2a0556cc16ebab30e54b1e3ad3865a66ab9d944a8a34956",
+      "first_date": "1999-12-14",
+      "last_date": "2026-07-20",
+      "row_count": 6688
+    },
+    "epoch_TURBO.csv": {
+      "content_sha256": "60e0243f827bf94d7165872e13cc953d3289c80bdac421e5a9816b1e59a27e50",
+      "first_date": "2024-05-18",
+      "last_date": "2026-07-22",
+      "row_count": 796
+    },
+    "epoch_UNI.csv": {
+      "content_sha256": "4ced45052f3a3116c287fc7facacd6ce7663da1b0b885ef7fb9772d187c8b847",
+      "first_date": "2021-08-12",
+      "last_date": "2026-07-22",
+      "row_count": 1806
+    },
+    "epoch_UNIBOT.csv": {
+      "content_sha256": "fab4d68138ef6aae2253032e02cf6b8d3c9420ab40ac9395bcf94ad63014cdd5",
+      "first_date": "2024-03-14",
+      "last_date": "2026-07-22",
+      "row_count": 861
+    },
+    "epoch_UOS.csv": {
+      "content_sha256": "e3c566523b1a034d36a14c1ea0b309dfd50da059a5f17481451d98725c437273",
+      "first_date": "2020-04-05",
+      "last_date": "2026-07-22",
+      "row_count": 2300
+    },
+    "epoch_V.csv": {
+      "content_sha256": "2fff18e206dc8400c97d0f9ac4d347ffef83e2f8a62b2f22c2fc2ade542a0e1f",
+      "first_date": "2009-05-12",
+      "last_date": "2026-07-20",
+      "row_count": 4323
+    },
+    "epoch_VAI.csv": {
+      "content_sha256": "9f53eb69d3a128e3c61d45953a2c65e710b71ce5d54b0c47cdfa58fdb53fa1c5",
+      "first_date": "2022-04-04",
+      "last_date": "2026-07-22",
+      "row_count": 1571
+    },
+    "epoch_VET.csv": {
+      "content_sha256": "f5a78785e30e2c046dcecd743b6c4ed9e386a769a5236998db83239c7d886133",
+      "first_date": "2019-05-16",
+      "last_date": "2026-07-22",
+      "row_count": 2625
+    },
+    "epoch_VIA.csv": {
+      "content_sha256": "f0fef908b46094e6eecb4f9b95e47b0a9c5d35121c04f1f2c0d3326078dc9e64",
+      "first_date": "2025-03-02",
+      "last_date": "2026-07-22",
+      "row_count": 508
+    },
+    "epoch_VIRTUAL.csv": {
+      "content_sha256": "1dafad91029c1886ba03375f7bf722ed73a2d0b2c7ccd23330a24ebb3de177d5",
+      "first_date": "2024-03-28",
+      "last_date": "2026-07-22",
+      "row_count": 847
+    },
+    "epoch_VOO.csv": {
+      "content_sha256": "1d5c5b5ca3e49029755fa60afb6b0b0bb6fc53b3143548784137c17ea87371bf",
+      "first_date": "2012-11-01",
+      "last_date": "2026-07-20",
+      "row_count": 3447
+    },
+    "epoch_VR.csv": {
+      "content_sha256": "f5cf4663d20a985bfd9054b39ac21c0d1a75344793b9f6c0b641bb77fa16aabb",
+      "first_date": "2022-12-06",
+      "last_date": "2026-07-22",
+      "row_count": 1325
+    },
+    "epoch_VRA.csv": {
+      "content_sha256": "f75b0ce0c3b8e23ee40d24c74be5084d73449014818d1d634cd960324a9a2f32",
+      "first_date": "2020-04-11",
+      "last_date": "2026-07-22",
+      "row_count": 2294
+    },
+    "epoch_WAXP.csv": {
+      "content_sha256": "28124d67660de5db94f3e2661129fcbca285223581daffcb6dbcc48ca6c302e8",
+      "first_date": "2018-12-29",
+      "last_date": "2026-07-22",
+      "row_count": 2763
+    },
+    "epoch_WHALES.csv": {
+      "content_sha256": "d64dca8a9142efe472fbb68296ca483931dc104165e968bc41246661ee966d1e",
+      "first_date": "2024-06-12",
+      "last_date": "2026-07-22",
+      "row_count": 771
+    },
+    "epoch_WIF.csv": {
+      "content_sha256": "6cfa06ec1c856852dc4878c2573c2b7ef54607c544c396fb8851330cd15726d0",
+      "first_date": "2024-09-20",
+      "last_date": "2026-07-22",
+      "row_count": 671
+    },
+    "epoch_WIFI.csv": {
+      "content_sha256": "694ee013ee6a8129be5fd515447acbb7fb1d66ee5234e90e80b1238e752639c4",
+      "first_date": "2023-12-29",
+      "last_date": "2026-07-22",
+      "row_count": 937
+    },
+    "epoch_WILD.csv": {
+      "content_sha256": "069ecb0dae303ff80ded4b74ccbe7baab1e47956d30e2a23a664877eb5200c4e",
+      "first_date": "2022-02-03",
+      "last_date": "2026-07-22",
+      "row_count": 1631
+    },
+    "epoch_WINR.csv": {
+      "content_sha256": "d6df944f4cda13c24f692b28efc91cad904930f3d0d1340e010235a288d94b3f",
+      "first_date": "2024-03-05",
+      "last_date": "2026-07-22",
+      "row_count": 870
+    },
+    "epoch_WLD.csv": {
+      "content_sha256": "b3d5c5575b0f47ffaa7e4926a7fc1a6dba86a46b169d44f0661fc548d1eecd65",
+      "first_date": "2022-10-14",
+      "last_date": "2026-07-22",
+      "row_count": 1364
+    },
+    "epoch_WMTX.csv": {
+      "content_sha256": "c3de05d2a2897d979d974fb097e7e477aeb202a2547c80599f5528ad9ebf6881",
+      "first_date": "2025-09-03",
+      "last_date": "2026-07-22",
+      "row_count": 323
+    },
+    "epoch_XAI.csv": {
+      "content_sha256": "fc28f9dfcaea8e1aedfe30c84a47b48a8ca231ed74e4560c3295bf07567ad680",
+      "first_date": "2025-01-06",
+      "last_date": "2026-07-22",
+      "row_count": 563
+    },
+    "epoch_XCAD.csv": {
+      "content_sha256": "511caec743ccbef130b754558adb192e5c430250a537be15e8b72d7858703dcc",
+      "first_date": "2022-01-15",
+      "last_date": "2026-07-22",
+      "row_count": 1650
+    },
+    "epoch_XLM.csv": {
+      "content_sha256": "6e214772629befb305a8526924ff4670cc84b6a4fd589a566be74c0a4c809a7a",
+      "first_date": "2018-08-18",
+      "last_date": "2026-07-22",
+      "row_count": 2896
+    },
+    "epoch_XMR.csv": {
+      "content_sha256": "3384c6c15e686b26073d90bfe0458a603f2c8a2befdd23a7b7005e6e327f83b6",
+      "first_date": "2018-06-14",
+      "last_date": "2026-07-22",
+      "row_count": 2961
+    },
+    "epoch_XOM.csv": {
+      "content_sha256": "956e186947f908e0575d4125838208daef6c6e74c2ba170034974a6758b01db1",
+      "first_date": "1963-05-10",
+      "last_date": "2026-07-20",
+      "row_count": 15902
+    },
+    "epoch_XRP.csv": {
+      "content_sha256": "be2e50456d7a98face7d68feddb2aadf6aa278e5d33c6330497bd112cb3cc0cc",
+      "first_date": "2018-08-16",
+      "last_date": "2026-07-22",
+      "row_count": 2898
+    },
+    "epoch_XTZ.csv": {
+      "content_sha256": "25321c5fdbd2a5bf959c13bdf2e41ccd2fc011d528515ea1c22b4ab4cf251f82",
+      "first_date": "2018-08-25",
+      "last_date": "2026-07-22",
+      "row_count": 2889
+    },
+    "epoch_XYO.csv": {
+      "content_sha256": "5c99639263e504f436ee5c766f6717939bfe346f568710d7267104c00033ed65",
+      "first_date": "2019-04-03",
+      "last_date": "2026-07-22",
+      "row_count": 2668
+    },
+    "epoch_YGG.csv": {
+      "content_sha256": "1c194a95e7ee4d4341d38bb9e0217ad2e59a5d5d808414d2c931f46b81868581",
+      "first_date": "2022-08-06",
+      "last_date": "2026-07-22",
+      "row_count": 1447
+    },
+    "epoch_ZBCN.csv": {
+      "content_sha256": "021e00c68d747c9a961a237412c758f6e67925b16c2701d1d4bdca02683f9e44",
+      "first_date": "2024-11-12",
+      "last_date": "2026-07-22",
+      "row_count": 618
+    },
+    "epoch_ZEN.csv": {
+      "content_sha256": "38f1fa878134173f568a162cc95e4de81ca80c81d4637c87a3fbc422de3e718d",
+      "first_date": "2018-08-15",
+      "last_date": "2026-07-22",
+      "row_count": 2899
+    },
+    "epoch_ZEREBRO.csv": {
+      "content_sha256": "fe35539d2bcb8cc3cb2098708b25fdc063e63f7457820ec9ae4c101c4cf8f57b",
+      "first_date": "2025-11-20",
+      "last_date": "2026-07-22",
+      "row_count": 245
+    },
+    "epoch_ZETA.csv": {
+      "content_sha256": "d3434985bda86343717b8e47559ea30eeb1ab1fc55dbd7decc1bbcdf54dba6eb",
+      "first_date": "2024-08-21",
+      "last_date": "2026-07-22",
+      "row_count": 701
+    },
+    "epoch_ZIG.csv": {
+      "content_sha256": "5fb1a04314b5170a4ee548e0caba6ba3202d2eb5a4a8d1e28703a35dba0f0ea9",
+      "first_date": "2021-12-16",
+      "last_date": "2026-07-22",
+      "row_count": 1680
+    },
+    "epoch_ZKJ.csv": {
+      "content_sha256": "8b6c2e3a3160c34bcb64d0eef64214003c5962212038f0b8f91bdac0d8220bc3",
+      "first_date": "2025-02-07",
+      "last_date": "2026-07-22",
+      "row_count": 531
+    },
+    "epoch_ZRX.csv": {
+      "content_sha256": "4655654fdb7e3600b542a385dc21eb3ad804d1dab4b40ab1eff929ed901d7051",
+      "first_date": "2018-10-27",
+      "last_date": "2026-07-22",
+      "row_count": 2826
+    }
+  },
+  "generated_at_utc": "2026-07-23T09:00:23.269682+00:00",
+  "hash_columns": [
+    "Date",
+    "Close",
+    "epoch_signal"
+  ],
+  "schema_version": 1,
+  "skipped_files": [
+    {
+      "filename": "epoch_index-USD.csv",
+      "reason": "Not an asset signal-history CSV"
+    }
+  ]
+}
