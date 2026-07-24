@@ -250,11 +250,11 @@
                 createUserMenuDivider(),
                 createUserMenuSectionLabel("Administration"),
                 createUserMenuAction(
-                    "Dispatch Signal Alerts",
+                    "Alerts & Forward Record",
                     () => { window.location.href = "/admin/signal-alerts"; },
                     {
                         icon: "✉",
-                        description: "Preview and manually release alert emails"
+                        description: "Manual alerts, sandbox testing, and public launch"
                     }
                 )
             );
