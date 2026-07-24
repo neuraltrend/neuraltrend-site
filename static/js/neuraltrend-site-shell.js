@@ -152,6 +152,7 @@
 
         const email = String(userData?.email || "");
         const isPaid = Boolean(userData?.is_paid);
+        const isAdmin = Boolean(userData?.is_admin);
         const planLabel = isPaid ? "Pro" : "Free";
 
         const menu = document.createElement("div");
@@ -241,7 +242,25 @@
                     icon: isPaid ? "💳" : "◇",
                     description: subscriptionDescription
                 }
-            ),
+            )
+        );
+
+        if (isAdmin) {
+            dropdown.append(
+                createUserMenuDivider(),
+                createUserMenuSectionLabel("Administration"),
+                createUserMenuAction(
+                    "Dispatch Signal Alerts",
+                    () => { window.location.href = "/admin/signal-alerts"; },
+                    {
+                        icon: "✉",
+                        description: "Preview and manually release alert emails"
+                    }
+                )
+            );
+        }
+
+        dropdown.append(
             createUserMenuDivider(),
             createUserMenuAction(
                 "Log Out",
