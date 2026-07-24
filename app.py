@@ -25,6 +25,9 @@ from models import (
     StripeWebhookEvent,
     WatchlistItem,
     SignalAlertDelivery,
+    ForwardPublicationBatch,
+    ForwardSignalPublication,
+    ForwardMarketObservation,
 )
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Mail, Message
@@ -752,7 +755,7 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "ACH-USD", "ADA-USD", "AERO-USD", "AEVO-USD", "AGI-USD", "AIOZ-USD", "AIT-USD", "AIXBT-USD", "AKT-USD", "ALEPH-USD",
                "ALGO-USD", "ALI-USD", "ALPH-USD", "ALT-USD", "ALU-USD", "ALVA-USD", "AMP-USD", 'AMZN', "ANKR-USD", "ANON-USD", "ANYONE-USD", "APT-USD",
                "APU-USD", "AR-USD", "ARB-USD", "ARC-USD", "ASML", "ASTR-USD", "ATLAS-USD", "ATOM-USD", "AURY-USD", "AUTOS-USD", "AVAX-USD", 'AVGO', 
-               "AXL-USD", "AXS-USD", "BAI-USD", "BAL-USD", "BANANA-USD", "BAND-USD", "BASEDAI-USD", "BAZED-USD", "BCH-USD",
+               "AXL-USD", "AXS-USD", "BAI-USD", "BAL-USD", "BANANA-USD", "BAND-USD", "BASEDAI-USD", "BAZED-USD",
                "BCUT-USD", "BEAM-USD", "BGB-USD", "BIGTIME-USD", "BLUR-USD", "BNB-USD", "BNT-USD", "BONK-USD", "BRETT-USD", 'BRKB', 
                "BYTES-USD", "CAKE-USD", "CELO-USD", "CERE-USD", "CETUS-USD", "CFG-USD", "CGPT-USD", "CHAPZ-USD", "CHAT-USD", "CHEX-USD", "CHZ-USD", 
                "COMP-USD", "COST", "COTI-USD", "CPOOL-USD", "CREDI-USD", "CREO-USD", "CRO-USD", "CROWN-USD", "CRU-USD", "CRV-USD", "CTC-USD", "CVC-USD",
@@ -1287,6 +1290,347 @@ def build_methodology_coverage():
             1 for ticker in public_tickers if not ticker.endswith("-USD")
         ),
     }
+
+
+# --------------------
+# Prospective Forward Record
+# --------------------
+
+FORWARD_RECORD_INITIAL_CASH = 10_000.0
+FORWARD_RECORD_MODES = {"sandbox", "public"}
+FORWARD_PUBLICATION_TYPE_LABELS = {
+    "initial": "Started",
+    "regular": "Published",
+    "delayed": "Delayed",
+    "revision": "Revised",
+    "correction": "Corrected",
+}
+
+
+def env_flag(name, default=False):
+    raw = os.environ.get(name)
+    if raw is None:
+        return bool(default)
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def public_forward_record_started():
+    return (
+        ForwardPublicationBatch.query
+        .filter_by(record_mode="public")
+        .first()
+        is not None
+    )
+
+
+def public_forward_record_enabled():
+    """Allow launch by flag, but never hide or lock an already-started record."""
+    return (
+        env_flag("FORWARD_RECORD_PUBLIC_ENABLED", default=False)
+        or public_forward_record_started()
+    )
+
+
+def normalize_forward_record_mode(value):
+    mode = str(value or "public").strip().lower()
+    if mode not in FORWARD_RECORD_MODES:
+        raise ValueError("Forward Record mode must be sandbox or public.")
+    return mode
+
+
+def format_forward_percent(value, *, points=False):
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return "—"
+    if not math.isfinite(number):
+        return "—"
+    suffix = " pp" if points else "%"
+    return f"{number * 100:+.1f}{suffix}"
+
+
+def format_forward_ratio(value):
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return "—"
+    if not math.isfinite(number):
+        return "—"
+    return f"{number:.2f}"
+
+
+def forward_publication_query(record_mode="public"):
+    mode = normalize_forward_record_mode(record_mode)
+    return (
+        ForwardSignalPublication.query
+        .join(
+            ForwardPublicationBatch,
+            ForwardPublicationBatch.id == ForwardSignalPublication.batch_id,
+        )
+        .filter(ForwardPublicationBatch.record_mode == mode)
+    )
+
+
+def get_forward_record_tickers(record_mode="public"):
+    mode = normalize_forward_record_mode(record_mode)
+    return [
+        row[0]
+        for row in (
+            db.session.query(ForwardSignalPublication.ticker)
+            .join(
+                ForwardPublicationBatch,
+                ForwardPublicationBatch.id == ForwardSignalPublication.batch_id,
+            )
+            .filter(ForwardPublicationBatch.record_mode == mode)
+            .distinct()
+            .order_by(ForwardSignalPublication.ticker.asc())
+            .all()
+        )
+    ]
+
+
+def forward_publication_status_label(publication_type):
+    return FORWARD_PUBLICATION_TYPE_LABELS.get(
+        str(publication_type or "").lower(),
+        "Published",
+    )
+
+
+def build_forward_record_performance(ticker, record_mode="public"):
+    """Build one mode's hypothetical record from its immutable snapshots.
+
+    Sandbox and public records are completely independent. A publication can
+    affect its mode only at the first preserved daily close whose market date
+    is strictly later than the UTC publication date.
+    """
+    mode = normalize_forward_record_mode(record_mode)
+    clean = normalize_ticker(ticker)
+    publications = (
+        forward_publication_query(mode)
+        .filter(ForwardSignalPublication.ticker == clean)
+        .order_by(
+            ForwardSignalPublication.published_at.asc(),
+            ForwardSignalPublication.id.asc(),
+        )
+        .all()
+    )
+    if not publications:
+        return None
+
+    observations = (
+        ForwardMarketObservation.query
+        .filter_by(record_mode=mode, ticker=clean)
+        .order_by(ForwardMarketObservation.market_date.asc())
+        .all()
+    )
+
+    first_publication = publications[0]
+    latest_publication = publications[-1]
+    initial_cash = FORWARD_RECORD_INITIAL_CASH
+    transaction_cost_rate = get_transaction_cost_rate(clean)
+
+    strategy_cash = initial_cash
+    strategy_quantity = 0.0
+    benchmark_cash = initial_cash
+    benchmark_quantity = 0.0
+    benchmark_started = False
+    target_signal = None
+    publication_index = 0
+    trade_count = 0
+    exposure_flags = []
+    chart_dates = []
+    strategy_values = []
+    benchmark_values = []
+
+    for observation in observations:
+        market_date = observation.market_date
+
+        while (
+            publication_index < len(publications)
+            and publications[publication_index].published_at.date() < market_date
+        ):
+            target_signal = int(publications[publication_index].signal)
+            publication_index += 1
+
+        if target_signal is None:
+            continue
+
+        close_price = float(observation.close_price)
+        if not math.isfinite(close_price) or close_price <= 0:
+            continue
+
+        if not benchmark_started:
+            benchmark_quantity = benchmark_cash / (
+                close_price * (1 + transaction_cost_rate)
+            )
+            benchmark_cash -= benchmark_quantity * close_price * (
+                1 + transaction_cost_rate
+            )
+            benchmark_started = True
+
+        if target_signal == 1 and strategy_quantity <= 0 and strategy_cash > 0:
+            strategy_quantity = strategy_cash / (
+                close_price * (1 + transaction_cost_rate)
+            )
+            strategy_cash -= strategy_quantity * close_price * (
+                1 + transaction_cost_rate
+            )
+            strategy_cash = max(0.0, strategy_cash)
+            trade_count += 1
+        elif target_signal == -1 and strategy_quantity > 0:
+            strategy_cash += strategy_quantity * close_price * (
+                1 - transaction_cost_rate
+            )
+            strategy_quantity = 0.0
+            trade_count += 1
+
+        strategy_value = strategy_cash + strategy_quantity * close_price
+        benchmark_value = benchmark_cash + benchmark_quantity * close_price
+
+        chart_dates.append(market_date.isoformat())
+        strategy_values.append(float(strategy_value))
+        benchmark_values.append(float(benchmark_value))
+        exposure_flags.append(strategy_quantity > 0)
+
+    metric_strategy_values = [initial_cash, *strategy_values]
+    metric_benchmark_values = [initial_cash, *benchmark_values]
+
+    if strategy_values:
+        strategy_return = strategy_values[-1] / initial_cash - 1
+        benchmark_return = benchmark_values[-1] / initial_cash - 1
+        return_spread = strategy_return - benchmark_return
+        strategy_drawdown = calculate_max_drawdown(metric_strategy_values)
+        benchmark_drawdown = calculate_max_drawdown(metric_benchmark_values)
+        strategy_volatility = calculate_annualized_volatility(
+            metric_strategy_values,
+            clean,
+        )
+        sharpe_ratio = calculate_sharpe_from_equity_curve(
+            metric_strategy_values,
+            clean,
+        )
+        market_exposure = calculate_market_exposure(exposure_flags)
+    else:
+        strategy_return = None
+        benchmark_return = None
+        return_spread = None
+        strategy_drawdown = None
+        benchmark_drawdown = None
+        strategy_volatility = None
+        sharpe_ratio = None
+        market_exposure = None
+
+    recent_publications = list(reversed(publications[-12:]))
+    has_execution_after_latest = any(
+        observation.market_date > latest_publication.published_at.date()
+        for observation in observations
+    )
+    record_age_days = max(
+        0,
+        (datetime.utcnow().date() - first_publication.published_at.date()).days,
+    )
+
+    return {
+        "record_mode": mode,
+        "ticker": clean,
+        "record_started": first_publication.published_at,
+        "record_started_date": first_publication.published_at.date().isoformat(),
+        "record_age_days": record_age_days,
+        "publication_count": len(publications),
+        "observation_count": len(strategy_values),
+        "latest_publication": latest_publication,
+        "latest_signal": signal_label(latest_publication.signal),
+        "latest_signal_class": signal_label(latest_publication.signal).lower(),
+        "pending_execution": not has_execution_after_latest,
+        "strategy_return": strategy_return,
+        "benchmark_return": benchmark_return,
+        "return_spread": return_spread,
+        "strategy_max_drawdown": strategy_drawdown,
+        "benchmark_max_drawdown": benchmark_drawdown,
+        "strategy_volatility": strategy_volatility,
+        "sharpe_ratio": sharpe_ratio,
+        "market_exposure": market_exposure,
+        "trade_count": trade_count,
+        "strategy_return_display": format_forward_percent(strategy_return),
+        "benchmark_return_display": format_forward_percent(benchmark_return),
+        "return_spread_display": format_forward_percent(return_spread, points=True),
+        "strategy_max_drawdown_display": format_forward_percent(strategy_drawdown),
+        "benchmark_max_drawdown_display": format_forward_percent(benchmark_drawdown),
+        "strategy_volatility_display": format_forward_percent(strategy_volatility),
+        "sharpe_ratio_display": (
+            format_forward_ratio(sharpe_ratio)
+            if len(strategy_values) >= 3 else "Not enough history"
+        ),
+        "market_exposure_display": (
+            format_public_unsigned_percent(market_exposure)
+            if market_exposure is not None else "—"
+        ),
+        "chart": {
+            "dates": chart_dates,
+            "strategy": [round(value, 4) for value in strategy_values],
+            "benchmark": [round(value, 4) for value in benchmark_values],
+        },
+        "recent_publications": [
+            {
+                "published_at": publication.published_at,
+                "source_data_date": publication.source_data_date,
+                "signal": signal_label(publication.signal),
+                "signal_class": signal_label(publication.signal).lower(),
+                "status": forward_publication_status_label(
+                    publication.publication_type
+                ),
+                "status_class": publication.publication_type,
+            }
+            for publication in recent_publications
+        ],
+    }
+
+
+def build_forward_record_summary(record_mode="public"):
+    mode = normalize_forward_record_mode(record_mode)
+    first = (
+        forward_publication_query(mode)
+        .order_by(
+            ForwardSignalPublication.published_at.asc(),
+            ForwardSignalPublication.id.asc(),
+        )
+        .first()
+    )
+    if first is None:
+        return {
+            "record_mode": mode,
+            "started": False,
+            "asset_count": 0,
+            "record_started_date": None,
+        }
+
+    asset_count = (
+        db.session.query(ForwardSignalPublication.ticker)
+        .join(
+            ForwardPublicationBatch,
+            ForwardPublicationBatch.id == ForwardSignalPublication.batch_id,
+        )
+        .filter(ForwardPublicationBatch.record_mode == mode)
+        .distinct()
+        .count()
+    )
+    return {
+        "record_mode": mode,
+        "started": True,
+        "asset_count": asset_count,
+        "record_started_date": first.published_at.date().isoformat(),
+    }
+
+
+def build_forward_record_home_summary():
+    if not public_forward_record_enabled():
+        return {
+            "record_mode": "public",
+            "started": False,
+            "asset_count": 0,
+            "record_started_date": None,
+        }
+    return build_forward_record_summary("public")
 
 
 # --------------------
@@ -2654,125 +2998,285 @@ def me():
 @login_required
 @limiter.limit("12 per minute")
 def admin_signal_alerts():
-    """Preview and manually approve signal-change email delivery.
+    """Admin-only manual controls for alerts and Forward Record modes.
 
-    This page intentionally performs no scheduled or automatic sending. Every
-    dispatch is re-evaluated against current CSV contents, current watchlist
-    preferences, subscription access, and the delivery deduplication ledger.
+    Alert dispatch, private sandbox publication, and public publication are
+    intentionally independent actions. Nothing runs automatically.
     """
     if not is_admin_user(current_user):
         abort(404)
 
     dispatch_summary = None
+    publication_summary = None
+    reset_summary = None
     dispatch_output = []
     page_error = None
     selected_ticker = ""
     selected_action = None
+    public_enabled = public_forward_record_enabled()
+    public_record_summary = build_forward_record_summary("public")
+
+    def approval_is_valid(key, *, ticker, signature_key="approval_signature"):
+        approval = session.get(key)
+        preview_age = None
+        try:
+            preview_age = int(time.time()) - int(approval.get("created_at"))
+        except (AttributeError, TypeError, ValueError):
+            preview_age = None
+        return (
+            isinstance(approval, dict)
+            and preview_age is not None
+            and 0 <= preview_age <= 15 * 60
+            and approval.get("ticker", "") == ticker
+            and bool(approval.get(signature_key))
+        )
 
     if request.method == "POST":
         selected_action = (request.form.get("action") or "").strip().lower()
         selected_ticker = normalize_ticker(request.form.get("ticker"))
+        allowed_actions = {
+            "alert_preview",
+            "alert_send",
+            "sandbox_preview",
+            "sandbox_publish",
+            "sandbox_reset",
+            "public_preview",
+            "public_publish",
+        }
 
-        if selected_action not in {"preview", "send"}:
-            page_error = "Choose Preview pending alerts or Send approved alerts."
+        if selected_action not in allowed_actions:
+            page_error = "Choose one of the available admin actions."
 
         if not page_error and selected_ticker:
             try:
                 get_epoch_csv_path(selected_ticker)
+                if selected_ticker in ADMIN_ONLY_TICKERS:
+                    raise ValueError("Admin-only assets are not included.")
             except (ValueError, FileNotFoundError):
-                page_error = "That ticker does not have a supported deployed signal file."
+                page_error = "That ticker does not have a supported public signal file."
+
+        if not page_error and selected_action.startswith("public_") and not public_enabled:
+            page_error = (
+                "Public Forward Record publication is locked. Keep it locked during "
+                "pre-launch testing; set FORWARD_RECORD_PUBLIC_ENABLED=true only when "
+                "you are ready to start the customer-facing record."
+            )
 
         if (
             not page_error
-            and selected_action == "send"
-            and (request.form.get("confirmation") or "").strip() != "SEND ALERTS"
+            and selected_action.startswith("public_")
+            and not public_record_summary.get("started")
+            and selected_ticker
         ):
-            page_error = 'Type "SEND ALERTS" exactly before dispatching email.'
+            page_error = (
+                "The first public Forward Record batch must include all supported "
+                "public assets. Leave the asset filter blank."
+            )
 
-        preview_approval = session.get("signal_alert_dispatch_preview")
-        if not page_error and selected_action == "send":
-            preview_age = None
-            try:
-                preview_age = int(time.time()) - int(preview_approval.get("created_at"))
-            except (AttributeError, TypeError, ValueError):
-                preview_age = None
+        confirmation = (request.form.get("confirmation") or "").strip()
+        required_confirmation = None
+        if selected_action == "alert_send":
+            required_confirmation = "SEND ALERTS"
+        elif selected_action == "sandbox_publish":
+            required_confirmation = "PUBLISH SANDBOX"
+        elif selected_action == "sandbox_reset":
+            required_confirmation = "RESET SANDBOX"
+        elif selected_action == "public_publish":
+            required_confirmation = (
+                "START PUBLIC RECORD"
+                if not public_record_summary.get("started")
+                else "PUBLISH PUBLIC"
+            )
 
-            if (
-                not isinstance(preview_approval, dict)
-                or preview_age is None
-                or preview_age < 0
-                or preview_age > 15 * 60
-                or preview_approval.get("ticker", "") != selected_ticker
-                or not preview_approval.get("approval_signature")
+        if (
+            not page_error
+            and required_confirmation
+            and confirmation != required_confirmation
+        ):
+            page_error = f'Type "{required_confirmation}" exactly before continuing.'
+
+        if not page_error and selected_action == "alert_send":
+            if not approval_is_valid(
+                "signal_alert_dispatch_preview",
+                ticker=selected_ticker,
             ):
                 page_error = (
-                    "Preview this exact asset selection first, then send it within "
+                    "Preview this exact alert selection first, then send it within "
                     "15 minutes."
+                )
+
+        if not page_error and selected_action in {"sandbox_publish", "public_publish"}:
+            mode = "sandbox" if selected_action.startswith("sandbox") else "public"
+            if not approval_is_valid(
+                f"forward_{mode}_preview",
+                ticker=selected_ticker,
+            ):
+                page_error = (
+                    f"Preview this exact {mode} publication selection first, then "
+                    "approve it within 15 minutes."
                 )
 
         if not page_error:
             import io
             from contextlib import redirect_stderr, redirect_stdout
+            from tools.publish_forward_record import (
+                build_publication_preview,
+                print_preview,
+                publish_forward_batch,
+                reset_sandbox_record,
+            )
             from tools.send_signal_change_alerts import run_dispatch
 
             output_buffer = io.StringIO()
             try:
                 with redirect_stdout(output_buffer), redirect_stderr(output_buffer):
-                    dispatch_summary = run_dispatch(
-                        dry_run=(selected_action == "preview"),
-                        limit=(1000 if selected_action == "preview" else 25),
-                        stability_minutes=0,
-                        ticker=(selected_ticker or None),
-                        expected_approval_signature=(
-                            preview_approval.get("approval_signature")
-                            if selected_action == "send" else None
-                        ),
-                    )
+                    if selected_action == "alert_preview":
+                        dispatch_summary = run_dispatch(
+                            dry_run=True,
+                            limit=1000,
+                            stability_minutes=0,
+                            ticker=(selected_ticker or None),
+                        )
+                    elif selected_action == "alert_send":
+                        approval = session.get("signal_alert_dispatch_preview", {})
+                        dispatch_summary = run_dispatch(
+                            dry_run=False,
+                            limit=25,
+                            stability_minutes=0,
+                            ticker=(selected_ticker or None),
+                            expected_approval_signature=approval.get(
+                                "approval_signature"
+                            ),
+                        )
+                    elif selected_action in {"sandbox_preview", "public_preview"}:
+                        mode = (
+                            "sandbox"
+                            if selected_action == "sandbox_preview"
+                            else "public"
+                        )
+                        publication_summary = build_publication_preview(
+                            ticker=(selected_ticker or None),
+                            record_mode=mode,
+                        )
+                        print_preview(publication_summary)
+                    elif selected_action in {"sandbox_publish", "public_publish"}:
+                        mode = (
+                            "sandbox"
+                            if selected_action == "sandbox_publish"
+                            else "public"
+                        )
+                        approval = session.get(f"forward_{mode}_preview", {})
+                        publication_summary = publish_forward_batch(
+                            admin_user_id=current_user.id,
+                            expected_approval_signature=approval.get(
+                                "approval_signature"
+                            ),
+                            ticker=(selected_ticker or None),
+                            record_mode=mode,
+                        )
+                    elif selected_action == "sandbox_reset":
+                        reset_summary = reset_sandbox_record(
+                            admin_user_id=current_user.id
+                        )
             except Exception as error:
                 db.session.rollback()
                 app.logger.exception(
-                    "Manual signal-alert dispatch failed admin_user_id=%s action=%s ticker=%s",
+                    "Manual admin action failed admin_user_id=%s action=%s ticker=%s",
                     current_user.id,
                     selected_action,
                     selected_ticker or "ALL",
                 )
-                page_error = f"Dispatch failed: {error}"
+                page_error = f"Admin action failed: {error}"
 
             dispatch_output = [
-                line for line in output_buffer.getvalue().splitlines() if line.strip()
-            ][-300:]
+                line
+                for line in output_buffer.getvalue().splitlines()
+                if line.strip()
+            ][-500:]
             db.session.expire_all()
 
-            if dispatch_summary and selected_action == "preview":
+            if dispatch_summary and selected_action == "alert_preview":
                 if (
                     dispatch_summary.get("failures", 0) == 0
                     and dispatch_summary.get("waiting", 0) == 0
                 ):
                     session["signal_alert_dispatch_preview"] = {
-                        "approval_signature": dispatch_summary.get("approval_signature"),
+                        "approval_signature": dispatch_summary.get(
+                            "approval_signature"
+                        ),
                         "ticker": selected_ticker,
                         "created_at": int(time.time()),
                     }
                 else:
                     session.pop("signal_alert_dispatch_preview", None)
                     page_error = (
-                        "Preview found a file/read failure. Resolve it and preview "
-                        "again before sending."
+                        "Alert preview found a source/read failure. Resolve it and "
+                        "preview again."
                     )
-            elif dispatch_summary and selected_action == "send":
+            elif dispatch_summary and selected_action == "alert_send":
                 session.pop("signal_alert_dispatch_preview", None)
                 if dispatch_summary.get("approval_mismatch"):
                     page_error = (
-                        "The published files or eligible alert recipients changed "
-                        "after preview. Nothing was sent; preview again."
+                        "Eligible recipients, preferences, checkpoints, or source data "
+                        "changed after preview. No email was sent; preview again."
                     )
 
+            if publication_summary and selected_action in {
+                "sandbox_preview",
+                "public_preview",
+            }:
+                mode = publication_summary.get("record_mode", "sandbox")
+                if publication_summary.get("error_count", 0) == 0:
+                    session[f"forward_{mode}_preview"] = {
+                        "approval_signature": publication_summary.get(
+                            "approval_signature"
+                        ),
+                        "ticker": selected_ticker,
+                        "created_at": int(time.time()),
+                    }
+                else:
+                    session.pop(f"forward_{mode}_preview", None)
+                    page_error = (
+                        f"{mode.title()} preview found a source-data error. "
+                        "Resolve it and preview again."
+                    )
+            elif publication_summary and selected_action in {
+                "sandbox_publish",
+                "public_publish",
+            }:
+                mode = publication_summary.get("record_mode", "sandbox")
+                session.pop(f"forward_{mode}_preview", None)
+                if publication_summary.get("approval_mismatch"):
+                    page_error = (
+                        "The source files changed after preview. Nothing was "
+                        "published; preview again."
+                    )
+
+            if reset_summary is not None:
+                session.pop("forward_sandbox_preview", None)
+
             app.logger.info(
-                "Manual signal-alert action admin_user_id=%s action=%s ticker=%s summary=%s",
+                "Manual admin action admin_user_id=%s action=%s ticker=%s "
+                "publication=%s alerts=%s reset=%s",
                 current_user.id,
                 selected_action,
                 selected_ticker or "ALL",
-                dispatch_summary,
+                {
+                    "mode": publication_summary.get("record_mode"),
+                    "pending": publication_summary.get("candidate_count", 0),
+                    "published": publication_summary.get("published", 0),
+                    "errors": publication_summary.get("error_count", 0),
+                    "batch_id": publication_summary.get("batch_id"),
+                } if publication_summary else None,
+                {
+                    "mode": dispatch_summary.get("mode"),
+                    "pending_or_sent": dispatch_summary.get("pending_or_sent", 0),
+                    "failures": dispatch_summary.get("failures", 0),
+                    "approval_mismatch": dispatch_summary.get(
+                        "approval_mismatch", False
+                    ),
+                } if dispatch_summary else None,
+                reset_summary,
             )
 
     enabled_alert_count = WatchlistItem.query.filter_by(
@@ -2784,6 +3288,8 @@ def admin_signal_alerts():
         .distinct()
         .count()
     )
+    sandbox_summary = build_forward_record_summary("sandbox")
+    public_record_summary = build_forward_record_summary("public")
     recent_deliveries = (
         db.session.query(SignalAlertDelivery, User.email)
         .join(User, User.id == SignalAlertDelivery.user_id)
@@ -2791,17 +3297,35 @@ def admin_signal_alerts():
         .limit(25)
         .all()
     )
+    recent_publication_batches = (
+        ForwardPublicationBatch.query
+        .order_by(ForwardPublicationBatch.id.desc())
+        .limit(15)
+        .all()
+    )
+    public_confirmation_phrase = (
+        "START PUBLIC RECORD"
+        if not public_record_summary.get("started")
+        else "PUBLISH PUBLIC"
+    )
 
     response = app.make_response(render_template(
         "admin_signal_alerts.html",
         dispatch_summary=dispatch_summary,
+        publication_summary=publication_summary,
+        reset_summary=reset_summary,
         dispatch_output=dispatch_output,
         page_error=page_error,
         selected_ticker=selected_ticker,
         selected_action=selected_action,
         enabled_alert_count=enabled_alert_count,
         enabled_asset_count=enabled_asset_count,
+        sandbox_summary=sandbox_summary,
+        public_record_summary=public_record_summary,
+        public_record_enabled=public_enabled,
+        public_confirmation_phrase=public_confirmation_phrase,
         recent_deliveries=recent_deliveries,
+        recent_publication_batches=recent_publication_batches,
     ))
     response.headers["Cache-Control"] = "no-store, max-age=0"
     response.headers["Pragma"] = "no-cache"
@@ -4034,7 +4558,8 @@ def confirm_delete(token):
 def index():
     return render_template(
         "index.html",
-        supported_tickers=get_supported_tickers_for_user(current_user)
+        supported_tickers=get_supported_tickers_for_user(current_user),
+        forward_record=build_forward_record_home_summary(),
     )
 
 @app.route("/subscription")
@@ -4049,7 +4574,78 @@ def methodology():
         coverage=build_methodology_coverage(),
         featured_performance=build_methodology_featured_performance(),
         change_log=load_public_model_change_log(),
+        forward_record=build_forward_record_home_summary(),
     )
+
+
+def resolve_forward_record_selection(record_mode):
+    tickers = get_forward_record_tickers(record_mode)
+    requested = normalize_ticker(request.args.get("ticker"))
+    if requested and requested not in tickers:
+        abort(404)
+
+    selected_ticker = requested
+    if not selected_ticker:
+        if "BTC-USD" in tickers:
+            selected_ticker = "BTC-USD"
+        elif tickers:
+            selected_ticker = tickers[0]
+    return tickers, selected_ticker
+
+
+@app.route("/performance")
+def performance():
+    public_enabled = public_forward_record_enabled()
+    if public_enabled:
+        tickers, selected_ticker = resolve_forward_record_selection("public")
+    else:
+        tickers, selected_ticker = [], None
+
+    performance_record = (
+        build_forward_record_performance(selected_ticker, "public")
+        if selected_ticker else None
+    )
+
+    response = app.make_response(render_template(
+        "performance.html",
+        record_tickers=tickers,
+        selected_ticker=selected_ticker,
+        record=performance_record,
+        record_mode="public",
+        record_enabled=public_enabled,
+        is_admin_preview=False,
+    ))
+    response.headers["Cache-Control"] = "public, max-age=300"
+    if not public_enabled or not tickers:
+        response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    return response
+
+
+@app.route("/admin/forward-record")
+@login_required
+def admin_forward_record():
+    if not is_admin_user(current_user):
+        abort(404)
+
+    tickers, selected_ticker = resolve_forward_record_selection("sandbox")
+    performance_record = (
+        build_forward_record_performance(selected_ticker, "sandbox")
+        if selected_ticker else None
+    )
+
+    response = app.make_response(render_template(
+        "performance.html",
+        record_tickers=tickers,
+        selected_ticker=selected_ticker,
+        record=performance_record,
+        record_mode="sandbox",
+        record_enabled=True,
+        is_admin_preview=True,
+    ))
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    return response
 
 
 @app.route("/data")
@@ -4163,6 +4759,14 @@ def sitemap_xml():
             "priority": "0.9"
         },
     ]
+
+    if build_forward_record_home_summary().get("started"):
+        pages.insert(3, {
+            "loc": "https://neuraltrend.org/performance",
+            "lastmod": today,
+            "changefreq": "daily",
+            "priority": "0.9",
+        })
 
     url_entries = []
 

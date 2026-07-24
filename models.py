@@ -371,13 +371,13 @@ class WatchlistItem(db.Model):
         default=False,
     )
 
-    # Baseline used by the scheduled alert worker. Enabling alerts records the
+    # Baseline used by the admin-approved alert workflow. Enabling alerts records the
     # currently published signal first, so users receive only future changes.
     last_observed_signal = db.Column(db.SmallInteger, nullable=True)
     last_observed_signal_date = db.Column(db.Date, nullable=True)
 
     # Fingerprint of the published Date / Close / epoch_signal row last seen by
-    # the alert worker. This allows a same-date signal revision to be detected
+    # the alert workflow. This allows a same-date signal revision to be detected
     # without exposing or hashing proprietary feature columns.
     last_observed_row_fingerprint = db.Column(db.String(64), nullable=True)
 
@@ -459,7 +459,7 @@ class SignalAlertDelivery(db.Model):
     source_row_fingerprint = db.Column(db.String(64), nullable=True)
     event_summary = db.Column(db.Text, nullable=True)
 
-    # Deterministic SHA-256 key prevents two cron workers from claiming the
+    # Deterministic SHA-256 key prevents concurrent dispatches from claiming the
     # same user/ticker/date/signal transition concurrently.
     event_key = db.Column(
         db.String(64),
@@ -533,5 +533,184 @@ class SignalAlertDelivery(db.Model):
         db.CheckConstraint(
             "processing_status IN ('processing', 'sent', 'failed')",
             name="ck_signal_alert_processing_status",
+        ),
+    )
+
+
+class ForwardPublicationBatch(db.Model):
+    __tablename__ = "forward_publication_batches"
+
+    id = db.Column(db.Integer, primary_key=True)
+    published_by_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    published_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        index=True,
+    )
+    record_mode = db.Column(
+        db.String(20),
+        nullable=False,
+        default="sandbox",
+        server_default="sandbox",
+        index=True,
+    )
+    publication_count = db.Column(db.Integer, nullable=False, default=0)
+    revision_count = db.Column(db.Integer, nullable=False, default=0)
+    delayed_count = db.Column(db.Integer, nullable=False, default=0)
+    source_digest = db.Column(db.String(64), nullable=False, unique=True)
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+    )
+
+    published_by = db.relationship(
+        "User",
+        foreign_keys=[published_by_user_id],
+        backref=db.backref("forward_publication_batches", lazy=True),
+    )
+
+    __table_args__ = (
+        db.CheckConstraint(
+            "record_mode IN ('sandbox', 'public')",
+            name="ck_forward_batch_record_mode",
+        ),
+        db.CheckConstraint(
+            "publication_count >= 0 AND revision_count >= 0 AND delayed_count >= 0",
+            name="ck_forward_batch_counts",
+        ),
+    )
+
+
+class ForwardSignalPublication(db.Model):
+    __tablename__ = "forward_signal_publications"
+
+    id = db.Column(db.Integer, primary_key=True)
+    batch_id = db.Column(
+        db.Integer,
+        db.ForeignKey("forward_publication_batches.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    ticker = db.Column(db.String(30), nullable=False, index=True)
+    source_data_date = db.Column(db.Date, nullable=False, index=True)
+    signal = db.Column(db.SmallInteger, nullable=False)
+    reference_close = db.Column(db.Float, nullable=False)
+    published_at = db.Column(db.DateTime, nullable=False, index=True)
+    publication_type = db.Column(
+        db.String(20),
+        nullable=False,
+        default="regular",
+        index=True,
+    )
+    source_row_fingerprint = db.Column(db.String(64), nullable=False)
+    publication_key = db.Column(
+        db.String(64),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+    supersedes_publication_id = db.Column(
+        db.Integer,
+        db.ForeignKey("forward_signal_publications.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+    )
+
+    batch = db.relationship(
+        "ForwardPublicationBatch",
+        backref=db.backref(
+            "publications",
+            lazy=True,
+            cascade="all, delete-orphan",
+            passive_deletes=True,
+        ),
+    )
+    supersedes = db.relationship(
+        "ForwardSignalPublication",
+        remote_side=[id],
+        foreign_keys=[supersedes_publication_id],
+        uselist=False,
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "batch_id",
+            "ticker",
+            name="uq_forward_publication_batch_ticker",
+        ),
+        db.CheckConstraint(
+            "signal IN (-1, 0, 1)",
+            name="ck_forward_publication_signal",
+        ),
+        db.CheckConstraint(
+            "reference_close > 0",
+            name="ck_forward_publication_reference_close",
+        ),
+        db.CheckConstraint(
+            "publication_type IN ('initial', 'regular', 'delayed', 'revision', 'correction')",
+            name="ck_forward_publication_type",
+        ),
+    )
+
+
+class ForwardMarketObservation(db.Model):
+    __tablename__ = "forward_market_observations"
+
+    id = db.Column(db.Integer, primary_key=True)
+    record_mode = db.Column(
+        db.String(20),
+        nullable=False,
+        default="sandbox",
+        server_default="sandbox",
+        index=True,
+    )
+    ticker = db.Column(db.String(30), nullable=False, index=True)
+    market_date = db.Column(db.Date, nullable=False, index=True)
+    close_price = db.Column(db.Float, nullable=False)
+    source_row_fingerprint = db.Column(db.String(64), nullable=False)
+    captured_in_batch_id = db.Column(
+        db.Integer,
+        db.ForeignKey("forward_publication_batches.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    captured_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        index=True,
+    )
+
+    captured_in_batch = db.relationship(
+        "ForwardPublicationBatch",
+        backref=db.backref("market_observations", lazy=True),
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "record_mode",
+            "ticker",
+            "market_date",
+            name="uq_forward_market_mode_ticker_date",
+        ),
+        db.CheckConstraint(
+            "record_mode IN ('sandbox', 'public')",
+            name="ck_forward_market_record_mode",
+        ),
+        db.CheckConstraint(
+            "close_price > 0",
+            name="ck_forward_market_price",
         ),
     )
