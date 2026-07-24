@@ -8,6 +8,7 @@ from flask import (
     session,
     redirect,
     url_for,
+    abort,
 )
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, timedelta
@@ -2642,6 +2643,170 @@ def me():
         "watchlist_limit": 0,
         "signal_email_alerts_available": False,
     })
+
+
+
+# --------------------
+# Manual admin signal-alert dispatch
+# --------------------
+
+@app.route("/admin/signal-alerts", methods=["GET", "POST"])
+@login_required
+@limiter.limit("12 per minute")
+def admin_signal_alerts():
+    """Preview and manually approve signal-change email delivery.
+
+    This page intentionally performs no scheduled or automatic sending. Every
+    dispatch is re-evaluated against current CSV contents, current watchlist
+    preferences, subscription access, and the delivery deduplication ledger.
+    """
+    if not is_admin_user(current_user):
+        abort(404)
+
+    dispatch_summary = None
+    dispatch_output = []
+    page_error = None
+    selected_ticker = ""
+    selected_action = None
+
+    if request.method == "POST":
+        selected_action = (request.form.get("action") or "").strip().lower()
+        selected_ticker = normalize_ticker(request.form.get("ticker"))
+
+        if selected_action not in {"preview", "send"}:
+            page_error = "Choose Preview pending alerts or Send approved alerts."
+
+        if not page_error and selected_ticker:
+            try:
+                get_epoch_csv_path(selected_ticker)
+            except (ValueError, FileNotFoundError):
+                page_error = "That ticker does not have a supported deployed signal file."
+
+        if (
+            not page_error
+            and selected_action == "send"
+            and (request.form.get("confirmation") or "").strip() != "SEND ALERTS"
+        ):
+            page_error = 'Type "SEND ALERTS" exactly before dispatching email.'
+
+        preview_approval = session.get("signal_alert_dispatch_preview")
+        if not page_error and selected_action == "send":
+            preview_age = None
+            try:
+                preview_age = int(time.time()) - int(preview_approval.get("created_at"))
+            except (AttributeError, TypeError, ValueError):
+                preview_age = None
+
+            if (
+                not isinstance(preview_approval, dict)
+                or preview_age is None
+                or preview_age < 0
+                or preview_age > 15 * 60
+                or preview_approval.get("ticker", "") != selected_ticker
+                or not preview_approval.get("approval_signature")
+            ):
+                page_error = (
+                    "Preview this exact asset selection first, then send it within "
+                    "15 minutes."
+                )
+
+        if not page_error:
+            import io
+            from contextlib import redirect_stderr, redirect_stdout
+            from tools.send_signal_change_alerts import run_dispatch
+
+            output_buffer = io.StringIO()
+            try:
+                with redirect_stdout(output_buffer), redirect_stderr(output_buffer):
+                    dispatch_summary = run_dispatch(
+                        dry_run=(selected_action == "preview"),
+                        limit=(1000 if selected_action == "preview" else 25),
+                        stability_minutes=0,
+                        ticker=(selected_ticker or None),
+                        expected_approval_signature=(
+                            preview_approval.get("approval_signature")
+                            if selected_action == "send" else None
+                        ),
+                    )
+            except Exception as error:
+                db.session.rollback()
+                app.logger.exception(
+                    "Manual signal-alert dispatch failed admin_user_id=%s action=%s ticker=%s",
+                    current_user.id,
+                    selected_action,
+                    selected_ticker or "ALL",
+                )
+                page_error = f"Dispatch failed: {error}"
+
+            dispatch_output = [
+                line for line in output_buffer.getvalue().splitlines() if line.strip()
+            ][-300:]
+            db.session.expire_all()
+
+            if dispatch_summary and selected_action == "preview":
+                if (
+                    dispatch_summary.get("failures", 0) == 0
+                    and dispatch_summary.get("waiting", 0) == 0
+                ):
+                    session["signal_alert_dispatch_preview"] = {
+                        "approval_signature": dispatch_summary.get("approval_signature"),
+                        "ticker": selected_ticker,
+                        "created_at": int(time.time()),
+                    }
+                else:
+                    session.pop("signal_alert_dispatch_preview", None)
+                    page_error = (
+                        "Preview found a file/read failure. Resolve it and preview "
+                        "again before sending."
+                    )
+            elif dispatch_summary and selected_action == "send":
+                session.pop("signal_alert_dispatch_preview", None)
+                if dispatch_summary.get("approval_mismatch"):
+                    page_error = (
+                        "The published files or eligible alert recipients changed "
+                        "after preview. Nothing was sent; preview again."
+                    )
+
+            app.logger.info(
+                "Manual signal-alert action admin_user_id=%s action=%s ticker=%s summary=%s",
+                current_user.id,
+                selected_action,
+                selected_ticker or "ALL",
+                dispatch_summary,
+            )
+
+    enabled_alert_count = WatchlistItem.query.filter_by(
+        email_alert_enabled=True
+    ).count()
+    enabled_asset_count = (
+        db.session.query(WatchlistItem.ticker)
+        .filter(WatchlistItem.email_alert_enabled.is_(True))
+        .distinct()
+        .count()
+    )
+    recent_deliveries = (
+        db.session.query(SignalAlertDelivery, User.email)
+        .join(User, User.id == SignalAlertDelivery.user_id)
+        .order_by(SignalAlertDelivery.id.desc())
+        .limit(25)
+        .all()
+    )
+
+    response = app.make_response(render_template(
+        "admin_signal_alerts.html",
+        dispatch_summary=dispatch_summary,
+        dispatch_output=dispatch_output,
+        page_error=page_error,
+        selected_ticker=selected_ticker,
+        selected_action=selected_action,
+        enabled_alert_count=enabled_alert_count,
+        enabled_asset_count=enabled_asset_count,
+        recent_deliveries=recent_deliveries,
+    ))
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    return response
 
 
 # --------------------
