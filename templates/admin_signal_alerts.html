@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}Signal Alert Dispatch | NeuralTrend Admin{% endblock %}
+
+{% block meta_description %}
+Admin-only manual review and dispatch of NeuralTrend signal-change alerts.
+{% endblock %}
+
+{% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-admin-alerts.css') }}">
+{% endblock %}
+
+{% block content %}
+<main class="nt-alert-admin-page">
+    <section class="nt-alert-admin-hero">
+        <div class="nt-alert-admin-shell nt-alert-admin-hero-grid">
+            <div>
+                <div class="nt-alert-admin-kicker">Admin only</div>
+                <h1>Manual signal-alert dispatch</h1>
+                <p>
+                    Review the current published CSV snapshots, then release eligible
+                    signal-change emails only after you are satisfied that the data are clean.
+                    Nothing on this page runs automatically.
+                </p>
+            </div>
+            <aside class="nt-alert-admin-safety-card">
+                <strong>Dispatch safeguards</strong>
+                <ul>
+                    <li>Only opted-in, eligible users are considered.</li>
+                    <li>Repeated BUY, HOLD, or SELL states do not email.</li>
+                    <li>Delayed rows become one catch-up email.</li>
+                    <li>Same-date signal changes are labeled revisions.</li>
+                    <li>Previously sent events remain deduplicated.</li>
+                    <li>The web button sends at most 25 emails per batch.</li>
+                </ul>
+            </aside>
+        </div>
+    </section>
+
+    <section class="nt-alert-admin-shell nt-alert-admin-stats" aria-label="Alert coverage">
+        <article>
+            <strong>{{ enabled_alert_count }}</strong>
+            <span>enabled user-asset alerts</span>
+        </article>
+        <article>
+            <strong>{{ enabled_asset_count }}</strong>
+            <span>distinct watched assets</span>
+        </article>
+        <article>
+            <strong>Manual</strong>
+            <span>dispatch mode</span>
+        </article>
+        <article>
+            <strong>0 min</strong>
+            <span>forced waiting period</span>
+        </article>
+    </section>
+
+    <section class="nt-alert-admin-shell nt-alert-admin-panel">
+        <div class="nt-alert-admin-panel-heading">
+            <div>
+                <div class="nt-alert-admin-kicker">Review and release</div>
+                <h2>Prepare the next alert batch</h2>
+            </div>
+            <span class="nt-alert-admin-manual-badge">No Cron required</span>
+        </div>
+
+        <div class="nt-alert-admin-notice">
+            <strong>Recommended workflow:</strong>
+            upload and verify all intended CSV updates, preview the batch, inspect every
+            pending line, then type the confirmation phrase and send within 15 minutes.
+            Any relevant file, recipient, preference, or checkpoint change invalidates the
+            approval, and the Send action stops before releasing email.
+        </div>
+
+        {% if page_error %}
+        <div class="nt-alert-admin-message is-error" role="alert">{{ page_error }}</div>
+        {% endif %}
+
+        {% if dispatch_summary %}
+        <div class="nt-alert-admin-message {% if dispatch_summary.failures %}is-error{% else %}is-success{% endif %}" aria-live="polite">
+            {% if dispatch_summary.mode == "preview" %}
+                Preview completed: {{ dispatch_summary.pending_or_sent }} pending email{% if dispatch_summary.pending_or_sent != 1 %}s{% endif %},
+                {{ dispatch_summary.failures }} failure{% if dispatch_summary.failures != 1 %}s{% endif %}.
+            {% else %}
+                Dispatch completed: {{ dispatch_summary.pending_or_sent }} email{% if dispatch_summary.pending_or_sent != 1 %}s{% endif %} sent,
+                {{ dispatch_summary.failures }} failure{% if dispatch_summary.failures != 1 %}s{% endif %}.
+            {% endif %}
+            Processed {{ dispatch_summary.processed_items }} of {{ dispatch_summary.available_items }} enabled watchlist item{% if dispatch_summary.available_items != 1 %}s{% endif %}.
+            {% if dispatch_summary.limit_reached %}
+                The web batch limit was reached; preview again and send the remaining eligible alerts in another batch.
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <form method="post" action="{{ url_for('admin_signal_alerts') }}" class="nt-alert-admin-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="nt-alert-admin-field-grid">
+                <label>
+                    <span>Optional asset filter</span>
+                    <input
+                        type="text"
+                        name="ticker"
+                        value="{{ selected_ticker }}"
+                        placeholder="All assets, or BTC-USD"
+                        maxlength="30"
+                        autocomplete="off"
+                    >
+                    <small>Leave blank to review every enabled watched asset.</small>
+                </label>
+
+                <label>
+                    <span>Send confirmation</span>
+                    <input
+                        type="text"
+                        name="confirmation"
+                        placeholder='Type "SEND ALERTS" to send'
+                        maxlength="20"
+                        autocomplete="off"
+                    >
+                    <small>Preview this exact filter first. Approval remains valid for 15 minutes.</small>
+                </label>
+            </div>
+
+            <div class="nt-alert-admin-actions">
+                <button type="submit" name="action" value="preview" class="nt-alert-admin-secondary">
+                    Preview Pending Alerts
+                </button>
+                <button type="submit" name="action" value="send" class="nt-alert-admin-primary">
+                    Send Approved Alerts
+                </button>
+            </div>
+        </form>
+    </section>
+
+    {% if dispatch_output %}
+    <section class="nt-alert-admin-shell nt-alert-admin-panel">
+        <div class="nt-alert-admin-panel-heading">
+            <div>
+                <div class="nt-alert-admin-kicker">Dispatch output</div>
+                <h2>{% if selected_action == "preview" %}Pending actions{% else %}Send results{% endif %}</h2>
+            </div>
+        </div>
+        <div class="nt-alert-admin-console" role="log" aria-label="Signal alert dispatch output">
+            {% for line in dispatch_output %}
+            <div class="{% if line.startswith('FAILED') %}is-error{% elif line.startswith('SEND-') or line.startswith('SENT-') %}is-action{% elif line.startswith('ADVANCE') or line.startswith('BASELINE') %}is-muted{% endif %}">{{ line }}</div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="nt-alert-admin-shell nt-alert-admin-panel">
+        <div class="nt-alert-admin-panel-heading">
+            <div>
+                <div class="nt-alert-admin-kicker">Delivery ledger</div>
+                <h2>Recent alert attempts</h2>
+            </div>
+        </div>
+
+        {% if recent_deliveries %}
+        <div class="nt-alert-admin-table-wrap">
+            <table class="nt-alert-admin-table">
+                <thead>
+                    <tr>
+                        <th>Recipient</th>
+                        <th>Asset</th>
+                        <th>Type</th>
+                        <th>Range</th>
+                        <th>Changes</th>
+                        <th>Status</th>
+                        <th>Sent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for delivery, email in recent_deliveries %}
+                    <tr>
+                        <td>{{ email }}</td>
+                        <td><strong>{{ delivery.ticker }}</strong></td>
+                        <td>{{ delivery.event_type|replace('_', ' ')|title }}</td>
+                        <td>{{ delivery.observation_start_date }} – {{ delivery.observation_end_date }}</td>
+                        <td>{{ delivery.change_count }}</td>
+                        <td><span class="nt-alert-admin-status is-{{ delivery.processing_status }}">{{ delivery.processing_status|title }}</span></td>
+                        <td>{{ delivery.sent_at.strftime('%Y-%m-%d %H:%M UTC') if delivery.sent_at else '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="nt-alert-admin-empty">No alert deliveries have been recorded yet.</p>
+        {% endif %}
+    </section>
+
+    <section class="nt-alert-admin-shell nt-alert-admin-cli">
+        <div>
+            <div class="nt-alert-admin-kicker">Shell alternative</div>
+            <h2>Manual commands</h2>
+            <p>The admin page and command line use the same detection and deduplication logic.</p>
+        </div>
+        <pre><code>python tools/send_signal_change_alerts.py --preview
+python tools/send_signal_change_alerts.py --send</code></pre>
+    </section>
+</main>
+{% endblock %}
