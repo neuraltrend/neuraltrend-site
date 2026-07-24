@@ -376,6 +376,11 @@ class WatchlistItem(db.Model):
     last_observed_signal = db.Column(db.SmallInteger, nullable=True)
     last_observed_signal_date = db.Column(db.Date, nullable=True)
 
+    # Fingerprint of the published Date / Close / epoch_signal row last seen by
+    # the alert worker. This allows a same-date signal revision to be detected
+    # without exposing or hashing proprietary feature columns.
+    last_observed_row_fingerprint = db.Column(db.String(64), nullable=True)
+
     created_at = db.Column(
         db.DateTime,
         nullable=False,
@@ -439,6 +444,21 @@ class SignalAlertDelivery(db.Model):
     previous_signal = db.Column(db.SmallInteger, nullable=False)
     current_signal = db.Column(db.SmallInteger, nullable=False)
 
+    # change: one newly dated row changed the signal
+    # revision: an already observed signal date was later revised
+    # catch_up: two or more newly published rows were processed together
+    event_type = db.Column(
+        db.String(20),
+        nullable=False,
+        default="change",
+        index=True,
+    )
+    observation_start_date = db.Column(db.Date, nullable=False)
+    observation_end_date = db.Column(db.Date, nullable=False)
+    change_count = db.Column(db.Integer, nullable=False, default=1)
+    source_row_fingerprint = db.Column(db.String(64), nullable=True)
+    event_summary = db.Column(db.Text, nullable=True)
+
     # Deterministic SHA-256 key prevents two cron workers from claiming the
     # same user/ticker/date/signal transition concurrently.
     event_key = db.Column(
@@ -498,8 +518,17 @@ class SignalAlertDelivery(db.Model):
             name="ck_signal_alert_current_signal",
         ),
         db.CheckConstraint(
-            "previous_signal <> current_signal",
-            name="ck_signal_alert_is_change",
+            "event_type IN ('change', 'revision', 'catch_up')",
+            name="ck_signal_alert_event_type",
+        ),
+        db.CheckConstraint(
+            "change_count >= 1",
+            name="ck_signal_alert_change_count",
+        ),
+        db.CheckConstraint(
+            "((event_type IN ('change', 'revision') AND previous_signal <> current_signal) "
+            "OR event_type = 'catch_up')",
+            name="ck_signal_alert_event_consistency",
         ),
         db.CheckConstraint(
             "processing_status IN ('processing', 'sent', 'failed')",

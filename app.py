@@ -2667,6 +2667,26 @@ def signal_label(value):
     return "HOLD"
 
 
+def make_signal_row_fingerprint(ticker, signal_date, signal, close_price):
+    """Return a stable digest for the published parts of one signal row.
+
+    The alert worker uses this to distinguish a later revision to an already
+    observed signal date from a genuinely new dated row. Only the public signal
+    and its reference closing price are included; proprietary feature columns
+    are intentionally excluded.
+    """
+    clean_ticker = normalize_ticker(ticker)
+    if isinstance(signal_date, datetime):
+        signal_date = signal_date.date()
+
+    normalized_close = format(float(close_price), ".12g")
+    raw = (
+        f"{clean_ticker}:{signal_date.isoformat()}:"
+        f"{int(signal)}:{normalized_close}"
+    )
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
 def get_latest_signal_snapshot(ticker):
     clean_ticker = normalize_ticker(ticker)
     market_data = load_epoch_csv_for_ticker(clean_ticker)
@@ -2698,6 +2718,12 @@ def get_latest_signal_snapshot(ticker):
         "signal_label": signal_label(signal),
         "signal_date": signal_date,
         "close_price": close_price,
+        "row_fingerprint": make_signal_row_fingerprint(
+            clean_ticker,
+            signal_date,
+            signal,
+            close_price,
+        ),
         **build_data_freshness_metadata(clean_ticker, signal_date),
     }
 
@@ -2907,6 +2933,7 @@ def add_watchlist_item():
             email_alert_enabled=False,
             last_observed_signal=snapshot["signal"],
             last_observed_signal_date=snapshot["signal_date"],
+            last_observed_row_fingerprint=snapshot["row_fingerprint"],
         )
         db.session.add(item)
         db.session.commit()
@@ -3005,6 +3032,7 @@ def update_watchlist_alert(ticker):
         # enabling alerts from sending a retroactive or misleading change email.
         item.last_observed_signal = snapshot["signal"]
         item.last_observed_signal_date = snapshot["signal_date"]
+        item.last_observed_row_fingerprint = snapshot["row_fingerprint"]
 
     item.email_alert_enabled = enabled
     db.session.commit()
