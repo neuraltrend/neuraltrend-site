@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
-"""Send opt-in NeuralTrend email alerts for newly published signal changes.
+"""Send opt-in NeuralTrend alerts for stable published signal updates.
 
-Run this from a Render Cron Job after the market CSV deployment/update finishes:
+Recommended Render Cron command:
 
     python tools/send_signal_change_alerts.py
 
-Use --dry-run to inspect pending transitions without sending email or updating
+The worker:
+- waits until each asset CSV has been unchanged for a configurable quiet period;
+- processes every newly published dated row for each watched asset;
+- combines delayed multi-row updates into one catch-up email per asset/user;
+- detects a changed signal on an already observed date as a revision;
+- deduplicates delivery across concurrent/retried workers.
+
+Use --dry-run to inspect pending work without sending email or advancing
 watchlist baselines.
 """
 
@@ -13,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import math
 import os
 import sys
@@ -30,9 +38,11 @@ from app import (  # noqa: E402
     app,
     can_view_full_signals_for_ticker,
     generate_signal_alert_unsubscribe_token,
+    get_epoch_csv_path,
     is_paid_user,
     load_epoch_csv_for_ticker,
     mail,
+    make_signal_row_fingerprint,
     normalize_ticker,
     signal_label,
 )
@@ -40,22 +50,349 @@ from extensions import db  # noqa: E402
 from models import SignalAlertDelivery, User, WatchlistItem  # noqa: E402
 
 PROCESSING_STALE_AFTER = timedelta(minutes=30)
+DEFAULT_STABILITY_MINUTES = 60
+MAX_TRANSITIONS_IN_EMAIL = 20
 
 
-def make_event_key(user_id, ticker, signal_date, previous_signal, current_signal):
-    raw = f"{user_id}:{ticker}:{signal_date.isoformat()}:{previous_signal}:{current_signal}"
+def utcnow():
+    return datetime.utcnow()
+
+
+def parse_stability_minutes(cli_value=None):
+    raw = cli_value
+    if raw is None:
+        raw = os.environ.get(
+            "SIGNAL_ALERT_STABILITY_MINUTES",
+            str(DEFAULT_STABILITY_MINUTES),
+        )
+
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        raise ValueError(
+            "SIGNAL_ALERT_STABILITY_MINUTES must be a whole number of minutes."
+        )
+
+    if value < 0 or value > 1440:
+        raise ValueError("Signal-alert stability minutes must be between 0 and 1440.")
+
+    return value
+
+
+def load_stable_market_snapshot(ticker, stability_minutes, market_cache):
+    """Load one CSV only after its file timestamp has remained quiet.
+
+    The before/after stat check also avoids processing a file that changed while
+    pandas was reading it. Results are cached for the duration of one worker run
+    so many users watching the same asset share one consistent snapshot.
+    """
+    ticker = normalize_ticker(ticker)
+    if ticker in market_cache:
+        return market_cache[ticker]
+
+    try:
+        csv_path = get_epoch_csv_path(ticker)
+        stat_before = os.stat(csv_path)
+    except (OSError, ValueError, FileNotFoundError) as error:
+        result = {
+            "status": "error",
+            "error": str(error),
+            "data": None,
+            "mtime_utc": None,
+        }
+        market_cache[ticker] = result
+        return result
+
+    modified_at = datetime.utcfromtimestamp(stat_before.st_mtime)
+    age = utcnow() - modified_at
+    quiet_period = timedelta(minutes=stability_minutes)
+
+    if age < quiet_period:
+        wait_seconds = max(0, int((quiet_period - age).total_seconds()))
+        result = {
+            "status": "waiting",
+            "data": None,
+            "mtime_utc": modified_at,
+            "wait_seconds": wait_seconds,
+        }
+        market_cache[ticker] = result
+        return result
+
+    try:
+        market_data = load_epoch_csv_for_ticker(ticker).sort_index()
+        stat_after = os.stat(csv_path)
+    except Exception as error:
+        result = {
+            "status": "error",
+            "error": str(error),
+            "data": None,
+            "mtime_utc": modified_at,
+        }
+        market_cache[ticker] = result
+        return result
+
+    if (
+        stat_before.st_mtime_ns != stat_after.st_mtime_ns
+        or stat_before.st_size != stat_after.st_size
+    ):
+        result = {
+            "status": "waiting",
+            "data": None,
+            "mtime_utc": datetime.utcfromtimestamp(stat_after.st_mtime),
+            "wait_seconds": stability_minutes * 60,
+            "reason": "changed_during_read",
+        }
+        market_cache[ticker] = result
+        return result
+
+    result = {
+        "status": "stable",
+        "data": market_data,
+        "mtime_utc": datetime.utcfromtimestamp(stat_after.st_mtime),
+        "wait_seconds": 0,
+    }
+    market_cache[ticker] = result
+    return result
+
+
+def row_for_date(market_data, signal_date):
+    matching = market_data[market_data.index.date == signal_date]
+    if matching.empty:
+        return None
+    return matching.iloc[-1]
+
+
+def validate_row(ticker, signal_date, row):
+    current_signal = int(row["epoch_signal"])
+    close_price = float(row["Close"])
+
+    if current_signal not in {-1, 0, 1}:
+        raise ValueError(f"Invalid {ticker} signal on {signal_date}.")
+    if not math.isfinite(close_price) or close_price <= 0:
+        raise ValueError(f"Invalid {ticker} closing price on {signal_date}.")
+
+    fingerprint = make_signal_row_fingerprint(
+        ticker,
+        signal_date,
+        current_signal,
+        close_price,
+    )
+    return current_signal, close_price, fingerprint
+
+
+def canonical_event_summary(event):
+    return json.dumps(
+        {
+            "event_type": event["event_type"],
+            "observation_start_date": event["observation_start_date"].isoformat(),
+            "observation_end_date": event["observation_end_date"].isoformat(),
+            "initial_signal": event["initial_signal"],
+            "final_signal": event["final_signal"],
+            "final_close_price": format(event["final_close_price"], ".12g"),
+            "final_fingerprint": event["final_fingerprint"],
+            "transitions": [
+                {
+                    "kind": transition["kind"],
+                    "date": transition["date"].isoformat(),
+                    "previous_signal": transition["previous_signal"],
+                    "current_signal": transition["current_signal"],
+                    "close_price": format(transition["close_price"], ".12g"),
+                }
+                for transition in event["transitions"]
+            ],
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def make_event_key(item, event):
+    raw = (
+        f"{item.user_id}:{item.ticker}:"
+        f"{canonical_event_summary(event)}"
+    )
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
-def claim_delivery(item, signal_date, previous_signal, current_signal):
-    event_key = make_event_key(
-        item.user_id,
-        item.ticker,
-        signal_date,
-        previous_signal,
-        current_signal,
+def build_pending_event(item, market_data):
+    """Return baseline advancement and, when needed, one email event.
+
+    Multiple newly dated rows are intentionally consolidated into one catch-up
+    event. This avoids sending stale BUY/SELL emails one by one after a delayed
+    data refresh while still disclosing every actual transition in the digest.
+    """
+    ticker = normalize_ticker(item.ticker)
+
+    if market_data.empty:
+        raise ValueError("Market data has no valid rows for this asset.")
+
+    latest_index = market_data.index.max()
+    latest_date = latest_index.date()
+    latest_row = market_data.loc[latest_index]
+    if hasattr(latest_row, "iloc") and getattr(latest_row, "ndim", 1) > 1:
+        latest_row = latest_row.iloc[-1]
+    latest_signal, latest_close, latest_fingerprint = validate_row(
+        ticker,
+        latest_date,
+        latest_row,
     )
-    now = datetime.utcnow()
+
+    if item.last_observed_signal is None or item.last_observed_signal_date is None:
+        return {
+            "baseline_only": True,
+            "final_signal": latest_signal,
+            "final_date": latest_date,
+            "final_fingerprint": latest_fingerprint,
+            "event": None,
+        }
+
+    initial_signal = int(item.last_observed_signal)
+    initial_date = item.last_observed_signal_date
+    previous_signal = initial_signal
+    current_baseline_fingerprint = item.last_observed_row_fingerprint
+    final_date = initial_date
+    final_signal = initial_signal
+    final_fingerprint = current_baseline_fingerprint
+    transitions = []
+    revision_detected = False
+
+    baseline_row = row_for_date(market_data, initial_date)
+    if baseline_row is not None:
+        baseline_signal, baseline_close, baseline_fingerprint = validate_row(
+            ticker,
+            initial_date,
+            baseline_row,
+        )
+
+        # Existing Step 4 users have a NULL fingerprint until this upgraded
+        # worker sees them once. Establishing it is not itself an alert.
+        if current_baseline_fingerprint is None:
+            # Existing Step 4 rows do not yet have a fingerprint, but their
+            # stored signal/date are still enough to identify a signal revision.
+            if baseline_signal != initial_signal:
+                revision_detected = True
+                transitions.append({
+                    "kind": "revision",
+                    "date": initial_date,
+                    "previous_signal": initial_signal,
+                    "current_signal": baseline_signal,
+                    "close_price": baseline_close,
+                })
+                previous_signal = baseline_signal
+                final_signal = baseline_signal
+            current_baseline_fingerprint = baseline_fingerprint
+        elif baseline_fingerprint != current_baseline_fingerprint:
+            revision_detected = True
+            if baseline_signal != initial_signal:
+                transitions.append({
+                    "kind": "revision",
+                    "date": initial_date,
+                    "previous_signal": initial_signal,
+                    "current_signal": baseline_signal,
+                    "close_price": baseline_close,
+                })
+            # A close-only correction updates the fingerprint silently. A signal
+            # correction becomes a specially labelled revision event.
+            previous_signal = baseline_signal
+            final_signal = baseline_signal
+
+        final_fingerprint = baseline_fingerprint
+    else:
+        print(
+            f"WARNING {ticker}: previously observed date {initial_date} "
+            "is no longer present; same-date revision comparison was skipped.",
+            file=sys.stderr,
+        )
+
+    new_rows = market_data[market_data.index.date > initial_date]
+    new_row_count = len(new_rows)
+
+    for date_index, row in new_rows.iterrows():
+        signal_date = date_index.date()
+        current_signal, close_price, row_fingerprint = validate_row(
+            ticker,
+            signal_date,
+            row,
+        )
+
+        if current_signal != previous_signal:
+            transitions.append({
+                "kind": "change",
+                "date": signal_date,
+                "previous_signal": previous_signal,
+                "current_signal": current_signal,
+                "close_price": close_price,
+            })
+
+        previous_signal = current_signal
+        final_signal = current_signal
+        final_date = signal_date
+        final_fingerprint = row_fingerprint
+        latest_close = close_price
+
+    # No later rows: use the baseline row's current close for a revision email
+    # or for a silent fingerprint refresh.
+    if new_row_count == 0 and baseline_row is not None:
+        final_date = initial_date
+        final_signal, latest_close, final_fingerprint = validate_row(
+            ticker,
+            initial_date,
+            baseline_row,
+        )
+
+    advancement = {
+        "baseline_only": False,
+        "final_signal": final_signal,
+        "final_date": final_date,
+        "final_fingerprint": final_fingerprint,
+        "event": None,
+    }
+
+    if not transitions:
+        return advancement
+
+    if (
+        len(transitions) == 1
+        and transitions[0]["kind"] == "revision"
+        and new_row_count == 0
+    ):
+        event_type = "revision"
+    elif (
+        len(transitions) == 1
+        and transitions[0]["kind"] == "change"
+        and new_row_count == 1
+        and not revision_detected
+    ):
+        event_type = "change"
+    else:
+        event_type = "catch_up"
+
+    if revision_detected:
+        observation_start_date = initial_date
+    elif new_row_count:
+        observation_start_date = new_rows.index.min().date()
+    else:
+        observation_start_date = transitions[0]["date"]
+
+    event = {
+        "event_type": event_type,
+        "observation_start_date": observation_start_date,
+        "observation_end_date": final_date,
+        "initial_signal": initial_signal,
+        "final_signal": final_signal,
+        "final_close_price": latest_close,
+        "final_fingerprint": final_fingerprint,
+        "transitions": transitions,
+        "new_row_count": new_row_count,
+        "includes_revision": any(t["kind"] == "revision" for t in transitions),
+    }
+    advancement["event"] = event
+    return advancement
+
+
+def claim_delivery(item, event):
+    event_key = make_event_key(item, event)
+    now = utcnow()
 
     delivery = (
         SignalAlertDelivery.query
@@ -75,14 +412,22 @@ def claim_delivery(item, signal_date, previous_signal, current_signal):
     ):
         return delivery, "busy"
 
+    summary = canonical_event_summary(event)
+
     if delivery is None:
         delivery = SignalAlertDelivery(
             user_id=item.user_id,
             watchlist_item_id=item.id,
             ticker=item.ticker,
-            signal_date=signal_date,
-            previous_signal=previous_signal,
-            current_signal=current_signal,
+            signal_date=event["observation_end_date"],
+            previous_signal=event["initial_signal"],
+            current_signal=event["final_signal"],
+            event_type=event["event_type"],
+            observation_start_date=event["observation_start_date"],
+            observation_end_date=event["observation_end_date"],
+            change_count=len(event["transitions"]),
+            source_row_fingerprint=event["final_fingerprint"],
+            event_summary=summary,
             event_key=event_key,
             processing_status="processing",
             processing_started_at=now,
@@ -94,34 +439,92 @@ def claim_delivery(item, signal_date, previous_signal, current_signal):
         delivery.processing_started_at = now
         delivery.attempted_at = now
         delivery.error_message = None
+        delivery.event_summary = summary
+        delivery.source_row_fingerprint = event["final_fingerprint"]
 
     db.session.commit()
     return delivery, "claimed"
 
 
-def build_alert_message(user, ticker, signal_date, previous_signal, current_signal, close_price):
-    previous_label = signal_label(previous_signal)
-    current_label = signal_label(current_signal)
+def format_transition_line(transition):
+    prefix = "REVISED" if transition["kind"] == "revision" else transition["date"].isoformat()
+    if transition["kind"] == "revision":
+        prefix = f"{transition['date'].isoformat()} (revision)"
+    return (
+        f"{prefix}: {signal_label(transition['previous_signal'])} -> "
+        f"{signal_label(transition['current_signal'])} "
+        f"at ${transition['close_price']:,.8f}"
+    )
+
+
+def build_alert_message(user, ticker, event):
     unsubscribe_token = generate_signal_alert_unsubscribe_token(user)
     unsubscribe_url = f"{BASE_URL}/signal-alerts/unsubscribe/{unsubscribe_token}"
     dashboard_url = f"{BASE_URL}/#products"
     methodology_url = f"{BASE_URL}/methodology"
+    final_label = signal_label(event["final_signal"])
+
+    if event["event_type"] == "change":
+        transition = event["transitions"][0]
+        subject = f"NeuralTrend signal change: {ticker} {final_label}"
+        heading = f"The published NeuralTrend signal for {ticker} changed:"
+        detail_block = (
+            f"{signal_label(transition['previous_signal'])} -> {final_label}\n"
+            f"Signal date: {transition['date'].isoformat()}\n"
+            f"Reference closing price: ${transition['close_price']:,.8f}"
+        )
+    elif event["event_type"] == "revision":
+        transition = event["transitions"][0]
+        subject = f"NeuralTrend signal revision: {ticker} {final_label}"
+        heading = (
+            f"A previously published NeuralTrend signal for {ticker} was revised:"
+        )
+        detail_block = (
+            f"Signal date: {transition['date'].isoformat()}\n"
+            f"{signal_label(transition['previous_signal'])} -> {final_label}\n"
+            f"Reference closing price: ${transition['close_price']:,.8f}\n\n"
+            "This is a revision to an already observed signal date, not a new "
+            "next-day transition."
+        )
+    else:
+        subject = (
+            f"NeuralTrend catch-up: {ticker} now {final_label} "
+            f"({len(event['transitions'])} change"
+            f"{'s' if len(event['transitions']) != 1 else ''})"
+        )
+        heading = (
+            f"NeuralTrend published multiple new or revised rows for {ticker}. "
+            "They are combined here so older changes are not sent as separate "
+            "real-time-looking emails."
+        )
+        displayed = event["transitions"][:MAX_TRANSITIONS_IN_EMAIL]
+        transition_lines = "\n".join(format_transition_line(t) for t in displayed)
+        if len(event["transitions"]) > len(displayed):
+            transition_lines += (
+                f"\n... plus {len(event['transitions']) - len(displayed)} "
+                "additional changes."
+            )
+        detail_block = (
+            f"Published data range: {event['observation_start_date'].isoformat()} "
+            f"through {event['observation_end_date'].isoformat()}\n"
+            f"Current published signal: {final_label}\n"
+            f"Latest reference closing price: ${event['final_close_price']:,.8f}\n\n"
+            f"Signal path:\n{transition_lines}"
+        )
 
     message = Message(
-        subject=f"NeuralTrend signal change: {ticker} {current_label}",
+        subject=subject,
         sender=app.config["MAIL_USERNAME"],
         recipients=[user.email],
     )
 
     message.body = f"""Hi,
 
-The published NeuralTrend signal for {ticker} changed:
+{heading}
 
-{previous_label} -> {current_label}
-Signal date: {signal_date.isoformat()}
-Reference closing price: ${close_price:,.8f}
+{detail_block}
 
-This daily signal was generated from completed market data and is not a real-time execution alert, brokerage instruction, or financial advice.
+This daily signal information was generated from completed market data. Delayed/catch-up entries describe their original signal dates and should not be interpreted as real-time execution alerts, brokerage instructions, or financial advice.
 
 Open NeuralTrend:
 {dashboard_url}
@@ -137,10 +540,49 @@ NeuralTrend
     return message
 
 
-def process_item(item_id, dry_run=False, remaining_limit=200):
+def baseline_matches(item, original):
+    return (
+        item.last_observed_signal == original["signal"]
+        and item.last_observed_signal_date == original["date"]
+        and item.last_observed_row_fingerprint == original["fingerprint"]
+    )
+
+
+def advance_baseline(item_id, advancement, original=None):
+    locked_item = (
+        WatchlistItem.query
+        .filter_by(id=item_id)
+        .with_for_update()
+        .first()
+    )
+    if not locked_item or not locked_item.email_alert_enabled:
+        db.session.rollback()
+        return False
+
+    if original is not None and not baseline_matches(locked_item, original):
+        db.session.rollback()
+        return False
+
+    locked_item.last_observed_signal = advancement["final_signal"]
+    locked_item.last_observed_signal_date = advancement["final_date"]
+    locked_item.last_observed_row_fingerprint = advancement["final_fingerprint"]
+    db.session.commit()
+    return True
+
+
+def process_item(
+    item_id,
+    *,
+    dry_run=False,
+    stability_minutes=DEFAULT_STABILITY_MINUTES,
+    market_cache=None,
+):
+    if market_cache is None:
+        market_cache = {}
+
     item = db.session.get(WatchlistItem, item_id)
     if not item or not item.email_alert_enabled:
-        return 0, 0
+        return 0, 0, 0
 
     user = db.session.get(User, item.user_id)
     if (
@@ -152,135 +594,99 @@ def process_item(item_id, dry_run=False, remaining_limit=200):
         if not dry_run:
             item.email_alert_enabled = False
             db.session.commit()
-        return 0, 0
+        return 0, 0, 0
 
     ticker = normalize_ticker(item.ticker)
-    market_data = load_epoch_csv_for_ticker(ticker)
-    if market_data.empty:
-        return 0, 1
+    snapshot = load_stable_market_snapshot(
+        ticker,
+        stability_minutes,
+        market_cache,
+    )
 
-    latest_date = market_data.index.max().date()
-    latest_signal = int(market_data.iloc[-1]["epoch_signal"])
-
-    if item.last_observed_signal is None or item.last_observed_signal_date is None:
-        if dry_run:
-            print(f"BASELINE {user.email} {ticker}: {signal_label(latest_signal)} on {latest_date}")
-        else:
-            locked_item = (
-                WatchlistItem.query
-                .filter_by(id=item.id)
-                .with_for_update()
-                .first()
-            )
-            if locked_item and locked_item.email_alert_enabled:
-                locked_item.last_observed_signal = latest_signal
-                locked_item.last_observed_signal_date = latest_date
-                db.session.commit()
-        return 0, 0
-
-    new_rows = market_data[market_data.index.date > item.last_observed_signal_date]
-    if new_rows.empty:
-        return 0, 0
-
-    previous_signal = int(item.last_observed_signal)
-    last_observed_date = item.last_observed_signal_date
-    sent_count = 0
-    failure_count = 0
-
-    for date_index, row in new_rows.iterrows():
-        if sent_count >= remaining_limit:
-            break
-
-        signal_date = date_index.date()
-        current_signal = int(row["epoch_signal"])
-        close_price = float(row["Close"])
-
-        if current_signal not in {-1, 0, 1} or not math.isfinite(close_price) or close_price <= 0:
-            print(f"INVALID {ticker} row on {signal_date}", file=sys.stderr)
-            failure_count += 1
-            break
-
-        if current_signal == previous_signal:
-            last_observed_date = signal_date
-            continue
-
-        if dry_run:
-            print(
-                f"SEND {user.email} {ticker} {signal_date}: "
-                f"{signal_label(previous_signal)} -> {signal_label(current_signal)}"
-            )
-            previous_signal = current_signal
-            last_observed_date = signal_date
-            sent_count += 1
-            continue
-
-        # Claim the deterministic transition before contacting SMTP. A second
-        # cron worker will see the unique event and not send it concurrently.
-        locked_item = (
-            WatchlistItem.query
-            .filter_by(id=item.id)
-            .with_for_update()
-            .first()
+    if snapshot["status"] == "waiting":
+        print(
+            f"WAIT {ticker}: source file has not been stable for "
+            f"{stability_minutes} minute(s)."
         )
-        if not locked_item or not locked_item.email_alert_enabled:
-            db.session.rollback()
-            break
+        return 0, 0, 1
 
-        delivery, claim_status = claim_delivery(
-            locked_item,
-            signal_date,
-            previous_signal,
-            current_signal,
+    if snapshot["status"] == "error":
+        print(f"FAILED {ticker}: {snapshot['error']}", file=sys.stderr)
+        return 0, 1, 0
+
+    market_data = snapshot["data"]
+    try:
+        advancement = build_pending_event(item, market_data)
+    except Exception as error:
+        print(f"FAILED {ticker}: {error}", file=sys.stderr)
+        return 0, 1, 0
+
+    original = {
+        "signal": item.last_observed_signal,
+        "date": item.last_observed_signal_date,
+        "fingerprint": item.last_observed_row_fingerprint,
+    }
+    event = advancement["event"]
+
+    if event is None:
+        if dry_run:
+            if advancement["baseline_only"]:
+                print(
+                    f"BASELINE {user.email} {ticker}: "
+                    f"{signal_label(advancement['final_signal'])} "
+                    f"on {advancement['final_date']}"
+                )
+            elif (
+                advancement["final_date"] != original["date"]
+                or advancement["final_fingerprint"] != original["fingerprint"]
+            ):
+                print(
+                    f"ADVANCE {user.email} {ticker}: no signal change; "
+                    f"observed through {advancement['final_date']}"
+                )
+            return 0, 0, 0
+
+        advance_baseline(item.id, advancement, original=original)
+        return 0, 0, 0
+
+    if dry_run:
+        print(
+            f"SEND-{event['event_type'].upper()} {user.email} {ticker}: "
+            f"{event['observation_start_date']}..{event['observation_end_date']} "
+            f"{signal_label(event['initial_signal'])} -> "
+            f"{signal_label(event['final_signal'])}; "
+            f"changes={len(event['transitions'])}"
         )
+        for transition in event["transitions"]:
+            print(f"  {format_transition_line(transition)}")
+        return 1, 0, 0
 
-        if claim_status == "busy":
-            db.session.rollback()
-            break
+    locked_item = (
+        WatchlistItem.query
+        .filter_by(id=item.id)
+        .with_for_update()
+        .first()
+    )
+    if not locked_item or not locked_item.email_alert_enabled:
+        db.session.rollback()
+        return 0, 0, 0
+    if not baseline_matches(locked_item, original):
+        db.session.rollback()
+        return 0, 0, 0
 
-        if claim_status == "already_sent":
-            locked_item = (
-                WatchlistItem.query
-                .filter_by(id=item.id)
-                .with_for_update()
-                .first()
-            )
-            if locked_item:
-                locked_item.last_observed_signal = current_signal
-                locked_item.last_observed_signal_date = signal_date
-                db.session.commit()
-            previous_signal = current_signal
-            last_observed_date = signal_date
-            continue
+    delivery, claim_status = claim_delivery(locked_item, event)
 
-        try:
-            mail.send(build_alert_message(
-                user,
-                ticker,
-                signal_date,
-                previous_signal,
-                current_signal,
-                close_price,
-            ))
-        except Exception as error:
-            db.session.rollback()
-            delivery = (
-                SignalAlertDelivery.query
-                .filter_by(id=delivery.id)
-                .with_for_update()
-                .first()
-            )
-            if delivery:
-                delivery.processing_status = "failed"
-                delivery.error_message = str(error)[:1000]
-                delivery.attempted_at = datetime.utcnow()
-                db.session.commit()
-            print(
-                f"FAILED {user.email} {ticker} {signal_date}: {error}",
-                file=sys.stderr,
-            )
-            failure_count += 1
-            break
+    if claim_status == "busy":
+        db.session.rollback()
+        return 0, 0, 0
 
+    if claim_status == "already_sent":
+        advance_baseline(item.id, advancement, original=original)
+        return 0, 0, 0
+
+    try:
+        mail.send(build_alert_message(user, ticker, event))
+    except Exception as error:
         db.session.rollback()
         delivery = (
             SignalAlertDelivery.query
@@ -288,58 +694,74 @@ def process_item(item_id, dry_run=False, remaining_limit=200):
             .with_for_update()
             .first()
         )
-        locked_item = (
-            WatchlistItem.query
-            .filter_by(id=item.id)
-            .with_for_update()
-            .first()
-        )
-
         if delivery:
-            delivery.processing_status = "sent"
-            delivery.sent_at = datetime.utcnow()
-            delivery.attempted_at = datetime.utcnow()
-            delivery.error_message = None
-
-        if locked_item:
-            locked_item.last_observed_signal = current_signal
-            locked_item.last_observed_signal_date = signal_date
-
-        db.session.commit()
-
-        print(
-            f"SENT {user.email} {ticker} {signal_date}: "
-            f"{signal_label(previous_signal)} -> {signal_label(current_signal)}"
-        )
-        previous_signal = current_signal
-        last_observed_date = signal_date
-        sent_count += 1
-
-    # Advance through no-change rows only after all earlier transitions were
-    # handled. This avoids skipping a failed signal-change email.
-    if not dry_run and failure_count == 0 and last_observed_date:
-        locked_item = (
-            WatchlistItem.query
-            .filter_by(id=item.id)
-            .with_for_update()
-            .first()
-        )
-        if locked_item and locked_item.email_alert_enabled:
-            locked_item.last_observed_signal = previous_signal
-            locked_item.last_observed_signal_date = last_observed_date
+            delivery.processing_status = "failed"
+            delivery.error_message = str(error)[:1000]
+            delivery.attempted_at = utcnow()
             db.session.commit()
+        print(f"FAILED {user.email} {ticker}: {error}", file=sys.stderr)
+        return 0, 1, 0
 
-    return sent_count, failure_count
+    db.session.rollback()
+    delivery = (
+        SignalAlertDelivery.query
+        .filter_by(id=delivery.id)
+        .with_for_update()
+        .first()
+    )
+    locked_item = (
+        WatchlistItem.query
+        .filter_by(id=item.id)
+        .with_for_update()
+        .first()
+    )
+
+    if delivery:
+        delivery.processing_status = "sent"
+        delivery.sent_at = utcnow()
+        delivery.attempted_at = utcnow()
+        delivery.error_message = None
+
+    if (
+        locked_item
+        and locked_item.email_alert_enabled
+        and baseline_matches(locked_item, original)
+    ):
+        locked_item.last_observed_signal = advancement["final_signal"]
+        locked_item.last_observed_signal_date = advancement["final_date"]
+        locked_item.last_observed_row_fingerprint = advancement["final_fingerprint"]
+
+    db.session.commit()
+
+    print(
+        f"SENT-{event['event_type'].upper()} {user.email} {ticker}: "
+        f"through {advancement['final_date']} changes={len(event['transitions'])}"
+    )
+    return 1, 0, 0
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--limit", type=int, default=200)
+    parser.add_argument(
+        "--stability-minutes",
+        type=int,
+        default=None,
+        help=(
+            "Override SIGNAL_ALERT_STABILITY_MINUTES for this run. "
+            "Default: 60. Use 0 only for controlled testing."
+        ),
+    )
     args = parser.parse_args()
 
     if args.limit < 1 or args.limit > 1000:
         parser.error("--limit must be between 1 and 1000")
+
+    try:
+        stability_minutes = parse_stability_minutes(args.stability_minutes)
+    except ValueError as error:
+        parser.error(str(error))
 
     if not args.dry_run and not os.environ.get("EMAIL_USER"):
         print("EMAIL_USER is not configured.", file=sys.stderr)
@@ -347,6 +769,8 @@ def main():
 
     total_sent = 0
     total_failures = 0
+    total_waiting = 0
+    market_cache = {}
 
     with app.app_context():
         item_ids = [
@@ -364,21 +788,24 @@ def main():
                 break
 
             try:
-                sent, failures = process_item(
+                sent, failures, waiting = process_item(
                     item_id,
                     dry_run=args.dry_run,
-                    remaining_limit=args.limit - total_sent,
+                    stability_minutes=stability_minutes,
+                    market_cache=market_cache,
                 )
             except Exception as error:
                 db.session.rollback()
                 print(f"FAILED watchlist_item_id={item_id}: {error}", file=sys.stderr)
-                sent, failures = 0, 1
+                sent, failures, waiting = 0, 1, 0
 
             total_sent += sent
             total_failures += failures
+            total_waiting += waiting
 
     print(
         f"Signal alert run complete: sent={total_sent} failures={total_failures} "
+        f"waiting={total_waiting} stability_minutes={stability_minutes} "
         f"dry_run={args.dry_run}"
     )
     return 1 if total_failures else 0
