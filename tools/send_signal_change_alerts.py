@@ -476,6 +476,7 @@ def build_alert_message(user, ticker, event):
     unsubscribe_url = f"{BASE_URL}/signal-alerts/unsubscribe/{unsubscribe_token}"
     dashboard_url = f"{BASE_URL}/#products"
     methodology_url = f"{BASE_URL}/methodology"
+    performance_url = f"{BASE_URL}/performance?ticker={ticker}"
     final_label = signal_label(event["final_signal"])
 
     if event["event_type"] == "change":
@@ -542,6 +543,9 @@ This alert was released after an administrator approved the currently published 
 
 Open NeuralTrend:
 {dashboard_url}
+
+View the prospective Forward Record:
+{performance_url}
 
 Review methodology and simulation assumptions:
 {methodology_url}
