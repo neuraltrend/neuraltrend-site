@@ -60,6 +60,20 @@
         }
     }
 
+    function syncSignalBoardStars() {
+        document.querySelectorAll("[data-watchlist-row-toggle]").forEach(button => {
+            const ticker = normalizeTicker(button.dataset.ticker);
+            const watching = state.items.has(ticker);
+            const action = watching ? "Remove from watchlist" : "Add to watchlist";
+            button.classList.toggle("is-watching", watching);
+            button.classList.toggle("is-loading", state.loading);
+            button.disabled = state.loading;
+            button.setAttribute("aria-pressed", watching ? "true" : "false");
+            button.setAttribute("aria-label", `${action} ${ticker}`);
+            button.title = action;
+        });
+    }
+
     function updateSelectedControls() {
         const button = document.getElementById("selected-watchlist-toggle");
         const star = document.getElementById("selected-watchlist-star");
@@ -126,6 +140,9 @@
         } else if (typeof applyAllFilters === "function") {
             applyAllFilters();
         }
+
+        // Filters can re-render the board, so synchronize stars afterward.
+        syncSignalBoardStars();
     }
 
     function resetWatchlistState() {
@@ -178,7 +195,7 @@
         }
     }
 
-    async function toggleSelectedWatchlist() {
+    async function toggleWatchlistTicker(tickerValue) {
         if (!isLoggedIn()) {
             if (typeof openNeuralTrendLoginModal === "function") {
                 openNeuralTrendLoginModal("Log in to save assets to your watchlist.");
@@ -186,12 +203,12 @@
             return;
         }
 
-        const ticker = normalizeTicker(state.selectedTicker);
+        const ticker = normalizeTicker(tickerValue);
         if (!ticker || state.loading) return;
 
         const existing = state.items.get(ticker);
         state.loading = true;
-        updateSelectedControls();
+        refreshDependentUI();
         setMessage(existing ? `Removing ${ticker}…` : `Adding ${ticker}…`);
 
         try {
@@ -217,6 +234,10 @@
             state.loading = false;
             refreshDependentUI();
         }
+    }
+
+    async function toggleSelectedWatchlist() {
+        return toggleWatchlistTicker(state.selectedTicker);
     }
 
     async function updateSelectedAlert(enabled) {
@@ -255,6 +276,17 @@
         state.items.has(normalizeTicker(ticker))
     );
     window.neuralTrendRefreshWatchlist = loadWatchlist;
+    window.neuralTrendSyncWatchlistStars = syncSignalBoardStars;
+    window.neuralTrendToggleWatchlistTicker = toggleWatchlistTicker;
+
+    document.addEventListener("click", event => {
+        const button = event.target.closest("[data-watchlist-row-toggle]");
+        if (!button) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        toggleWatchlistTicker(button.dataset.ticker);
+    });
 
     document.getElementById("selected-watchlist-toggle")?.addEventListener(
         "click",

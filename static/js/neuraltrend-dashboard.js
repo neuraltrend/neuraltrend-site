@@ -890,6 +890,10 @@
     function renderBoard(data) {
         board.innerHTML = data.map(item => {
             const safeTicker = escapeHTML(item.ticker || "");
+            const isWatched = typeof window.neuralTrendWatchlistHasTicker === "function"
+                ? window.neuralTrendWatchlistHasTicker(item.ticker)
+                : false;
+            const watchlistAction = isWatched ? "Remove from watchlist" : "Add to watchlist";
 
             return `
                 <div
@@ -908,14 +912,35 @@
                         width: 100%;
                     "
                 >
-                    <div class="signal-ticker-stack">
-                        <div class="signal-ticker">${safeTicker}</div>
-                        <div
-                            class="signal-freshness-meta nt-freshness-${ntSafeFreshnessStatus(item.freshness_status)}"
-                            title="${escapeHTML(item.freshness_message || "Freshness unavailable.")}"
+                    <div class="signal-ticker-cell">
+                        <button
+                            type="button"
+                            class="nt-row-watchlist-star${isWatched ? " is-watching" : ""}"
+                            data-watchlist-row-toggle
+                            data-ticker="${safeTicker}"
+                            aria-pressed="${isWatched ? "true" : "false"}"
+                            aria-label="${watchlistAction} ${safeTicker}"
+                            title="${watchlistAction}"
                         >
-                            <span class="signal-freshness-dot" aria-hidden="true"></span>
-                            <span>${escapeHTML(ntFreshnessCompactText(item))}</span>
+                            <svg
+                                class="nt-row-watchlist-star-icon"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                                focusable="false"
+                            >
+                                <path d="M12 2.75l2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L12 17.32l-5.7 2.99 1.09-6.35-4.62-4.5 6.38-.93L12 2.75z"></path>
+                            </svg>
+                        </button>
+
+                        <div class="signal-ticker-stack">
+                            <div class="signal-ticker">${safeTicker}</div>
+                            <div
+                                class="signal-freshness-meta nt-freshness-${ntSafeFreshnessStatus(item.freshness_status)}"
+                                title="${escapeHTML(item.freshness_message || "Freshness unavailable.")}"
+                            >
+                                <span class="signal-freshness-dot" aria-hidden="true"></span>
+                                <span>${escapeHTML(ntFreshnessCompactText(item))}</span>
+                            </div>
                         </div>
                     </div>
         
