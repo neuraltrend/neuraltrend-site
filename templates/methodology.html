@@ -85,10 +85,12 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
         <div>
             <h2 id="important-context-title">Historical simulations are not a live brokerage record</h2>
             <p>
-                Results shown on NeuralTrend are historical model simulations. They are not
-                brokerage statements, real-money results, or guarantees of future performance.
-                A separately labeled live-since-launch record will be introduced as sufficient
-                forward results accumulate.
+                Historical simulations are not brokerage statements, real-money results, or
+                guarantees of future performance. {% if forward_record.started %}NeuralTrend also
+                maintains a separately labeled <a href="{{ url_for('performance') }}">Forward Record</a>
+                containing only signals prospectively approved after its public start date.{% else %}
+                A separately labeled Forward Record will begin from a clearly stated date when
+                NeuralTrend is released publicly; pre-launch testing will not be imported.{% endif %}
             </p>
         </div>
     </section>
@@ -307,7 +309,7 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
     <section class="nt-methodology-shell nt-methodology-section nt-methodology-section-alt" id="result-types">
         <div class="nt-methodology-section-heading">
             <div class="nt-methodology-kicker">Evidence labels</div>
-            <h2>Historical results and future live records serve different purposes</h2>
+            <h2>Historical simulations and the Forward Record serve different purposes</h2>
         </div>
 
         <div class="nt-methodology-result-grid">
@@ -321,13 +323,14 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                 </p>
             </article>
             <article class="nt-methodology-result-card nt-methodology-result-card-future">
-                <span class="nt-methodology-result-badge">Planned</span>
-                <h3>Live-since-launch performance</h3>
+                <span class="nt-methodology-result-badge">{% if forward_record.started %}Available now{% else %}Starts at public launch{% endif %}</span>
+                <h3>Forward Record</h3>
                 <p>
-                    Will track signals and model versions forward from a defined publication date
-                    without later rewriting the record. It will be displayed separately once enough
-                    observations have accumulated to be meaningful.
+                    Tracks administrator-approved signals prospectively from a defined public
+                    start date. Earlier history is not backfilled, and later revisions are appended
+                    rather than silently replacing the original publication.
                 </p>
+                {% if forward_record.started %}<a href="{{ url_for('performance') }}">View the Forward Record →</a>{% endif %}
             </article>
         </div>
     </section>
@@ -452,7 +455,7 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
             <ul>
                 <li>Historical performance does not guarantee future performance.</li>
                 <li>A fixed historical split is not the same as continuous walk-forward validation.</li>
-                <li>The website does not yet provide real-time execution or an immutable live record.</li>
+                <li>The Forward Record is hypothetical and does not represent real-time brokerage execution.</li>
                 <li>Upstream data providers may revise source data or discontinue assets.</li>
                 <li>NeuralTrend does not remove assets solely because their model performed poorly.</li>
             </ul>

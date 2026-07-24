@@ -9,6 +9,7 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
 {% block page_styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-watchlist.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -402,17 +403,17 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                 <div class="nt-section-eyebrow">Transparent by design</div>
                 <h2 id="nt-trust-methodology-title">See how NeuralTrend results are produced</h2>
                 <p>
-                    Review the data inputs, chronological 60/20/20 evaluation split,
-                    signal timing, transaction-cost assumptions, retraining policy,
-                    limitations, and public model-history change log.
+                    Review how signals are timed, how simulations are measured,
+                    which costs and limitations apply, and how material revisions
+                    are disclosed.
                 </p>
             </div>
 
             <div class="nt-trust-methodology-facts" aria-label="Methodology highlights">
-                <span>Daily OHLCV</span>
-                <span>Separate model per asset</span>
+                <span>Completed daily data</span>
+                <span>Chronological evaluation</span>
                 <span>Costs disclosed</span>
-                <span>History revisions logged</span>
+                <span>Revisions logged</span>
             </div>
 
             <a href="{{ url_for('methodology') }}" class="nt-trust-methodology-link">
@@ -420,6 +421,29 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
                 <span aria-hidden="true">→</span>
             </a>
         </section>
+
+        {% if forward_record.started %}
+        <section class="nt-forward-home-card" aria-labelledby="nt-forward-home-title">
+            <div class="nt-forward-home-icon" aria-hidden="true">✓</div>
+            <div class="nt-forward-home-copy">
+                <div class="nt-section-eyebrow">Forward Record</div>
+                <h2 id="nt-forward-home-title">Signals preserved from the moment they are published</h2>
+                <p>
+                    Prospectively recorded since {{ forward_record.record_started_date }}
+                    across {{ forward_record.asset_count }} asset{% if forward_record.asset_count != 1 %}s{% endif %}.
+                    Historical backtests remain separate.
+                </p>
+            </div>
+            <div class="nt-forward-home-badges" aria-label="Forward Record characteristics">
+                <span>Prospective</span>
+                <span>Hypothetical</span>
+                <span>No retroactive signals</span>
+            </div>
+            <a href="{{ url_for('performance') }}" class="nt-forward-home-link">
+                View Forward Record <span aria-hidden="true">→</span>
+            </a>
+        </section>
+        {% endif %}
 
         <!-- Models Section --> 
         <section id="products" class="nt-models-section">

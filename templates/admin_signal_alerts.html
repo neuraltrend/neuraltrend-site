@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Signal Alert Dispatch | NeuralTrend Admin{% endblock %}
+{% block title %}Alerts & Forward Record | NeuralTrend Admin{% endblock %}
 
 {% block meta_description %}
-Admin-only manual review and dispatch of NeuralTrend signal-change alerts.
+Admin-only manual controls for NeuralTrend signal alerts, private Forward Record testing, and public launch.
 {% endblock %}
 
 {% block page_styles %}
@@ -16,135 +16,200 @@ Admin-only manual review and dispatch of NeuralTrend signal-change alerts.
         <div class="nt-alert-admin-shell nt-alert-admin-hero-grid">
             <div>
                 <div class="nt-alert-admin-kicker">Admin only</div>
-                <h1>Manual signal-alert dispatch</h1>
+                <h1>Alerts and Forward Record controls</h1>
                 <p>
-                    Review the current published CSV snapshots, then release eligible
-                    signal-change emails only after you are satisfied that the data are clean.
-                    Nothing on this page runs automatically.
+                    Email alerts, private performance testing, and the customer-facing Forward
+                    Record are separate manual actions. Nothing runs automatically.
                 </p>
             </div>
             <aside class="nt-alert-admin-safety-card">
-                <strong>Dispatch safeguards</strong>
+                <strong>Pre-launch protection</strong>
                 <ul>
-                    <li>Only opted-in, eligible users are considered.</li>
-                    <li>Repeated BUY, HOLD, or SELL states do not email.</li>
-                    <li>Delayed rows become one catch-up email.</li>
-                    <li>Same-date signal changes are labeled revisions.</li>
-                    <li>Previously sent events remain deduplicated.</li>
-                    <li>The web button sends at most 25 emails per batch.</li>
+                    <li>Sending alerts never publishes performance.</li>
+                    <li>Sandbox publications are private and resettable.</li>
+                    <li>Sandbox data never enters the public record.</li>
+                    <li>Public publication stays locked until explicitly enabled.</li>
+                    <li>Repeated signals do not generate repeated emails.</li>
+                    <li>Prior public publications are never silently replaced.</li>
                 </ul>
             </aside>
         </div>
     </section>
 
-    <section class="nt-alert-admin-shell nt-alert-admin-stats" aria-label="Alert coverage">
+    <section class="nt-alert-admin-shell nt-alert-admin-stats" aria-label="Admin status">
         <article>
             <strong>{{ enabled_alert_count }}</strong>
             <span>enabled user-asset alerts</span>
         </article>
         <article>
-            <strong>{{ enabled_asset_count }}</strong>
-            <span>distinct watched assets</span>
+            <strong>{{ sandbox_summary.asset_count }}</strong>
+            <span>assets in private sandbox</span>
         </article>
         <article>
-            <strong>Manual</strong>
-            <span>dispatch mode</span>
+            <strong>{{ public_record_summary.asset_count }}</strong>
+            <span>assets in public record</span>
         </article>
         <article>
-            <strong>0 min</strong>
-            <span>forced waiting period</span>
+            <strong>{% if public_record_enabled %}Enabled{% else %}Locked{% endif %}</strong>
+            <span>public publication</span>
         </article>
     </section>
+
+    {% if page_error %}
+    <div class="nt-alert-admin-shell nt-alert-admin-message is-error" role="alert">{{ page_error }}</div>
+    {% endif %}
+
+    {% if publication_summary or dispatch_summary or reset_summary %}
+    <div class="nt-alert-admin-shell nt-alert-admin-message {% if page_error %}is-error{% else %}is-success{% endif %}" aria-live="polite">
+        {% if dispatch_summary %}
+            {% if dispatch_summary.mode == "preview" %}
+                Alert preview: {{ dispatch_summary.pending_or_sent }} pending email{% if dispatch_summary.pending_or_sent != 1 %}s{% endif %}.
+            {% else %}
+                Alert result: {{ dispatch_summary.pending_or_sent }} sent, {{ dispatch_summary.failures }} failed.
+                {% if dispatch_summary.limit_reached %}The 25-email web limit was reached; preview again for the remainder.{% endif %}
+            {% endif %}
+        {% endif %}
+        {% if publication_summary %}
+            {% set mode_name = 'Private sandbox' if publication_summary.record_mode == 'sandbox' else 'Public record' %}
+            {% if selected_action.endswith('preview') %}
+                {{ mode_name }} preview: {{ publication_summary.candidate_count }} pending publication{% if publication_summary.candidate_count != 1 %}s{% endif %},
+                {{ publication_summary.unchanged_count }} unchanged asset{% if publication_summary.unchanged_count != 1 %}s{% endif %},
+                {{ publication_summary.market_row_count }} new market row{% if publication_summary.market_row_count != 1 %}s{% endif %}.
+            {% else %}
+                {{ mode_name }}: {{ publication_summary.published or 0 }} publication{% if (publication_summary.published or 0) != 1 %}s{% endif %} appended.
+            {% endif %}
+        {% endif %}
+        {% if reset_summary %}
+            Private sandbox reset: {{ reset_summary.publications }} publications and {{ reset_summary.observations }} market observations removed.
+        {% endif %}
+    </div>
+    {% endif %}
 
     <section class="nt-alert-admin-shell nt-alert-admin-panel">
         <div class="nt-alert-admin-panel-heading">
             <div>
-                <div class="nt-alert-admin-kicker">Review and release</div>
-                <h2>Prepare the next alert batch</h2>
+                <div class="nt-alert-admin-kicker">Independent action 1</div>
+                <h2>Send signal-change emails</h2>
             </div>
-            <span class="nt-alert-admin-manual-badge">No Cron required</span>
+            <span class="nt-alert-admin-manual-badge">Does not publish performance</span>
         </div>
-
-        <div class="nt-alert-admin-notice">
-            <strong>Recommended workflow:</strong>
-            upload and verify all intended CSV updates, preview the batch, inspect every
-            pending line, then type the confirmation phrase and send within 15 minutes.
-            Any relevant file, recipient, preference, or checkpoint change invalidates the
-            approval, and the Send action stops before releasing email.
-        </div>
-
-        {% if page_error %}
-        <div class="nt-alert-admin-message is-error" role="alert">{{ page_error }}</div>
-        {% endif %}
-
-        {% if dispatch_summary %}
-        <div class="nt-alert-admin-message {% if dispatch_summary.failures %}is-error{% else %}is-success{% endif %}" aria-live="polite">
-            {% if dispatch_summary.mode == "preview" %}
-                Preview completed: {{ dispatch_summary.pending_or_sent }} pending email{% if dispatch_summary.pending_or_sent != 1 %}s{% endif %},
-                {{ dispatch_summary.failures }} failure{% if dispatch_summary.failures != 1 %}s{% endif %}.
-            {% else %}
-                Dispatch completed: {{ dispatch_summary.pending_or_sent }} email{% if dispatch_summary.pending_or_sent != 1 %}s{% endif %} sent,
-                {{ dispatch_summary.failures }} failure{% if dispatch_summary.failures != 1 %}s{% endif %}.
-            {% endif %}
-            Processed {{ dispatch_summary.processed_items }} of {{ dispatch_summary.available_items }} enabled watchlist item{% if dispatch_summary.available_items != 1 %}s{% endif %}.
-            {% if dispatch_summary.limit_reached %}
-                The web batch limit was reached; preview again and send the remaining eligible alerts in another batch.
-            {% endif %}
-        </div>
-        {% endif %}
-
+        <p class="nt-alert-admin-section-copy">
+            Review eligible recipients and signal changes, then send only after the CSV files
+            have been verified. Existing catch-up, revision, opt-in, and deduplication rules remain active.
+        </p>
         <form method="post" action="{{ url_for('admin_signal_alerts') }}" class="nt-alert-admin-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
             <div class="nt-alert-admin-field-grid">
                 <label>
                     <span>Optional asset filter</span>
-                    <input
-                        type="text"
-                        name="ticker"
-                        value="{{ selected_ticker }}"
-                        placeholder="All assets, or BTC-USD"
-                        maxlength="30"
-                        autocomplete="off"
-                    >
-                    <small>Leave blank to review every enabled watched asset.</small>
+                    <input type="text" name="ticker" value="{{ selected_ticker if selected_action and selected_action.startswith('alert_') else '' }}" placeholder="All assets, or BTC-USD" maxlength="30" autocomplete="off">
+                    <small>Leave blank to review every eligible watched asset.</small>
                 </label>
-
                 <label>
                     <span>Send confirmation</span>
-                    <input
-                        type="text"
-                        name="confirmation"
-                        placeholder='Type "SEND ALERTS" to send'
-                        maxlength="20"
-                        autocomplete="off"
-                    >
-                    <small>Preview this exact filter first. Approval remains valid for 15 minutes.</small>
+                    <input type="text" name="confirmation" placeholder='Type "SEND ALERTS"' maxlength="30" autocomplete="off">
+                    <small>Preview the same filter first; approval lasts 15 minutes.</small>
                 </label>
             </div>
-
             <div class="nt-alert-admin-actions">
-                <button type="submit" name="action" value="preview" class="nt-alert-admin-secondary">
-                    Preview Pending Alerts
-                </button>
-                <button type="submit" name="action" value="send" class="nt-alert-admin-primary">
-                    Send Approved Alerts
-                </button>
+                <button type="submit" name="action" value="alert_preview" class="nt-alert-admin-secondary">Preview Alerts</button>
+                <button type="submit" name="action" value="alert_send" class="nt-alert-admin-primary">Send Alerts</button>
             </div>
         </form>
+    </section>
+
+    <section class="nt-alert-admin-shell nt-alert-admin-panel is-sandbox-panel">
+        <div class="nt-alert-admin-panel-heading">
+            <div>
+                <div class="nt-alert-admin-kicker">Independent action 2</div>
+                <h2>Private Forward Record sandbox</h2>
+            </div>
+            <a href="{{ url_for('admin_forward_record') }}" class="nt-alert-admin-inline-link">View private sandbox →</a>
+        </div>
+        <div class="nt-alert-admin-notice">
+            Use this during model updates and pre-launch testing. It is admin-only, can be reset,
+            and will never be copied into the customer-facing record.
+        </div>
+        <form method="post" action="{{ url_for('admin_signal_alerts') }}" class="nt-alert-admin-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="nt-alert-admin-field-grid">
+                <label>
+                    <span>Optional asset filter</span>
+                    <input type="text" name="ticker" value="{{ selected_ticker if selected_action and selected_action.startswith('sandbox_') else '' }}" placeholder="All assets, or BTC-USD" maxlength="30" autocomplete="off">
+                    <small>Leave blank to test all ready public assets.</small>
+                </label>
+                <label>
+                    <span>Sandbox confirmation</span>
+                    <input type="text" name="confirmation" placeholder='"PUBLISH SANDBOX" or "RESET SANDBOX"' maxlength="30" autocomplete="off">
+                    <small>Reset removes only private test data.</small>
+                </label>
+            </div>
+            <div class="nt-alert-admin-actions is-three-actions">
+                <button type="submit" name="action" value="sandbox_preview" class="nt-alert-admin-secondary">Preview Sandbox</button>
+                <button type="submit" name="action" value="sandbox_publish" class="nt-alert-admin-primary">Publish to Sandbox</button>
+                <button type="submit" name="action" value="sandbox_reset" class="nt-alert-admin-danger">Reset Sandbox</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="nt-alert-admin-shell nt-alert-admin-panel{% if not public_record_enabled %} is-locked-panel{% endif %}">
+        <div class="nt-alert-admin-panel-heading">
+            <div>
+                <div class="nt-alert-admin-kicker">Independent action 3</div>
+                <h2>Customer-facing Forward Record</h2>
+            </div>
+            {% if public_record_enabled %}
+            <a href="{{ url_for('performance') }}" target="_blank" rel="noopener noreferrer" class="nt-alert-admin-inline-link">Open public record →</a>
+            {% else %}
+            <span class="nt-alert-admin-locked-badge">Pre-launch locked</span>
+            {% endif %}
+        </div>
+        {% if public_record_enabled %}
+        <div class="nt-alert-admin-notice is-public-notice">
+            The first approved public batch establishes the customer-facing start date. Sandbox
+            history and older CSV rows are not imported.
+        </div>
+        <form method="post" action="{{ url_for('admin_signal_alerts') }}" class="nt-alert-admin-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="nt-alert-admin-field-grid">
+                <label>
+                    <span>Optional asset filter</span>
+                    <input type="text" name="ticker" value="{{ selected_ticker if selected_action and selected_action.startswith('public_') else '' }}" placeholder="All assets, or BTC-USD" maxlength="30" autocomplete="off">
+                    <small>Leave blank for the complete public batch.</small>
+                </label>
+                <label>
+                    <span>Public confirmation</span>
+                    <input type="text" name="confirmation" placeholder='Type "{{ public_confirmation_phrase }}"' maxlength="30" autocomplete="off">
+                    <small>{% if not public_record_summary.started %}This starts the official public record.{% else %}Preview the same filter first; approval lasts 15 minutes.{% endif %}</small>
+                </label>
+            </div>
+            <div class="nt-alert-admin-actions">
+                <button type="submit" name="action" value="public_preview" class="nt-alert-admin-secondary">Preview Public Batch</button>
+                <button type="submit" name="action" value="public_publish" class="nt-alert-admin-primary">{% if not public_record_summary.started %}Start Public Record{% else %}Publish Public Batch{% endif %}</button>
+            </div>
+        </form>
+        {% else %}
+        <div class="nt-alert-admin-locked-copy">
+            <p>
+                Public performance is hidden and cannot be published. Continue using the private
+                sandbox. At launch, set <code>FORWARD_RECORD_PUBLIC_ENABLED=true</code>, redeploy,
+                preview the first public batch, and type <strong>START PUBLIC RECORD</strong>.
+            </p>
+        </div>
+        {% endif %}
     </section>
 
     {% if dispatch_output %}
     <section class="nt-alert-admin-shell nt-alert-admin-panel">
         <div class="nt-alert-admin-panel-heading">
             <div>
-                <div class="nt-alert-admin-kicker">Dispatch output</div>
-                <h2>{% if selected_action == "preview" %}Pending actions{% else %}Send results{% endif %}</h2>
+                <div class="nt-alert-admin-kicker">Operation output</div>
+                <h2>Review results</h2>
             </div>
         </div>
-        <div class="nt-alert-admin-console" role="log" aria-label="Signal alert dispatch output">
+        <div class="nt-alert-admin-console" role="log" aria-label="Admin operation output">
             {% for line in dispatch_output %}
-            <div class="{% if line.startswith('FAILED') %}is-error{% elif line.startswith('SEND-') or line.startswith('SENT-') %}is-action{% elif line.startswith('ADVANCE') or line.startswith('BASELINE') %}is-muted{% endif %}">{{ line }}</div>
+            <div class="{% if line.startswith('FAILED') or line.startswith('ABORT') %}is-error{% elif 'PUBLISH-' in line or 'PUBLISHED-' in line or line.startswith('SEND-') or line.startswith('SENT-') %}is-action{% elif line.startswith('ADVANCE') or line.startswith('BASELINE') %}is-muted{% endif %}">{{ line }}</div>
             {% endfor %}
         </div>
     </section>
@@ -153,25 +218,44 @@ Admin-only manual review and dispatch of NeuralTrend signal-change alerts.
     <section class="nt-alert-admin-shell nt-alert-admin-panel">
         <div class="nt-alert-admin-panel-heading">
             <div>
+                <div class="nt-alert-admin-kicker">Record ledger</div>
+                <h2>Recent publication batches</h2>
+            </div>
+        </div>
+        {% if recent_publication_batches %}
+        <div class="nt-alert-admin-table-wrap">
+            <table class="nt-alert-admin-table">
+                <thead><tr><th>Mode</th><th>Published</th><th>Assets</th><th>Delayed</th><th>Revisions</th><th>Batch</th></tr></thead>
+                <tbody>
+                    {% for batch in recent_publication_batches %}
+                    <tr>
+                        <td><span class="nt-alert-admin-mode is-{{ batch.record_mode }}">{{ batch.record_mode|title }}</span></td>
+                        <td>{{ batch.published_at.strftime('%Y-%m-%d %H:%M UTC') }}</td>
+                        <td>{{ batch.publication_count }}</td>
+                        <td>{{ batch.delayed_count }}</td>
+                        <td>{{ batch.revision_count }}</td>
+                        <td>#{{ batch.id }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="nt-alert-admin-empty">No Forward Record batch has been published yet.</p>
+        {% endif %}
+    </section>
+
+    <section class="nt-alert-admin-shell nt-alert-admin-panel">
+        <div class="nt-alert-admin-panel-heading">
+            <div>
                 <div class="nt-alert-admin-kicker">Delivery ledger</div>
                 <h2>Recent alert attempts</h2>
             </div>
         </div>
-
         {% if recent_deliveries %}
         <div class="nt-alert-admin-table-wrap">
             <table class="nt-alert-admin-table">
-                <thead>
-                    <tr>
-                        <th>Recipient</th>
-                        <th>Asset</th>
-                        <th>Type</th>
-                        <th>Range</th>
-                        <th>Changes</th>
-                        <th>Status</th>
-                        <th>Sent</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Recipient</th><th>Asset</th><th>Type</th><th>Range</th><th>Changes</th><th>Status</th><th>Sent</th></tr></thead>
                 <tbody>
                     {% for delivery, email in recent_deliveries %}
                     <tr>
@@ -190,16 +274,6 @@ Admin-only manual review and dispatch of NeuralTrend signal-change alerts.
         {% else %}
         <p class="nt-alert-admin-empty">No alert deliveries have been recorded yet.</p>
         {% endif %}
-    </section>
-
-    <section class="nt-alert-admin-shell nt-alert-admin-cli">
-        <div>
-            <div class="nt-alert-admin-kicker">Shell alternative</div>
-            <h2>Manual commands</h2>
-            <p>The admin page and command line use the same detection and deduplication logic.</p>
-        </div>
-        <pre><code>python tools/send_signal_change_alerts.py --preview
-python tools/send_signal_change_alerts.py --send</code></pre>
     </section>
 </main>
 {% endblock %}

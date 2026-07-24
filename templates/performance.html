@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_admin_preview %}Private Forward Sandbox{% else %}Forward Record{% endif %} | NeuralTrend{% endblock %}
+
+{% block meta_description %}
+{% if is_admin_preview %}Admin-only pre-launch Forward Record sandbox.{% else %}Review NeuralTrend signals recorded prospectively after public launch, separately from historical backtests.{% endif %}
+{% endblock %}
+
+{% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
+{% endblock %}
+
+{% block content %}
+<main class="nt-forward-page{% if is_admin_preview %} is-sandbox{% endif %}">
+    <section class="nt-forward-hero">
+        <div class="nt-forward-shell nt-forward-hero-grid">
+            <div>
+                <div class="nt-forward-kicker">
+                    {% if is_admin_preview %}Private admin sandbox{% else %}Forward Record{% endif %}
+                </div>
+                <h1>
+                    {% if is_admin_preview %}
+                    Test the forward-performance workflow before launch
+                    {% else %}
+                    Performance after public signal publication
+                    {% endif %}
+                </h1>
+                <p>
+                    {% if is_admin_preview %}
+                    This record is private, resettable, and excluded from all customer-facing
+                    performance. It lets you verify publication and calculation behavior while
+                    models are still being updated.
+                    {% else %}
+                    This record begins only when NeuralTrend publicly publishes a signal. It is
+                    separate from historical simulations and is not a brokerage statement.
+                    {% endif %}
+                </p>
+                <div class="nt-forward-badge-row" aria-label="Record labels">
+                    {% if is_admin_preview %}
+                    <span>Private</span>
+                    <span>Resettable</span>
+                    <span>Not customer-facing</span>
+                    {% else %}
+                    <span>Prospective</span>
+                    <span>Hypothetical</span>
+                    <span>No retroactive signals</span>
+                    {% endif %}
+                </div>
+            </div>
+            <aside class="nt-forward-hero-note">
+                <strong>{% if is_admin_preview %}Sandbox boundary{% else %}Execution convention{% endif %}</strong>
+                <p>
+                    {% if is_admin_preview %}
+                    Sandbox publications never become part of the public record. Public performance
+                    will start fresh from its own launch date.
+                    {% else %}
+                    A published signal can affect the hypothetical strategy at the first preserved
+                    completed daily close dated after publication. Transaction costs are included;
+                    slippage is not.
+                    {% endif %}
+                </p>
+            </aside>
+        </div>
+    </section>
+
+    {% if is_admin_preview %}
+    <div class="nt-forward-shell nt-forward-admin-bar">
+        <a href="{{ url_for('admin_signal_alerts') }}">← Return to publication controls</a>
+        <span>Sandbox data is visible only to admins.</span>
+    </div>
+    {% endif %}
+
+    {% if not record_enabled %}
+    <section class="nt-forward-shell nt-forward-empty">
+        <div class="nt-forward-empty-icon" aria-hidden="true">◎</div>
+        <h2>The public Forward Record has not launched</h2>
+        <p>
+            It will begin from a clearly stated start date when NeuralTrend is released to
+            customers. Pre-launch sandbox results are not shown here and will not be imported.
+        </p>
+        <a href="{{ url_for('methodology') }}">Review methodology and assumptions →</a>
+    </section>
+    {% elif not record %}
+    <section class="nt-forward-shell nt-forward-empty">
+        <div class="nt-forward-empty-icon" aria-hidden="true">◎</div>
+        <h2>{% if is_admin_preview %}The private sandbox has not started{% else %}The Forward Record has not started yet{% endif %}</h2>
+        <p>
+            {% if is_admin_preview %}
+            Publish the first sandbox batch from the admin controls. Earlier CSV history will not
+            be imported, and the sandbox can be reset before public launch.
+            {% else %}
+            It will begin with the first administrator-approved public publication. Earlier CSV
+            history will not be imported or backdated.
+            {% endif %}
+        </p>
+        {% if is_admin_preview %}
+        <a href="{{ url_for('admin_signal_alerts') }}">Open publication controls →</a>
+        {% else %}
+        <a href="{{ url_for('methodology') }}">Review methodology and assumptions →</a>
+        {% endif %}
+    </section>
+    {% else %}
+    <section class="nt-forward-shell nt-forward-toolbar" aria-label="Forward Record asset selection">
+        <div>
+            <span class="nt-forward-toolbar-label">Asset</span>
+            <strong>{{ record.ticker }}</strong>
+        </div>
+        <label>
+            <span class="sr-only">Choose an asset</span>
+            <select id="forward-record-ticker">
+                {% for ticker in record_tickers %}
+                <option value="{{ ticker }}" {% if ticker == selected_ticker %}selected{% endif %}>{{ ticker }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <div class="nt-forward-latest-signal">
+            <span>Latest published signal</span>
+            <strong class="is-{{ record.latest_signal_class }}">{{ record.latest_signal }}</strong>
+            {% if record.pending_execution %}
+            <small>Pending next completed daily close</small>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="nt-forward-shell nt-forward-metrics" aria-label="Forward performance summary">
+        <article>
+            <span>Strategy return</span>
+            <strong>{{ record.strategy_return_display }}</strong>
+            <small>Spread {{ record.return_spread_display }}</small>
+        </article>
+        <article>
+            <span>Buy &amp; Hold</span>
+            <strong>{{ record.benchmark_return_display }}</strong>
+            <small>Same forward window</small>
+        </article>
+        <article>
+            <span>Maximum drawdown</span>
+            <strong>{{ record.strategy_max_drawdown_display }}</strong>
+            <small>B&amp;H {{ record.benchmark_max_drawdown_display }}</small>
+        </article>
+        <article>
+            <span>Executed trades</span>
+            <strong>{{ record.trade_count }}</strong>
+            <small>BUY and SELL actions</small>
+        </article>
+        <article>
+            <span>Market exposure</span>
+            <strong>{{ record.market_exposure_display }}</strong>
+            <small>Time holding the asset</small>
+        </article>
+        <article>
+            <span>Record age</span>
+            <strong>{{ record.record_age_days }} days</strong>
+            <small>Started {{ record.record_started_date }}</small>
+        </article>
+    </section>
+
+    <section class="nt-forward-shell nt-forward-chart-card">
+        <div class="nt-forward-section-heading">
+            <div>
+                <div class="nt-forward-kicker">Hypothetical portfolio</div>
+                <h2>{% if is_admin_preview %}Sandbox strategy{% else %}Forward strategy{% endif %} vs Buy &amp; Hold</h2>
+            </div>
+            <div class="nt-forward-risk-context">
+                <span>Sharpe <strong>{{ record.sharpe_ratio_display }}</strong></span>
+                <span>Volatility <strong>{{ record.strategy_volatility_display }}</strong></span>
+                <span>Observations <strong>{{ record.observation_count }}</strong></span>
+            </div>
+        </div>
+
+        {% if record.observation_count %}
+        <div class="nt-forward-chart-wrap">
+            <canvas id="forward-record-chart" aria-label="Forward portfolio comparison chart"></canvas>
+        </div>
+        <script id="forward-record-chart-data" type="application/json">{{ record.chart|tojson }}</script>
+        {% else %}
+        <div class="nt-forward-chart-empty">
+            Performance begins after the first completed daily close dated after publication.
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="nt-forward-shell nt-forward-publications-card">
+        <div class="nt-forward-section-heading">
+            <div>
+                <div class="nt-forward-kicker">Publication history</div>
+                <h2>Recent approved signals</h2>
+            </div>
+            <span class="nt-forward-publication-count">{{ record.publication_count }} total</span>
+        </div>
+
+        <div class="nt-forward-table-wrap">
+            <table class="nt-forward-table">
+                <thead>
+                    <tr>
+                        <th>Published</th>
+                        <th>Data through</th>
+                        <th>Signal</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for publication in record.recent_publications %}
+                    <tr>
+                        <td>{{ publication.published_at.strftime('%Y-%m-%d %H:%M UTC') }}</td>
+                        <td>{{ publication.source_data_date }}</td>
+                        <td><span class="nt-forward-signal is-{{ publication.signal_class }}">{{ publication.signal }}</span></td>
+                        <td><span class="nt-forward-status is-{{ publication.status_class }}">{{ publication.status }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="nt-forward-shell nt-forward-disclosure">
+        <details>
+            <summary>How to read this record</summary>
+            <div>
+                <p>
+                    Publications are appended after administrator approval and are not silently
+                    rewritten. A same-date signal change is added as a revision.
+                </p>
+                <p>
+                    Results use a standardized hypothetical $10,000 portfolio, the disclosed
+                    transaction-cost assumptions, and preserved daily market prices captured after
+                    the record began. Taxes, slippage, liquidity, and market impact are not modeled.
+                </p>
+            </div>
+        </details>
+        {% if is_admin_preview %}
+        <a href="{{ url_for('admin_signal_alerts') }}">Manage private sandbox →</a>
+        {% else %}
+        <a href="{{ url_for('methodology') }}">Full methodology and limitations →</a>
+        {% endif %}
+    </section>
+    {% endif %}
+</main>
+{% endblock %}
+
+{% block page_scripts %}
+<script src="{{ url_for('static', filename='js/neuraltrend-forward-record.js') }}"></script>
+{% endblock %}
