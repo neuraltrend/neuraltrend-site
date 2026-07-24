@@ -91,6 +91,82 @@
     gap: 6px;
 }
 
+/* CoinMarketCap-style watchlist stars inside the signal board. */
+.signal-ticker-cell {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nt-row-watchlist-star {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #94a3b8;
+    font: inherit;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        color 0.15s ease,
+        background-color 0.15s ease,
+        transform 0.15s ease,
+        opacity 0.15s ease;
+}
+
+.nt-row-watchlist-star-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+    fill: transparent;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linejoin: round;
+    transition: fill 0.15s ease;
+}
+
+.nt-row-watchlist-star.is-watching .nt-row-watchlist-star-icon {
+    fill: currentColor;
+}
+
+.nt-row-watchlist-star:hover:not(:disabled) {
+    color: #d97706;
+    background: #fffbeb;
+    transform: translateY(-1px);
+}
+
+.nt-row-watchlist-star.is-watching {
+    color: #f59e0b;
+}
+
+.nt-row-watchlist-star.is-watching:hover:not(:disabled) {
+    color: #d97706;
+    background: #fff7ed;
+}
+
+.nt-row-watchlist-star:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.22);
+    outline-offset: 1px;
+}
+
+.nt-row-watchlist-star:disabled,
+.nt-row-watchlist-star.is-loading {
+    cursor: wait;
+    opacity: 0.48;
+    transform: none;
+}
+
+.signal-row.selected .nt-row-watchlist-star:not(.is-watching) {
+    color: #64748b;
+}
+
 .nt-watchlist-pill-count {
     min-width: 18px;
     height: 18px;
