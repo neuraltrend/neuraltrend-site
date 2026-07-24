@@ -1,29 +1,31 @@
 #!/usr/bin/env python3
-"""Send opt-in NeuralTrend alerts for stable published signal updates.
+"""Preview or manually dispatch opt-in NeuralTrend signal-change alerts.
 
-Recommended Render Cron command:
+Nothing is sent unless an administrator explicitly chooses ``--send`` or uses
+NeuralTrend's admin dispatch page. A command with no mode exits without sending.
 
-    python tools/send_signal_change_alerts.py
-
-The worker:
-- waits until each asset CSV has been unchanged for a configurable quiet period;
-- processes every newly published dated row for each watched asset;
+The dispatcher:
+- processes each watched asset independently from its current published CSV;
 - combines delayed multi-row updates into one catch-up email per asset/user;
-- detects a changed signal on an already observed date as a revision;
-- deduplicates delivery across concurrent/retried workers.
+- detects changed signals on already observed dates as revisions;
+- ignores consecutive identical signals;
+- checks subscription/access and the user's alert preference at dispatch time;
+- deduplicates delivery across retries and concurrent dispatch attempts.
 
-Use --dry-run to inspect pending work without sending email or advancing
-watchlist baselines.
+Use ``--preview`` before ``--send``. Manual dispatch uses the current stable
+read of each file immediately; it does not impose a 60-minute quiet period.
 """
 
 from __future__ import annotations
 
 import argparse
 import hashlib
+import hmac
 import json
 import math
 import os
 import sys
+from contextlib import nullcontext
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -50,7 +52,7 @@ from extensions import db  # noqa: E402
 from models import SignalAlertDelivery, User, WatchlistItem  # noqa: E402
 
 PROCESSING_STALE_AFTER = timedelta(minutes=30)
-DEFAULT_STABILITY_MINUTES = 60
+DEFAULT_STABILITY_MINUTES = 0
 MAX_TRANSITIONS_IN_EMAIL = 20
 
 
@@ -59,19 +61,18 @@ def utcnow():
 
 
 def parse_stability_minutes(cli_value=None):
-    raw = cli_value
-    if raw is None:
-        raw = os.environ.get(
-            "SIGNAL_ALERT_STABILITY_MINUTES",
-            str(DEFAULT_STABILITY_MINUTES),
-        )
+    """Validate an optional explicit quiet period.
+
+    Manual dispatch defaults to zero minutes. The old environment-based
+    60-minute scheduler setting is intentionally ignored so an administrator's
+    approved dispatch is not delayed unexpectedly.
+    """
+    raw = DEFAULT_STABILITY_MINUTES if cli_value is None else cli_value
 
     try:
         value = int(raw)
     except (TypeError, ValueError):
-        raise ValueError(
-            "SIGNAL_ALERT_STABILITY_MINUTES must be a whole number of minutes."
-        )
+        raise ValueError("Stability minutes must be a whole number.")
 
     if value < 0 or value > 1440:
         raise ValueError("Signal-alert stability minutes must be between 0 and 1440.")
@@ -99,6 +100,7 @@ def load_stable_market_snapshot(ticker, stability_minutes, market_cache):
             "error": str(error),
             "data": None,
             "mtime_utc": None,
+            "source_identity": f"error:{error}",
         }
         market_cache[ticker] = result
         return result
@@ -114,6 +116,9 @@ def load_stable_market_snapshot(ticker, stability_minutes, market_cache):
             "data": None,
             "mtime_utc": modified_at,
             "wait_seconds": wait_seconds,
+            "source_identity": (
+                f"{csv_path}:{stat_before.st_mtime_ns}:{stat_before.st_size}:waiting"
+            ),
         }
         market_cache[ticker] = result
         return result
@@ -127,6 +132,9 @@ def load_stable_market_snapshot(ticker, stability_minutes, market_cache):
             "error": str(error),
             "data": None,
             "mtime_utc": modified_at,
+            "source_identity": (
+                f"{csv_path}:{stat_before.st_mtime_ns}:{stat_before.st_size}:error"
+            ),
         }
         market_cache[ticker] = result
         return result
@@ -141,6 +149,9 @@ def load_stable_market_snapshot(ticker, stability_minutes, market_cache):
             "mtime_utc": datetime.utcfromtimestamp(stat_after.st_mtime),
             "wait_seconds": stability_minutes * 60,
             "reason": "changed_during_read",
+            "source_identity": (
+                f"{csv_path}:{stat_after.st_mtime_ns}:{stat_after.st_size}:changed"
+            ),
         }
         market_cache[ticker] = result
         return result
@@ -150,6 +161,9 @@ def load_stable_market_snapshot(ticker, stability_minutes, market_cache):
         "data": market_data,
         "mtime_utc": datetime.utcfromtimestamp(stat_after.st_mtime),
         "wait_seconds": 0,
+        "source_identity": (
+            f"{csv_path}:{stat_after.st_mtime_ns}:{stat_after.st_size}:stable"
+        ),
     }
     market_cache[ticker] = result
     return result
@@ -524,7 +538,7 @@ def build_alert_message(user, ticker, event):
 
 {detail_block}
 
-This daily signal information was generated from completed market data. Delayed/catch-up entries describe their original signal dates and should not be interpreted as real-time execution alerts, brokerage instructions, or financial advice.
+This alert was released after an administrator approved the currently published data snapshot. This daily signal information was generated from completed market data. Delayed/catch-up entries describe their original signal dates and should not be interpreted as real-time execution alerts, brokerage instructions, or financial advice.
 
 Open NeuralTrend:
 {dashboard_url}
@@ -576,6 +590,8 @@ def process_item(
     dry_run=False,
     stability_minutes=DEFAULT_STABILITY_MINUTES,
     market_cache=None,
+    mail_connection=None,
+    approved_state=None,
 ):
     if market_cache is None:
         market_cache = {}
@@ -585,6 +601,31 @@ def process_item(
         return 0, 0, 0
 
     user = db.session.get(User, item.user_id)
+
+    if approved_state is not None:
+        current_state = {
+            "item_id": item.id,
+            "user_id": item.user_id,
+            "ticker": item.ticker,
+            "email_alert_enabled": bool(item.email_alert_enabled),
+            "last_observed_signal": item.last_observed_signal,
+            "last_observed_signal_date": (
+                item.last_observed_signal_date.isoformat()
+                if item.last_observed_signal_date else None
+            ),
+            "last_observed_row_fingerprint": item.last_observed_row_fingerprint,
+            "user_email": user.email if user else None,
+            "user_is_verified": bool(user.is_verified) if user else False,
+            "user_subscription_type": user.subscription_type if user else None,
+            "user_subscription_status": user.subscription_status if user else None,
+        }
+        if current_state != approved_state:
+            print(
+                f"SKIP-CHANGED watchlist_item_id={item_id}: "
+                "state changed after approval; preview again."
+            )
+            return 0, 0, 0
+
     if (
         not user
         or not user.is_verified
@@ -685,7 +726,11 @@ def process_item(
         return 0, 0, 0
 
     try:
-        mail.send(build_alert_message(user, ticker, event))
+        message = build_alert_message(user, ticker, event)
+        if mail_connection is not None:
+            mail_connection.send(message)
+        else:
+            mail.send(message)
     except Exception as error:
         db.session.rollback()
         delivery = (
@@ -740,59 +785,139 @@ def process_item(
     return 1, 0, 0
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--limit", type=int, default=200)
-    parser.add_argument(
-        "--stability-minutes",
-        type=int,
-        default=None,
-        help=(
-            "Override SIGNAL_ALERT_STABILITY_MINUTES for this run. "
-            "Default: 60. Use 0 only for controlled testing."
-        ),
-    )
-    args = parser.parse_args()
+def run_dispatch(
+    *,
+    dry_run,
+    limit=200,
+    stability_minutes=DEFAULT_STABILITY_MINUTES,
+    ticker=None,
+    expected_approval_signature=None,
+):
+    """Preview or dispatch eligible alerts inside an existing app context.
 
-    if args.limit < 1 or args.limit > 1000:
-        parser.error("--limit must be between 1 and 1000")
+    Returns a structured summary while retaining the human-readable console
+    output used by the admin page and CLI. Preview mode never sends email and
+    never advances user checkpoints.
+    """
+    if limit < 1 or limit > 1000:
+        raise ValueError("limit must be between 1 and 1000")
 
-    try:
-        stability_minutes = parse_stability_minutes(args.stability_minutes)
-    except ValueError as error:
-        parser.error(str(error))
+    stability_minutes = parse_stability_minutes(stability_minutes)
+    clean_ticker = normalize_ticker(ticker) if ticker else None
 
-    if not args.dry_run and not os.environ.get("EMAIL_USER"):
-        print("EMAIL_USER is not configured.", file=sys.stderr)
-        return 2
+    if not dry_run and not os.environ.get("EMAIL_USER"):
+        raise RuntimeError("EMAIL_USER is not configured.")
 
     total_sent = 0
     total_failures = 0
     total_waiting = 0
+    processed_items = 0
     market_cache = {}
 
-    with app.app_context():
-        item_ids = [
-            item_id
-            for (item_id,) in (
-                db.session.query(WatchlistItem.id)
-                .filter(WatchlistItem.email_alert_enabled.is_(True))
-                .order_by(WatchlistItem.id.asc())
-                .all()
-            )
-        ]
+    query = (
+        db.session.query(WatchlistItem, User)
+        .join(User, User.id == WatchlistItem.user_id)
+        .filter(WatchlistItem.email_alert_enabled.is_(True))
+        .order_by(WatchlistItem.id.asc())
+    )
+    if clean_ticker:
+        query = query.filter(WatchlistItem.ticker == clean_ticker)
 
+    records = query.all()
+    approved_states = {}
+    for item, user in records:
+        approved_states[item.id] = {
+            "item_id": item.id,
+            "user_id": item.user_id,
+            "ticker": item.ticker,
+            "email_alert_enabled": bool(item.email_alert_enabled),
+            "last_observed_signal": item.last_observed_signal,
+            "last_observed_signal_date": (
+                item.last_observed_signal_date.isoformat()
+                if item.last_observed_signal_date else None
+            ),
+            "last_observed_row_fingerprint": item.last_observed_row_fingerprint,
+            "user_email": user.email,
+            "user_is_verified": bool(user.is_verified),
+            "user_subscription_type": user.subscription_type,
+            "user_subscription_status": user.subscription_status,
+        }
+
+    item_ids = [item.id for item, _user in records]
+    available_items = len(item_ids)
+
+    # Freeze one in-memory snapshot per involved asset before any email is sent.
+    # This makes the reviewed batch deterministic even if a file is replaced
+    # immediately after the administrator presses Send.
+    for source_ticker in sorted({item.ticker for item, _user in records}):
+        load_stable_market_snapshot(
+            source_ticker,
+            stability_minutes,
+            market_cache,
+        )
+
+    approval_payload = {
+        "items": [approved_states[item_id] for item_id in item_ids],
+        "sources": [
+            {
+                "ticker": source_ticker,
+                "status": snapshot.get("status"),
+                "identity": snapshot.get("source_identity"),
+            }
+            for source_ticker, snapshot in sorted(market_cache.items())
+        ],
+    }
+    approval_signature = hashlib.sha256(
+        json.dumps(
+            approval_payload,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+
+    if (
+        expected_approval_signature is not None
+        and not hmac.compare_digest(
+            str(expected_approval_signature),
+            approval_signature,
+        )
+    ):
+        print(
+            "ABORT-CHANGED: published files or alert recipients changed "
+            "after preview; preview again before sending.",
+            file=sys.stderr,
+        )
+        return {
+            "mode": "send",
+            "pending_or_sent": 0,
+            "failures": 0,
+            "waiting": 0,
+            "processed_items": 0,
+            "available_items": available_items,
+            "limit_reached": False,
+            "stability_minutes": stability_minutes,
+            "ticker": clean_ticker,
+            "approval_signature": approval_signature,
+            "approval_mismatch": True,
+        }
+
+    connection_context = (
+        nullcontext(None) if dry_run or not item_ids else mail.connect()
+    )
+    with connection_context as mail_connection:
         for item_id in item_ids:
-            if total_sent >= args.limit:
+            if total_sent >= limit:
                 break
 
+            processed_items += 1
             try:
                 sent, failures, waiting = process_item(
                     item_id,
-                    dry_run=args.dry_run,
+                    dry_run=dry_run,
                     stability_minutes=stability_minutes,
                     market_cache=market_cache,
+                    mail_connection=mail_connection,
+                    approved_state=approved_states.get(item_id),
                 )
             except Exception as error:
                 db.session.rollback()
@@ -803,12 +928,85 @@ def main():
             total_failures += failures
             total_waiting += waiting
 
+    mode = "preview" if dry_run else "send"
     print(
-        f"Signal alert run complete: sent={total_sent} failures={total_failures} "
-        f"waiting={total_waiting} stability_minutes={stability_minutes} "
-        f"dry_run={args.dry_run}"
+        f"Signal alert {mode} complete: pending_or_sent={total_sent} "
+        f"failures={total_failures} waiting={total_waiting} "
+        f"processed_items={processed_items} stability_minutes={stability_minutes}"
     )
-    return 1 if total_failures else 0
+
+    return {
+        "mode": mode,
+        "pending_or_sent": total_sent,
+        "failures": total_failures,
+        "waiting": total_waiting,
+        "processed_items": processed_items,
+        "available_items": available_items,
+        "limit_reached": processed_items < available_items,
+        "stability_minutes": stability_minutes,
+        "ticker": clean_ticker,
+        "approval_signature": approval_signature,
+        "approval_mismatch": False,
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description=(
+            "Preview or manually send NeuralTrend signal-change alerts. "
+            "A mode is required; running the old no-argument Cron command "
+            "cannot send email."
+        )
+    )
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument(
+        "--preview",
+        action="store_true",
+        help="Show pending actions without sending or advancing checkpoints.",
+    )
+    mode.add_argument(
+        "--send",
+        action="store_true",
+        help="Manually approve and send all currently eligible alerts.",
+    )
+    mode.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Legacy alias for --preview.",
+    )
+    parser.add_argument("--limit", type=int, default=200)
+    parser.add_argument(
+        "--ticker",
+        type=str,
+        default=None,
+        help="Optionally preview/send only one canonical ticker, such as BTC-USD.",
+    )
+    parser.add_argument(
+        "--stability-minutes",
+        type=int,
+        default=DEFAULT_STABILITY_MINUTES,
+        help=(
+            "Optional explicit quiet period. Manual dispatch defaults to 0. "
+            "Normally leave this unchanged."
+        ),
+    )
+    args = parser.parse_args()
+
+    dry_run = bool(args.preview or args.dry_run)
+
+    try:
+        stability_minutes = parse_stability_minutes(args.stability_minutes)
+        with app.app_context():
+            summary = run_dispatch(
+                dry_run=dry_run,
+                limit=args.limit,
+                stability_minutes=stability_minutes,
+                ticker=args.ticker,
+            )
+    except (ValueError, RuntimeError) as error:
+        parser.error(str(error))
+
+    return 1 if summary["failures"] else 0
 
 
 if __name__ == "__main__":
