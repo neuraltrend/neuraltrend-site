@@ -31,6 +31,7 @@ Admin-only manual controls for NeuralTrend signal alerts, private Forward Record
                     <li>Public publication stays locked until explicitly enabled.</li>
                     <li>Repeated signals do not generate repeated emails.</li>
                     <li>Prior public publications are never silently replaced.</li>
+                    <li>Each public asset starts only when explicitly enrolled.</li>
                 </ul>
             </aside>
         </div>
@@ -166,26 +167,34 @@ Admin-only manual controls for NeuralTrend signal alerts, private Forward Record
         </div>
         {% if public_record_enabled %}
         <div class="nt-alert-admin-notice is-public-notice">
-            The first approved public batch establishes the customer-facing start date. Sandbox
-            history and older CSV rows are not imported.
+            Each asset receives its own customer-facing start date when first approved. Enter a
+            ticker to add or update one asset. Once assets are tracked, leaving the field blank
+            updates only those already in the public record; it never auto-adds every CSV asset.
+            Sandbox history and older CSV rows are not imported.
         </div>
         <form method="post" action="{{ url_for('admin_signal_alerts') }}" class="nt-alert-admin-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="nt-alert-admin-field-grid">
                 <label>
-                    <span>Optional asset filter</span>
-                    <input type="text" name="ticker" value="{{ selected_ticker if selected_action and selected_action.startswith('public_') else '' }}" placeholder="All assets, or BTC-USD" maxlength="30" autocomplete="off">
-                    <small>Leave blank for the complete public batch.</small>
+                    <span>Public asset</span>
+                    <input type="text" name="ticker" value="{{ selected_ticker if selected_action and selected_action.startswith('public_') else '' }}" placeholder="BTC-USD" maxlength="30" autocomplete="off">
+                    <small>
+                        {% if not public_record_summary.started %}
+                        Required for the first public asset.
+                        {% else %}
+                        Enter a ticker to add/update it, or leave blank to update only currently tracked assets.
+                        {% endif %}
+                    </small>
                 </label>
                 <label>
                     <span>Public confirmation</span>
                     <input type="text" name="confirmation" placeholder='Type "{{ public_confirmation_phrase }}"' maxlength="30" autocomplete="off">
-                    <small>{% if not public_record_summary.started %}This starts the official public record.{% else %}Preview the same filter first; approval lasts 15 minutes.{% endif %}</small>
+                    <small>{% if not public_record_summary.started %}This starts the first asset's official record.{% else %}Preview the same selection first; approval lasts 15 minutes.{% endif %}</small>
                 </label>
             </div>
             <div class="nt-alert-admin-actions">
-                <button type="submit" name="action" value="public_preview" class="nt-alert-admin-secondary">Preview Public Batch</button>
-                <button type="submit" name="action" value="public_publish" class="nt-alert-admin-primary">{% if not public_record_summary.started %}Start Public Record{% else %}Publish Public Batch{% endif %}</button>
+                <button type="submit" name="action" value="public_preview" class="nt-alert-admin-secondary">Preview Public Publication</button>
+                <button type="submit" name="action" value="public_publish" class="nt-alert-admin-primary">{% if not public_record_summary.started %}Start First Public Asset{% else %}Publish Public Update{% endif %}</button>
             </div>
         </form>
         {% else %}
@@ -193,7 +202,8 @@ Admin-only manual controls for NeuralTrend signal alerts, private Forward Record
             <p>
                 Public performance is hidden and cannot be published. Continue using the private
                 sandbox. At launch, set <code>FORWARD_RECORD_PUBLIC_ENABLED=true</code>, redeploy,
-                preview the first public batch, and type <strong>START PUBLIC RECORD</strong>.
+                enter the first launch-ready ticker, preview it, and type <strong>START PUBLIC RECORD</strong>.
+                Additional assets can be added later from their own first approved dates.
             </p>
         </div>
         {% endif %}
