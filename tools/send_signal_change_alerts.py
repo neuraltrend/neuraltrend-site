@@ -49,7 +49,12 @@ from app import (  # noqa: E402
     signal_label,
 )
 from extensions import db  # noqa: E402
-from models import SignalAlertDelivery, User, WatchlistItem  # noqa: E402
+from models import (  # noqa: E402
+    ForwardRecordAsset,
+    SignalAlertDelivery,
+    User,
+    WatchlistItem,
+)
 
 PROCESSING_STALE_AFTER = timedelta(minutes=30)
 DEFAULT_STABILITY_MINUTES = 0
@@ -818,12 +823,26 @@ def run_dispatch(
     processed_items = 0
     market_cache = {}
 
+    retired_tickers = {
+        row[0]
+        for row in (
+            db.session.query(ForwardRecordAsset.ticker)
+            .filter(
+                ForwardRecordAsset.record_mode == "public",
+                ForwardRecordAsset.status.in_(["retired", "removed"]),
+            )
+            .all()
+        )
+    }
+
     query = (
         db.session.query(WatchlistItem, User)
         .join(User, User.id == WatchlistItem.user_id)
         .filter(WatchlistItem.email_alert_enabled.is_(True))
         .order_by(WatchlistItem.id.asc())
     )
+    if retired_tickers:
+        query = query.filter(~WatchlistItem.ticker.in_(sorted(retired_tickers)))
     if clean_ticker:
         query = query.filter(WatchlistItem.ticker == clean_ticker)
 

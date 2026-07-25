@@ -1,25 +1,28 @@
-"""Preview and publish NeuralTrend forward-record snapshots.
+"""Admin-approved CSV-backed NeuralTrend Forward Record workflow.
 
-Two fully separated record modes are supported:
+Working model CSVs never become customer-facing automatically. Preview compares
+those files with a compact approved CSV containing only Date, Close and
+``epoch_signal``. Approval atomically updates the approved files and a small
+PostgreSQL metadata/audit ledger.
 
-* ``sandbox`` is private, admin-only, resettable, and intended for pre-launch
-  testing while models and data workflows are still changing.
-* ``public`` is customer-facing and append-only. Each supported asset enters
-  prospectively through an explicit admin-approved first publication and keeps
-  its own public start date.
-
-Neither mode imports history that predates its own first approved publication.
+Sandbox and public modes are independent. Sandbox files are private and
+resettable. Public assets enter one at a time, then blank batch approvals update
+all already-enrolled active assets.
 """
 
 from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import math
 import os
+import shutil
 import sys
-from datetime import date, datetime
+import tempfile
+import uuid
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -33,22 +36,21 @@ from app import (  # noqa: E402
     ADMIN_ONLY_TICKERS,
     SUPPORTED_TICKERS,
     app,
-    build_data_freshness_metadata,
     get_epoch_csv_path,
-    make_signal_row_fingerprint,
+    get_forward_record_csv_path,
     normalize_ticker,
     signal_label,
 )
 from extensions import db  # noqa: E402
 from models import (  # noqa: E402
-    ForwardMarketObservation,
     ForwardPublicationBatch,
-    ForwardSignalPublication,
+    ForwardRecordAsset,
     User,
+    WatchlistItem,
 )
 
-PUBLICATION_TYPES = {"initial", "regular", "delayed", "revision", "correction"}
 RECORD_MODES = {"sandbox", "public"}
+APPROVED_COLUMNS = ["Date", "Close", "epoch_signal"]
 
 
 def utcnow() -> datetime:
@@ -65,13 +67,13 @@ def env_flag(name: str, default: bool = False) -> bool:
 def public_record_enabled() -> bool:
     return (
         env_flag("FORWARD_RECORD_PUBLIC_ENABLED", default=False)
-        or ForwardPublicationBatch.query.filter_by(record_mode="public").first()
+        or ForwardRecordAsset.query.filter_by(record_mode="public").first()
         is not None
     )
 
 
 def normalize_record_mode(value: str | None) -> str:
-    mode = (value or "sandbox").strip().lower()
+    mode = str(value or "sandbox").strip().lower()
     if mode not in RECORD_MODES:
         raise ValueError("Record mode must be sandbox or public.")
     return mode
@@ -82,14 +84,13 @@ def require_public_record_enabled(record_mode: str) -> None:
         raise PermissionError(
             "Public Forward Record publication is disabled. Set "
             "FORWARD_RECORD_PUBLIC_ENABLED=true only when NeuralTrend is ready "
-            "to begin its customer-facing record."
+            "to begin customer-facing tracking."
         )
 
 
 def public_tickers() -> list[str]:
-    """Return every customer-facing asset supported by the main product."""
-    seen = set()
-    ordered = []
+    seen: set[str] = set()
+    ordered: list[str] = []
     for raw in SUPPORTED_TICKERS:
         ticker = normalize_ticker(raw)
         if not ticker or ticker in ADMIN_ONLY_TICKERS or ticker in seen:
@@ -99,19 +100,20 @@ def public_tickers() -> list[str]:
     return ordered
 
 
-def tracked_public_tickers() -> list[str]:
-    """Return only assets that have explicitly entered the public record."""
+def tracked_asset(ticker: str, record_mode: str) -> ForwardRecordAsset | None:
+    return ForwardRecordAsset.query.filter_by(
+        record_mode=normalize_record_mode(record_mode),
+        ticker=normalize_ticker(ticker),
+    ).first()
+
+
+def tracked_active_tickers(record_mode: str) -> list[str]:
     return [
-        row[0]
+        row.ticker
         for row in (
-            db.session.query(ForwardSignalPublication.ticker)
-            .join(
-                ForwardPublicationBatch,
-                ForwardPublicationBatch.id == ForwardSignalPublication.batch_id,
-            )
-            .filter(ForwardPublicationBatch.record_mode == "public")
-            .distinct()
-            .order_by(ForwardSignalPublication.ticker.asc())
+            ForwardRecordAsset.query
+            .filter_by(record_mode=normalize_record_mode(record_mode), status="active")
+            .order_by(ForwardRecordAsset.ticker.asc())
             .all()
         )
     ]
@@ -127,220 +129,150 @@ def finite_positive(value: Any, label: str) -> float:
     return number
 
 
-def market_row_fingerprint(ticker: str, market_date: date, close_price: float) -> str:
-    raw = (
-        f"{normalize_ticker(ticker)}|{market_date.isoformat()}|"
-        f"{format(float(close_price), '.12g')}"
-    )
-    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
-
-
-def publication_query_for_mode(record_mode: str):
-    mode = normalize_record_mode(record_mode)
-    return (
-        ForwardSignalPublication.query
-        .join(
-            ForwardPublicationBatch,
-            ForwardPublicationBatch.id == ForwardSignalPublication.batch_id,
+def _normalize_frame(data: pd.DataFrame, *, source_label: str) -> pd.DataFrame:
+    missing = [column for column in APPROVED_COLUMNS if column not in data.columns]
+    if missing:
+        raise ValueError(
+            f"{source_label} is missing required column(s): {', '.join(missing)}."
         )
-        .filter(ForwardPublicationBatch.record_mode == mode)
-    )
+
+    frame = data[APPROVED_COLUMNS].copy()
+    frame["Date"] = pd.to_datetime(frame["Date"], errors="coerce").dt.normalize()
+    frame["Close"] = pd.to_numeric(frame["Close"], errors="coerce")
+    frame["epoch_signal"] = pd.to_numeric(frame["epoch_signal"], errors="coerce")
+    frame = frame.dropna(subset=APPROVED_COLUMNS).copy()
+
+    finite_close = frame["Close"].map(math.isfinite)
+    finite_signal = frame["epoch_signal"].map(math.isfinite)
+    frame = frame[
+        finite_close
+        & finite_signal
+        & (frame["Close"] > 0)
+        & frame["epoch_signal"].isin([-1, 0, 1])
+    ].copy()
+    frame["epoch_signal"] = frame["epoch_signal"].astype(int)
+    frame = frame.sort_values("Date").drop_duplicates(subset=["Date"], keep="last")
+    frame.reset_index(drop=True, inplace=True)
+
+    if source_label == "working CSV" and frame.empty:
+        raise ValueError("Working market-data CSV contains no valid Forward Record rows.")
+    return frame
 
 
-def latest_publication_for_ticker(ticker: str, record_mode: str):
-    return (
-        publication_query_for_mode(record_mode)
-        .filter(ForwardSignalPublication.ticker == normalize_ticker(ticker))
-        .order_by(
-            ForwardSignalPublication.published_at.desc(),
-            ForwardSignalPublication.id.desc(),
-        )
-        .first()
-    )
-
-
-def first_publication_for_ticker(ticker: str, record_mode: str):
-    return (
-        publication_query_for_mode(record_mode)
-        .filter(ForwardSignalPublication.ticker == normalize_ticker(ticker))
-        .order_by(
-            ForwardSignalPublication.published_at.asc(),
-            ForwardSignalPublication.id.asc(),
-        )
-        .first()
-    )
-
-
-def load_forward_source_data(ticker: str) -> pd.DataFrame:
-    """Load only the columns required for prospective publication/performance."""
-    clean = normalize_ticker(ticker)
-    csv_path = get_epoch_csv_path(clean)
-    data = pd.read_csv(
-        csv_path,
-        usecols=["Date", "Close", "epoch_signal"],
-        parse_dates=["Date"],
-    )
-
-    for column in ("Close", "epoch_signal"):
-        data[column] = pd.to_numeric(data[column], errors="coerce")
-
-    data = data.dropna(subset=["Date", "Close", "epoch_signal"]).copy()
-    finite_mask = data["Close"].map(math.isfinite) & data["epoch_signal"].map(math.isfinite)
-    valid_mask = (
-        finite_mask
-        & (data["Close"] > 0)
-        & data["epoch_signal"].isin([-1, 0, 1])
-    )
-    data = data[valid_mask].copy()
-    data["epoch_signal"] = data["epoch_signal"].astype(int)
-    data = data.sort_values("Date")
-    data = data.drop_duplicates(subset=["Date"], keep="last")
-    data.set_index("Date", inplace=True)
-
-    if data.empty:
-        raise ValueError("Market-data file contains no valid forward-record rows.")
-    return data
-
-
-def load_latest_source_snapshot(ticker: str) -> dict[str, Any]:
+def load_working_data(ticker: str) -> tuple[pd.DataFrame, str]:
     clean = normalize_ticker(ticker)
     path = get_epoch_csv_path(clean)
-    data = load_forward_source_data(clean).sort_index()
-
-    latest_index = data.index.max()
-    latest_row = data.loc[latest_index]
-    if getattr(latest_row, "ndim", 1) > 1:
-        latest_row = latest_row.iloc[-1]
-
-    signal = int(latest_row["epoch_signal"])
-    if signal not in {-1, 0, 1}:
-        raise ValueError("Latest signal must be BUY, HOLD, or SELL.")
-
-    close_price = finite_positive(latest_row["Close"], "Latest close")
-    source_date = latest_index.date()
-    source_fingerprint = make_signal_row_fingerprint(
-        clean,
-        source_date,
-        signal,
-        close_price,
-    )
+    raw = pd.read_csv(path, usecols=APPROVED_COLUMNS)
+    frame = _normalize_frame(raw, source_label="working CSV")
     stat = os.stat(path)
+    identity = f"{stat.st_mtime_ns}:{stat.st_size}"
+    return frame, identity
 
+
+def load_approved_data(ticker: str, record_mode: str) -> pd.DataFrame:
+    path = get_forward_record_csv_path(
+        ticker,
+        normalize_record_mode(record_mode),
+        must_exist=True,
+    )
+    raw = pd.read_csv(path, usecols=APPROVED_COLUMNS)
+    return _normalize_frame(raw, source_label="approved Forward Record CSV")
+
+
+def canonical_csv_bytes(frame: pd.DataFrame) -> bytes:
+    normalized = _normalize_frame(
+        frame if not frame.empty else pd.DataFrame(columns=APPROVED_COLUMNS),
+        source_label="approved Forward Record CSV",
+    )
+    output = io.StringIO()
+    normalized.to_csv(
+        output,
+        index=False,
+        columns=APPROVED_COLUMNS,
+        date_format="%Y-%m-%d",
+        float_format="%.12g",
+        lineterminator="\n",
+    )
+    return output.getvalue().encode("utf-8")
+
+
+def digest_bytes(payload: bytes) -> str:
+    return hashlib.sha256(payload).hexdigest()
+
+
+def frame_digest(frame: pd.DataFrame) -> str:
+    return digest_bytes(canonical_csv_bytes(frame))
+
+
+def _date_map(frame: pd.DataFrame) -> dict[date, tuple[str, int]]:
     return {
-        "ticker": clean,
-        "path": path,
-        "file_identity": f"{stat.st_mtime_ns}:{stat.st_size}",
-        "data": data,
-        "source_data_date": source_date,
-        "signal": signal,
-        "reference_close": close_price,
-        "source_row_fingerprint": source_fingerprint,
-        "freshness": build_data_freshness_metadata(clean, source_date),
+        row.Date.date(): (format(float(row.Close), ".12g"), int(row.epoch_signal))
+        for row in frame.itertuples(index=False)
     }
 
 
-def classify_candidate(
-    snapshot: dict[str, Any],
-    previous,
-) -> tuple[str | None, int, int | None]:
-    """Return publication type, newly observed row count, and superseded id."""
-    if previous is None:
-        return "initial", 0, None
-
-    source_date = snapshot["source_data_date"]
-    if source_date < previous.source_data_date:
+def verify_approved_history(
+    ticker: str,
+    source: pd.DataFrame,
+    approved: pd.DataFrame,
+    asset: ForwardRecordAsset,
+) -> str:
+    """Reject deletion or rewriting of any already approved row."""
+    actual_digest = frame_digest(approved)
+    if asset.last_approved_digest and actual_digest != asset.last_approved_digest:
         raise ValueError(
-            f"Latest source date {source_date} is older than the already recorded "
-            f"date {previous.source_data_date}."
+            f"{ticker}: approved Forward Record CSV changed outside the approval "
+            "workflow. Restore the approved file before publishing."
         )
 
-    if source_date == previous.source_data_date:
-        if snapshot["source_row_fingerprint"] == previous.source_row_fingerprint:
-            return None, 0, None
-        if int(snapshot["signal"]) != int(previous.signal):
-            return "revision", 0, previous.id
-        return "correction", 0, previous.id
-
-    new_rows = snapshot["data"][
-        snapshot["data"].index.date > previous.source_data_date
-    ]
-    new_row_count = len(new_rows)
-    if new_row_count < 1:
-        raise ValueError("A newer source date was found without a corresponding new row.")
-
-    publication_type = "delayed" if new_row_count > 1 else "regular"
-    return publication_type, new_row_count, None
+    source_rows = _date_map(source)
+    for market_date, expected in _date_map(approved).items():
+        current = source_rows.get(market_date)
+        if current is None:
+            raise ValueError(
+                f"{ticker}: working CSV no longer contains approved date {market_date}. "
+                "Previously approved history cannot be deleted."
+            )
+        if current != expected:
+            raise ValueError(
+                f"{ticker}: working CSV changed previously approved Date/Close/signal "
+                f"history on {market_date}. Restore that row before publishing."
+            )
+    return actual_digest
 
 
-def build_market_capture_plan(
-    ticker: str,
-    snapshot: dict[str, Any],
-    first_publication,
-    record_mode: str,
-) -> tuple[list[dict], list[str]]:
-    """Plan immutable closes after this mode's first approved publication."""
-    if first_publication is None:
-        return [], []
-
-    mode = normalize_record_mode(record_mode)
-    clean = normalize_ticker(ticker)
-    data = snapshot["data"]
-    start_after = first_publication.source_data_date
-    eligible = data[data.index.date > start_after]
-    capture_rows = []
-    preserved_differences = []
-
-    existing = {
-        row.market_date: row
-        for row in ForwardMarketObservation.query.filter_by(
-            record_mode=mode,
-            ticker=clean,
-        ).all()
-    }
-
-    for index, raw_row in eligible.iterrows():
-        market_date = index.date()
-        close_price = finite_positive(raw_row["Close"], f"{clean} close on {market_date}")
-        fingerprint = market_row_fingerprint(clean, market_date, close_price)
-
-        prior = existing.get(market_date)
-        if prior is not None:
-            if prior.source_row_fingerprint != fingerprint:
-                preserved_differences.append(
-                    f"{clean} {market_date}: upstream close differs from the preserved "
-                    f"{mode} snapshot; the original snapshot remains in use."
-                )
-            continue
-
-        capture_rows.append({
-            "ticker": clean,
-            "market_date": market_date,
-            "close_price": close_price,
-            "source_row_fingerprint": fingerprint,
-        })
-
-    return capture_rows, preserved_differences
+def _frame_on_or_after(frame: pd.DataFrame, start_date: date) -> pd.DataFrame:
+    if frame.empty:
+        return frame.copy()
+    return frame[frame["Date"].dt.date >= start_date].copy()
 
 
-def _serializable_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
+def _frame_after(frame: pd.DataFrame, after_date: date | None) -> pd.DataFrame:
+    if frame.empty:
+        return frame.copy()
+    if after_date is None:
+        return frame.copy()
+    return frame[frame["Date"].dt.date > after_date].copy()
+
+
+def _candidate_serializable(candidate: dict[str, Any]) -> dict[str, Any]:
     return {
         "ticker": candidate["ticker"],
-        "source_data_date": candidate["source_data_date"].isoformat(),
-        "signal": candidate["signal"],
-        "reference_close": format(candidate["reference_close"], ".12g"),
-        "source_row_fingerprint": candidate["source_row_fingerprint"],
-        "publication_type": candidate["publication_type"],
+        "classification": candidate["classification"],
+        "start_date": candidate["start_date"].isoformat(),
+        "previous_through_date": (
+            candidate["previous_through_date"].isoformat()
+            if candidate["previous_through_date"] else None
+        ),
+        "approved_through_date": (
+            candidate["approved_through_date"].isoformat()
+            if candidate["approved_through_date"] else None
+        ),
         "new_row_count": candidate["new_row_count"],
-        "supersedes_publication_id": candidate["supersedes_publication_id"],
-        "file_identity": candidate["file_identity"],
-        "market_rows": [
-            {
-                "market_date": row["market_date"].isoformat(),
-                "close_price": format(row["close_price"], ".12g"),
-                "source_row_fingerprint": row["source_row_fingerprint"],
-            }
-            for row in candidate["market_rows"]
-        ],
+        "latest_signal": candidate["latest_signal"],
+        "source_identity": candidate["source_identity"],
+        "approved_digest_before": candidate["approved_digest_before"],
+        "approved_digest_after": candidate["approved_digest_after"],
     }
 
 
@@ -355,139 +287,155 @@ def build_publication_preview(
     clean_filter = normalize_ticker(ticker) if ticker else None
     supported = public_tickers()
     if clean_filter and clean_filter not in supported:
-        raise ValueError("Forward Record publication supports public assets only.")
+        raise ValueError("Forward Record publication supports customer-facing assets only.")
 
-    if mode == "public":
-        tracked = tracked_public_tickers()
-        if clean_filter:
-            # An explicit ticker either updates an already tracked asset or
-            # prospectively enrolls a new supported asset from this moment.
-            tickers = [clean_filter]
-        elif tracked:
-            # Blank means "update the existing public universe". It never
-            # auto-enrolls every supported asset merely because a CSV exists.
-            tickers = tracked
-        else:
+    tracked = tracked_active_tickers(mode)
+    if clean_filter:
+        existing = tracked_asset(clean_filter, mode)
+        if existing and existing.status != "active":
             raise ValueError(
-                "Choose one supported ticker for the first public Forward Record "
-                "publication. Assets enter the public record individually."
+                f"{clean_filter} is {existing.status} and cannot receive new approved rows."
             )
+        tickers = [clean_filter]
+    elif tracked:
+        tickers = tracked
     else:
-        tickers = [clean_filter] if clean_filter else supported
+        raise ValueError(
+            f"Choose one supported ticker for the first {mode} Forward Record asset."
+        )
 
-    candidates = []
-    errors = []
-    warnings = []
-    unchanged = 0
-    checked = 0
+    preview_date = utcnow().date()
+    candidates: list[dict[str, Any]] = []
+    errors: list[str] = []
+    unchanged: list[str] = []
 
-    for source_ticker in tickers:
-        checked += 1
+    for clean in tickers:
         try:
-            snapshot = load_latest_source_snapshot(source_ticker)
-            previous = latest_publication_for_ticker(source_ticker, mode)
-            first = first_publication_for_ticker(source_ticker, mode)
-            publication_type, new_row_count, supersedes_id = classify_candidate(
-                snapshot,
-                previous,
-            )
-            market_rows, row_warnings = build_market_capture_plan(
-                source_ticker,
-                snapshot,
-                first,
-                mode,
-            )
-            warnings.extend(row_warnings)
+            source, source_identity = load_working_data(clean)
+            asset = tracked_asset(clean, mode)
 
-            if publication_type is None:
-                unchanged += 1
-                continue
+            if asset is None:
+                start_date = preview_date
+                eligible = _frame_on_or_after(source, start_date)
+                approved_before = pd.DataFrame(columns=APPROVED_COLUMNS)
+                approved_digest_before = None
+                new_rows = eligible
+                classification = "initial"
+                previous_through = None
+            else:
+                if asset.status != "active":
+                    raise ValueError(f"{clean} is not active in the {mode} record.")
+                start_date = asset.start_date
+                approved_before = load_approved_data(clean, mode)
+                approved_digest_before = verify_approved_history(
+                    clean,
+                    source,
+                    approved_before,
+                    asset,
+                )
+                previous_through = asset.approved_through_date
+                new_rows = _frame_after(
+                    _frame_on_or_after(source, start_date),
+                    previous_through,
+                )
+                if new_rows.empty:
+                    unchanged.append(clean)
+                    continue
+                classification = "delayed" if len(new_rows) > 1 else "append"
+
+            approved_after = pd.concat(
+                [approved_before, new_rows],
+                ignore_index=True,
+            )
+            approved_after = _normalize_frame(
+                approved_after,
+                source_label="approved Forward Record CSV",
+            )
+            approved_bytes = canonical_csv_bytes(approved_after)
+            approved_through = (
+                approved_after["Date"].max().date()
+                if not approved_after.empty else None
+            )
+            latest_signal = (
+                int(approved_after.iloc[-1]["epoch_signal"])
+                if not approved_after.empty else None
+            )
 
             candidates.append({
-                "ticker": source_ticker,
-                "source_data_date": snapshot["source_data_date"],
-                "signal": snapshot["signal"],
-                "signal_label": signal_label(snapshot["signal"]),
-                "reference_close": snapshot["reference_close"],
-                "source_row_fingerprint": snapshot["source_row_fingerprint"],
-                "publication_type": publication_type,
-                "new_row_count": new_row_count,
-                "supersedes_publication_id": supersedes_id,
-                "file_identity": snapshot["file_identity"],
-                "freshness_label": snapshot["freshness"].get("freshness_label", "Unknown"),
-                "market_rows": market_rows,
+                "ticker": clean,
+                "asset_id": asset.id if asset else None,
+                "classification": classification,
+                "start_date": start_date,
+                "previous_through_date": previous_through,
+                "approved_through_date": approved_through,
+                "new_row_count": len(new_rows),
+                "latest_signal": latest_signal,
+                "source_identity": source_identity,
+                "approved_digest_before": approved_digest_before,
+                "approved_digest_after": digest_bytes(approved_bytes),
+                "approved_bytes": approved_bytes,
             })
-        except Exception as error:
-            errors.append(f"{source_ticker}: {error}")
+        except Exception as exc:
+            errors.append(f"{clean}: {exc}")
 
-    candidates.sort(key=lambda item: item["ticker"])
     signature_payload = {
         "record_mode": mode,
         "ticker_filter": clean_filter,
-        "candidates": [_serializable_candidate(item) for item in candidates],
+        "candidates": [_candidate_serializable(item) for item in candidates],
         "errors": errors,
-        "warnings": warnings,
         "unchanged": unchanged,
     }
     approval_signature = hashlib.sha256(
         json.dumps(signature_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
 
-    type_counts = {
-        kind: sum(1 for item in candidates if item["publication_type"] == kind)
-        for kind in PUBLICATION_TYPES
-    }
-    market_row_count = sum(len(item["market_rows"]) for item in candidates)
-
     return {
         "record_mode": mode,
-        "ticker": clean_filter,
-        "checked_assets": checked,
+        "ticker_filter": clean_filter,
         "candidates": candidates,
         "candidate_count": len(candidates),
-        "unchanged_count": unchanged,
+        "new_row_count": sum(item["new_row_count"] for item in candidates),
+        "delayed_count": sum(
+            1 for item in candidates if item["classification"] == "delayed"
+        ),
+        "unchanged": unchanged,
+        "unchanged_count": len(unchanged),
         "errors": errors,
         "error_count": len(errors),
-        "warnings": warnings,
-        "warning_count": len(warnings),
-        "type_counts": type_counts,
-        "market_row_count": market_row_count,
         "approval_signature": approval_signature,
+        "published": 0,
     }
 
 
 def print_preview(preview: dict[str, Any]) -> None:
-    mode_label = preview["record_mode"].upper()
+    prefix = preview["record_mode"].upper()
     for candidate in preview["candidates"]:
-        print(
-            f"{mode_label}-PUBLISH-{candidate['publication_type'].upper()} "
-            f"{candidate['ticker']}: {candidate['signal_label']} "
-            f"data_through={candidate['source_data_date']} "
-            f"market_rows={len(candidate['market_rows'])}"
+        through = candidate["approved_through_date"] or "waiting-for-first-row"
+        latest = (
+            signal_label(candidate["latest_signal"])
+            if candidate["latest_signal"] is not None else "—"
         )
-    for warning in preview["warnings"]:
-        print(f"{mode_label}-PRESERVED {warning}")
+        print(
+            f"{prefix}-PUBLISH-{candidate['classification'].upper()} "
+            f"{candidate['ticker']}: rows={candidate['new_row_count']} "
+            f"start={candidate['start_date']} through={through} latest={latest}"
+        )
+    for ticker in preview["unchanged"]:
+        print(f"{prefix}-UNCHANGED {ticker}: no newly dated approved rows.")
     for error in preview["errors"]:
-        print(f"FAILED {mode_label} {error}", file=sys.stderr)
+        print(f"FAILED {error}")
     print(
-        f"{mode_label} Forward Record preview complete: "
-        f"pending={preview['candidate_count']} unchanged={preview['unchanged_count']} "
-        f"market_rows={preview['market_row_count']} errors={preview['error_count']} "
-        f"preserved_differences={preview['warning_count']}"
+        f"{prefix} preview complete: assets={preview['candidate_count']} "
+        f"new_rows={preview['new_row_count']} unchanged={preview['unchanged_count']} "
+        f"errors={preview['error_count']}"
     )
 
 
-def make_publication_key(
-    batch_digest: str,
-    candidate: dict[str, Any],
-    record_mode: str,
-) -> str:
-    raw = (
-        f"{normalize_record_mode(record_mode)}|{batch_digest}|{candidate['ticker']}|"
-        f"{candidate['source_data_date'].isoformat()}|"
-        f"{candidate['source_row_fingerprint']}|{candidate['publication_type']}"
-    )
-    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+def _safe_remove(path: str | Path) -> None:
+    try:
+        os.remove(path)
+    except FileNotFoundError:
+        pass
 
 
 def publish_forward_batch(
@@ -499,227 +447,511 @@ def publish_forward_batch(
 ) -> dict[str, Any]:
     mode = normalize_record_mode(record_mode)
     require_public_record_enabled(mode)
-    preview = build_publication_preview(ticker=ticker, record_mode=mode)
-
-    if not expected_approval_signature or preview["approval_signature"] != expected_approval_signature:
-        return {
-            **preview,
-            "published": 0,
-            "approval_mismatch": True,
-            "batch_id": None,
-        }
-    if preview["errors"]:
-        raise RuntimeError(f"{mode.title()} Forward Record preview contains source errors.")
-    if not preview["candidates"]:
-        return {
-            **preview,
-            "published": 0,
-            "approval_mismatch": False,
-            "batch_id": None,
-        }
 
     admin = db.session.get(User, int(admin_user_id))
     if admin is None:
         raise ValueError("Admin user was not found.")
 
+    # Serialize publication actions for this administrator account.
+    db.session.query(User.id).filter(User.id == admin.id).with_for_update().one()
+    preview = build_publication_preview(ticker=ticker, record_mode=mode)
+
+    if preview["error_count"]:
+        db.session.rollback()
+        raise ValueError("Resolve every preview error before publication.")
+    if (
+        not expected_approval_signature
+        or preview["approval_signature"] != expected_approval_signature
+    ):
+        db.session.rollback()
+        return {**preview, "approval_mismatch": True, "published": 0}
+    if not preview["candidates"]:
+        db.session.rollback()
+        print(f"{mode.upper()} publication: no pending approved rows.")
+        return {**preview, "approval_mismatch": False, "published": 0}
+
+    staged: list[dict[str, Any]] = []
+    replaced: list[dict[str, Any]] = []
     published_at = utcnow()
-    batch = ForwardPublicationBatch(
-        published_by_user_id=admin.id,
-        published_at=published_at,
-        record_mode=mode,
-        publication_count=len(preview["candidates"]),
-        revision_count=(
-            preview["type_counts"].get("revision", 0)
-            + preview["type_counts"].get("correction", 0)
-        ),
-        delayed_count=preview["type_counts"].get("delayed", 0),
-        source_digest=preview["approval_signature"],
-    )
-    db.session.add(batch)
-    db.session.flush()
-
-    for candidate in preview["candidates"]:
-        publication = ForwardSignalPublication(
-            batch_id=batch.id,
-            ticker=candidate["ticker"],
-            source_data_date=candidate["source_data_date"],
-            signal=candidate["signal"],
-            reference_close=candidate["reference_close"],
-            published_at=published_at,
-            publication_type=candidate["publication_type"],
-            source_row_fingerprint=candidate["source_row_fingerprint"],
-            publication_key=make_publication_key(
-                preview["approval_signature"],
-                candidate,
-                mode,
-            ),
-            supersedes_publication_id=candidate["supersedes_publication_id"],
-        )
-        db.session.add(publication)
-
-        for row in candidate["market_rows"]:
-            db.session.add(ForwardMarketObservation(
-                record_mode=mode,
-                ticker=candidate["ticker"],
-                market_date=row["market_date"],
-                close_price=row["close_price"],
-                source_row_fingerprint=row["source_row_fingerprint"],
-                captured_in_batch_id=batch.id,
-                captured_at=published_at,
-            ))
 
     try:
+        for candidate in preview["candidates"]:
+            target = Path(get_forward_record_csv_path(candidate["ticker"], mode))
+            target.parent.mkdir(parents=True, exist_ok=True)
+            fd, temp_name = tempfile.mkstemp(
+                prefix=f".{target.stem}.",
+                suffix=".tmp",
+                dir=str(target.parent),
+            )
+            with os.fdopen(fd, "wb") as handle:
+                handle.write(candidate["approved_bytes"])
+                handle.flush()
+                os.fsync(handle.fileno())
+            staged.append({"candidate": candidate, "target": target, "temp": Path(temp_name)})
+
+        # Replace approved files first while keeping same-directory backups. If
+        # the database commit fails, every file is restored before returning.
+        for item in staged:
+            target: Path = item["target"]
+            backup = target.with_name(f".{target.name}.{uuid.uuid4().hex}.bak")
+            had_original = target.exists()
+            if had_original:
+                os.replace(target, backup)
+            os.replace(item["temp"], target)
+            replaced.append({
+                "target": target,
+                "backup": backup,
+                "had_original": had_original,
+            })
+
+        batch = ForwardPublicationBatch(
+            published_by_user_id=admin.id,
+            published_at=published_at,
+            record_mode=mode,
+            publication_count=len(preview["candidates"]),
+            revision_count=0,
+            delayed_count=preview["delayed_count"],
+            source_digest=preview["approval_signature"],
+        )
+        db.session.add(batch)
+
+        for candidate in preview["candidates"]:
+            asset = tracked_asset(candidate["ticker"], mode)
+            if asset is None:
+                asset = ForwardRecordAsset(
+                    record_mode=mode,
+                    ticker=candidate["ticker"],
+                    status="active",
+                    start_date=candidate["start_date"],
+                    enrolled_at=published_at,
+                    created_at=published_at,
+                    updated_at=published_at,
+                )
+                db.session.add(asset)
+            elif asset.status != "active":
+                raise RuntimeError(
+                    f"{candidate['ticker']} is {asset.status} and cannot be updated."
+                )
+
+            asset.approved_through_date = candidate["approved_through_date"]
+            asset.last_approved_at = published_at
+            asset.last_approved_digest = candidate["approved_digest_after"]
+            asset.updated_at = published_at
+
         db.session.commit()
     except Exception:
         db.session.rollback()
+        for item in reversed(replaced):
+            _safe_remove(item["target"])
+            if item["had_original"] and item["backup"].exists():
+                os.replace(item["backup"], item["target"])
+        for item in staged:
+            _safe_remove(item["temp"])
         raise
+    else:
+        for item in replaced:
+            _safe_remove(item["backup"])
+        for item in staged:
+            _safe_remove(item["temp"])
 
-    mode_label = mode.upper()
     for candidate in preview["candidates"]:
+        latest = (
+            signal_label(candidate["latest_signal"])
+            if candidate["latest_signal"] is not None else "—"
+        )
         print(
-            f"{mode_label}-PUBLISHED-{candidate['publication_type'].upper()} "
-            f"{candidate['ticker']}: {candidate['signal_label']} "
-            f"data_through={candidate['source_data_date']}"
+            f"{mode.upper()}-PUBLISHED-{candidate['classification'].upper()} "
+            f"{candidate['ticker']}: rows={candidate['new_row_count']} "
+            f"through={candidate['approved_through_date'] or 'waiting'} latest={latest}"
         )
     print(
-        f"{mode_label} Forward Record batch published: batch_id={batch.id} "
-        f"publications={len(preview['candidates'])} "
-        f"market_rows={preview['market_row_count']}"
+        f"{mode.upper()} approved-file batch published: batch_id={batch.id} "
+        f"assets={len(preview['candidates'])} new_rows={preview['new_row_count']}"
     )
-
     return {
         **preview,
-        "published": len(preview["candidates"]),
         "approval_mismatch": False,
+        "published": len(preview["candidates"]),
         "batch_id": batch.id,
     }
 
 
 def reset_sandbox_record(*, admin_user_id: int) -> dict[str, int]:
-    """Delete only private sandbox rows so pre-launch testing can start over."""
     admin = db.session.get(User, int(admin_user_id))
     if admin is None:
         raise ValueError("Admin user was not found.")
 
-    sandbox_batches = (
-        ForwardPublicationBatch.query
-        .filter_by(record_mode="sandbox")
-        .order_by(ForwardPublicationBatch.id.asc())
-        .all()
-    )
-    batch_ids = [batch.id for batch in sandbox_batches]
-    if not batch_ids:
-        return {"batches": 0, "publications": 0, "observations": 0}
+    sandbox_assets = ForwardRecordAsset.query.filter_by(record_mode="sandbox").all()
+    removed_files = 0
+    for asset in sandbox_assets:
+        path = get_forward_record_csv_path(asset.ticker, "sandbox")
+        if os.path.isfile(path):
+            os.remove(path)
+            removed_files += 1
 
-    observation_count = (
-        ForwardMarketObservation.query
-        .filter_by(record_mode="sandbox")
-        .delete(synchronize_session=False)
+    asset_count = ForwardRecordAsset.query.filter_by(record_mode="sandbox").delete(
+        synchronize_session=False
     )
-    publication_count = (
-        ForwardSignalPublication.query
-        .filter(ForwardSignalPublication.batch_id.in_(batch_ids))
-        .delete(synchronize_session=False)
-    )
-    batch_count = (
-        ForwardPublicationBatch.query
-        .filter(ForwardPublicationBatch.id.in_(batch_ids))
-        .delete(synchronize_session=False)
+    batch_count = ForwardPublicationBatch.query.filter_by(record_mode="sandbox").delete(
+        synchronize_session=False
     )
     db.session.commit()
 
     print(
-        "SANDBOX Forward Record reset: "
-        f"batches={batch_count} publications={publication_count} "
-        f"observations={observation_count} admin_user_id={admin.id}"
+        "SANDBOX approved-file record reset: "
+        f"assets={asset_count} batches={batch_count} files={removed_files} "
+        f"admin_user_id={admin.id}"
     )
     return {
+        "assets": int(asset_count or 0),
         "batches": int(batch_count or 0),
-        "publications": int(publication_count or 0),
-        "observations": int(observation_count or 0),
+        "files": int(removed_files),
     }
 
 
-def resolve_admin(email: str | None) -> User:
-    raw = (email or "").strip().lower()
-    if not raw:
-        configured = [
-            item.strip().lower()
-            for item in os.environ.get("ADMIN_EMAILS", "").split(",")
-            if item.strip()
-        ]
-        if len(configured) != 1:
-            raise ValueError("Pass --admin-email when ADMIN_EMAILS has zero or multiple entries.")
-        raw = configured[0]
-    user = User.query.filter(User.email == raw).first()
-    if user is None:
-        raise ValueError("Configured admin account was not found in the database.")
-    return user
+def normalize_retirement_reason(value: str | None) -> str:
+    reason = " ".join(str(value or "").split())
+    if len(reason) < 5:
+        raise ValueError("Provide a public retirement reason of at least 5 characters.")
+    if len(reason) > 300:
+        raise ValueError("The public retirement reason must be 300 characters or fewer.")
+    return reason
+
+
+def normalize_removal_date(value: str | date | None, *, retirement_date: date) -> date:
+    if isinstance(value, date):
+        parsed = value
+    else:
+        raw = str(value or "").strip()
+        if not raw:
+            parsed = retirement_date + timedelta(days=365)
+        else:
+            try:
+                parsed = date.fromisoformat(raw)
+            except ValueError as exc:
+                raise ValueError("Removal date must use YYYY-MM-DD format.") from exc
+    if parsed < retirement_date:
+        raise ValueError("Removal date cannot be earlier than the retirement date.")
+    return parsed
+
+
+def build_retirement_preview(
+    ticker: str,
+    reason: str | None,
+    removal_after_date: str | date | None = None,
+) -> dict[str, Any]:
+    require_public_record_enabled("public")
+    clean = normalize_ticker(ticker)
+    public_reason = normalize_retirement_reason(reason)
+    asset = tracked_asset(clean, "public")
+    if asset is None:
+        raise ValueError(f"{clean} has not entered the public Forward Record.")
+    if asset.status != "active":
+        raise ValueError(f"{clean} is already {asset.status}.")
+
+    retirement_date = utcnow().date()
+    removal_date = normalize_removal_date(
+        removal_after_date,
+        retirement_date=retirement_date,
+    )
+    path = get_forward_record_csv_path(clean, "public", must_exist=True)
+    approved = load_approved_data(clean, "public")
+    digest = frame_digest(approved)
+    if asset.last_approved_digest and digest != asset.last_approved_digest:
+        raise ValueError("Approved public CSV changed outside the approval workflow.")
+
+    enabled_alert_count = WatchlistItem.query.filter_by(
+        ticker=clean,
+        email_alert_enabled=True,
+    ).count()
+    payload = {
+        "asset_id": asset.id,
+        "ticker": clean,
+        "status": asset.status,
+        "start_date": asset.start_date.isoformat(),
+        "approved_through_date": (
+            asset.approved_through_date.isoformat()
+            if asset.approved_through_date else None
+        ),
+        "approved_digest": digest,
+        "file_size": os.path.getsize(path),
+        "reason": public_reason,
+        "retirement_date": retirement_date.isoformat(),
+        "removal_after_date": removal_date.isoformat(),
+        "enabled_alert_count": enabled_alert_count,
+    }
+    signature = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    return {
+        **payload,
+        "retirement_reason": public_reason,
+        "approval_signature": signature,
+    }
+
+
+def print_retirement_preview(preview: dict[str, Any]) -> None:
+    print(
+        f"RETIRE-PREVIEW {preview['ticker']}: tracking_end={preview['retirement_date']} "
+        f"approved_through={preview['approved_through_date'] or 'no rows yet'} "
+        f"record_available_until={preview['removal_after_date']} "
+        f"alerts_to_disable={preview['enabled_alert_count']}"
+    )
+    print(f"Public reason: {preview['retirement_reason']}")
+
+
+def retire_public_asset(
+    *,
+    admin_user_id: int,
+    ticker: str,
+    reason: str,
+    removal_after_date: str | date | None,
+    expected_approval_signature: str,
+) -> dict[str, Any]:
+    admin = db.session.get(User, int(admin_user_id))
+    if admin is None:
+        raise ValueError("Admin user was not found.")
+
+    clean = normalize_ticker(ticker)
+    asset = (
+        ForwardRecordAsset.query
+        .filter_by(record_mode="public", ticker=clean)
+        .with_for_update()
+        .first()
+    )
+    if asset is None or asset.status != "active":
+        db.session.rollback()
+        return {
+            "ticker": clean,
+            "retired": False,
+            "approval_mismatch": True,
+            "disabled_alert_count": 0,
+        }
+
+    preview = build_retirement_preview(clean, reason, removal_after_date)
+    if (
+        not expected_approval_signature
+        or preview["approval_signature"] != expected_approval_signature
+    ):
+        db.session.rollback()
+        return {
+            **preview,
+            "retired": False,
+            "approval_mismatch": True,
+            "disabled_alert_count": 0,
+        }
+
+    now = utcnow()
+    asset.status = "retired"
+    asset.retired_at = now
+    asset.retirement_date = date.fromisoformat(preview["retirement_date"])
+    asset.removal_after_date = date.fromisoformat(preview["removal_after_date"])
+    asset.retired_by_user_id = admin.id
+    asset.retirement_reason = preview["retirement_reason"]
+    asset.updated_at = now
+
+    disabled = WatchlistItem.query.filter_by(
+        ticker=clean,
+        email_alert_enabled=True,
+    ).update(
+        {WatchlistItem.email_alert_enabled: False},
+        synchronize_session=False,
+    )
+    db.session.commit()
+    print(
+        f"RETIRED-PUBLIC {clean}: tracking_end={asset.retirement_date} "
+        f"record_available_until={asset.removal_after_date} "
+        f"alerts_disabled={disabled}"
+    )
+    return {
+        **preview,
+        "retired": True,
+        "approval_mismatch": False,
+        "disabled_alert_count": int(disabled or 0),
+    }
+
+
+def build_removal_preview(ticker: str) -> dict[str, Any]:
+    clean = normalize_ticker(ticker)
+    asset = tracked_asset(clean, "public")
+    if asset is None:
+        raise ValueError(f"{clean} has not entered the public Forward Record.")
+    if asset.status != "retired":
+        raise ValueError(f"{clean} must be retired before its public data can be removed.")
+
+    path = get_forward_record_csv_path(clean, "public")
+    file_exists = os.path.isfile(path)
+    digest = None
+    file_size = 0
+    if file_exists:
+        approved = load_approved_data(clean, "public")
+        digest = frame_digest(approved)
+        file_size = os.path.getsize(path)
+        if asset.last_approved_digest and digest != asset.last_approved_digest:
+            raise ValueError("Approved public CSV changed outside the approval workflow.")
+
+    today = utcnow().date()
+    early = bool(asset.removal_after_date and today < asset.removal_after_date)
+    payload = {
+        "asset_id": asset.id,
+        "ticker": clean,
+        "status": asset.status,
+        "retirement_date": asset.retirement_date.isoformat(),
+        "removal_after_date": asset.removal_after_date.isoformat(),
+        "today": today.isoformat(),
+        "early_removal": early,
+        "file_exists": file_exists,
+        "file_digest": digest,
+        "file_size": file_size,
+    }
+    signature = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    return {**payload, "approval_signature": signature}
+
+
+def print_removal_preview(preview: dict[str, Any]) -> None:
+    timing = "EARLY" if preview["early_removal"] else "SCHEDULED"
+    print(
+        f"REMOVE-PREVIEW-{timing} {preview['ticker']}: "
+        f"announced_removal={preview['removal_after_date']} "
+        f"file_exists={preview['file_exists']} bytes={preview['file_size']}"
+    )
+    print(
+        "Removal deletes the approved public CSV and removes the asset from the "
+        "customer performance selector. A tiny PostgreSQL lifecycle record remains."
+    )
+
+
+def remove_retired_public_data(
+    *,
+    admin_user_id: int,
+    ticker: str,
+    expected_approval_signature: str,
+) -> dict[str, Any]:
+    admin = db.session.get(User, int(admin_user_id))
+    if admin is None:
+        raise ValueError("Admin user was not found.")
+
+    clean = normalize_ticker(ticker)
+    asset = (
+        ForwardRecordAsset.query
+        .filter_by(record_mode="public", ticker=clean)
+        .with_for_update()
+        .first()
+    )
+    if asset is None or asset.status != "retired":
+        db.session.rollback()
+        return {
+            "ticker": clean,
+            "removed": False,
+            "approval_mismatch": True,
+        }
+
+    preview = build_removal_preview(clean)
+    if (
+        not expected_approval_signature
+        or preview["approval_signature"] != expected_approval_signature
+    ):
+        db.session.rollback()
+        return {**preview, "removed": False, "approval_mismatch": True}
+
+    path = Path(get_forward_record_csv_path(clean, "public"))
+    backup = path.with_name(f".{path.name}.{uuid.uuid4().hex}.remove-bak")
+    had_file = path.exists()
+    if had_file:
+        os.replace(path, backup)
+
+    try:
+        now = utcnow()
+        asset.status = "removed"
+        asset.removed_at = now
+        asset.removed_by_user_id = admin.id
+        asset.updated_at = now
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        if had_file and backup.exists():
+            os.replace(backup, path)
+        raise
+    else:
+        _safe_remove(backup)
+
+    print(
+        f"REMOVED-PUBLIC-DATA {clean}: approved_csv_deleted={had_file} "
+        f"removed_at={asset.removed_at.isoformat()}"
+    )
+    return {
+        **preview,
+        "removed": True,
+        "approval_mismatch": False,
+        "approved_csv_deleted": had_file,
+    }
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Preview, publish, or reset a NeuralTrend Forward Record mode."
-    )
-    action = parser.add_mutually_exclusive_group(required=True)
-    action.add_argument("--preview", action="store_true")
-    action.add_argument("--publish", action="store_true")
-    action.add_argument("--reset-sandbox", action="store_true")
-    parser.add_argument("--record-mode", choices=sorted(RECORD_MODES), default="sandbox")
-    parser.add_argument("--ticker", default=None)
-    parser.add_argument("--admin-email", default=None)
-    parser.add_argument(
-        "--approval-signature",
-        default=None,
-        help="Required with --publish; copy it from a fresh matching preview.",
-    )
-    parser.add_argument(
-        "--confirm-public-launch",
-        action="store_true",
-        help="Additional irreversible acknowledgement required for public publication.",
-    )
-    parser.add_argument(
-        "--confirm-reset-sandbox",
-        action="store_true",
-        help="Required with --reset-sandbox.",
-    )
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--mode", choices=sorted(RECORD_MODES), default="sandbox")
+    parser.add_argument("--ticker")
+    parser.add_argument("--admin-user-id", type=int)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--preview", action="store_true")
+    group.add_argument("--publish", action="store_true")
+    group.add_argument("--reset-sandbox", action="store_true")
+    group.add_argument("--retire", action="store_true")
+    group.add_argument("--remove-retired-data", action="store_true")
+    parser.add_argument("--approval-signature")
+    parser.add_argument("--reason")
+    parser.add_argument("--removal-after")
     args = parser.parse_args()
 
     with app.app_context():
-        admin = resolve_admin(args.admin_email) if (args.publish or args.reset_sandbox) else None
-
-        if args.reset_sandbox:
-            if args.record_mode != "sandbox":
-                parser.error("--reset-sandbox can only be used with --record-mode sandbox.")
-            if not args.confirm_reset_sandbox:
-                parser.error("--reset-sandbox requires --confirm-reset-sandbox.")
-            reset_sandbox_record(admin_user_id=admin.id)
-            return 0
-
-        if args.record_mode == "public" and args.publish and not args.confirm_public_launch:
-            parser.error("Public publication requires --confirm-public-launch.")
-
-        preview = build_publication_preview(
-            ticker=args.ticker,
-            record_mode=args.record_mode,
-        )
-        print_preview(preview)
-        print(f"Approval signature: {preview['approval_signature']}")
         if args.preview:
-            return 1 if preview["errors"] else 0
-        if not args.approval_signature:
-            parser.error("--publish requires --approval-signature from a fresh preview.")
-
-        result = publish_forward_batch(
-            admin_user_id=admin.id,
-            expected_approval_signature=args.approval_signature,
-            ticker=args.ticker,
-            record_mode=args.record_mode,
-        )
-        if result["approval_mismatch"]:
-            print("ABORT-CHANGED: source data changed after preview.", file=sys.stderr)
-            return 1
-        return 0
+            preview = build_publication_preview(args.ticker, record_mode=args.mode)
+            print_preview(preview)
+            return 1 if preview["error_count"] else 0
+        if args.publish:
+            if not args.admin_user_id or not args.approval_signature:
+                parser.error("--publish requires --admin-user-id and --approval-signature")
+            publish_forward_batch(
+                admin_user_id=args.admin_user_id,
+                expected_approval_signature=args.approval_signature,
+                ticker=args.ticker,
+                record_mode=args.mode,
+            )
+            return 0
+        if args.reset_sandbox:
+            if not args.admin_user_id:
+                parser.error("--reset-sandbox requires --admin-user-id")
+            reset_sandbox_record(admin_user_id=args.admin_user_id)
+            return 0
+        if args.retire:
+            if not all([args.admin_user_id, args.ticker, args.reason, args.approval_signature]):
+                parser.error(
+                    "--retire requires --admin-user-id, --ticker, --reason and "
+                    "--approval-signature"
+                )
+            retire_public_asset(
+                admin_user_id=args.admin_user_id,
+                ticker=args.ticker,
+                reason=args.reason,
+                removal_after_date=args.removal_after,
+                expected_approval_signature=args.approval_signature,
+            )
+            return 0
+        if args.remove_retired_data:
+            if not all([args.admin_user_id, args.ticker, args.approval_signature]):
+                parser.error(
+                    "--remove-retired-data requires --admin-user-id, --ticker and "
+                    "--approval-signature"
+                )
+            remove_retired_public_data(
+                admin_user_id=args.admin_user_id,
+                ticker=args.ticker,
+                expected_approval_signature=args.approval_signature,
+            )
+            return 0
+    return 0
 
 
 if __name__ == "__main__":
