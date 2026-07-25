@@ -580,3 +580,62 @@
         flex-direction: column;
     }
 }
+
+/* ==================================================
+   FORWARD RECORD — ARCHIVED ASSETS
+================================================== */
+
+.nt-forward-archive-badge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    margin-top: 6px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: #ffedd5;
+    color: #9a3412;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.nt-forward-retirement-notice {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 22px;
+    margin-top: 18px;
+    padding: 16px 18px;
+    border: 1px solid #fed7aa;
+    border-radius: 14px;
+    background: #fff7ed;
+    color: #9a3412;
+}
+
+.nt-forward-retirement-notice strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #7c2d12;
+}
+
+.nt-forward-retirement-notice p {
+    margin: 0;
+    color: #9a3412;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.nt-forward-retirement-notice > span {
+    flex: 0 0 auto;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: #ffedd5;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+    .nt-forward-retirement-notice {
+        flex-direction: column;
+    }
+}

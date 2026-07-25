@@ -502,3 +502,136 @@
         margin-top: 12px;
     }
 }
+
+/* ==================================================
+   FORWARD RECORD — ASSET RETIREMENT
+================================================== */
+
+.nt-alert-admin-panel.is-retirement-panel {
+    border-color: #fed7aa;
+    background: linear-gradient(180deg, #ffffff 0%, #fffaf5 100%);
+}
+
+.nt-alert-admin-archive-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: #ffedd5;
+    color: #9a3412;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.nt-alert-admin-notice.is-retirement-notice {
+    border-color: #fed7aa;
+    background: #fff7ed;
+    color: #9a3412;
+}
+
+.nt-alert-admin-retirement-grid {
+    display: grid;
+    grid-template-columns: minmax(190px, 0.7fr) minmax(280px, 1.35fr) minmax(230px, 0.9fr);
+    gap: 16px;
+}
+
+.nt-alert-admin-retirement-grid label {
+    display: grid;
+    gap: 7px;
+}
+
+.nt-alert-admin-retirement-grid label > span {
+    color: #334155;
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.nt-alert-admin-retirement-grid input,
+.nt-alert-admin-retirement-grid select {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #fff;
+    color: #0f172a;
+    font: inherit;
+}
+
+.nt-alert-admin-retirement-grid small {
+    color: #64748b;
+    font-size: 0.75rem;
+    line-height: 1.45;
+}
+
+.nt-alert-admin-archived-list {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #fed7aa;
+}
+
+.nt-alert-admin-archived-list > strong {
+    color: #9a3412;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.nt-alert-admin-archived-list > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.nt-alert-admin-archived-list a {
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: #ffedd5;
+    color: #9a3412;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.nt-alert-admin-archived-list a:hover {
+    background: #fed7aa;
+}
+
+@media (max-width: 900px) {
+    .nt-alert-admin-retirement-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==================================================
+   FORWARD RECORD — FILE RETENTION / REMOVAL
+================================================== */
+
+.nt-alert-admin-retirement-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nt-alert-admin-panel.is-removal-panel {
+    border-color: #fecaca;
+    background: linear-gradient(180deg, #ffffff 0%, #fff8f8 100%);
+}
+
+.nt-alert-admin-panel.is-removal-panel .nt-alert-admin-archive-badge {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.nt-alert-admin-panel.is-removal-panel .nt-alert-admin-notice {
+    border-color: #fecaca;
+    background: #fff1f2;
+    color: #991b1b;
+}
+
+@media (max-width: 900px) {
+    .nt-alert-admin-retirement-grid {
+        grid-template-columns: 1fr;
+    }
+}
