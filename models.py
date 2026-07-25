@@ -537,7 +537,130 @@ class SignalAlertDelivery(db.Model):
     )
 
 
+class ForwardRecordAsset(db.Model):
+    """Minimal metadata for one approved CSV-backed Forward Record asset."""
+
+    __tablename__ = "forward_record_assets"
+
+    id = db.Column(db.Integer, primary_key=True)
+    record_mode = db.Column(
+        db.String(20),
+        nullable=False,
+        default="sandbox",
+        server_default="sandbox",
+        index=True,
+    )
+    ticker = db.Column(db.String(30), nullable=False, index=True)
+    status = db.Column(
+        db.String(20),
+        nullable=False,
+        default="active",
+        server_default="active",
+        index=True,
+    )
+
+    # The fixed first calendar date eligible for this asset's approved record.
+    start_date = db.Column(db.Date, nullable=False, index=True)
+    enrolled_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        index=True,
+    )
+
+    # Compact approval metadata. Daily Date/Close/signal rows live in a slim,
+    # admin-approved CSV rather than PostgreSQL.
+    approved_through_date = db.Column(db.Date, nullable=True, index=True)
+    last_approved_at = db.Column(db.DateTime, nullable=True, index=True)
+    last_approved_digest = db.Column(db.String(64), nullable=True)
+
+    # Retirement freezes the approved record at retirement_date. The public
+    # CSV remains available until removal_after_date unless the owner removes
+    # it earlier through the explicit admin workflow.
+    retired_at = db.Column(db.DateTime, nullable=True, index=True)
+    retirement_date = db.Column(db.Date, nullable=True, index=True)
+    removal_after_date = db.Column(db.Date, nullable=True, index=True)
+    retired_by_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    retirement_reason = db.Column(db.String(500), nullable=True)
+
+    removed_at = db.Column(db.DateTime, nullable=True, index=True)
+    removed_by_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )
+
+    retired_by = db.relationship(
+        "User",
+        foreign_keys=[retired_by_user_id],
+        backref=db.backref("retired_forward_record_assets", lazy=True),
+    )
+    removed_by = db.relationship(
+        "User",
+        foreign_keys=[removed_by_user_id],
+        backref=db.backref("removed_forward_record_assets", lazy=True),
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "record_mode",
+            "ticker",
+            name="uq_forward_record_asset_mode_ticker",
+        ),
+        db.CheckConstraint(
+            "record_mode IN ('sandbox', 'public')",
+            name="ck_forward_record_asset_mode",
+        ),
+        db.CheckConstraint(
+            "status IN ('active', 'retired', 'removed')",
+            name="ck_forward_record_asset_status",
+        ),
+        db.CheckConstraint(
+            "approved_through_date IS NULL OR approved_through_date >= start_date",
+            name="ck_forward_record_asset_approved_window",
+        ),
+        db.CheckConstraint(
+            "retirement_date IS NULL OR retirement_date >= start_date",
+            name="ck_forward_record_asset_retirement_window",
+        ),
+        db.CheckConstraint(
+            "removal_after_date IS NULL OR retirement_date IS NULL OR "
+            "removal_after_date >= retirement_date",
+            name="ck_forward_record_asset_removal_window",
+        ),
+        db.CheckConstraint(
+            "(status = 'active' AND retired_at IS NULL AND retirement_date IS NULL "
+            "AND removal_after_date IS NULL AND removed_at IS NULL) OR "
+            "(status = 'retired' AND retired_at IS NOT NULL AND retirement_date IS NOT NULL "
+            "AND removal_after_date IS NOT NULL AND removed_at IS NULL) OR "
+            "(status = 'removed' AND retired_at IS NOT NULL AND retirement_date IS NOT NULL "
+            "AND removal_after_date IS NOT NULL AND removed_at IS NOT NULL)",
+            name="ck_forward_record_asset_lifecycle_consistency",
+        ),
+    )
+
+
 class ForwardPublicationBatch(db.Model):
+    """Compact audit row for one approved multi-asset file publication."""
+
     __tablename__ = "forward_publication_batches"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -584,133 +707,5 @@ class ForwardPublicationBatch(db.Model):
         db.CheckConstraint(
             "publication_count >= 0 AND revision_count >= 0 AND delayed_count >= 0",
             name="ck_forward_batch_counts",
-        ),
-    )
-
-
-class ForwardSignalPublication(db.Model):
-    __tablename__ = "forward_signal_publications"
-
-    id = db.Column(db.Integer, primary_key=True)
-    batch_id = db.Column(
-        db.Integer,
-        db.ForeignKey("forward_publication_batches.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    ticker = db.Column(db.String(30), nullable=False, index=True)
-    source_data_date = db.Column(db.Date, nullable=False, index=True)
-    signal = db.Column(db.SmallInteger, nullable=False)
-    reference_close = db.Column(db.Float, nullable=False)
-    published_at = db.Column(db.DateTime, nullable=False, index=True)
-    publication_type = db.Column(
-        db.String(20),
-        nullable=False,
-        default="regular",
-        index=True,
-    )
-    source_row_fingerprint = db.Column(db.String(64), nullable=False)
-    publication_key = db.Column(
-        db.String(64),
-        nullable=False,
-        unique=True,
-        index=True,
-    )
-    supersedes_publication_id = db.Column(
-        db.Integer,
-        db.ForeignKey("forward_signal_publications.id", ondelete="SET NULL"),
-        nullable=True,
-        index=True,
-    )
-    created_at = db.Column(
-        db.DateTime,
-        nullable=False,
-        default=datetime.utcnow,
-    )
-
-    batch = db.relationship(
-        "ForwardPublicationBatch",
-        backref=db.backref(
-            "publications",
-            lazy=True,
-            cascade="all, delete-orphan",
-            passive_deletes=True,
-        ),
-    )
-    supersedes = db.relationship(
-        "ForwardSignalPublication",
-        remote_side=[id],
-        foreign_keys=[supersedes_publication_id],
-        uselist=False,
-    )
-
-    __table_args__ = (
-        db.UniqueConstraint(
-            "batch_id",
-            "ticker",
-            name="uq_forward_publication_batch_ticker",
-        ),
-        db.CheckConstraint(
-            "signal IN (-1, 0, 1)",
-            name="ck_forward_publication_signal",
-        ),
-        db.CheckConstraint(
-            "reference_close > 0",
-            name="ck_forward_publication_reference_close",
-        ),
-        db.CheckConstraint(
-            "publication_type IN ('initial', 'regular', 'delayed', 'revision', 'correction')",
-            name="ck_forward_publication_type",
-        ),
-    )
-
-
-class ForwardMarketObservation(db.Model):
-    __tablename__ = "forward_market_observations"
-
-    id = db.Column(db.Integer, primary_key=True)
-    record_mode = db.Column(
-        db.String(20),
-        nullable=False,
-        default="sandbox",
-        server_default="sandbox",
-        index=True,
-    )
-    ticker = db.Column(db.String(30), nullable=False, index=True)
-    market_date = db.Column(db.Date, nullable=False, index=True)
-    close_price = db.Column(db.Float, nullable=False)
-    source_row_fingerprint = db.Column(db.String(64), nullable=False)
-    captured_in_batch_id = db.Column(
-        db.Integer,
-        db.ForeignKey("forward_publication_batches.id", ondelete="RESTRICT"),
-        nullable=False,
-        index=True,
-    )
-    captured_at = db.Column(
-        db.DateTime,
-        nullable=False,
-        default=datetime.utcnow,
-        index=True,
-    )
-
-    captured_in_batch = db.relationship(
-        "ForwardPublicationBatch",
-        backref=db.backref("market_observations", lazy=True),
-    )
-
-    __table_args__ = (
-        db.UniqueConstraint(
-            "record_mode",
-            "ticker",
-            "market_date",
-            name="uq_forward_market_mode_ticker_date",
-        ),
-        db.CheckConstraint(
-            "record_mode IN ('sandbox', 'public')",
-            name="ck_forward_market_record_mode",
-        ),
-        db.CheckConstraint(
-            "close_price > 0",
-            name="ck_forward_market_price",
         ),
     )

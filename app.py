@@ -25,9 +25,8 @@ from models import (
     StripeWebhookEvent,
     WatchlistItem,
     SignalAlertDelivery,
+    ForwardRecordAsset,
     ForwardPublicationBatch,
-    ForwardSignalPublication,
-    ForwardMarketObservation,
 )
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Mail, Message
@@ -122,6 +121,20 @@ CSV_PATH = os.path.join(BASE_DIR, "data", "epoch_index-USD.csv")
 
 # Ensure folder/file exist
 os.makedirs(DATA_DIR, exist_ok=True)
+
+# Approved Forward Record CSVs contain only Date, Close and epoch_signal. In
+# production, point this at a persistent Render disk so admin-approved files
+# survive deploys/restarts. The default keeps local development self-contained.
+FORWARD_RECORD_STORAGE_EXPLICIT = bool(
+    os.environ.get("FORWARD_RECORD_STORAGE_DIR", "").strip()
+)
+FORWARD_RECORD_STORAGE_DIR = os.path.realpath(
+    os.environ.get(
+        "FORWARD_RECORD_STORAGE_DIR",
+        os.path.join(DATA_DIR, "forward_record_store"),
+    )
+)
+os.makedirs(FORWARD_RECORD_STORAGE_DIR, exist_ok=True)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -755,7 +768,7 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "ACH-USD", "ADA-USD", "AERO-USD", "AEVO-USD", "AGI-USD", "AIOZ-USD", "AIT-USD", "AIXBT-USD", "AKT-USD", "ALEPH-USD",
                "ALGO-USD", "ALI-USD", "ALPH-USD", "ALT-USD", "ALU-USD", "ALVA-USD", "AMP-USD", 'AMZN', "ANKR-USD", "ANON-USD", "ANYONE-USD", "APT-USD",
                "APU-USD", "AR-USD", "ARB-USD", "ARC-USD", "ASML", "ASTR-USD", "ATLAS-USD", "ATOM-USD", "AURY-USD", "AUTOS-USD", "AVAX-USD", 'AVGO', 
-               "AXL-USD", "AXS-USD", "BAI-USD", "BAL-USD", "BANANA-USD", "BAND-USD", "BASEDAI-USD", "BAZED-USD", "BCH-USD"
+               "AXL-USD", "AXS-USD", "BAI-USD", "BAL-USD", "BANANA-USD", "BAND-USD", "BASEDAI-USD", "BAZED-USD",
                "BCUT-USD", "BEAM-USD", "BGB-USD", "BIGTIME-USD", "BLUR-USD", "BNB-USD", "BNT-USD", "BONK-USD", "BRETT-USD", 'BRKB', 
                "BYTES-USD", "CAKE-USD", "CELO-USD", "CERE-USD", "CETUS-USD", "CFG-USD", "CGPT-USD", "CHAPZ-USD", "CHAT-USD", "CHEX-USD", "CHZ-USD", 
                "COMP-USD", "COST", "COTI-USD", "CPOOL-USD", "CREDI-USD", "CREO-USD", "CRO-USD", "CROWN-USD", "CRU-USD", "CRV-USD", "CTC-USD", "CVC-USD",
@@ -911,6 +924,59 @@ def get_epoch_csv_path(ticker):
     return csv_path
 
 
+def get_forward_record_csv_path(ticker, record_mode="public", *, must_exist=False):
+    """Return the canonical approved Forward Record CSV path.
+
+    These files are deliberately separate from working model CSVs. Updating a
+    working CSV never changes customer-facing performance until an admin
+    approves the corresponding compact file update.
+    """
+    clean = normalize_ticker(ticker)
+    mode = str(record_mode or "public").strip().lower()
+    if clean not in ALL_SUPPORTED_TICKERS:
+        raise ValueError("Unsupported asset ticker.")
+    if mode not in {"sandbox", "public"}:
+        raise ValueError("Forward Record mode must be sandbox or public.")
+    if not re.fullmatch(r"[A-Z0-9.-]{1,30}", clean):
+        raise ValueError("Unsupported asset ticker.")
+
+    root = os.path.realpath(FORWARD_RECORD_STORAGE_DIR)
+    mode_root = os.path.realpath(os.path.join(root, mode))
+    os.makedirs(mode_root, exist_ok=True)
+    csv_path = os.path.realpath(os.path.join(mode_root, f"{clean}.csv"))
+    try:
+        inside_root = os.path.commonpath([mode_root, csv_path]) == mode_root
+    except ValueError:
+        inside_root = False
+    if not inside_root:
+        raise ValueError("Unsupported Forward Record path.")
+    if must_exist and not os.path.isfile(csv_path):
+        raise FileNotFoundError("Approved Forward Record data is unavailable for this asset.")
+    return csv_path
+
+
+def load_forward_record_csv(ticker, record_mode="public"):
+    path = get_forward_record_csv_path(ticker, record_mode, must_exist=True)
+    data = pd.read_csv(
+        path,
+        usecols=["Date", "Close", "epoch_signal"],
+        parse_dates=["Date"],
+    )
+    data["Close"] = pd.to_numeric(data["Close"], errors="coerce")
+    data["epoch_signal"] = pd.to_numeric(data["epoch_signal"], errors="coerce")
+    data = data.dropna(subset=["Date", "Close", "epoch_signal"]).copy()
+    data = data[
+        data["Close"].map(math.isfinite)
+        & data["epoch_signal"].map(math.isfinite)
+        & (data["Close"] > 0)
+        & data["epoch_signal"].isin([-1, 0, 1])
+    ].copy()
+    data["epoch_signal"] = data["epoch_signal"].astype(int)
+    data = data.sort_values("Date").drop_duplicates(subset=["Date"], keep="last")
+    data.set_index("Date", inplace=True)
+    return data
+
+
 def is_admin_only_ticker(ticker):
     return normalize_ticker(ticker) in ADMIN_ONLY_TICKERS
 
@@ -921,6 +987,12 @@ def can_user_see_ticker(user, ticker):
         return False
 
     if is_admin_only_ticker(ticker) and not is_admin_user(user):
+        return False
+
+    # Retired/removed Forward Record assets remain inspectable by admins while
+    # their working CSV is retained, but ordinary customers no longer see them
+    # in Signal Overview, searches, backtests, watchlists, or simulations.
+    if public_forward_asset_is_retired(ticker) and not is_admin_user(user):
         return False
 
     return True
@@ -935,9 +1007,11 @@ def get_supported_tickers_for_user(user):
     if is_admin_user(user):
         return get_all_signal_board_tickers()
 
+    inactive_tickers = get_retired_public_ticker_set()
     return [
         ticker for ticker in SUPPORTED_TICKERS
         if not is_admin_only_ticker(ticker)
+        and ticker not in inactive_tickers
     ]
 
 def require_ticker_visible_or_404(ticker):
@@ -1213,7 +1287,10 @@ def build_methodology_featured_performance():
     rows = []
     csv_version = get_csv_version()
 
+    inactive_tickers = get_retired_public_ticker_set()
     for ticker in ("BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD"):
+        if ticker in inactive_tickers:
+            continue
         try:
             summary = compute_signals_for_ticker(
                 ticker,
@@ -1275,10 +1352,12 @@ def build_methodology_featured_performance():
 
 
 def build_methodology_coverage():
+    inactive_tickers = get_retired_public_ticker_set()
     public_tickers = [
         ticker
         for ticker in SUPPORTED_TICKERS
         if ticker not in ADMIN_ONLY_TICKERS
+        and ticker not in inactive_tickers
     ]
 
     return {
@@ -1293,18 +1372,11 @@ def build_methodology_coverage():
 
 
 # --------------------
-# Prospective Forward Record
+# Approved CSV-backed Forward Record
 # --------------------
 
 FORWARD_RECORD_INITIAL_CASH = 10_000.0
 FORWARD_RECORD_MODES = {"sandbox", "public"}
-FORWARD_PUBLICATION_TYPE_LABELS = {
-    "initial": "Started",
-    "regular": "Published",
-    "delayed": "Delayed",
-    "revision": "Revised",
-    "correction": "Corrected",
-}
 
 
 def env_flag(name, default=False):
@@ -1316,15 +1388,18 @@ def env_flag(name, default=False):
 
 def public_forward_record_started():
     return (
-        ForwardPublicationBatch.query
-        .filter_by(record_mode="public")
+        ForwardRecordAsset.query
+        .filter(
+            ForwardRecordAsset.record_mode == "public",
+            ForwardRecordAsset.status.in_(["active", "retired"]),
+        )
         .first()
         is not None
     )
 
 
 def public_forward_record_enabled():
-    """Allow launch by flag, but never hide or lock an already-started record."""
+    """Allow launch by flag, but never hide an already-started record."""
     return (
         env_flag("FORWARD_RECORD_PUBLIC_ENABLED", default=False)
         or public_forward_record_started()
@@ -1359,103 +1434,176 @@ def format_forward_ratio(value):
     return f"{number:.2f}"
 
 
-def forward_publication_query(record_mode="public"):
+def get_forward_record_assets(
+    record_mode="public",
+    *,
+    active_only=False,
+    include_removed=False,
+):
     mode = normalize_forward_record_mode(record_mode)
-    return (
-        ForwardSignalPublication.query
-        .join(
-            ForwardPublicationBatch,
-            ForwardPublicationBatch.id == ForwardSignalPublication.batch_id,
-        )
-        .filter(ForwardPublicationBatch.record_mode == mode)
-    )
+    query = ForwardRecordAsset.query.filter_by(record_mode=mode)
+    if active_only:
+        query = query.filter_by(status="active")
+    elif not include_removed:
+        query = query.filter(ForwardRecordAsset.status != "removed")
+    return query.order_by(
+        ForwardRecordAsset.status.asc(),
+        ForwardRecordAsset.ticker.asc(),
+    ).all()
 
 
-def get_forward_record_tickers(record_mode="public"):
-    mode = normalize_forward_record_mode(record_mode)
+def get_forward_record_tickers(
+    record_mode="public",
+    *,
+    active_only=False,
+    include_removed=False,
+):
     return [
-        row[0]
-        for row in (
-            db.session.query(ForwardSignalPublication.ticker)
-            .join(
-                ForwardPublicationBatch,
-                ForwardPublicationBatch.id == ForwardSignalPublication.batch_id,
-            )
-            .filter(ForwardPublicationBatch.record_mode == mode)
-            .distinct()
-            .order_by(ForwardSignalPublication.ticker.asc())
-            .all()
+        asset.ticker
+        for asset in get_forward_record_assets(
+            record_mode,
+            active_only=active_only,
+            include_removed=include_removed,
         )
     ]
 
 
-def forward_publication_status_label(publication_type):
-    return FORWARD_PUBLICATION_TYPE_LABELS.get(
-        str(publication_type or "").lower(),
-        "Published",
+def get_forward_record_asset(ticker, record_mode="public"):
+    clean = normalize_ticker(ticker)
+    if not clean:
+        return None
+    return ForwardRecordAsset.query.filter_by(
+        record_mode=normalize_forward_record_mode(record_mode),
+        ticker=clean,
+    ).first()
+
+
+def public_forward_asset_is_retired(ticker):
+    """True for assets hidden from ordinary product tools after retirement."""
+    asset = get_forward_record_asset(ticker, "public")
+    return bool(asset and asset.status in {"retired", "removed"})
+
+
+def get_retired_public_ticker_set():
+    return {
+        row[0]
+        for row in (
+            db.session.query(ForwardRecordAsset.ticker)
+            .filter(
+                ForwardRecordAsset.record_mode == "public",
+                ForwardRecordAsset.status.in_(["retired", "removed"]),
+            )
+            .all()
+        )
+    }
+
+
+def _empty_forward_record(asset, mode, *, data_available=True):
+    is_retired = asset.status == "retired"
+    end_date = (
+        asset.retirement_date
+        if is_retired and asset.retirement_date
+        else asset.approved_through_date or asset.start_date
     )
+    return {
+        "record_mode": mode,
+        "ticker": asset.ticker,
+        "asset_status": asset.status,
+        "is_retired": is_retired,
+        "data_available": data_available,
+        "retired_at": asset.retired_at,
+        "retired_date": (
+            asset.retirement_date.isoformat()
+            if asset.retirement_date else None
+        ),
+        "removal_after_date": (
+            asset.removal_after_date.isoformat()
+            if asset.removal_after_date else None
+        ),
+        "retirement_reason": asset.retirement_reason,
+        "record_started": asset.enrolled_at,
+        "record_started_date": asset.start_date.isoformat(),
+        "record_age_days": max(0, (end_date - asset.start_date).days),
+        "approved_through_date": (
+            asset.approved_through_date.isoformat()
+            if asset.approved_through_date else None
+        ),
+        "last_approved_at": asset.last_approved_at,
+        "publication_count": 0,
+        "observation_count": 0,
+        "latest_signal": "—",
+        "latest_signal_class": "hold",
+        "pending_execution": False,
+        "strategy_return": None,
+        "benchmark_return": None,
+        "return_spread": None,
+        "strategy_max_drawdown": None,
+        "benchmark_max_drawdown": None,
+        "strategy_volatility": None,
+        "sharpe_ratio": None,
+        "market_exposure": None,
+        "trade_count": 0,
+        "strategy_return_display": "—",
+        "benchmark_return_display": "—",
+        "return_spread_display": "—",
+        "strategy_max_drawdown_display": "—",
+        "benchmark_max_drawdown_display": "—",
+        "strategy_volatility_display": "—",
+        "sharpe_ratio_display": "Not enough history",
+        "market_exposure_display": "—",
+        "chart": {"dates": [], "strategy": [], "benchmark": []},
+        "recent_publications": [],
+    }
 
 
 def build_forward_record_performance(ticker, record_mode="public"):
-    """Build one mode's hypothetical record from its immutable snapshots.
+    """Calculate one asset's approved record directly from its slim CSV.
 
-    Sandbox and public records are completely independent. A publication can
-    affect its mode only at the first preserved daily close whose market date
-    is strictly later than the UTC publication date.
+    This intentionally mirrors the historical backtest treatment: the fixed
+    start boundary is the asset's approved tracking start date, the end is the
+    latest approved row (or retirement date), BUY/SELL actions use each row's
+    closing price, transaction costs are included, and slippage is excluded.
     """
     mode = normalize_forward_record_mode(record_mode)
     clean = normalize_ticker(ticker)
-    publications = (
-        forward_publication_query(mode)
-        .filter(ForwardSignalPublication.ticker == clean)
-        .order_by(
-            ForwardSignalPublication.published_at.asc(),
-            ForwardSignalPublication.id.asc(),
-        )
-        .all()
-    )
-    if not publications:
+    asset = get_forward_record_asset(clean, mode)
+    if asset is None or asset.status == "removed":
         return None
 
-    observations = (
-        ForwardMarketObservation.query
-        .filter_by(record_mode=mode, ticker=clean)
-        .order_by(ForwardMarketObservation.market_date.asc())
-        .all()
-    )
+    try:
+        data = load_forward_record_csv(clean, mode)
+        data_available = True
+    except (FileNotFoundError, ValueError, pd.errors.EmptyDataError):
+        data = pd.DataFrame(columns=["Close", "epoch_signal"])
+        data.index = pd.DatetimeIndex([], name="Date")
+        data_available = False
 
-    first_publication = publications[0]
-    latest_publication = publications[-1]
+    if not data.empty:
+        data = data[data.index.date >= asset.start_date].copy()
+        if asset.status == "retired" and asset.retirement_date:
+            data = data[data.index.date <= asset.retirement_date].copy()
+        if asset.approved_through_date:
+            data = data[data.index.date <= asset.approved_through_date].copy()
+
+    if data.empty:
+        return _empty_forward_record(asset, mode, data_available=data_available)
+
     initial_cash = FORWARD_RECORD_INITIAL_CASH
     transaction_cost_rate = get_transaction_cost_rate(clean)
-
     strategy_cash = initial_cash
     strategy_quantity = 0.0
     benchmark_cash = initial_cash
     benchmark_quantity = 0.0
     benchmark_started = False
-    target_signal = None
-    publication_index = 0
     trade_count = 0
     exposure_flags = []
     chart_dates = []
     strategy_values = []
     benchmark_values = []
 
-    for observation in observations:
-        market_date = observation.market_date
-
-        while (
-            publication_index < len(publications)
-            and publications[publication_index].published_at.date() < market_date
-        ):
-            target_signal = int(publications[publication_index].signal)
-            publication_index += 1
-
-        if target_signal is None:
-            continue
-
-        close_price = float(observation.close_price)
+    for index, row in data.iterrows():
+        close_price = float(row["Close"])
+        signal = int(row["epoch_signal"])
         if not math.isfinite(close_price) or close_price <= 0:
             continue
 
@@ -1468,7 +1616,7 @@ def build_forward_record_performance(ticker, record_mode="public"):
             )
             benchmark_started = True
 
-        if target_signal == 1 and strategy_quantity <= 0 and strategy_cash > 0:
+        if signal == 1 and strategy_quantity <= 0 and strategy_cash > 0:
             strategy_quantity = strategy_cash / (
                 close_price * (1 + transaction_cost_rate)
             )
@@ -1477,7 +1625,7 @@ def build_forward_record_performance(ticker, record_mode="public"):
             )
             strategy_cash = max(0.0, strategy_cash)
             trade_count += 1
-        elif target_signal == -1 and strategy_quantity > 0:
+        elif signal == -1 and strategy_quantity > 0:
             strategy_cash += strategy_quantity * close_price * (
                 1 - transaction_cost_rate
             )
@@ -1486,62 +1634,66 @@ def build_forward_record_performance(ticker, record_mode="public"):
 
         strategy_value = strategy_cash + strategy_quantity * close_price
         benchmark_value = benchmark_cash + benchmark_quantity * close_price
-
-        chart_dates.append(market_date.isoformat())
+        chart_dates.append(index.date().isoformat())
         strategy_values.append(float(strategy_value))
         benchmark_values.append(float(benchmark_value))
         exposure_flags.append(strategy_quantity > 0)
 
+    if not strategy_values:
+        return _empty_forward_record(asset, mode, data_available=data_available)
+
     metric_strategy_values = [initial_cash, *strategy_values]
     metric_benchmark_values = [initial_cash, *benchmark_values]
-
-    if strategy_values:
-        strategy_return = strategy_values[-1] / initial_cash - 1
-        benchmark_return = benchmark_values[-1] / initial_cash - 1
-        return_spread = strategy_return - benchmark_return
-        strategy_drawdown = calculate_max_drawdown(metric_strategy_values)
-        benchmark_drawdown = calculate_max_drawdown(metric_benchmark_values)
-        strategy_volatility = calculate_annualized_volatility(
-            metric_strategy_values,
-            clean,
-        )
-        sharpe_ratio = calculate_sharpe_from_equity_curve(
-            metric_strategy_values,
-            clean,
-        )
-        market_exposure = calculate_market_exposure(exposure_flags)
-    else:
-        strategy_return = None
-        benchmark_return = None
-        return_spread = None
-        strategy_drawdown = None
-        benchmark_drawdown = None
-        strategy_volatility = None
-        sharpe_ratio = None
-        market_exposure = None
-
-    recent_publications = list(reversed(publications[-12:]))
-    has_execution_after_latest = any(
-        observation.market_date > latest_publication.published_at.date()
-        for observation in observations
+    strategy_return = strategy_values[-1] / initial_cash - 1
+    benchmark_return = benchmark_values[-1] / initial_cash - 1
+    return_spread = strategy_return - benchmark_return
+    strategy_drawdown = calculate_max_drawdown(metric_strategy_values)
+    benchmark_drawdown = calculate_max_drawdown(metric_benchmark_values)
+    strategy_volatility = calculate_annualized_volatility(
+        metric_strategy_values,
+        clean,
     )
-    record_age_days = max(
-        0,
-        (datetime.utcnow().date() - first_publication.published_at.date()).days,
+    sharpe_ratio = calculate_sharpe_from_equity_curve(
+        metric_strategy_values,
+        clean,
     )
+    market_exposure = calculate_market_exposure(exposure_flags)
+
+    last_row = data.iloc[-1]
+    latest_signal = signal_label(int(last_row["epoch_signal"]))
+    end_date = (
+        asset.retirement_date
+        if asset.status == "retired" and asset.retirement_date
+        else data.index.max().date()
+    )
+    recent_rows = list(data.tail(12).iloc[::-1].iterrows())
 
     return {
         "record_mode": mode,
         "ticker": clean,
-        "record_started": first_publication.published_at,
-        "record_started_date": first_publication.published_at.date().isoformat(),
-        "record_age_days": record_age_days,
-        "publication_count": len(publications),
+        "asset_status": asset.status,
+        "is_retired": asset.status == "retired",
+        "data_available": data_available,
+        "retired_at": asset.retired_at,
+        "retired_date": (
+            asset.retirement_date.isoformat()
+            if asset.retirement_date else None
+        ),
+        "removal_after_date": (
+            asset.removal_after_date.isoformat()
+            if asset.removal_after_date else None
+        ),
+        "retirement_reason": asset.retirement_reason,
+        "record_started": asset.enrolled_at,
+        "record_started_date": asset.start_date.isoformat(),
+        "record_age_days": max(0, (end_date - asset.start_date).days),
+        "approved_through_date": data.index.max().date().isoformat(),
+        "last_approved_at": asset.last_approved_at,
+        "publication_count": len(data),
         "observation_count": len(strategy_values),
-        "latest_publication": latest_publication,
-        "latest_signal": signal_label(latest_publication.signal),
-        "latest_signal_class": signal_label(latest_publication.signal).lower(),
-        "pending_execution": not has_execution_after_latest,
+        "latest_signal": latest_signal,
+        "latest_signal_class": latest_signal.lower(),
+        "pending_execution": False,
         "strategy_return": strategy_return,
         "benchmark_return": benchmark_return,
         "return_spread": return_spread,
@@ -1572,53 +1724,44 @@ def build_forward_record_performance(ticker, record_mode="public"):
         },
         "recent_publications": [
             {
-                "published_at": publication.published_at,
-                "source_data_date": publication.source_data_date,
-                "signal": signal_label(publication.signal),
-                "signal_class": signal_label(publication.signal).lower(),
-                "status": forward_publication_status_label(
-                    publication.publication_type
-                ),
-                "status_class": publication.publication_type,
+                "published_at": None,
+                "source_data_date": index.date(),
+                "signal": signal_label(int(row["epoch_signal"])),
+                "signal_class": signal_label(int(row["epoch_signal"])).lower(),
+                "status": "Approved",
+                "status_class": "regular",
             }
-            for publication in recent_publications
+            for index, row in recent_rows
         ],
     }
 
 
 def build_forward_record_summary(record_mode="public"):
     mode = normalize_forward_record_mode(record_mode)
-    first = (
-        forward_publication_query(mode)
-        .order_by(
-            ForwardSignalPublication.published_at.asc(),
-            ForwardSignalPublication.id.asc(),
-        )
-        .first()
-    )
-    if first is None:
+    all_assets = get_forward_record_assets(mode, include_removed=True)
+    visible_assets = [asset for asset in all_assets if asset.status != "removed"]
+    if not visible_assets:
         return {
             "record_mode": mode,
             "started": False,
             "asset_count": 0,
+            "active_asset_count": 0,
+            "retired_asset_count": 0,
+            "removed_asset_count": len(all_assets),
             "record_started_date": None,
         }
 
-    asset_count = (
-        db.session.query(ForwardSignalPublication.ticker)
-        .join(
-            ForwardPublicationBatch,
-            ForwardPublicationBatch.id == ForwardSignalPublication.batch_id,
-        )
-        .filter(ForwardPublicationBatch.record_mode == mode)
-        .distinct()
-        .count()
-    )
+    active_count = sum(1 for asset in visible_assets if asset.status == "active")
+    retired_count = sum(1 for asset in visible_assets if asset.status == "retired")
+    first_start = min(asset.start_date for asset in visible_assets)
     return {
         "record_mode": mode,
         "started": True,
-        "asset_count": asset_count,
-        "record_started_date": first.published_at.date().isoformat(),
+        "asset_count": len(visible_assets),
+        "active_asset_count": active_count,
+        "retired_asset_count": retired_count,
+        "removed_asset_count": sum(1 for asset in all_assets if asset.status == "removed"),
+        "record_started_date": first_start.isoformat(),
     }
 
 
@@ -1628,6 +1771,9 @@ def build_forward_record_home_summary():
             "record_mode": "public",
             "started": False,
             "asset_count": 0,
+            "active_asset_count": 0,
+            "retired_asset_count": 0,
+            "removed_asset_count": 0,
             "record_started_date": None,
         }
     return build_forward_record_summary("public")
@@ -3009,6 +3155,8 @@ def admin_signal_alerts():
 
     dispatch_summary = None
     publication_summary = None
+    retirement_summary = None
+    removal_summary = None
     reset_summary = None
     dispatch_output = []
     page_error = None
@@ -3043,18 +3191,35 @@ def admin_signal_alerts():
             "sandbox_reset",
             "public_preview",
             "public_publish",
+            "public_retire_preview",
+            "public_retire",
+            "public_remove_preview",
+            "public_remove",
         }
 
         if selected_action not in allowed_actions:
             page_error = "Choose one of the available admin actions."
 
         if not page_error and selected_ticker:
-            try:
-                get_epoch_csv_path(selected_ticker)
-                if selected_ticker in ADMIN_ONLY_TICKERS:
-                    raise ValueError("Admin-only assets are not included.")
-            except (ValueError, FileNotFoundError):
-                page_error = "That ticker does not have a supported public signal file."
+            if selected_action in {"public_retire_preview", "public_retire"}:
+                tracked_asset = get_forward_record_asset(selected_ticker, "public")
+                if tracked_asset is None:
+                    page_error = "That asset has not entered the public Forward Record."
+                elif tracked_asset.status != "active":
+                    page_error = f"That asset is already {tracked_asset.status}."
+            elif selected_action in {"public_remove_preview", "public_remove"}:
+                tracked_asset = get_forward_record_asset(selected_ticker, "public")
+                if tracked_asset is None:
+                    page_error = "That asset has not entered the public Forward Record."
+                elif tracked_asset.status != "retired":
+                    page_error = "Only retired assets can have their public CSV removed."
+            else:
+                try:
+                    get_epoch_csv_path(selected_ticker)
+                    if selected_ticker in ADMIN_ONLY_TICKERS:
+                        raise ValueError("Admin-only assets are not included.")
+                except (ValueError, FileNotFoundError):
+                    page_error = "That ticker does not have a supported public signal file."
 
         if not page_error and selected_action.startswith("public_") and not public_enabled:
             page_error = (
@@ -3065,7 +3230,7 @@ def admin_signal_alerts():
 
         if (
             not page_error
-            and selected_action.startswith("public_")
+            and selected_action in {"public_preview", "public_publish"}
             and not public_record_summary.get("started")
             and not selected_ticker
         ):
@@ -3073,6 +3238,18 @@ def admin_signal_alerts():
                 "Choose one supported ticker for the first public Forward Record "
                 "publication. Assets enter the public record individually."
             )
+
+        if (
+            not page_error
+            and selected_action in {
+                "public_retire_preview",
+                "public_retire",
+                "public_remove_preview",
+                "public_remove",
+            }
+            and not selected_ticker
+        ):
+            page_error = "Choose one public asset for this lifecycle action."
 
         confirmation = (request.form.get("confirmation") or "").strip()
         required_confirmation = None
@@ -3088,6 +3265,10 @@ def admin_signal_alerts():
                 if not public_record_summary.get("started")
                 else "PUBLISH PUBLIC"
             )
+        elif selected_action == "public_retire":
+            required_confirmation = f"RETIRE {selected_ticker}"
+        elif selected_action == "public_remove":
+            required_confirmation = f"REMOVE {selected_ticker}"
 
         if (
             not page_error
@@ -3117,14 +3298,40 @@ def admin_signal_alerts():
                     "approve it within 15 minutes."
                 )
 
+        if not page_error and selected_action == "public_retire":
+            if not approval_is_valid(
+                "forward_public_retirement_preview",
+                ticker=selected_ticker,
+            ):
+                page_error = (
+                    "Preview this exact retirement first, then approve it within "
+                    "15 minutes."
+                )
+
+        if not page_error and selected_action == "public_remove":
+            if not approval_is_valid(
+                "forward_public_removal_preview",
+                ticker=selected_ticker,
+            ):
+                page_error = (
+                    "Preview this exact data removal first, then approve it within "
+                    "15 minutes."
+                )
+
         if not page_error:
             import io
             from contextlib import redirect_stderr, redirect_stdout
             from tools.publish_forward_record import (
                 build_publication_preview,
+                build_removal_preview,
+                build_retirement_preview,
                 print_preview,
+                print_removal_preview,
+                print_retirement_preview,
                 publish_forward_batch,
+                remove_retired_public_data,
                 reset_sandbox_record,
+                retire_public_asset,
             )
             from tools.send_signal_change_alerts import run_dispatch
 
@@ -3174,6 +3381,42 @@ def admin_signal_alerts():
                             ),
                             ticker=(selected_ticker or None),
                             record_mode=mode,
+                        )
+                    elif selected_action == "public_retire_preview":
+                        retirement_summary = build_retirement_preview(
+                            selected_ticker,
+                            request.form.get("retirement_reason"),
+                            request.form.get("removal_after_date"),
+                        )
+                        print_retirement_preview(retirement_summary)
+                    elif selected_action == "public_retire":
+                        approval = session.get(
+                            "forward_public_retirement_preview",
+                            {},
+                        )
+                        retirement_summary = retire_public_asset(
+                            admin_user_id=current_user.id,
+                            ticker=selected_ticker,
+                            reason=request.form.get("retirement_reason"),
+                            removal_after_date=request.form.get("removal_after_date"),
+                            expected_approval_signature=approval.get(
+                                "approval_signature"
+                            ),
+                        )
+                    elif selected_action == "public_remove_preview":
+                        removal_summary = build_removal_preview(selected_ticker)
+                        print_removal_preview(removal_summary)
+                    elif selected_action == "public_remove":
+                        approval = session.get(
+                            "forward_public_removal_preview",
+                            {},
+                        )
+                        removal_summary = remove_retired_public_data(
+                            admin_user_id=current_user.id,
+                            ticker=selected_ticker,
+                            expected_approval_signature=approval.get(
+                                "approval_signature"
+                            ),
                         )
                     elif selected_action == "sandbox_reset":
                         reset_summary = reset_sandbox_record(
@@ -3253,12 +3496,42 @@ def admin_signal_alerts():
                         "published; preview again."
                     )
 
+            if retirement_summary and selected_action == "public_retire_preview":
+                session["forward_public_retirement_preview"] = {
+                    "approval_signature": retirement_summary.get(
+                        "approval_signature"
+                    ),
+                    "ticker": selected_ticker,
+                    "created_at": int(time.time()),
+                }
+            elif retirement_summary and selected_action == "public_retire":
+                session.pop("forward_public_retirement_preview", None)
+                if retirement_summary.get("approval_mismatch"):
+                    page_error = (
+                        "The public record or alert state changed after preview. "
+                        "Nothing was retired; preview again."
+                    )
+
+            if removal_summary and selected_action == "public_remove_preview":
+                session["forward_public_removal_preview"] = {
+                    "approval_signature": removal_summary.get("approval_signature"),
+                    "ticker": selected_ticker,
+                    "created_at": int(time.time()),
+                }
+            elif removal_summary and selected_action == "public_remove":
+                session.pop("forward_public_removal_preview", None)
+                if removal_summary.get("approval_mismatch"):
+                    page_error = (
+                        "The retired record or approved file changed after preview. "
+                        "Nothing was removed; preview again."
+                    )
+
             if reset_summary is not None:
                 session.pop("forward_sandbox_preview", None)
 
             app.logger.info(
                 "Manual admin action admin_user_id=%s action=%s ticker=%s "
-                "publication=%s alerts=%s reset=%s",
+                "publication=%s alerts=%s retirement=%s removal=%s reset=%s",
                 current_user.id,
                 selected_action,
                 selected_ticker or "ALL",
@@ -3277,6 +3550,23 @@ def admin_signal_alerts():
                         "approval_mismatch", False
                     ),
                 } if dispatch_summary else None,
+                {
+                    "ticker": retirement_summary.get("ticker"),
+                    "retired": retirement_summary.get("retired", False),
+                    "approval_mismatch": retirement_summary.get(
+                        "approval_mismatch", False
+                    ),
+                    "disabled_alert_count": retirement_summary.get(
+                        "disabled_alert_count", 0
+                    ),
+                } if retirement_summary else None,
+                {
+                    "ticker": removal_summary.get("ticker"),
+                    "removed": removal_summary.get("removed", False),
+                    "approval_mismatch": removal_summary.get(
+                        "approval_mismatch", False
+                    ),
+                } if removal_summary else None,
                 reset_summary,
             )
 
@@ -3309,11 +3599,28 @@ def admin_signal_alerts():
         if not public_record_summary.get("started")
         else "PUBLISH PUBLIC"
     )
+    active_public_assets = get_forward_record_assets(
+        "public",
+        active_only=True,
+    )
+    retired_public_assets = [
+        asset
+        for asset in get_forward_record_assets("public")
+        if asset.status == "retired"
+    ]
+    removed_public_assets = [
+        asset
+        for asset in get_forward_record_assets("public", include_removed=True)
+        if asset.status == "removed"
+    ]
+    default_removal_after_date = (datetime.utcnow().date() + timedelta(days=365)).isoformat()
 
     response = app.make_response(render_template(
         "admin_signal_alerts.html",
         dispatch_summary=dispatch_summary,
         publication_summary=publication_summary,
+        retirement_summary=retirement_summary,
+        removal_summary=removal_summary,
         reset_summary=reset_summary,
         dispatch_output=dispatch_output,
         page_error=page_error,
@@ -3325,6 +3632,11 @@ def admin_signal_alerts():
         public_record_summary=public_record_summary,
         public_record_enabled=public_enabled,
         public_confirmation_phrase=public_confirmation_phrase,
+        active_public_assets=active_public_assets,
+        retired_public_assets=retired_public_assets,
+        removed_public_assets=removed_public_assets,
+        default_removal_after_date=default_removal_after_date,
+        forward_record_storage_explicit=FORWARD_RECORD_STORAGE_EXPLICIT,
         recent_deliveries=recent_deliveries,
         recent_publication_batches=recent_publication_batches,
     ))
@@ -3429,19 +3741,28 @@ def watchlist_access_count_for_user(user):
     return query.filter(WatchlistItem.ticker.in_(list(TOP_FREE_TICKERS))).count()
 
 
-def serialize_watchlist_item(item, user):
+def serialize_watchlist_item(item, user, *, retired_tickers=None):
     ticker = normalize_ticker(item.ticker)
     full_signal_access = can_view_full_signals_for_ticker(user, ticker)
     visible_to_user = can_user_see_ticker(user, ticker)
     locked = not (visible_to_user and full_signal_access)
+    retired_from_public_tracking = (
+        ticker in retired_tickers
+        if retired_tickers is not None
+        else public_forward_asset_is_retired(ticker)
+    )
 
     payload = {
         **item.to_dict(),
         "ticker": ticker,
         "locked": locked,
         "asset_available": visible_to_user,
+        "retired_from_public_tracking": retired_from_public_tracking,
         "can_enable_email_alert": bool(
-            is_paid_user(user) and visible_to_user and full_signal_access
+            is_paid_user(user)
+            and visible_to_user
+            and full_signal_access
+            and not retired_from_public_tracking
         ),
         "signal": None,
         "signal_label": None,
@@ -3535,8 +3856,10 @@ def get_watchlist():
         .all()
     )
 
-    # Downgrades or access-policy changes immediately stop email delivery while
-    # preserving the saved watchlist item for later removal or reactivation.
+    retired_tickers = get_retired_public_ticker_set()
+
+    # Downgrades, access-policy changes, or public retirement immediately stop
+    # email delivery while preserving the saved watchlist item for removal.
     preferences_changed = False
     for item in items:
         if (
@@ -3544,6 +3867,7 @@ def get_watchlist():
             and not (
                 is_paid_user(current_user)
                 and can_view_full_signals_for_ticker(current_user, item.ticker)
+                and normalize_ticker(item.ticker) not in retired_tickers
             )
         ):
             item.email_alert_enabled = False
@@ -3556,7 +3880,14 @@ def get_watchlist():
     used_count = watchlist_access_count_for_user(current_user)
 
     return jsonify({
-        "items": [serialize_watchlist_item(item, current_user) for item in items],
+        "items": [
+            serialize_watchlist_item(
+                item,
+                current_user,
+                retired_tickers=retired_tickers,
+            )
+            for item in items
+        ],
         "limit": limit,
         "used_count": used_count,
         "is_paid": is_paid_user(current_user),
@@ -3702,6 +4033,11 @@ def update_watchlist_alert(ticker):
         return jsonify({"error": "Add this asset to your watchlist first."}), 404
 
     if enabled:
+        if public_forward_asset_is_retired(clean_ticker):
+            return jsonify({
+                "error": "Signal alerts are no longer available because this asset has been retired from active public tracking.",
+            }), 409
+
         if not is_paid_user(current_user):
             return jsonify({
                 "error": "Email signal-change alerts are available with NeuralTrend Pro.",
@@ -4580,27 +4916,33 @@ def methodology():
 
 
 def resolve_forward_record_selection(record_mode):
-    tickers = get_forward_record_tickers(record_mode)
+    assets = get_forward_record_assets(record_mode)
+    tickers = [asset.ticker for asset in assets]
     requested = normalize_ticker(request.args.get("ticker"))
     if requested and requested not in tickers:
         abort(404)
 
     selected_ticker = requested
     if not selected_ticker:
-        if "BTC-USD" in tickers:
+        active_tickers = [
+            asset.ticker for asset in assets if asset.status == "active"
+        ]
+        if "BTC-USD" in active_tickers:
             selected_ticker = "BTC-USD"
+        elif active_tickers:
+            selected_ticker = active_tickers[0]
         elif tickers:
             selected_ticker = tickers[0]
-    return tickers, selected_ticker
+    return assets, selected_ticker
 
 
 @app.route("/performance")
 def performance():
     public_enabled = public_forward_record_enabled()
     if public_enabled:
-        tickers, selected_ticker = resolve_forward_record_selection("public")
+        record_assets, selected_ticker = resolve_forward_record_selection("public")
     else:
-        tickers, selected_ticker = [], None
+        record_assets, selected_ticker = [], None
 
     performance_record = (
         build_forward_record_performance(selected_ticker, "public")
@@ -4609,7 +4951,7 @@ def performance():
 
     response = app.make_response(render_template(
         "performance.html",
-        record_tickers=tickers,
+        record_assets=record_assets,
         selected_ticker=selected_ticker,
         record=performance_record,
         record_mode="public",
@@ -4617,7 +4959,7 @@ def performance():
         is_admin_preview=False,
     ))
     response.headers["Cache-Control"] = "public, max-age=300"
-    if not public_enabled or not tickers:
+    if not public_enabled or not record_assets:
         response.headers["X-Robots-Tag"] = "noindex, nofollow"
     return response
 
@@ -4628,7 +4970,7 @@ def admin_forward_record():
     if not is_admin_user(current_user):
         abort(404)
 
-    tickers, selected_ticker = resolve_forward_record_selection("sandbox")
+    record_assets, selected_ticker = resolve_forward_record_selection("sandbox")
     performance_record = (
         build_forward_record_performance(selected_ticker, "sandbox")
         if selected_ticker else None
@@ -4636,7 +4978,7 @@ def admin_forward_record():
 
     response = app.make_response(render_template(
         "performance.html",
-        record_tickers=tickers,
+        record_assets=record_assets,
         selected_ticker=selected_ticker,
         record=performance_record,
         record_mode="sandbox",
@@ -5280,11 +5622,17 @@ def signals_summary():
     # Full internal cached data
     raw_results = compute_signals_summary_cached(csv_version, period_days)
 
-    # Apply admin-only ticker visibility BEFORE masking.
-    visible_results = [
-        row for row in raw_results
-        if can_user_see_ticker(current_user, row.get("ticker"))
-    ]
+    # Apply admin-only and retired-asset visibility before masking. Fetch the
+    # lifecycle set once rather than issuing one database query per asset.
+    if is_admin_user(current_user):
+        visible_results = raw_results
+    else:
+        inactive_tickers = get_retired_public_ticker_set()
+        visible_results = [
+            row for row in raw_results
+            if normalize_ticker(row.get("ticker")) not in ADMIN_ONLY_TICKERS
+            and normalize_ticker(row.get("ticker")) not in inactive_tickers
+        ]
     
     # User-safe data returned to frontend
     safe_results = [
