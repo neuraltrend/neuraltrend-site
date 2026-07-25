@@ -115,3 +115,78 @@
         text-align: center;
     }
 }
+
+
+/* ==================================================
+   DEDICATED APPLICATION DASHBOARD
+================================================== */
+.nt-dashboard-page {
+    padding-bottom: 52px;
+}
+
+.nt-dashboard-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 24px;
+    align-items: center;
+    margin: 4px 0 22px;
+    padding: 24px 26px;
+    border: 1px solid #dbe3ee;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 65%, #eff6ff 100%);
+    box-shadow: 0 9px 24px rgba(15, 23, 42, 0.05);
+}
+
+.nt-dashboard-intro h1 {
+    margin: 6px 0 6px;
+    color: #0f172a;
+    font-size: clamp(24px, 3vw, 34px);
+    line-height: 1.15;
+    letter-spacing: -0.035em;
+}
+
+.nt-dashboard-intro p {
+    max-width: 760px;
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.nt-dashboard-intro-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    justify-content: flex-end;
+}
+
+.nt-dashboard-intro-actions a {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.nt-dashboard-intro-actions .nt-dashboard-intro-primary {
+    border-color: #0f172a;
+    background: #0f172a;
+    color: #ffffff;
+}
+
+@media (max-width: 820px) {
+    .nt-dashboard-intro {
+        grid-template-columns: 1fr;
+    }
+
+    .nt-dashboard-intro-actions {
+        justify-content: flex-start;
+    }
+}

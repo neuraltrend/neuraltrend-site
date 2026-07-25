@@ -1,0 +1,382 @@
+
+.nt-home-page {
+    padding-bottom: 54px;
+}
+
+.nt-home-proof-grid,
+.nt-home-product-grid,
+.nt-home-step-grid,
+.nt-home-plan-grid,
+.nt-home-resource-grid {
+    display: grid;
+    gap: 18px;
+}
+
+.nt-home-proof-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 22px 0 38px;
+}
+
+.nt-home-proof-card {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045);
+}
+
+.nt-home-proof-icon {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 900;
+}
+
+.nt-home-proof-card strong,
+.nt-home-product-card strong,
+.nt-home-step-grid strong,
+.nt-home-resource-grid strong {
+    color: #0f172a;
+}
+
+.nt-home-proof-card p,
+.nt-home-product-card p,
+.nt-home-step-grid p,
+.nt-home-resource-grid p,
+.nt-home-section-heading p,
+.nt-home-dashboard-cta p,
+.nt-home-contact p,
+.nt-home-plan-card p {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.62;
+}
+
+.nt-home-section {
+    margin: 58px 0;
+}
+
+.nt-home-section-heading {
+    max-width: 760px;
+    margin-bottom: 22px;
+}
+
+.nt-home-section-heading h2,
+.nt-home-dashboard-cta h2,
+.nt-home-contact h2 {
+    margin: 6px 0 0;
+    color: #0f172a;
+    font-size: clamp(25px, 3vw, 36px);
+    line-height: 1.15;
+    letter-spacing: -0.035em;
+}
+
+.nt-home-product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nt-home-product-card {
+    display: flex;
+    min-height: 248px;
+    flex-direction: column;
+    padding: 24px;
+    border: 1px solid #dbe3ee;
+    border-radius: 18px;
+    background: #ffffff;
+    color: inherit;
+    text-decoration: none;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.055);
+    transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+
+.nt-home-product-card:hover {
+    transform: translateY(-3px);
+    border-color: #93c5fd;
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.09);
+}
+
+.nt-home-product-card-primary {
+    background: linear-gradient(145deg, #ffffff 0%, #eff6ff 100%);
+    border-color: #bfdbfe;
+}
+
+.nt-home-product-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 30px;
+    color: #0f172a;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.nt-home-product-card > strong {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+
+.nt-home-card-link {
+    margin-top: auto;
+    padding-top: 24px;
+    color: #1d4ed8;
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.nt-home-how {
+    padding: 34px;
+    border: 1px solid #e2e8f0;
+    border-radius: 22px;
+    background: #f8fafc;
+}
+
+.nt-home-step-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nt-home-step-grid article {
+    padding: 22px;
+    border-radius: 16px;
+    background: #ffffff;
+}
+
+.nt-home-step-grid article > span {
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    border-radius: 999px;
+    background: #0f172a;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.nt-home-dashboard-cta {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 28px;
+    align-items: center;
+    margin: 60px 0;
+    padding: 34px;
+    border-radius: 22px;
+    background: #0f172a;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+}
+
+.nt-home-dashboard-cta h2,
+.nt-home-dashboard-cta p {
+    color: #ffffff;
+}
+
+.nt-home-dashboard-cta p {
+    color: #cbd5e1;
+}
+
+.nt-home-dashboard-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 205px;
+}
+
+.nt-home-primary-action,
+.nt-home-secondary-action {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.nt-home-primary-action {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.nt-home-secondary-action {
+    border: 1px solid #475569;
+    color: #e2e8f0;
+}
+
+.nt-home-plan-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nt-home-plan-card {
+    padding: 28px;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #ffffff;
+}
+
+.nt-home-plan-card-pro {
+    border-color: #93c5fd;
+    background: linear-gradient(145deg, #ffffff, #eff6ff);
+}
+
+.nt-home-plan-label {
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.nt-home-plan-card h3 {
+    margin: 14px 0 0;
+    color: #0f172a;
+    font-size: 30px;
+}
+
+.nt-home-plan-card h3 small {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.nt-home-plan-card a,
+.nt-home-resource-grid span {
+    display: inline-block;
+    margin-top: 20px;
+    color: #1d4ed8;
+    font-size: 13px;
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.nt-home-resource-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nt-home-resource-grid > a {
+    padding: 22px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #ffffff;
+    color: inherit;
+    text-decoration: none;
+}
+
+.nt-home-contact {
+    display: grid;
+    grid-template-columns: minmax(0, .9fr) minmax(340px, 1.1fr);
+    gap: 38px;
+    align-items: start;
+    margin: 64px 0 24px;
+    padding: 34px;
+    border: 1px solid #dbe3ee;
+    border-radius: 22px;
+    background: #f8fafc;
+}
+
+.nt-home-social-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.nt-home-social-row a {
+    padding: 8px 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.nt-home-contact-form {
+    display: grid;
+    gap: 14px;
+}
+
+.nt-home-contact-form label {
+    display: grid;
+    gap: 6px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.nt-home-contact-form input,
+.nt-home-contact-form textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #0f172a;
+    font: inherit;
+    font-size: 14px;
+}
+
+.nt-home-contact-form button {
+    min-height: 44px;
+    border: 0;
+    border-radius: 10px;
+    background: #0f172a;
+    color: #ffffff;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.nt-market-hero-more-assets {
+    text-decoration: none;
+}
+
+@media (max-width: 980px) {
+    .nt-home-proof-grid,
+    .nt-home-product-grid,
+    .nt-home-step-grid,
+    .nt-home-resource-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .nt-home-dashboard-cta,
+    .nt-home-contact {
+        grid-template-columns: 1fr;
+    }
+
+    .nt-home-dashboard-actions {
+        min-width: 0;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 680px) {
+    .nt-home-plan-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .nt-home-how,
+    .nt-home-dashboard-cta,
+    .nt-home-contact {
+        padding: 23px 20px;
+    }
+
+    .nt-home-dashboard-actions,
+    .nt-home-primary-action,
+    .nt-home-secondary-action {
+        width: 100%;
+    }
+}

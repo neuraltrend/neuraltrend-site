@@ -9756,3 +9756,10 @@ body.nt-account-modal-open {
         text-align: left;
     }
 }
+
+
+.navbar .nav-links a.active,
+.navbar .nav-links a[aria-current="page"] {
+    background: rgba(255, 255, 255, 0.18);
+    font-weight: 800;
+}
