@@ -3001,7 +3001,8 @@ def admin_signal_alerts():
     """Admin-only manual controls for alerts and Forward Record modes.
 
     Alert dispatch, private sandbox publication, and public publication are
-    intentionally independent actions. Nothing runs automatically.
+    intentionally independent actions. Public assets are enrolled prospectively
+    one by one, and nothing runs automatically.
     """
     if not is_admin_user(current_user):
         abort(404)
@@ -3066,11 +3067,11 @@ def admin_signal_alerts():
             not page_error
             and selected_action.startswith("public_")
             and not public_record_summary.get("started")
-            and selected_ticker
+            and not selected_ticker
         ):
             page_error = (
-                "The first public Forward Record batch must include all supported "
-                "public assets. Leave the asset filter blank."
+                "Choose one supported ticker for the first public Forward Record "
+                "publication. Assets enter the public record individually."
             )
 
         confirmation = (request.form.get("confirmation") or "").strip()
