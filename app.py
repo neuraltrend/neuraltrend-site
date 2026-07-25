@@ -4895,6 +4895,14 @@ def confirm_delete(token):
 def index():
     return render_template(
         "index.html",
+        forward_record=build_forward_record_home_summary(),
+    )
+
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template(
+        "dashboard.html",
         supported_tickers=get_supported_tickers_for_user(current_user),
         forward_record=build_forward_record_home_summary(),
     )
@@ -5046,6 +5054,12 @@ def sitemap_xml():
             "lastmod": today,
             "changefreq": "daily",
             "priority": "1.0"
+        },
+        {
+            "loc": "https://neuraltrend.org/dashboard",
+            "lastmod": today,
+            "changefreq": "daily",
+            "priority": "0.9"
         },
         {
             "loc": "https://neuraltrend.org/subscription",
@@ -5978,7 +5992,7 @@ def create_checkout_session():
                     "quantity": 1,
                 }
             ],
-            success_url=f"{BASE_URL}/?checkout=success",
+            success_url=f"{BASE_URL}/dashboard?checkout=success",
             cancel_url=f"{BASE_URL}/subscription?checkout=cancelled",
             client_reference_id=str(user_id),
             metadata={
