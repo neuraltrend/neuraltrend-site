@@ -4,8 +4,9 @@ Two fully separated record modes are supported:
 
 * ``sandbox`` is private, admin-only, resettable, and intended for pre-launch
   testing while models and data workflows are still changing.
-* ``public`` is customer-facing and append-only. It starts only after an admin
-  explicitly enables public publication and approves the first public batch.
+* ``public`` is customer-facing and append-only. Each supported asset enters
+  prospectively through an explicit admin-approved first publication and keeps
+  its own public start date.
 
 Neither mode imports history that predates its own first approved publication.
 """
@@ -86,6 +87,7 @@ def require_public_record_enabled(record_mode: str) -> None:
 
 
 def public_tickers() -> list[str]:
+    """Return every customer-facing asset supported by the main product."""
     seen = set()
     ordered = []
     for raw in SUPPORTED_TICKERS:
@@ -95,6 +97,24 @@ def public_tickers() -> list[str]:
         seen.add(ticker)
         ordered.append(ticker)
     return ordered
+
+
+def tracked_public_tickers() -> list[str]:
+    """Return only assets that have explicitly entered the public record."""
+    return [
+        row[0]
+        for row in (
+            db.session.query(ForwardSignalPublication.ticker)
+            .join(
+                ForwardPublicationBatch,
+                ForwardPublicationBatch.id == ForwardSignalPublication.batch_id,
+            )
+            .filter(ForwardPublicationBatch.record_mode == "public")
+            .distinct()
+            .order_by(ForwardSignalPublication.ticker.asc())
+            .all()
+        )
+    ]
 
 
 def finite_positive(value: Any, label: str) -> float:
@@ -333,16 +353,27 @@ def build_publication_preview(
     require_public_record_enabled(mode)
 
     clean_filter = normalize_ticker(ticker) if ticker else None
-    if mode == "public":
-        public_started = publication_query_for_mode("public").first() is not None
-        if not public_started and clean_filter:
-            raise ValueError(
-                "The first public Forward Record batch must include all supported "
-                "public assets; leave the ticker filter blank."
-            )
-    tickers = [clean_filter] if clean_filter else public_tickers()
-    if clean_filter and clean_filter not in public_tickers():
+    supported = public_tickers()
+    if clean_filter and clean_filter not in supported:
         raise ValueError("Forward Record publication supports public assets only.")
+
+    if mode == "public":
+        tracked = tracked_public_tickers()
+        if clean_filter:
+            # An explicit ticker either updates an already tracked asset or
+            # prospectively enrolls a new supported asset from this moment.
+            tickers = [clean_filter]
+        elif tracked:
+            # Blank means "update the existing public universe". It never
+            # auto-enrolls every supported asset merely because a CSV exists.
+            tickers = tracked
+        else:
+            raise ValueError(
+                "Choose one supported ticker for the first public Forward Record "
+                "publication. Assets enter the public record individually."
+            )
+    else:
+        tickers = [clean_filter] if clean_filter else supported
 
     candidates = []
     errors = []
