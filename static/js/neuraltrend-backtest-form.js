@@ -100,5 +100,42 @@
         });
     });
     
-    // Default active model
-    setActiveModelPanel("epochsignaler-section");
+    function activateDashboardHash() {
+        const targetId = String(window.location.hash || "").replace(/^#/, "");
+        const modelTargets = new Set([
+            "epochsignaler-section",
+            "altindexer-section",
+            "epochforecaster-section"
+        ]);
+        const toolTargets = new Set([
+            "epoch-tool-overview",
+            "epoch-tool-live",
+            "epoch-tool-backtest"
+        ]);
+
+        if (modelTargets.has(targetId)) {
+            setActiveModelPanel(targetId);
+        } else if (toolTargets.has(targetId)) {
+            setActiveModelPanel("epochsignaler-section");
+            setActiveEpochToolPanel(targetId);
+        } else {
+            setActiveModelPanel("epochsignaler-section");
+        }
+
+        if (targetId === "signal-overview") {
+            setActiveModelPanel("epochsignaler-section");
+            setActiveEpochToolPanel("epoch-tool-overview");
+        }
+
+        if (targetId) {
+            window.setTimeout(() => {
+                document.getElementById(targetId)?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            }, 100);
+        }
+    }
+
+    activateDashboardHash();
+    window.addEventListener("hashchange", activateDashboardHash);

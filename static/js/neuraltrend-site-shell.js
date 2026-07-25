@@ -226,6 +226,16 @@
         dropdown.append(
             header,
             createUserMenuDivider(),
+            createUserMenuSectionLabel("Workspace"),
+            createUserMenuAction(
+                "Open Dashboard",
+                () => { window.location.href = "/dashboard"; },
+                {
+                    icon: "▦",
+                    description: "Signals, watchlists, backtests, and simulations"
+                }
+            ),
+            createUserMenuDivider(),
             createUserMenuSectionLabel("Account"),
             createUserMenuAction(
                 "Change Password",
@@ -401,6 +411,11 @@
             
             if (typeof loadLiveSimulations === "function") {
                 await loadLiveSimulations();
+            }
+
+            if (window.location.pathname === "/") {
+                window.location.assign("/dashboard");
+                return;
             }
         } else {
             ntTrack("login_failed");
