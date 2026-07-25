@@ -113,6 +113,13 @@
 
         alertToggle.checked = Boolean(item.email_alert_enabled);
 
+        if (item.retired_from_public_tracking) {
+            alertToggle.checked = false;
+            alertToggle.disabled = true;
+            alertNote.textContent = "Tracking ended · alerts are disabled; the public record remains archived.";
+            return;
+        }
+
         if (item.locked) {
             alertToggle.disabled = true;
             alertNote.textContent = "This saved asset is currently locked for your plan.";
