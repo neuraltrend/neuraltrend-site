@@ -37,14 +37,14 @@ Manage NeuralTrend email signal-change alert preferences.
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="nt-unsubscribe-actions">
                     <button type="submit">Disable All Email Alerts</button>
-                    <a href="{{ url_for('index') }}#products">Keep Alerts Enabled</a>
+                    <a href="{{ url_for('dashboard') }}#products">Keep Alerts Enabled</a>
                 </div>
             </form>
         {% endif %}
 
         {% if success or not valid %}
             <div class="nt-unsubscribe-actions">
-                <a href="{{ url_for('index') }}#products">Return to NeuralTrend</a>
+                <a href="{{ url_for('dashboard') }}#products">Return to NeuralTrend</a>
             </div>
         {% endif %}
     </section>
