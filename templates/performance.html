@@ -3,7 +3,7 @@
 {% block title %}{% if is_admin_preview %}Private Forward Sandbox{% else %}Forward Record{% endif %} | NeuralTrend{% endblock %}
 
 {% block meta_description %}
-{% if is_admin_preview %}Admin-only pre-launch Forward Record sandbox.{% else %}Review NeuralTrend signals recorded prospectively after public launch, separately from historical backtests.{% endif %}
+{% if is_admin_preview %}Admin-only Forward Record sandbox.{% else %}Review NeuralTrend performance calculated from administrator-approved signal rows beginning on each asset's public tracking date.{% endif %}
 {% endblock %}
 
 {% block page_styles %}
@@ -20,19 +20,18 @@
                 </div>
                 <h1>
                     {% if is_admin_preview %}
-                    Test the forward-performance workflow before launch
+                    Test approved performance before launch
                     {% else %}
-                    Performance after public signal publication
+                    Performance from each asset's public tracking date
                     {% endif %}
                 </h1>
                 <p>
                     {% if is_admin_preview %}
-                    This record is private, resettable, and excluded from all customer-facing
-                    performance. It lets you verify publication and calculation behavior while
-                    models are still being updated.
+                    This private, resettable record lets you test approval, charting, and
+                    calculation behavior without exposing results to customers.
                     {% else %}
-                    This record begins only when NeuralTrend publicly publishes a signal. It is
-                    separate from historical simulations and is not a brokerage statement.
+                    Each asset begins from its stated start date and grows only when
+                    NeuralTrend approves newly available signal rows for public use.
                     {% endif %}
                 </p>
                 <div class="nt-forward-badge-row" aria-label="Record labels">
@@ -41,22 +40,21 @@
                     <span>Resettable</span>
                     <span>Not customer-facing</span>
                     {% else %}
-                    <span>Prospective</span>
+                    <span>Admin-approved</span>
                     <span>Hypothetical</span>
-                    <span>No retroactive signals</span>
+                    <span>Fixed start date</span>
                     {% endif %}
                 </div>
             </div>
             <aside class="nt-forward-hero-note">
-                <strong>{% if is_admin_preview %}Sandbox boundary{% else %}Execution convention{% endif %}</strong>
+                <strong>{% if is_admin_preview %}Sandbox boundary{% else %}Calculation boundary{% endif %}</strong>
                 <p>
                     {% if is_admin_preview %}
-                    Sandbox publications never become part of the public record. Public performance
-                    will start fresh from its own launch date.
+                    Sandbox files never enter the public record. Resetting the sandbox does
+                    not affect alerts, users, or future public performance.
                     {% else %}
-                    A published signal can affect the hypothetical strategy at the first preserved
-                    completed daily close dated after publication. Transaction costs are included;
-                    slippage is not.
+                    Results use approved daily Date, Close, and signal rows. Working CSV
+                    changes remain private until an administrator previews and approves them.
                     {% endif %}
                 </p>
             </aside>
@@ -75,8 +73,8 @@
         <div class="nt-forward-empty-icon" aria-hidden="true">◎</div>
         <h2>The public Forward Record has not launched</h2>
         <p>
-            It will begin from a clearly stated start date when NeuralTrend is released to
-            customers. Pre-launch sandbox results are not shown here and will not be imported.
+            It will begin from a clearly stated asset-specific date when public tracking
+            is enabled. Private sandbox results are never imported.
         </p>
         <a href="{{ url_for('methodology') }}">Review methodology and assumptions →</a>
     </section>
@@ -86,11 +84,10 @@
         <h2>{% if is_admin_preview %}The private sandbox has not started{% else %}The Forward Record has not started yet{% endif %}</h2>
         <p>
             {% if is_admin_preview %}
-            Publish the first sandbox batch from the admin controls. Earlier CSV history will not
-            be imported, and the sandbox can be reset before public launch.
+            Approve one asset from the admin controls. The sandbox begins from that day's
+            boundary and can be reset whenever needed.
             {% else %}
-            It will begin with the first administrator-approved public publication. Earlier CSV
-            history will not be imported or backdated.
+            It will begin when the first asset is approved for public tracking.
             {% endif %}
         </p>
         {% if is_admin_preview %}
@@ -104,23 +101,56 @@
         <div>
             <span class="nt-forward-toolbar-label">Asset</span>
             <strong>{{ record.ticker }}</strong>
+            {% if record.is_retired %}
+            <span class="nt-forward-archive-badge">Retired</span>
+            {% endif %}
         </div>
         <label>
             <span class="sr-only">Choose an asset</span>
             <select id="forward-record-ticker">
-                {% for ticker in record_tickers %}
-                <option value="{{ ticker }}" {% if ticker == selected_ticker %}selected{% endif %}>{{ ticker }}</option>
-                {% endfor %}
+                {% set active_assets = record_assets|selectattr('status', 'equalto', 'active')|list %}
+                {% set retired_assets = record_assets|selectattr('status', 'equalto', 'retired')|list %}
+                {% if active_assets %}
+                <optgroup label="Active assets">
+                    {% for asset in active_assets %}
+                    <option value="{{ asset.ticker }}" {% if asset.ticker == selected_ticker %}selected{% endif %}>{{ asset.ticker }}</option>
+                    {% endfor %}
+                </optgroup>
+                {% endif %}
+                {% if retired_assets %}
+                <optgroup label="Retired assets">
+                    {% for asset in retired_assets %}
+                    <option value="{{ asset.ticker }}" {% if asset.ticker == selected_ticker %}selected{% endif %}>{{ asset.ticker }} — Retired</option>
+                    {% endfor %}
+                </optgroup>
+                {% endif %}
             </select>
         </label>
         <div class="nt-forward-latest-signal">
-            <span>Latest published signal</span>
+            <span>{% if record.is_retired %}Final approved signal{% else %}Latest approved signal{% endif %}</span>
             <strong class="is-{{ record.latest_signal_class }}">{{ record.latest_signal }}</strong>
-            {% if record.pending_execution %}
-            <small>Pending next completed daily close</small>
-            {% endif %}
+            <small>Data through {{ record.approved_through_date or '—' }}</small>
         </div>
     </section>
+
+    {% if record.is_retired %}
+    <section class="nt-forward-shell nt-forward-retirement-notice" aria-label="Retired asset status">
+        <div>
+            <strong>Tracking ended {{ record.retired_date }}</strong>
+            <p>{{ record.retirement_reason or 'Reliable ongoing tracking was no longer available.' }}</p>
+        </div>
+        <span>Record available until {{ record.removal_after_date or 'the announced removal date' }}.</span>
+    </section>
+    {% endif %}
+
+    {% if not record.data_available %}
+    <section class="nt-forward-shell nt-forward-retirement-notice" aria-label="Approved data unavailable">
+        <div>
+            <strong>Approved record file is unavailable</strong>
+            <p>The asset metadata remains, but its approved CSV could not be read.</p>
+        </div>
+    </section>
+    {% endif %}
 
     <section class="nt-forward-shell nt-forward-metrics" aria-label="Forward performance summary">
         <article>
@@ -131,7 +161,7 @@
         <article>
             <span>Buy &amp; Hold</span>
             <strong>{{ record.benchmark_return_display }}</strong>
-            <small>Same forward window</small>
+            <small>Same approved window</small>
         </article>
         <article>
             <span>Maximum drawdown</span>
@@ -149,9 +179,9 @@
             <small>Time holding the asset</small>
         </article>
         <article>
-            <span>Record age</span>
+            <span>Tracked window</span>
             <strong>{{ record.record_age_days }} days</strong>
-            <small>Started {{ record.record_started_date }}</small>
+            <small>{{ record.record_started_date }} – {{ record.approved_through_date or record.record_started_date }}</small>
         </article>
     </section>
 
@@ -159,12 +189,12 @@
         <div class="nt-forward-section-heading">
             <div>
                 <div class="nt-forward-kicker">Hypothetical portfolio</div>
-                <h2>{% if is_admin_preview %}Sandbox strategy{% else %}Forward strategy{% endif %} vs Buy &amp; Hold</h2>
+                <h2>{% if is_admin_preview %}Sandbox strategy{% elif record.is_retired %}Retired forward strategy{% else %}Forward strategy{% endif %} vs Buy &amp; Hold</h2>
             </div>
             <div class="nt-forward-risk-context">
                 <span>Sharpe <strong>{{ record.sharpe_ratio_display }}</strong></span>
                 <span>Volatility <strong>{{ record.strategy_volatility_display }}</strong></span>
-                <span>Observations <strong>{{ record.observation_count }}</strong></span>
+                <span>Rows <strong>{{ record.observation_count }}</strong></span>
             </div>
         </div>
 
@@ -175,7 +205,7 @@
         <script id="forward-record-chart-data" type="application/json">{{ record.chart|tojson }}</script>
         {% else %}
         <div class="nt-forward-chart-empty">
-            Performance begins after the first completed daily close dated after publication.
+            No approved daily row is available on or after this asset's tracking start date yet.
         </div>
         {% endif %}
     </section>
@@ -183,26 +213,20 @@
     <section class="nt-forward-shell nt-forward-publications-card">
         <div class="nt-forward-section-heading">
             <div>
-                <div class="nt-forward-kicker">Publication history</div>
-                <h2>Recent approved signals</h2>
+                <div class="nt-forward-kicker">Approved rows</div>
+                <h2>Recent signals</h2>
             </div>
-            <span class="nt-forward-publication-count">{{ record.publication_count }} total</span>
+            <span>{{ record.publication_count }} approved row{% if record.publication_count != 1 %}s{% endif %}</span>
         </div>
-
+        {% if record.recent_publications %}
         <div class="nt-forward-table-wrap">
             <table class="nt-forward-table">
                 <thead>
-                    <tr>
-                        <th>Published</th>
-                        <th>Data through</th>
-                        <th>Signal</th>
-                        <th>Status</th>
-                    </tr>
+                    <tr><th>Date</th><th>Signal</th><th>Status</th></tr>
                 </thead>
                 <tbody>
                     {% for publication in record.recent_publications %}
                     <tr>
-                        <td>{{ publication.published_at.strftime('%Y-%m-%d %H:%M UTC') }}</td>
                         <td>{{ publication.source_data_date }}</td>
                         <td><span class="nt-forward-signal is-{{ publication.signal_class }}">{{ publication.signal }}</span></td>
                         <td><span class="nt-forward-status is-{{ publication.status_class }}">{{ publication.status }}</span></td>
@@ -211,33 +235,37 @@
                 </tbody>
             </table>
         </div>
+        {% else %}
+        <p class="nt-forward-table-empty">No approved signal row is available yet.</p>
+        {% endif %}
     </section>
 
-    <section class="nt-forward-shell nt-forward-disclosure">
+    <section class="nt-forward-shell nt-forward-explainer">
         <details>
-            <summary>How to read this record</summary>
+            <summary>How to interpret this record</summary>
             <div>
                 <p>
-                    Publications are appended after administrator approval and are not silently
-                    rewritten. A same-date signal change is added as a revision.
+                    The chart is a hypothetical backtest-style calculation limited to the
+                    asset's approved tracking window. BUY and SELL actions use approved daily
+                    closing prices. Current fixed transaction-cost assumptions are included;
+                    slippage, taxes, liquidity limits, and brokerage execution are not.
                 </p>
                 <p>
-                    Results use a standardized hypothetical $10,000 portfolio, the disclosed
-                    transaction-cost assumptions, and preserved daily market prices captured after
-                    the record began. Taxes, slippage, liquidity, and market impact are not modeled.
+                    The working model CSV may contain a longer history. Rows before the public
+                    start date and rows not yet approved by an administrator are excluded here.
                 </p>
+                <a href="{{ url_for('methodology') }}">Read the methodology →</a>
             </div>
         </details>
-        {% if is_admin_preview %}
-        <a href="{{ url_for('admin_signal_alerts') }}">Manage private sandbox →</a>
-        {% else %}
-        <a href="{{ url_for('methodology') }}">Full methodology and limitations →</a>
-        {% endif %}
     </section>
     {% endif %}
 </main>
 {% endblock %}
 
 {% block page_scripts %}
-<script src="{{ url_for('static', filename='js/neuraltrend-forward-record.js') }}"></script>
+{% if record and record.observation_count %}
+<script defer src="{{ url_for('static', filename='js/neuraltrend-forward-record.js') }}"></script>
+{% elif record %}
+<script defer src="{{ url_for('static', filename='js/neuraltrend-forward-record.js') }}"></script>
+{% endif %}
 {% endblock %}

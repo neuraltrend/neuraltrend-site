@@ -427,17 +427,18 @@ Compare AI trading signals against buy-and-hold, run historical backtests, view 
             <div class="nt-forward-home-icon" aria-hidden="true">✓</div>
             <div class="nt-forward-home-copy">
                 <div class="nt-section-eyebrow">Forward Record</div>
-                <h2 id="nt-forward-home-title">Signals preserved from the moment they are published</h2>
+                <h2 id="nt-forward-home-title">Approved performance from stated public start dates</h2>
                 <p>
-                    Prospectively recorded since {{ forward_record.record_started_date }}
-                    across {{ forward_record.asset_count }} asset{% if forward_record.asset_count != 1 %}s{% endif %}.
-                    Historical backtests remain separate.
+                    Tracked since {{ forward_record.record_started_date }}
+                    across {{ forward_record.active_asset_count }} active asset{% if forward_record.active_asset_count != 1 %}s{% endif %}.{% if forward_record.retired_asset_count %}
+                    {{ forward_record.retired_asset_count }} retired record{% if forward_record.retired_asset_count != 1 %}s remain{% else %} remains{% endif %} available during its retention period.{% endif %}
+                    Historical Signal Overview simulations remain separate.
                 </p>
             </div>
             <div class="nt-forward-home-badges" aria-label="Forward Record characteristics">
-                <span>Prospective</span>
+                <span>Admin-approved</span>
                 <span>Hypothetical</span>
-                <span>No retroactive signals</span>
+                <span>Fixed start dates</span>
             </div>
             <a href="{{ url_for('performance') }}" class="nt-forward-home-link">
                 View Forward Record <span aria-hidden="true">→</span>

@@ -30,8 +30,10 @@ Admin-only manual controls for NeuralTrend signal alerts, private Forward Record
                     <li>Sandbox data never enters the public record.</li>
                     <li>Public publication stays locked until explicitly enabled.</li>
                     <li>Repeated signals do not generate repeated emails.</li>
-                    <li>Prior public publications are never silently replaced.</li>
+                    <li>Working CSV changes stay private until approved.</li>
+                    <li>Previously approved rows cannot be silently rewritten.</li>
                     <li>Each public asset starts only when explicitly enrolled.</li>
+                    <li>Retired records remain available until their announced removal date.</li>
                 </ul>
             </aside>
         </div>
@@ -47,8 +49,8 @@ Admin-only manual controls for NeuralTrend signal alerts, private Forward Record
             <span>assets in private sandbox</span>
         </article>
         <article>
-            <strong>{{ public_record_summary.asset_count }}</strong>
-            <span>assets in public record</span>
+            <strong>{{ public_record_summary.active_asset_count or 0 }}</strong>
+            <span>active public assets{% if public_record_summary.retired_asset_count %} · {{ public_record_summary.retired_asset_count }} retired{% endif %}</span>
         </article>
         <article>
             <strong>{% if public_record_enabled %}Enabled{% else %}Locked{% endif %}</strong>
@@ -60,7 +62,15 @@ Admin-only manual controls for NeuralTrend signal alerts, private Forward Record
     <div class="nt-alert-admin-shell nt-alert-admin-message is-error" role="alert">{{ page_error }}</div>
     {% endif %}
 
-    {% if publication_summary or dispatch_summary or reset_summary %}
+    {% if not forward_record_storage_explicit %}
+    <div class="nt-alert-admin-shell nt-alert-admin-message is-error" role="alert">
+        Production storage warning: <code>FORWARD_RECORD_STORAGE_DIR</code> is not set.
+        Approved files are using the local application directory and may not survive a redeploy.
+        Point the variable to a mounted persistent disk before public launch.
+    </div>
+    {% endif %}
+
+    {% if publication_summary or dispatch_summary or retirement_summary or removal_summary or reset_summary %}
     <div class="nt-alert-admin-shell nt-alert-admin-message {% if page_error %}is-error{% else %}is-success{% endif %}" aria-live="polite">
         {% if dispatch_summary %}
             {% if dispatch_summary.mode == "preview" %}
@@ -73,15 +83,29 @@ Admin-only manual controls for NeuralTrend signal alerts, private Forward Record
         {% if publication_summary %}
             {% set mode_name = 'Private sandbox' if publication_summary.record_mode == 'sandbox' else 'Public record' %}
             {% if selected_action.endswith('preview') %}
-                {{ mode_name }} preview: {{ publication_summary.candidate_count }} pending publication{% if publication_summary.candidate_count != 1 %}s{% endif %},
+                {{ mode_name }} preview: {{ publication_summary.candidate_count }} pending asset update{% if publication_summary.candidate_count != 1 %}s{% endif %},
                 {{ publication_summary.unchanged_count }} unchanged asset{% if publication_summary.unchanged_count != 1 %}s{% endif %},
-                {{ publication_summary.market_row_count }} new market row{% if publication_summary.market_row_count != 1 %}s{% endif %}.
+                {{ publication_summary.new_row_count }} newly approved row{% if publication_summary.new_row_count != 1 %}s{% endif %}.
             {% else %}
-                {{ mode_name }}: {{ publication_summary.published or 0 }} publication{% if (publication_summary.published or 0) != 1 %}s{% endif %} appended.
+                {{ mode_name }}: {{ publication_summary.published or 0 }} approved asset file{% if (publication_summary.published or 0) != 1 %}s{% endif %} updated.
+            {% endif %}
+        {% endif %}
+        {% if retirement_summary %}
+            {% if selected_action == 'public_retire_preview' %}
+                Retirement preview for {{ retirement_summary.ticker }}: tracking ends {{ retirement_summary.retirement_date }}, the record remains available until {{ retirement_summary.removal_after_date }}, and {{ retirement_summary.enabled_alert_count }} enabled alert{% if retirement_summary.enabled_alert_count != 1 %}s{% endif %} will be disabled.
+            {% elif retirement_summary.retired %}
+                {{ retirement_summary.ticker }} retired. Its approved record remains visible until {{ retirement_summary.removal_after_date }} and {{ retirement_summary.disabled_alert_count }} alert preference{% if retirement_summary.disabled_alert_count != 1 %}s were{% else %} was{% endif %} disabled.
+            {% endif %}
+        {% endif %}
+        {% if removal_summary %}
+            {% if selected_action == 'public_remove_preview' %}
+                Removal preview for {{ removal_summary.ticker }}{% if removal_summary.early_removal %} before its announced date{% endif %}: the approved public CSV will be deleted and the asset will leave the customer performance selector.
+            {% elif removal_summary.removed %}
+                {{ removal_summary.ticker }} public record data removed. Its compact lifecycle metadata remains in PostgreSQL.
             {% endif %}
         {% endif %}
         {% if reset_summary %}
-            Private sandbox reset: {{ reset_summary.publications }} publications and {{ reset_summary.observations }} market observations removed.
+            Private sandbox reset: {{ reset_summary.assets }} assets, {{ reset_summary.batches }} batches, and {{ reset_summary.files }} approved files removed.
         {% endif %}
     </div>
     {% endif %}
@@ -128,8 +152,8 @@ Admin-only manual controls for NeuralTrend signal alerts, private Forward Record
             <a href="{{ url_for('admin_forward_record') }}" class="nt-alert-admin-inline-link">View private sandbox →</a>
         </div>
         <div class="nt-alert-admin-notice">
-            Use this during model updates and pre-launch testing. It is admin-only, can be reset,
-            and will never be copied into the customer-facing record.
+            Use this during model updates and pre-launch testing. It is admin-only, file-based,
+            resettable, and never copied into the customer-facing record.
         </div>
         <form method="post" action="{{ url_for('admin_signal_alerts') }}" class="nt-alert-admin-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -137,7 +161,7 @@ Admin-only manual controls for NeuralTrend signal alerts, private Forward Record
                 <label>
                     <span>Optional asset filter</span>
                     <input type="text" name="ticker" value="{{ selected_ticker if selected_action and selected_action.startswith('sandbox_') else '' }}" placeholder="All assets, or BTC-USD" maxlength="30" autocomplete="off">
-                    <small>Leave blank to test all ready public assets.</small>
+                    <small>Choose one asset first. Later, leave blank to update all active sandbox assets.</small>
                 </label>
                 <label>
                     <span>Sandbox confirmation</span>
@@ -167,17 +191,16 @@ Admin-only manual controls for NeuralTrend signal alerts, private Forward Record
         </div>
         {% if public_record_enabled %}
         <div class="nt-alert-admin-notice is-public-notice">
-            Each asset receives its own customer-facing start date when first approved. Enter a
-            ticker to add or update one asset. Once assets are tracked, leaving the field blank
-            updates only those already in the public record; it never auto-adds every CSV asset.
-            Sandbox history and older CSV rows are not imported.
+            Each asset receives its own start date when first approved. The public page reads a
+            compact approved CSV, not the working model CSV. Enter a ticker to add or update one
+            asset. Later, leave the field blank to update all active tracked assets in one batch.
         </div>
         <form method="post" action="{{ url_for('admin_signal_alerts') }}" class="nt-alert-admin-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="nt-alert-admin-field-grid">
                 <label>
                     <span>Public asset</span>
-                    <input type="text" name="ticker" value="{{ selected_ticker if selected_action and selected_action.startswith('public_') else '' }}" placeholder="BTC-USD" maxlength="30" autocomplete="off">
+                    <input type="text" name="ticker" value="{{ selected_ticker if selected_action in ['public_preview', 'public_publish'] else '' }}" placeholder="BTC-USD" maxlength="30" autocomplete="off">
                     <small>
                         {% if not public_record_summary.started %}
                         Required for the first public asset.
@@ -209,6 +232,118 @@ Admin-only manual controls for NeuralTrend signal alerts, private Forward Record
         {% endif %}
     </section>
 
+    {% if public_record_enabled and public_record_summary.started %}
+    <section class="nt-alert-admin-shell nt-alert-admin-panel is-retirement-panel">
+        <div class="nt-alert-admin-panel-heading">
+            <div>
+                <div class="nt-alert-admin-kicker">Asset lifecycle</div>
+                <h2>Retire a public asset</h2>
+            </div>
+            <span class="nt-alert-admin-archive-badge">Time-limited archive</span>
+        </div>
+        <div class="nt-alert-admin-notice is-retirement-notice">
+            Publish any final verified update first. Retirement freezes the approved record, hides the asset from ordinary product tools, disables alerts, and keeps the public performance page available until the removal date you announce below.
+        </div>
+        {% if active_public_assets %}
+        <form method="post" action="{{ url_for('admin_signal_alerts') }}" class="nt-alert-admin-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="nt-alert-admin-retirement-grid">
+                <label>
+                    <span>Active public asset</span>
+                    <select name="ticker" required>
+                        <option value="">Choose an asset</option>
+                        {% for asset in active_public_assets %}
+                        <option value="{{ asset.ticker }}" {% if selected_action in ['public_retire_preview', 'public_retire'] and selected_ticker == asset.ticker %}selected{% endif %}>{{ asset.ticker }}</option>
+                        {% endfor %}
+                    </select>
+                    <small>Only active public-record assets appear here.</small>
+                </label>
+                <label>
+                    <span>Public reason</span>
+                    <input type="text" name="retirement_reason" value="{{ request.form.get('retirement_reason', '') if selected_action in ['public_retire_preview', 'public_retire'] else '' }}" placeholder="Reliable market data is no longer available" maxlength="300" autocomplete="off">
+                    <small>This concise reason will be visible on the public record.</small>
+                </label>
+                <label>
+                    <span>Public record removal date</span>
+                    <input type="date" name="removal_after_date" value="{{ request.form.get('removal_after_date', default_removal_after_date) if selected_action in ['public_retire_preview', 'public_retire'] else default_removal_after_date }}" required>
+                    <small>The retired performance page remains available through this date.</small>
+                </label>
+                <label>
+                    <span>Retirement confirmation</span>
+                    <input type="text" name="confirmation" placeholder="Type RETIRE BTC-USD" maxlength="40" autocomplete="off">
+                    <small>Preview first. Then type RETIRE followed by the exact ticker.</small>
+                </label>
+            </div>
+            <div class="nt-alert-admin-actions">
+                <button type="submit" name="action" value="public_retire_preview" class="nt-alert-admin-secondary">Preview Retirement</button>
+                <button type="submit" name="action" value="public_retire" class="nt-alert-admin-danger">Retire Asset</button>
+            </div>
+        </form>
+        {% else %}
+        <p class="nt-alert-admin-empty">There are no active public assets to retire.</p>
+        {% endif %}
+
+        {% if retired_public_assets %}
+        <div class="nt-alert-admin-archived-list" aria-label="Retired public assets">
+            <strong>Retired records</strong>
+            <div>
+                {% for asset in retired_public_assets %}
+                <a href="{{ url_for('performance', ticker=asset.ticker) }}" target="_blank" rel="noopener noreferrer">{{ asset.ticker }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    {% if public_record_enabled and retired_public_assets %}
+    <section class="nt-alert-admin-shell nt-alert-admin-panel is-removal-panel">
+        <div class="nt-alert-admin-panel-heading">
+            <div>
+                <div class="nt-alert-admin-kicker">Storage lifecycle</div>
+                <h2>Remove retired public data</h2>
+            </div>
+            <span class="nt-alert-admin-archive-badge">Owner-controlled</span>
+        </div>
+        <div class="nt-alert-admin-notice is-retirement-notice">
+            This deletes only the compact approved public CSV and removes the asset from the public performance selector. The working model CSV is not deleted automatically. Preview shows whether removal is earlier than the date announced to users.
+        </div>
+        <form method="post" action="{{ url_for('admin_signal_alerts') }}" class="nt-alert-admin-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="nt-alert-admin-field-grid">
+                <label>
+                    <span>Retired public asset</span>
+                    <select name="ticker" required>
+                        <option value="">Choose an asset</option>
+                        {% for asset in retired_public_assets %}
+                        <option value="{{ asset.ticker }}" {% if selected_action in ['public_remove_preview', 'public_remove'] and selected_ticker == asset.ticker %}selected{% endif %}>{{ asset.ticker }} — scheduled {{ asset.removal_after_date }}</option>
+                        {% endfor %}
+                    </select>
+                    <small>Scheduled and early removal both require explicit preview and confirmation.</small>
+                </label>
+                <label>
+                    <span>Removal confirmation</span>
+                    <input type="text" name="confirmation" placeholder="Type REMOVE BTC-USD" maxlength="40" autocomplete="off">
+                    <small>Preview first. Then type REMOVE followed by the exact ticker.</small>
+                </label>
+            </div>
+            <div class="nt-alert-admin-actions">
+                <button type="submit" name="action" value="public_remove_preview" class="nt-alert-admin-secondary">Preview Data Removal</button>
+                <button type="submit" name="action" value="public_remove" class="nt-alert-admin-danger">Remove Public Data</button>
+            </div>
+        </form>
+    </section>
+    {% endif %}
+
+    {% if removed_public_assets %}
+    <section class="nt-alert-admin-shell nt-alert-admin-panel">
+        <div class="nt-alert-admin-panel-heading">
+            <div><div class="nt-alert-admin-kicker">Lifecycle metadata</div><h2>Removed records</h2></div>
+        </div>
+        <p class="nt-alert-admin-empty">{% for asset in removed_public_assets %}{{ asset.ticker }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+    </section>
+    {% endif %}
+
     {% if dispatch_output %}
     <section class="nt-alert-admin-shell nt-alert-admin-panel">
         <div class="nt-alert-admin-panel-heading">
@@ -219,7 +354,7 @@ Admin-only manual controls for NeuralTrend signal alerts, private Forward Record
         </div>
         <div class="nt-alert-admin-console" role="log" aria-label="Admin operation output">
             {% for line in dispatch_output %}
-            <div class="{% if line.startswith('FAILED') or line.startswith('ABORT') %}is-error{% elif 'PUBLISH-' in line or 'PUBLISHED-' in line or line.startswith('SEND-') or line.startswith('SENT-') %}is-action{% elif line.startswith('ADVANCE') or line.startswith('BASELINE') %}is-muted{% endif %}">{{ line }}</div>
+            <div class="{% if line.startswith('FAILED') or line.startswith('ABORT') %}is-error{% elif 'PUBLISH-' in line or 'PUBLISHED-' in line or line.startswith('SEND-') or line.startswith('SENT-') or line.startswith('RETIRE-') or line.startswith('RETIRED-') or line.startswith('REMOVE-') or line.startswith('REMOVED-') %}is-action{% elif line.startswith('ADVANCE') or line.startswith('BASELINE') %}is-muted{% endif %}">{{ line }}</div>
             {% endfor %}
         </div>
     </section>
@@ -235,7 +370,7 @@ Admin-only manual controls for NeuralTrend signal alerts, private Forward Record
         {% if recent_publication_batches %}
         <div class="nt-alert-admin-table-wrap">
             <table class="nt-alert-admin-table">
-                <thead><tr><th>Mode</th><th>Published</th><th>Assets</th><th>Delayed</th><th>Revisions</th><th>Batch</th></tr></thead>
+                <thead><tr><th>Mode</th><th>Approved</th><th>Asset files</th><th>Delayed</th><th>Batch</th></tr></thead>
                 <tbody>
                     {% for batch in recent_publication_batches %}
                     <tr>
@@ -243,7 +378,6 @@ Admin-only manual controls for NeuralTrend signal alerts, private Forward Record
                         <td>{{ batch.published_at.strftime('%Y-%m-%d %H:%M UTC') }}</td>
                         <td>{{ batch.publication_count }}</td>
                         <td>{{ batch.delayed_count }}</td>
-                        <td>{{ batch.revision_count }}</td>
                         <td>#{{ batch.id }}</td>
                     </tr>
                     {% endfor %}

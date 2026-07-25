@@ -28,7 +28,7 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                         Explore Signals
                     </a>
                     <a href="#historical-performance" class="nt-methodology-secondary-btn">
-                        View Performance Snapshot
+                        View 1Y Simulation
                     </a>
                 </div>
             </div>
@@ -88,7 +88,7 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                 Historical simulations are not brokerage statements, real-money results, or
                 guarantees of future performance. {% if forward_record.started %}NeuralTrend also
                 maintains a separately labeled <a href="{{ url_for('performance') }}">Forward Record</a>
-                containing only signals prospectively approved after its public start date.{% else %}
+                calculated from administrator-approved rows beginning on each asset's public start date.{% else %}
                 A separately labeled Forward Record will begin from a clearly stated date when
                 NeuralTrend is released publicly; pre-launch testing will not be imported.{% endif %}
             </p>
@@ -97,13 +97,17 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
 
     <section class="nt-methodology-shell nt-methodology-section" id="historical-performance">
         <div class="nt-methodology-section-heading">
-            <div class="nt-methodology-kicker">Illustrative public assets</div>
-            <h2>Recent one-year historical performance snapshot</h2>
+            <div class="nt-methodology-kicker">Standardized Signal Overview view</div>
+            <h2>Recent one-year historical simulation</h2>
             <p>
-                A consistent one-year window is shown for the four public crypto assets rather
-                than selecting the strongest horizon for each asset. Results include the fixed
-                transaction-cost assumptions described below and exclude slippage.
+                This is the same historical simulation framework available in Signal Overview,
+                fixed to the 1Y horizon for four representative crypto assets. It is not a
+                separate validation dataset and should not be confused with the approved,
+                date-bounded Forward Record.
             </p>
+            <a href="{{ url_for('index') }}#epochsignaler-section" class="nt-methodology-secondary-btn">
+                Explore all assets and horizons in Signal Overview →
+            </a>
         </div>
 
         {% if featured_performance %}
@@ -117,10 +121,6 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                         <th>Buy &amp; Hold</th>
                         <th>Return spread</th>
                         <th>AI max drawdown</th>
-                        <th>B&amp;H max drawdown</th>
-                        <th>Sharpe</th>
-                        <th>Trades</th>
-                        <th>Exposure</th>
                         <th>Data freshness</th>
                         <th>Latest signal</th>
                     </tr>
@@ -137,10 +137,6 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                         <td class="{{ row.benchmark_class }}">{{ row.buy_hold_return }}</td>
                         <td class="{{ row.spread_class }}">{{ row.return_spread }}</td>
                         <td class="{{ row.strategy_drawdown_class }}">{{ row.strategy_max_drawdown }}</td>
-                        <td class="{{ row.benchmark_drawdown_class }}">{{ row.buy_hold_max_drawdown }}</td>
-                        <td>{{ row.sharpe_ratio }}</td>
-                        <td>{{ row.executed_trade_count }}</td>
-                        <td>{{ row.market_exposure }}</td>
                         <td>
                             <span class="nt-freshness-badge nt-freshness-{{ row.freshness.freshness_status }}">
                                 {{ row.freshness.freshness_label }}
@@ -153,26 +149,8 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                 </tbody>
             </table>
         </div>
-        <div class="nt-methodology-risk-glossary" aria-label="Risk metric definitions">
-            <article>
-                <strong>Maximum drawdown</strong>
-                <span>Largest decline from a previous equity peak to a later trough.</span>
-            </article>
-            <article>
-                <strong>Sharpe ratio</strong>
-                <span>Annualized risk-adjusted return from daily strategy-equity changes using a 1% annual risk-free assumption.</span>
-            </article>
-            <article>
-                <strong>Market exposure</strong>
-                <span>Share of observations during which the strategy held an open position.</span>
-            </article>
-            <article>
-                <strong>Executed trades</strong>
-                <span>Actual BUY and SELL actions after position and cash rules are applied.</span>
-            </article>
-        </div>
         <p class="nt-methodology-snapshot-time">
-            Generated from the currently deployed data files. Coverage and data-through dates are shown per asset.
+            Generated from the currently deployed data files using the 1Y Signal Overview horizon. Coverage and data-through dates are shown per asset.
         </p>
         {% else %}
         <div class="nt-methodology-empty-state">
@@ -326,9 +304,10 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                 <span class="nt-methodology-result-badge">{% if forward_record.started %}Available now{% else %}Starts at public launch{% endif %}</span>
                 <h3>Forward Record</h3>
                 <p>
-                    Tracks administrator-approved signals prospectively from a defined public
-                    start date. Earlier history is not backfilled, and later revisions are appended
-                    rather than silently replacing the original publication.
+                    Calculates performance from compact administrator-approved Date, Close, and
+                    signal rows beginning on each asset's stated public start date. Working CSV
+                    changes do not appear until approved, and earlier approved rows cannot be
+                    silently rewritten through the publication workflow.
                 </p>
                 {% if forward_record.started %}<a href="{{ url_for('performance') }}">View the Forward Record →</a>{% endif %}
             </article>
@@ -455,7 +434,7 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
             <ul>
                 <li>Historical performance does not guarantee future performance.</li>
                 <li>A fixed historical split is not the same as continuous walk-forward validation.</li>
-                <li>The Forward Record is hypothetical and does not represent real-time brokerage execution.</li>
+                <li>The Forward Record is an approved historical calculation, not real-time brokerage execution.</li>
                 <li>Upstream data providers may revise source data or discontinue assets.</li>
                 <li>NeuralTrend does not remove assets solely because their model performed poorly.</li>
             </ul>
