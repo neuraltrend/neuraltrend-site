@@ -42,9 +42,12 @@
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend.css') }}">
     {% block page_styles %}{% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-responsive.css') }}">
 
 </head>
 <body>
+
+    <a class="nt-skip-link" href="#nt-main-content">Skip to main content</a>
 
     <!-- Navigation bar -->
     <div class="navbar">
@@ -54,7 +57,20 @@
             </a>
         </div>
 
-        <div class="nav-links">
+        <button
+            type="button"
+            id="nt-mobile-nav-toggle"
+            class="nt-mobile-nav-toggle"
+            aria-controls="nt-primary-navigation"
+            aria-expanded="false"
+            aria-label="Open navigation"
+        >
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <div id="nt-primary-navigation" class="nav-links">
             <a href="{{ url_for('index') }}"{% if request.endpoint == 'index' %} class="active" aria-current="page"{% endif %}>Home</a>
             <a href="{{ url_for('dashboard') }}"{% if request.endpoint == 'dashboard' %} class="active" aria-current="page"{% endif %}>Dashboard</a>
             <a href="{{ url_for('methodology') }}"{% if request.endpoint == 'methodology' %} class="active" aria-current="page"{% endif %}>Methodology</a>
@@ -70,9 +86,18 @@
             </span>
         </div>
     </div>
+    <button
+        type="button"
+        id="nt-mobile-nav-backdrop"
+        class="nt-mobile-nav-backdrop"
+        aria-label="Close navigation"
+        tabindex="-1"
+    ></button>
 
     <!-- ✅ PAGE CONTENT -->
-    {% block content %}{% endblock %}
+    <div id="nt-main-content" tabindex="-1">
+        {% block content %}{% endblock %}
+    </div>
 
     {% block page_scripts %}{% endblock %}
 
@@ -219,6 +244,7 @@
     </script>
     
     <script src="{{ url_for('static', filename='js/neuraltrend-site-shell.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/neuraltrend-responsive.js') }}"></script>
 
 </body>
 </html>
