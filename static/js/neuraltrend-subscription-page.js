@@ -20,9 +20,9 @@
             button: "Choose Monthly Pro"
         },
         annual: {
-            price: "$99",
+            price: "$99.99",
             period: "/ year",
-            note: "$8.25 per month equivalent, billed as $99 once per year. Save $20.88 compared with monthly billing.",
+            note: "$8.33 per month equivalent, billed as $99.99 once per year. Save $19.89 compared with monthly billing.",
             button: "Choose Annual Pro"
         }
     };
