@@ -99,8 +99,20 @@ app.config["MAX_FORM_MEMORY_SIZE"] = 64 * 1024
 
 # Stripe
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
-STRIPE_PRO_PRICE_ID = os.environ.get("STRIPE_PRO_PRICE_ID")
+
+# Backward compatibility: existing deployments can keep STRIPE_PRO_PRICE_ID as
+# the monthly price. New deployments should prefer the explicit monthly name.
+STRIPE_PRO_MONTHLY_PRICE_ID = (
+    os.environ.get("STRIPE_PRO_MONTHLY_PRICE_ID")
+    or os.environ.get("STRIPE_PRO_PRICE_ID")
+)
+STRIPE_PRO_ANNUAL_PRICE_ID = os.environ.get("STRIPE_PRO_ANNUAL_PRICE_ID")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
+
+STRIPE_PRO_PRICE_IDS_BY_INTERVAL = {
+    "monthly": STRIPE_PRO_MONTHLY_PRICE_ID,
+    "annual": STRIPE_PRO_ANNUAL_PRICE_ID,
+}
 
 db.init_app(app)
 bcrypt.init_app(app)
@@ -4909,7 +4921,11 @@ def dashboard():
 
 @app.route("/subscription")
 def subscription():
-    return render_template("subscription.html")
+    return render_template(
+        "subscription.html",
+        monthly_checkout_available=bool(STRIPE_PRO_MONTHLY_PRICE_ID),
+        annual_checkout_available=bool(STRIPE_PRO_ANNUAL_PRICE_ID),
+    )
 
 
 @app.route("/methodology")
@@ -5679,14 +5695,44 @@ BLOCKING_STRIPE_SUBSCRIPTION_STATUSES = {
 }
 
 CHECKOUT_ATTEMPT_TTL = timedelta(minutes=15)
+VALID_PRO_BILLING_INTERVALS = frozenset({"monthly", "annual"})
+
+
+def configured_pro_price_ids():
+    return {
+        price_id
+        for price_id in STRIPE_PRO_PRICE_IDS_BY_INTERVAL.values()
+        if price_id
+    }
+
+
+def get_pro_price_id_for_interval(billing_interval):
+    if billing_interval not in VALID_PRO_BILLING_INTERVALS:
+        return None
+
+    return STRIPE_PRO_PRICE_IDS_BY_INTERVAL.get(billing_interval)
+
+
+def checkout_session_billing_interval(checkout_session):
+    checkout_session = stripe_to_dict(checkout_session)
+    metadata = checkout_session.get("metadata") or {}
+    interval = str(metadata.get("billing_interval") or "").strip().lower()
+
+    # Checkout Sessions created before the annual option existed did not store
+    # an interval. Those sessions used the monthly Pro Price.
+    if interval in VALID_PRO_BILLING_INTERVALS:
+        return interval
+
+    return "monthly"
 
 
 def stripe_subscription_uses_pro_price(subscription):
     subscription = stripe_to_dict(subscription)
     items = ((subscription.get("items") or {}).get("data") or [])
+    allowed_price_ids = configured_pro_price_ids()
 
-    return any(
-        (item.get("price") or {}).get("id") == STRIPE_PRO_PRICE_ID
+    return bool(allowed_price_ids) and any(
+        (item.get("price") or {}).get("id") in allowed_price_ids
         for item in items
     )
 
@@ -5860,8 +5906,26 @@ def cancel_stripe_billing_for_account_deletion(user):
 @login_required
 @limiter.limit("5 per minute")
 def create_checkout_session():
-    if not stripe.api_key or not STRIPE_PRO_PRICE_ID:
-        return jsonify({"error": "Checkout is temporarily unavailable."}), 503
+    payload = request.get_json(silent=True) or {}
+    billing_interval = str(
+        payload.get("billing_interval") or "monthly"
+    ).strip().lower()
+
+    if billing_interval not in VALID_PRO_BILLING_INTERVALS:
+        return jsonify({
+            "error": "Choose either monthly or annual billing."
+        }), 400
+
+    selected_price_id = get_pro_price_id_for_interval(billing_interval)
+
+    if not stripe.api_key or not selected_price_id:
+        return jsonify({
+            "error": (
+                "Annual checkout is temporarily unavailable."
+                if billing_interval == "annual"
+                else "Checkout is temporarily unavailable."
+            )
+        }), 503
 
     try:
         now = datetime.utcnow()
@@ -5880,16 +5944,38 @@ def create_checkout_session():
                 "manage_billing": True,
             }), 409
 
+        pending_checkout_session_id = user.pending_checkout_session_id
         open_session = retrieve_open_checkout_session(
-            user.pending_checkout_session_id
+            pending_checkout_session_id
         )
 
+        if pending_checkout_session_id and not open_session:
+            # The stored Session expired, completed, or no longer exists. Use a
+            # fresh attempt token so Stripe idempotency cannot return an old,
+            # unusable Checkout Session.
+            user.pending_checkout_session_id = None
+            user.checkout_attempt_id = secrets.token_urlsafe(24)
+            user.checkout_attempt_started_at = now
+
         if open_session:
+            open_interval = checkout_session_billing_interval(open_session)
+
+            if open_interval == billing_interval:
+                db.session.commit()
+                return jsonify({
+                    "url": open_session["url"],
+                    "reused": True,
+                    "billing_interval": billing_interval,
+                })
+
+            # A user changed the billing choice while an earlier Checkout
+            # Session was still open. Expire the old Session so the selected
+            # interval cannot be silently replaced by a stale checkout.
+            stripe.checkout.Session.expire(open_session["id"])
+            user.pending_checkout_session_id = None
+            user.checkout_attempt_id = secrets.token_urlsafe(24)
+            user.checkout_attempt_started_at = now
             db.session.commit()
-            return jsonify({
-                "url": open_session["url"],
-                "reused": True,
-            })
 
         user.pending_checkout_session_id = None
 
@@ -5988,7 +6074,7 @@ def create_checkout_session():
             payment_method_types=["card"],
             line_items=[
                 {
-                    "price": STRIPE_PRO_PRICE_ID,
+                    "price": selected_price_id,
                     "quantity": 1,
                 }
             ],
@@ -5997,13 +6083,17 @@ def create_checkout_session():
             client_reference_id=str(user_id),
             metadata={
                 "user_id": str(user_id),
+                "billing_interval": billing_interval,
             },
             subscription_data={
                 "metadata": {
                     "user_id": str(user_id),
+                    "billing_interval": billing_interval,
                 }
             },
-            idempotency_key=f"nt-checkout-{attempt_id}",
+            idempotency_key=(
+                f"nt-checkout-{attempt_id}-{billing_interval}"
+            ),
         )
 
         user = (
@@ -6016,7 +6106,10 @@ def create_checkout_session():
         user.pending_checkout_session_id = checkout_session.id
         db.session.commit()
 
-        return jsonify({"url": checkout_session.url})
+        return jsonify({
+            "url": checkout_session.url,
+            "billing_interval": billing_interval,
+        })
 
     except stripe.error.StripeError:
         db.session.rollback()
@@ -6349,11 +6442,16 @@ def stripe_webhook():
     payload = request.data
     sig_header = request.headers.get("Stripe-Signature")
 
-    if not stripe.api_key or not STRIPE_PRO_PRICE_ID or not STRIPE_WEBHOOK_SECRET:
+    if (
+        not stripe.api_key
+        or not configured_pro_price_ids()
+        or not STRIPE_WEBHOOK_SECRET
+    ):
         app.logger.error(
-            "Stripe webhook configuration is incomplete: api_key=%s price_id=%s webhook_secret=%s",
+            "Stripe webhook configuration is incomplete: api_key=%s monthly_price=%s annual_price=%s webhook_secret=%s",
             bool(stripe.api_key),
-            bool(STRIPE_PRO_PRICE_ID),
+            bool(STRIPE_PRO_MONTHLY_PRICE_ID),
+            bool(STRIPE_PRO_ANNUAL_PRICE_ID),
             bool(STRIPE_WEBHOOK_SECRET),
         )
         return "Webhook unavailable", 503
@@ -6523,7 +6621,7 @@ def stripe_webhook():
             finish_stripe_webhook_event(
                 record,
                 "ignored",
-                "Subscription event did not match the configured Pro Price or environment.",
+                "Subscription event did not match a configured Pro Price or environment.",
             )
             return "Ignored", 200
 
