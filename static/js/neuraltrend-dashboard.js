@@ -887,7 +887,41 @@
         }
     }
     
+    function signalBoardStateMarkup(kind, message) {
+        if (kind === "loading") {
+            return `
+                <div class="nt-board-state nt-board-state-loading" role="status" aria-label="${escapeHTML(message)}">
+                    ${Array.from({ length: 5 }, () => `
+                        <div class="nt-board-skeleton-row" aria-hidden="true">
+                            <span class="nt-board-skeleton nt-board-skeleton-wide"></span>
+                            <span class="nt-board-skeleton"></span>
+                            <span class="nt-board-skeleton"></span>
+                            <span class="nt-board-skeleton"></span>
+                        </div>
+                    `).join("")}
+                    <span class="nt-sr-only">${escapeHTML(message)}</span>
+                </div>
+            `;
+        }
+
+        const safeKind = ["empty", "error", "updating"].includes(kind) ? kind : "empty";
+        return `
+            <div class="nt-board-state nt-board-state-${safeKind}" role="status">
+                <span class="nt-board-state-icon" aria-hidden="true">${safeKind === "error" ? "!" : "◇"}</span>
+                <span>${escapeHTML(message)}</span>
+            </div>
+        `;
+    }
+
     function renderBoard(data) {
+        if (!Array.isArray(data) || data.length === 0) {
+            board.innerHTML = signalBoardStateMarkup(
+                "empty",
+                "No assets match the current search and filters."
+            );
+            return;
+        }
+
         board.innerHTML = data.map(item => {
             const safeTicker = escapeHTML(item.ticker || "");
             const isWatched = typeof window.neuralTrendWatchlistHasTicker === "function"
@@ -993,11 +1027,7 @@
     board.addEventListener("click", activateSignalBoardRow);
     board.addEventListener("keydown", activateSignalBoardRow);
     
-    board.innerHTML = `
-        <div style="text-align:center; color:#888; padding:20px;">
-            Loading signals…
-        </div>
-    `;
+    board.innerHTML = signalBoardStateMarkup("loading", "Loading signals…");
     
     function loadSummary() {
         const duration = document.getElementById('period-select')?.value || "5y";
@@ -1026,7 +1056,10 @@
                 }
             })
             .catch(err => {
-                board.innerHTML = `<div style="color:red;">Failed to load signals</div>`;
+                board.innerHTML = signalBoardStateMarkup(
+                    "error",
+                    "Signals could not be loaded. Please try again."
+                );
                 console.error(err);
             });
     }
@@ -1035,11 +1068,10 @@
         const board = document.getElementById("signal-board");
     
         if (board) {
-            board.innerHTML = `
-                <div style="text-align:center; color:#888; padding:20px;">
-                    Updating your Pro access…
-                </div>
-            `;
+            board.innerHTML = signalBoardStateMarkup(
+                "updating",
+                "Updating your account access…"
+            );
         }
     
         try {
@@ -1072,11 +1104,10 @@
     document.getElementById('period-select')
         .addEventListener('change', function() {
     
-            board.innerHTML = `
-                <div style="text-align:center; color:#888; padding:20px;">
-                    Updating period…
-                </div>
-            `;
+            board.innerHTML = signalBoardStateMarkup(
+                "loading",
+                "Updating the selected horizon…"
+            );
     
             loadSummary();
     
