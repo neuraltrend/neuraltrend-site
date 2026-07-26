@@ -890,7 +890,11 @@
     function signalBoardStateMarkup(kind, message) {
         if (kind === "loading") {
             return `
-                <div class="nt-board-state nt-board-state-loading" role="status" aria-label="${escapeHTML(message)}">
+                <div class="nt-board-state nt-board-state-loading" role="status" aria-live="polite" aria-label="${escapeHTML(message)}">
+                    <div class="nt-board-loading-copy">
+                        <span class="nt-board-loading-spinner" aria-hidden="true"></span>
+                        <span>${escapeHTML(message)}</span>
+                    </div>
                     ${Array.from({ length: 5 }, () => `
                         <div class="nt-board-skeleton-row" aria-hidden="true">
                             <span class="nt-board-skeleton nt-board-skeleton-wide"></span>
