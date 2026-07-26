@@ -679,7 +679,20 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                     background: #fff;
                                 "
                             >
-                                <!-- rows injected by JS -->
+                                <div class="nt-board-state nt-board-state-loading" role="status" aria-live="polite" aria-label="Loading signal data">
+                                    <div class="nt-board-loading-copy">
+                                        <span class="nt-board-loading-spinner" aria-hidden="true"></span>
+                                        <span>Loading signal data…</span>
+                                    </div>
+                                    {% for _ in range(5) %}
+                                    <div class="nt-board-skeleton-row" aria-hidden="true">
+                                        <span class="nt-board-skeleton nt-board-skeleton-wide"></span>
+                                        <span class="nt-board-skeleton"></span>
+                                        <span class="nt-board-skeleton"></span>
+                                        <span class="nt-board-skeleton"></span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                 
                         </div>
