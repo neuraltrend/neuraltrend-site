@@ -196,6 +196,32 @@ body.nt-mobile-nav-open .nt-mobile-nav-toggle span:nth-child(3) {
     to { background-position: -220% 0; }
 }
 
+.nt-board-loading-copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: 100%;
+    margin-bottom: 3px;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.nt-board-loading-spinner {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    border: 2px solid #cbd5e1;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: nt-board-loading-spin 0.75s linear infinite;
+}
+
+@keyframes nt-board-loading-spin {
+    to { transform: rotate(360deg); }
+}
+
 /* ==================================================
    TABLET LAYOUT
 ================================================== */
@@ -299,13 +325,16 @@ body.nt-mobile-nav-open .nt-mobile-nav-toggle span:nth-child(3) {
     .nt-mobile-nav-backdrop {
         position: fixed;
         inset: var(--nav-height) 0 0;
-        z-index: 1001;
+        /* Keep the overlay below the fixed navbar stacking context so the
+           slide-out navigation remains clickable on mobile Safari. */
+        z-index: 999;
         width: 100%;
         height: auto;
         padding: 0;
         border: 0;
-        background: rgba(2, 6, 23, 0.56);
-        backdrop-filter: blur(2px);
+        background: rgba(2, 6, 23, 0.58);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
         opacity: 0;
         visibility: hidden;
         transition: opacity 0.18s ease, visibility 0.18s ease;
