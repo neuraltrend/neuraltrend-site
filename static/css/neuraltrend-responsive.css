@@ -1,0 +1,825 @@
+/* ==================================================
+   NEURALTREND — RESPONSIVE & ACCESSIBILITY POLISH
+   Loaded after all page-level styles so these rules
+   intentionally resolve mobile cascade conflicts.
+================================================== */
+
+:root {
+    --nt-mobile-nav-width: min(86vw, 340px);
+}
+
+html {
+    scroll-padding-top: calc(var(--nav-height) + 18px);
+}
+
+body {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+}
+
+img,
+svg,
+canvas {
+    max-width: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+    touch-action: manipulation;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible {
+    outline: 3px solid rgba(59, 130, 246, 0.30);
+    outline-offset: 2px;
+}
+
+.nt-sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.nt-skip-link {
+    position: fixed;
+    top: 10px;
+    left: 12px;
+    z-index: 10000;
+    transform: translateY(-160%);
+    padding: 10px 14px;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 850;
+    text-decoration: none;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.24);
+    transition: transform 0.16s ease;
+}
+
+.nt-skip-link:focus {
+    transform: translateY(0);
+}
+
+#nt-main-content:focus {
+    outline: 0;
+}
+
+/* ==================================================
+   MOBILE NAVIGATION
+================================================== */
+
+.nt-mobile-nav-toggle,
+.nt-mobile-nav-backdrop {
+    display: none;
+}
+
+.nt-mobile-nav-toggle {
+    width: 42px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 5px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.07);
+    color: #ffffff;
+}
+
+.nt-mobile-nav-toggle span {
+    display: block;
+    width: 19px;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+    transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+body.nt-mobile-nav-open .nt-mobile-nav-toggle span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+body.nt-mobile-nav-open .nt-mobile-nav-toggle span:nth-child(2) {
+    opacity: 0;
+}
+
+body.nt-mobile-nav-open .nt-mobile-nav-toggle span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ==================================================
+   SHARED COMPACT STATES
+================================================== */
+
+.nt-mobile-table-hint {
+    display: none;
+}
+
+.nt-board-state {
+    min-height: 132px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 750;
+    text-align: center;
+}
+
+.nt-board-state-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    border-radius: 9px;
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 950;
+}
+
+.nt-board-state-error {
+    color: #991b1b;
+}
+
+.nt-board-state-error .nt-board-state-icon {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.nt-board-state-loading {
+    min-height: 190px;
+    display: grid;
+    gap: 9px;
+    align-content: center;
+}
+
+.nt-board-skeleton-row {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 0.75fr);
+    gap: 12px;
+    width: min(780px, 100%);
+}
+
+.nt-board-skeleton {
+    display: block;
+    height: 19px;
+    border-radius: 7px;
+    background: linear-gradient(90deg, #e2e8f0 20%, #f8fafc 50%, #e2e8f0 80%);
+    background-size: 220% 100%;
+    animation: nt-skeleton-shimmer 1.25s linear infinite;
+}
+
+.nt-board-skeleton-wide {
+    height: 28px;
+}
+
+@keyframes nt-skeleton-shimmer {
+    to { background-position: -220% 0; }
+}
+
+/* ==================================================
+   TABLET LAYOUT
+================================================== */
+
+@media (min-width: 681px) and (max-width: 980px) {
+    .nt-home-proof-grid,
+    .nt-home-product-grid,
+    .nt-home-resource-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .nt-home-product-grid > :last-child:nth-child(odd),
+    .nt-home-resource-grid > :last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+    }
+
+    .nt-home-step-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+/* ==================================================
+   MOBILE / SMALL TABLET
+================================================== */
+
+@media (max-width: 860px) {
+    :root {
+        --nav-height: 70px;
+    }
+
+    body.nt-mobile-nav-open {
+        overflow: hidden;
+    }
+
+    .navbar {
+        display: grid !important;
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
+        gap: 8px !important;
+        overflow: visible !important;
+        padding: 7px 12px !important;
+    }
+
+    .navbar .logo {
+        min-width: 0;
+    }
+
+    .navbar .logo img {
+        height: 50px !important;
+        max-width: 150px;
+    }
+
+    .nt-mobile-nav-toggle {
+        display: inline-flex;
+        grid-column: 3;
+    }
+
+    .navbar .nav-links {
+        position: fixed;
+        top: var(--nav-height);
+        left: 0;
+        z-index: 1002;
+        width: var(--nt-mobile-nav-width);
+        height: calc(100dvh - var(--nav-height));
+        display: flex !important;
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 4px !important;
+        padding: 18px 14px max(24px, env(safe-area-inset-bottom));
+        overflow-y: auto;
+        background: #0f172a;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 18px 0 42px rgba(2, 6, 23, 0.32);
+        transform: translateX(-104%);
+        visibility: hidden;
+        transition: transform 0.20s ease, visibility 0.20s ease;
+    }
+
+    body.nt-mobile-nav-open .navbar .nav-links {
+        transform: translateX(0);
+        visibility: visible;
+    }
+
+    .navbar .nav-links a {
+        width: 100%;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        margin: 0 !important;
+        padding: 10px 12px !important;
+        border-radius: 10px !important;
+        font-size: 14px !important;
+    }
+
+    .navbar .nav-links a.active,
+    .navbar .nav-links a[aria-current="page"] {
+        background: rgba(59, 130, 246, 0.20) !important;
+        color: #ffffff !important;
+    }
+
+    .nt-mobile-nav-backdrop {
+        position: fixed;
+        inset: var(--nav-height) 0 0;
+        z-index: 1001;
+        width: 100%;
+        height: auto;
+        padding: 0;
+        border: 0;
+        background: rgba(2, 6, 23, 0.56);
+        backdrop-filter: blur(2px);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.18s ease, visibility 0.18s ease;
+    }
+
+    body.nt-mobile-nav-open .nt-mobile-nav-backdrop {
+        display: block;
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .auth-area {
+        grid-column: 4;
+        min-width: 0;
+        margin-left: 0 !important;
+    }
+
+    #login-btn,
+    .user-pill {
+        min-height: 40px;
+        padding: 7px 10px !important;
+    }
+
+    .nt-account-trigger {
+        max-width: 185px;
+    }
+
+    .nt-account-trigger-email {
+        max-width: 105px;
+    }
+
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    .dropdown.nt-account-dropdown {
+        position: fixed;
+        top: calc(var(--nav-height) + 8px);
+        right: 10px;
+        width: min(360px, calc(100vw - 20px));
+        max-height: calc(100dvh - var(--nav-height) - 18px);
+        overflow-y: auto;
+    }
+
+    main {
+        padding-top: calc(var(--nav-height) + 14px) !important;
+    }
+
+    .nt-page-container {
+        width: min(100% - 24px, 1540px) !important;
+    }
+
+    .nt-dashboard-intro {
+        padding: 20px;
+    }
+
+    .nt-dashboard-intro-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    .nt-dashboard-intro-actions a {
+        width: 100%;
+        text-align: center;
+    }
+
+    .nt-dashboard-intro-actions a:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+    }
+
+    /* Horizontal, snap-based model selection prevents a very tall mobile page. */
+    .nt-product-card-grid {
+        display: flex !important;
+        gap: 12px !important;
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        padding: 2px 2px 12px !important;
+        scroll-snap-type: x mandatory;
+        overscroll-behavior-inline: contain;
+        scrollbar-width: thin;
+    }
+
+    .nt-product-card-grid .nt-product-card {
+        flex: 0 0 min(78vw, 310px) !important;
+        min-width: min(78vw, 310px) !important;
+        min-height: 184px !important;
+        scroll-snap-align: start;
+    }
+
+    .nt-product-card.active::after {
+        display: none !important;
+    }
+
+    .nt-model-content {
+        padding: 10px !important;
+    }
+
+    .nt-model-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 9px !important;
+    }
+
+    .nt-model-summary-card {
+        padding: 11px !important;
+    }
+
+    .nt-epoch-tool-tabs {
+        display: flex !important;
+        gap: 8px !important;
+        overflow-x: auto;
+        padding: 3px 2px 10px;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: thin;
+    }
+
+    .nt-epoch-tool-tab {
+        flex: 0 0 min(68vw, 230px);
+        min-width: min(68vw, 230px);
+        scroll-snap-align: start;
+    }
+
+    .nt-period-pills,
+    .nt-asset-pills,
+    .nt-live-sim-status-pills,
+    .nt-market-hero-periods {
+        width: 100%;
+        max-width: 100%;
+        justify-content: flex-start;
+        overflow-x: auto;
+        overflow-y: hidden;
+        flex-wrap: nowrap !important;
+        scrollbar-width: thin;
+        overscroll-behavior-inline: contain;
+    }
+
+    .period-pill,
+    .asset-pill,
+    .nt-live-sim-status-pill,
+    .nt-market-hero-period {
+        flex: 0 0 auto;
+    }
+
+    .nt-controls-card,
+    .nt-preview-card,
+    .nt-backtest-section,
+    .nt-live-sim-section,
+    .nt-epoch-tool-content-card {
+        padding: 14px !important;
+        border-radius: 15px !important;
+    }
+
+    .nt-watchlist-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .nt-watchlist-primary-btn,
+    .nt-watchlist-alert-control {
+        width: 100%;
+    }
+
+    .nt-watchlist-message {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .nt-metric-grid,
+    .nt-risk-metric-grid,
+    .nt-preview-risk-grid,
+    .nt-backtest-results-grid,
+    .nt-backtest-risk-grid,
+    .nt-live-sim-metric-grid,
+    .nt-live-sim-metric-grid-compact {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 9px !important;
+    }
+
+    .nt-metric-card {
+        min-height: 96px !important;
+        padding: 13px !important;
+        gap: 10px !important;
+    }
+
+    .nt-card-icon {
+        width: 40px !important;
+        height: 40px !important;
+        flex-basis: 40px !important;
+        border-radius: 11px !important;
+        font-size: 18px !important;
+    }
+
+    .nt-metric-value,
+    .nt-result-value,
+    .nt-live-sim-metric-value {
+        font-size: 20px !important;
+    }
+
+    .nt-mobile-table-hint {
+        display: block;
+        margin: 0;
+        padding: 8px 11px;
+        border-bottom: 1px solid #e2e8f0;
+        background: #eff6ff;
+        color: #1e40af;
+        font-size: 10.5px;
+        line-height: 1.4;
+        font-weight: 800;
+    }
+
+    .nt-signal-table-card {
+        position: relative;
+        overflow-x: auto !important;
+        overscroll-behavior-inline: contain;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nt-signal-header > div:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+        padding-left: 2px;
+        background: #f8fafc;
+        box-shadow: 8px 0 12px -12px rgba(15, 23, 42, 0.55);
+    }
+
+    #signal-board .signal-row > .signal-ticker-cell {
+        position: sticky;
+        left: 0;
+        z-index: 3;
+        min-height: 48px;
+        background: #ffffff;
+        box-shadow: 8px 0 12px -12px rgba(15, 23, 42, 0.55);
+    }
+
+    #signal-board .signal-row:hover > .signal-ticker-cell {
+        background: var(--nt-row-hover);
+    }
+
+    #signal-board .signal-row.selected > .signal-ticker-cell {
+        background: var(--nt-selected-row);
+    }
+
+    .nt-preview-meta {
+        gap: 6px;
+    }
+
+    .nt-preview-chip {
+        font-size: 10.5px;
+    }
+
+    .nt-preview-chart,
+    .nt-backtest-chart-shell,
+    .nt-live-sim-chart-shell,
+    .nt-live-sim-chart-shell-compact {
+        height: 290px !important;
+    }
+
+    .nt-backtest-section .form-row,
+    .nt-live-sim-form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .nt-live-sim-board-top-buttons,
+    .nt-live-sim-selected-actions-buttons,
+    .nt-live-sim-actions {
+        width: 100%;
+    }
+
+    .nt-live-sim-board-top-buttons > button,
+    .nt-live-sim-selected-actions-buttons > button,
+    .nt-live-sim-actions > button {
+        flex: 1 1 150px;
+        min-height: 42px;
+    }
+
+    .nt-live-sim-trades-table {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nt-live-trade-row,
+    .nt-live-sim-trades-card-side .nt-live-trade-row {
+        min-width: 650px;
+    }
+
+    .nt-sticky-legal-footer-inner {
+        justify-content: flex-start !important;
+        overflow-x: auto;
+        flex-wrap: nowrap !important;
+        scrollbar-width: none;
+    }
+
+    .nt-sticky-legal-footer-inner::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nt-sticky-legal-footer a {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    .modal,
+    .nt-account-modal {
+        padding: 14px;
+    }
+
+    .modal-content,
+    .nt-account-modal-panel {
+        width: min(100%, 500px) !important;
+        max-height: calc(100dvh - 28px);
+        overflow-y: auto;
+    }
+}
+
+@media (max-width: 680px) {
+    .nt-home-proof-grid,
+    .nt-home-product-grid,
+    .nt-home-step-grid,
+    .nt-home-resource-grid,
+    .nt-home-plan-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .nt-home-product-grid > :last-child,
+    .nt-home-resource-grid > :last-child {
+        grid-column: auto;
+    }
+
+    .nt-home-section {
+        margin: 42px 0;
+    }
+
+    .nt-home-product-card {
+        min-height: 0;
+        padding: 20px;
+    }
+
+    .nt-home-how,
+    .nt-home-dashboard-cta,
+    .nt-home-contact {
+        border-radius: 17px;
+    }
+
+    .nt-home-dashboard-actions {
+        flex-direction: column;
+    }
+
+    .nt-market-hero-grid {
+        padding: 22px 16px !important;
+    }
+
+    .nt-market-hero-title {
+        font-size: clamp(33px, 10vw, 42px) !important;
+    }
+
+    .nt-market-hero-actions,
+    .nt-market-hero-btn {
+        width: 100%;
+    }
+
+    .nt-market-hero-assets {
+        display: flex !important;
+        width: 100%;
+        overflow-x: auto;
+        gap: 7px;
+        padding-bottom: 4px;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: thin;
+    }
+
+    .nt-market-hero-asset-btn,
+    .nt-market-hero-more-assets {
+        flex: 0 0 132px;
+        width: 132px !important;
+        min-width: 132px;
+        scroll-snap-align: start;
+    }
+
+    .nt-market-hero-more-assets {
+        grid-column: auto !important;
+    }
+
+    .nt-market-hero-chart-card {
+        padding: 12px !important;
+        border-radius: 16px !important;
+    }
+
+    .nt-market-hero-chart-shell {
+        height: 250px !important;
+    }
+
+    .nt-market-hero-chart-footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .nt-dashboard-intro-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .nt-dashboard-intro-actions a:last-child:nth-child(odd) {
+        grid-column: auto;
+    }
+
+    .nt-data-freshness-strip,
+    .nt-live-sim-freshness-strip {
+        width: 100%;
+    }
+}
+
+@media (max-width: 460px) {
+    :root {
+        --nav-height: 66px;
+    }
+
+    .navbar {
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
+        padding: 6px 9px !important;
+    }
+
+    .navbar .logo img {
+        height: 46px !important;
+        max-width: 125px;
+    }
+
+    .nt-mobile-nav-toggle {
+        width: 39px;
+        height: 39px;
+    }
+
+    #login-btn {
+        padding: 7px 11px !important;
+    }
+
+    .nt-account-trigger {
+        width: 42px;
+        min-width: 42px;
+        justify-content: center;
+        padding: 6px !important;
+    }
+
+    .nt-account-trigger-email,
+    .nt-account-trigger .arrow {
+        display: none;
+    }
+
+    .nt-page-container {
+        width: calc(100% - 16px) !important;
+    }
+
+    .nt-dashboard-intro,
+    .nt-model-content,
+    .nt-controls-card,
+    .nt-preview-card,
+    .nt-backtest-section,
+    .nt-live-sim-section,
+    .nt-epoch-tool-content-card {
+        padding: 11px !important;
+    }
+
+    .nt-model-summary-grid,
+    .nt-metric-grid,
+    .nt-risk-metric-grid,
+    .nt-preview-risk-grid,
+    .nt-backtest-results-grid,
+    .nt-backtest-risk-grid,
+    .nt-live-sim-metric-grid,
+    .nt-live-sim-metric-grid-compact,
+    .nt-backtest-section .form-row,
+    .nt-live-sim-form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .nt-product-card-grid .nt-product-card {
+        flex-basis: 84vw !important;
+        min-width: 84vw !important;
+    }
+
+    .nt-epoch-tool-tab {
+        flex-basis: 76vw;
+        min-width: 76vw;
+    }
+
+    .nt-market-hero-chart-shell,
+    .nt-preview-chart,
+    .nt-backtest-chart-shell,
+    .nt-live-sim-chart-shell,
+    .nt-live-sim-chart-shell-compact {
+        height: 240px !important;
+    }
+
+    .nt-board-skeleton-row {
+        grid-template-columns: 1.4fr repeat(2, 0.8fr);
+    }
+
+    .nt-board-skeleton-row span:last-child {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
