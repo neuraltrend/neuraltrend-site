@@ -1,9 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}NeuralTrend Pro | Subscription Plan for AI Market Signals{% endblock %}
+{% block title %}NeuralTrend Pro | Monthly or Annual AI Market Signals{% endblock %}
 
 {% block meta_description %}
-Upgrade to NeuralTrend Pro to unlock all supported assets, full signal history, equity previews, historical backtests, and expanded live simulations.
+Choose monthly or annual NeuralTrend Pro access for all supported assets, full signal history, equity previews, historical backtests, watchlists, alerts, and expanded live simulations.
+{% endblock %}
+
+{% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-subscription.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -11,9 +15,14 @@ Upgrade to NeuralTrend Pro to unlock all supported assets, full signal history, 
 <main>
     <div class="nt-page-container">
 
-        <section id="subscription-plan" class="nt-pricing-section nt-subscription-page-section">
+        <section
+            id="subscription-plan"
+            class="nt-pricing-section nt-subscription-page-section"
+            data-monthly-checkout-available="{{ 'true' if monthly_checkout_available else 'false' }}"
+            data-annual-checkout-available="{{ 'true' if annual_checkout_available else 'false' }}"
+        >
 
-            <div class="nt-pricing-header">
+            <div class="nt-pricing-header nt-subscription-header">
                 <div class="nt-section-eyebrow">Subscription Plan</div>
 
                 <h1 class="nt-pricing-title">
@@ -21,14 +30,13 @@ Upgrade to NeuralTrend Pro to unlock all supported assets, full signal history, 
                 </h1>
 
                 <p class="nt-pricing-subtitle">
-                    Start with selected free signals, or upgrade to NeuralTrend Pro to unlock all supported assets,
-                    full signal history, equity previews, historical backtests, and expanded live simulations.
+                    Start with selected free signals, or upgrade to NeuralTrend Pro. Pro has one feature set;
+                    choose the billing schedule that works better for you.
                 </p>
             </div>
 
             <div class="nt-pricing-grid">
 
-                <!-- Free Plan -->
                 <div class="nt-pricing-card">
                     <div class="nt-pricing-plan-label">Free</div>
 
@@ -53,12 +61,12 @@ Upgrade to NeuralTrend Pro to unlock all supported assets, full signal history, 
                     </ul>
 
                     <div class="nt-pricing-actions">
-                        <span id="subscription-free-status-pill" class="nt-plan-status-pill" style="display:none;">
+                        <span id="subscription-free-status-pill" class="nt-plan-status-pill" hidden>
                             Current Plan
                         </span>
-                    
-                        <button 
-                            type="button" 
+
+                        <button
+                            type="button"
                             id="subscription-free-action-btn"
                             class="nt-pricing-btn nt-pricing-btn-secondary"
                         >
@@ -67,23 +75,61 @@ Upgrade to NeuralTrend Pro to unlock all supported assets, full signal history, 
                     </div>
                 </div>
 
-                <!-- Pro Plan -->
                 <div class="nt-pricing-card nt-pricing-card-featured">
                     <div class="nt-pricing-featured-badge">Recommended</div>
 
                     <div class="nt-pricing-plan-label">Pro</div>
 
                     <h3 class="nt-pricing-plan-title">
-                        Full EpochSignaler Access
+                        Full NeuralTrend Access
                     </h3>
 
-                    <div class="nt-pricing-price">
-                        $9.99
-                        <span>/ month</span>
+                    <div
+                        class="nt-billing-selector"
+                        role="group"
+                        aria-label="Choose Pro billing schedule"
+                    >
+                        <button
+                            type="button"
+                            id="subscription-billing-monthly"
+                            class="nt-billing-option is-active"
+                            data-billing-interval="monthly"
+                            aria-pressed="true"
+                            {% if not monthly_checkout_available %}disabled{% endif %}
+                        >
+                            Monthly
+                        </button>
+                        <button
+                            type="button"
+                            id="subscription-billing-annual"
+                            class="nt-billing-option"
+                            data-billing-interval="annual"
+                            aria-pressed="false"
+                            {% if not annual_checkout_available %}disabled{% endif %}
+                        >
+                            Annual
+                            <span>Save $20.88</span>
+                        </button>
                     </div>
 
+                    <div class="nt-subscription-price-wrap" aria-live="polite">
+                        <div class="nt-pricing-price">
+                            <span id="subscription-pro-price">$9.99</span>
+                            <span id="subscription-pro-price-period">/ month</span>
+                        </div>
+                        <p id="subscription-pro-billing-note" class="nt-subscription-billing-note">
+                            Billed monthly. Cancel anytime through Stripe billing.
+                        </p>
+                    </div>
+
+                    {% if not annual_checkout_available %}
+                    <p class="nt-subscription-config-note" role="status">
+                        Annual checkout is not configured yet. Monthly Pro remains available.
+                    </p>
+                    {% endif %}
+
                     <p class="nt-pricing-plan-text">
-                        Unlock the complete EpochSignaler research workspace.
+                        Unlock the complete NeuralTrend research workspace with the same Pro features on either billing schedule.
                     </p>
 
                     <ul class="nt-pricing-list">
@@ -91,12 +137,13 @@ Upgrade to NeuralTrend Pro to unlock all supported assets, full signal history, 
                         <li>Full signal history for all assets</li>
                         <li>Equity preview for every supported asset</li>
                         <li>Historical backtesting</li>
+                        <li>Watchlists and signal-change email alerts</li>
                         <li>Up to 100 live simulations</li>
-                        <li>Cancel anytime through Stripe billing</li>
+                        <li>Cancel or manage billing through Stripe</li>
                     </ul>
 
-                    <div class="nt-pricing-actions">
-                        <span id="subscription-pro-status-pill" class="nt-pro-status-pill" style="display:none;">
+                    <div class="nt-pricing-actions nt-subscription-pro-actions">
+                        <span id="subscription-pro-status-pill" class="nt-pro-status-pill" hidden>
                             Pro Active
                         </span>
 
@@ -105,7 +152,7 @@ Upgrade to NeuralTrend Pro to unlock all supported assets, full signal history, 
                             id="subscription-pro-action-btn"
                             class="nt-pricing-btn nt-pricing-btn-primary"
                         >
-                            Upgrade to Pro
+                            Choose Monthly Pro
                         </button>
 
                         <p class="nt-pricing-disclaimer">
@@ -120,9 +167,20 @@ Upgrade to NeuralTrend Pro to unlock all supported assets, full signal history, 
 
             </div>
 
-            <p class="nt-pricing-disclaimer">
-                Historical simulations and trading signals are for informational purposes only and do not constitute financial advice.
-            </p>
+            <div class="nt-subscription-faq" aria-label="Subscription details">
+                <div>
+                    <strong>Same Pro access</strong>
+                    <span>Monthly and annual subscribers receive the same product features.</span>
+                </div>
+                <div>
+                    <strong>Secure billing</strong>
+                    <span>Checkout, payment details, invoices, cancellation, and plan changes are handled by Stripe.</span>
+                </div>
+                <div>
+                    <strong>No performance promise</strong>
+                    <span>Signals and simulations are informational research tools, not financial advice or guaranteed outcomes.</span>
+                </div>
+            </div>
 
         </section>
 
