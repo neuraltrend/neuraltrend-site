@@ -1,3 +1,65 @@
+(function initializeNeuralTrendSubscriptionPage() {
+    "use strict";
+
+    const section = document.getElementById("subscription-plan");
+    const monthlyButton = document.getElementById("subscription-billing-monthly");
+    const annualButton = document.getElementById("subscription-billing-annual");
+    const priceElement = document.getElementById("subscription-pro-price");
+    const periodElement = document.getElementById("subscription-pro-price-period");
+    const billingNote = document.getElementById("subscription-pro-billing-note");
+    const proButton = document.getElementById("subscription-pro-action-btn");
+
+    const monthlyAvailable = section?.dataset.monthlyCheckoutAvailable === "true";
+    const annualAvailable = section?.dataset.annualCheckoutAvailable === "true";
+
+    const billingDetails = {
+        monthly: {
+            price: "$9.99",
+            period: "/ month",
+            note: "Billed monthly. Cancel anytime through Stripe billing.",
+            button: "Choose Monthly Pro"
+        },
+        annual: {
+            price: "$99",
+            period: "/ year",
+            note: "$8.25 per month equivalent, billed as $99 once per year. Save $20.88 compared with monthly billing.",
+            button: "Choose Annual Pro"
+        }
+    };
+
+    function intervalIsAvailable(interval) {
+        return interval === "annual" ? annualAvailable : monthlyAvailable;
+    }
+
+    let selectedBillingInterval = monthlyAvailable ? "monthly" : "annual";
+
+    function setBillingInterval(interval) {
+        if (!billingDetails[interval] || !intervalIsAvailable(interval)) {
+            return;
+        }
+
+        selectedBillingInterval = interval;
+        const details = billingDetails[interval];
+
+        monthlyButton?.classList.toggle("is-active", interval === "monthly");
+        annualButton?.classList.toggle("is-active", interval === "annual");
+        monthlyButton?.setAttribute(
+            "aria-pressed",
+            interval === "monthly" ? "true" : "false"
+        );
+        annualButton?.setAttribute(
+            "aria-pressed",
+            interval === "annual" ? "true" : "false"
+        );
+
+        if (priceElement) priceElement.textContent = details.price;
+        if (periodElement) periodElement.textContent = details.period;
+        if (billingNote) billingNote.textContent = details.note;
+
+        if (proButton && proButton.dataset.action !== "manage-billing") {
+            proButton.textContent = details.button;
+        }
+    }
 
     async function startStripeCheckoutFromSubscriptionPage() {
         const button = document.getElementById("subscription-pro-action-btn");
@@ -6,10 +68,16 @@
             return;
         }
 
-        const originalButtonText = button?.textContent || "Upgrade to Pro";
+        if (!intervalIsAvailable(selectedBillingInterval)) {
+            alert("That billing option is temporarily unavailable.");
+            return;
+        }
+
+        const originalButtonText = button?.textContent || billingDetails[selectedBillingInterval].button;
 
         ntTrack("upgrade_clicked", {
-            source: "subscription_page"
+            source: "subscription_page",
+            billing_interval: selectedBillingInterval
         });
 
         try {
@@ -24,7 +92,8 @@
 
             if (!me.email) {
                 ntTrack("upgrade_requires_login", {
-                    source: "subscription_page"
+                    source: "subscription_page",
+                    billing_interval: selectedBillingInterval
                 });
 
                 if (typeof openNeuralTrendLoginModal === "function") {
@@ -45,7 +114,13 @@
             }
 
             const response = await fetch("/create-checkout-session", {
-                method: "POST"
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    billing_interval: selectedBillingInterval
+                })
             });
 
             const data = await response.json().catch(() => ({}));
@@ -61,7 +136,8 @@
 
             if (!response.ok || !data.url) {
                 ntTrack("checkout_start_failed", {
-                    status: response.status
+                    status: response.status,
+                    billing_interval: selectedBillingInterval
                 });
                 alert(data.error || "Could not start checkout.");
                 return;
@@ -77,7 +153,13 @@
             if (button) {
                 button.disabled = false;
                 button.classList.remove("nt-pricing-btn-disabled");
-                button.textContent = originalButtonText;
+
+                if (button.dataset.action === "manage-billing") {
+                    button.textContent = "Manage Billing";
+                } else {
+                    button.textContent = originalButtonText;
+                    setBillingInterval(selectedBillingInterval);
+                }
             }
         }
     }
@@ -93,9 +175,9 @@
             if (data.url) {
                 ntTrackAndGo("billing_portal_started", data.url);
                 return;
-            } else {
-                alert(data.error || "Could not open billing portal.");
             }
+
+            alert(data.error || "Could not open billing portal.");
 
         } catch (error) {
             console.error("Billing portal error:", error);
@@ -112,38 +194,40 @@
         if (!pill || !button) return;
 
         if (user.is_paid) {
-            pill.style.display = "inline-flex";
+            pill.hidden = false;
             pill.textContent = "Pro Active";
 
+            button.dataset.action = "manage-billing";
             button.textContent = "Manage Billing";
             button.onclick = startBillingPortalFromSubscriptionPage;
         } else {
-            pill.style.display = "none";
+            pill.hidden = true;
 
-            button.textContent = "Upgrade to Pro";
+            button.dataset.action = "checkout";
             button.onclick = startStripeCheckoutFromSubscriptionPage;
+            setBillingInterval(selectedBillingInterval);
         }
 
         const isLoggedIn = Boolean(user.email);
         const isPaid = Boolean(user.is_paid);
-        
+
         if (freePill && freeButton) {
             freeButton.disabled = false;
             freeButton.classList.remove("nt-pricing-btn-disabled");
-        
+
             if (!isLoggedIn) {
-                freePill.style.display = "none";
+                freePill.hidden = true;
                 freeButton.textContent = "Start Free";
                 freeButton.onclick = startFreePlanFromSubscriptionPage;
             } else if (isPaid) {
-                freePill.style.display = "none";
+                freePill.hidden = true;
                 freeButton.textContent = "Included with Pro";
                 freeButton.disabled = true;
                 freeButton.classList.add("nt-pricing-btn-disabled");
             } else {
-                freePill.style.display = "inline-flex";
+                freePill.hidden = false;
                 freePill.textContent = "Current Plan";
-        
+
                 freeButton.textContent = "Free Plan Active";
                 freeButton.disabled = true;
                 freeButton.classList.add("nt-pricing-btn-disabled");
@@ -165,20 +249,31 @@
         try {
             const response = await fetch("/me", { cache: "no-store" });
             const user = await response.json();
-    
+
             if (!user.email) {
-                openNeuralTrendLoginModal("Create a free NeuralTrend account to start using the free plan.");
+                openNeuralTrendLoginModal(
+                    "Create a free NeuralTrend account to start using the free plan."
+                );
                 return;
             }
-    
-            // Already logged in, so no signup/login modal is needed.
+
             updateSubscriptionPageUI(user);
-    
+
         } catch (error) {
             console.error("Free plan check error:", error);
-            openNeuralTrendLoginModal("Create a free NeuralTrend account to start using the free plan.");
+            openNeuralTrendLoginModal(
+                "Create a free NeuralTrend account to start using the free plan."
+            );
         }
     }
+
+    monthlyButton?.addEventListener("click", function() {
+        setBillingInterval("monthly");
+    });
+
+    annualButton?.addEventListener("click", function() {
+        setBillingInterval("annual");
+    });
 
     document.addEventListener("neuralTrendUserUpdated", function(event) {
         updateSubscriptionPageUI(event.detail || {});
@@ -186,14 +281,18 @@
 
     window.addEventListener("pageshow", refreshSubscriptionPageUI);
 
-// Initial handlers are assigned from JavaScript rather than inline HTML.
-const subscriptionFreeActionButton = document.getElementById("subscription-free-action-btn");
-const subscriptionProActionButton = document.getElementById("subscription-pro-action-btn");
+    const subscriptionFreeActionButton = document.getElementById(
+        "subscription-free-action-btn"
+    );
 
-if (subscriptionFreeActionButton) {
-    subscriptionFreeActionButton.onclick = startFreePlanFromSubscriptionPage;
-}
+    if (subscriptionFreeActionButton) {
+        subscriptionFreeActionButton.onclick = startFreePlanFromSubscriptionPage;
+    }
 
-if (subscriptionProActionButton) {
-    subscriptionProActionButton.onclick = startStripeCheckoutFromSubscriptionPage;
-}
+    if (proButton) {
+        proButton.dataset.action = "checkout";
+        proButton.onclick = startStripeCheckoutFromSubscriptionPage;
+    }
+
+    setBillingInterval(selectedBillingInterval);
+})();
