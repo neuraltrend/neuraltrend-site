@@ -82,7 +82,7 @@
     
         const returnValue = growthFactor - 1;
         const percent = returnValue * 100;
-        const sign = signed && percent > 0 ? "+" : "";
+        const sign = percent > 0 ? "+" : "";
     
         let cls = "return-neutral";
         if (returnValue > 0) cls = "return-positive";
@@ -118,7 +118,7 @@
         }
 
         const percent = numberValue * 100;
-        const sign = percent > 0 ? "+" : "";
+        const sign = signed && percent > 0 ? "+" : "";
         const text = `${sign}${percent.toFixed(decimals)}%`;
 
         if (!colorize) return text;
