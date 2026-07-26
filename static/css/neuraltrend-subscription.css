@@ -1,0 +1,144 @@
+.nt-subscription-page-section {
+    max-width: 1040px;
+    margin-inline: auto;
+}
+
+.nt-subscription-header {
+    margin-inline: auto;
+    text-align: center;
+}
+
+.nt-billing-selector {
+    width: fit-content;
+    max-width: 100%;
+    margin-top: 18px;
+    padding: 4px;
+    display: inline-grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    border: 1px solid var(--nt-border);
+    border-radius: 999px;
+    background: #f1f5f9;
+}
+
+.nt-billing-option {
+    min-height: 42px;
+    padding: 8px 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--nt-neutral);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nt-billing-option span {
+    display: inline-flex;
+    padding: 3px 6px;
+    border-radius: 999px;
+    background: rgba(22, 163, 74, 0.10);
+    color: #15803d;
+    font-size: 10px;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.nt-billing-option.is-active {
+    background: #ffffff;
+    color: var(--nt-dark);
+    box-shadow: 0 2px 7px rgba(15, 23, 42, 0.10);
+}
+
+.nt-billing-option:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
+}
+
+.nt-subscription-price-wrap {
+    min-height: 82px;
+}
+
+.nt-subscription-billing-note,
+.nt-subscription-config-note {
+    margin: 8px 0 0;
+    color: var(--nt-neutral);
+    font-size: 12px;
+    line-height: 1.5;
+    font-weight: 650;
+}
+
+.nt-subscription-config-note {
+    padding: 9px 11px;
+    border: 1px solid rgba(217, 119, 6, 0.20);
+    border-radius: 10px;
+    background: rgba(245, 158, 11, 0.08);
+    color: #92400e;
+}
+
+.nt-subscription-pro-actions {
+    align-items: flex-start;
+}
+
+.nt-subscription-pro-actions .nt-pricing-disclaimer {
+    flex-basis: 100%;
+}
+
+.nt-subscription-faq {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.nt-subscription-faq > div {
+    padding: 14px;
+    border: 1px solid var(--nt-border);
+    border-radius: 14px;
+    background: #f8fafc;
+}
+
+.nt-subscription-faq strong,
+.nt-subscription-faq span {
+    display: block;
+}
+
+.nt-subscription-faq strong {
+    color: var(--nt-dark);
+    font-size: 12px;
+    font-weight: 950;
+}
+
+.nt-subscription-faq span {
+    margin-top: 5px;
+    color: var(--nt-neutral);
+    font-size: 12px;
+    line-height: 1.5;
+    font-weight: 600;
+}
+
+@media (max-width: 760px) {
+    .nt-subscription-faq {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .nt-billing-selector {
+        width: 100%;
+    }
+
+    .nt-billing-option {
+        padding-inline: 9px;
+    }
+
+    .nt-billing-option span {
+        display: none;
+    }
+}
