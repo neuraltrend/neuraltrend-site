@@ -753,7 +753,11 @@ def process_item(
             delivery.error_message = str(error)[:1000]
             delivery.attempted_at = utcnow()
             db.session.commit()
-        print(f"FAILED {user.email} {ticker}: {error}", file=sys.stderr)
+        print(
+            f"FAILED user_id={user.id} ticker={ticker} "
+            f"error_type={type(error).__name__}",
+            file=sys.stderr,
+        )
         return 0, 1, 0
 
     db.session.rollback()
@@ -944,7 +948,11 @@ def run_dispatch(
                 )
             except Exception as error:
                 db.session.rollback()
-                print(f"FAILED watchlist_item_id={item_id}: {error}", file=sys.stderr)
+                print(
+                    f"FAILED watchlist_item_id={item_id} "
+                    f"error_type={type(error).__name__}",
+                    file=sys.stderr,
+                )
                 sent, failures, waiting = 0, 1, 0
 
             total_sent += sent

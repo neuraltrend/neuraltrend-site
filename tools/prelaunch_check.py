@@ -9,6 +9,7 @@ storage.
 from __future__ import annotations
 
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -85,6 +86,18 @@ def main() -> int:
     if base_url and not base_url.startswith("https://"):
         warnings.append("BASE_URL is not HTTPS.")
 
+    if not configured("REDIS_URL"):
+        warnings.append(
+            "REDIS_URL is not configured; rate limits may not be shared "
+            "across multiple web workers."
+        )
+
+    log_format = os.environ.get("NEURALTREND_LOG_FORMAT", "text").strip().lower()
+    if log_format not in {"text", "json"}:
+        errors.append(
+            "NEURALTREND_LOG_FORMAT must be either 'text' or 'json'."
+        )
+
     if not FORWARD_RECORD_STORAGE_EXPLICIT:
         errors.append(
             "FORWARD_RECORD_STORAGE_DIR is not explicitly configured."
@@ -96,6 +109,10 @@ def main() -> int:
         test_path = storage / ".neuraltrend-prelaunch-write-test"
         test_path.write_text("ok", encoding="utf-8")
         test_path.unlink()
+        usage = shutil.disk_usage(storage)
+        free_percent = (usage.free / usage.total * 100.0) if usage.total else 0.0
+        if usage.free < 512 * 1024 * 1024 or free_percent < 10.0:
+            warnings.append("Forward Record persistent storage is low on free space.")
     except Exception as exc:
         errors.append(f"Forward Record storage is not writable: {exc}")
 
