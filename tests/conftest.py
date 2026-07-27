@@ -9,9 +9,16 @@ from __future__ import annotations
 import os
 import shutil
 import tempfile
+import sys
 from pathlib import Path
 
 import pytest
+
+# Ensure the repository root (where app.py lives) is importable even when
+# pytest is launched through its console-script entry point in GitHub Actions.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 SUITE_ROOT = Path(tempfile.mkdtemp(prefix="neuraltrend-tests-"))
 DB_PATH = SUITE_ROOT / "neuraltrend.sqlite"
