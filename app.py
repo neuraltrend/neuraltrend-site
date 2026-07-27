@@ -2853,6 +2853,7 @@ def get_latest_csv_date_for_ticker(ticker):
 # --------------------
 
 @app.route("/healthz")
+@limiter.exempt
 def healthz():
     """Lightweight readiness check for Render and deployment smoke tests.
 
