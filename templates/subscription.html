@@ -112,6 +112,26 @@ Choose monthly or annual NeuralTrend Pro access for all supported assets, full s
                         </button>
                     </div>
 
+                    <div
+                        id="subscription-current-plan"
+                        class="nt-current-plan-panel"
+                        aria-live="polite"
+                        hidden
+                    >
+                        <div>
+                            <span class="nt-current-plan-label">Current subscription</span>
+                            <strong id="subscription-current-plan-name">Pro</strong>
+                            <span id="subscription-current-plan-detail"></span>
+                        </div>
+                        <button
+                            type="button"
+                            id="subscription-manage-billing-btn"
+                            class="nt-current-plan-manage"
+                        >
+                            Manage Billing
+                        </button>
+                    </div>
+
                     <div class="nt-subscription-price-wrap" aria-live="polite">
                         <div class="nt-pricing-price">
                             <span id="subscription-pro-price">$9.99</span>
@@ -139,7 +159,7 @@ Choose monthly or annual NeuralTrend Pro access for all supported assets, full s
                         <li>Historical backtesting</li>
                         <li>Watchlists and signal-change email alerts</li>
                         <li>Up to 100 live simulations</li>
-                        <li>Cancel or manage billing through Stripe</li>
+                        <li>Switch monthly or annual billing, or move to Free</li>
                     </ul>
 
                     <div class="nt-pricing-actions nt-subscription-pro-actions">
@@ -154,6 +174,14 @@ Choose monthly or annual NeuralTrend Pro access for all supported assets, full s
                         >
                             Choose Monthly Pro
                         </button>
+
+                        <p
+                            id="subscription-plan-change-note"
+                            class="nt-plan-change-note"
+                            hidden
+                        >
+                            Stripe shows any prorated credit or charge before you confirm a billing-schedule change.
+                        </p>
 
                         <p class="nt-pricing-disclaimer">
                             By subscribing to NeuralTrend Pro, you agree to our
@@ -174,7 +202,7 @@ Choose monthly or annual NeuralTrend Pro access for all supported assets, full s
                 </div>
                 <div>
                     <strong>Secure billing</strong>
-                    <span>Checkout, payment details, invoices, cancellation, and plan changes are handled by Stripe.</span>
+                    <span>Checkout, invoices, payment details, cancellations, and plan switches are confirmed securely in Stripe.</span>
                 </div>
                 <div>
                     <strong>No performance promise</strong>
