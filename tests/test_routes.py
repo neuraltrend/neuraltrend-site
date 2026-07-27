@@ -39,6 +39,22 @@ def test_health_check_reports_database_and_storage(client):
     assert response.headers["Cache-Control"].startswith("no-store")
 
 
+def test_health_check_is_exempt_from_global_rate_limits(app):
+    # Render probes this endpoint every few seconds. It must never consume the
+    # application's default per-IP request allowance.
+    import app as application
+
+    application.limiter.enabled = True
+    application.limiter.reset()
+    try:
+        probe_client = app.test_client()
+        responses = [probe_client.get("/healthz") for _ in range(60)]
+        assert all(response.status_code == 200 for response in responses)
+    finally:
+        application.limiter.reset()
+        application.limiter.enabled = False
+
+
 def test_admin_routes_require_login(client):
     assert client.get("/admin/signal-alerts").status_code == 401
     assert client.get("/admin/forward-record").status_code == 401
