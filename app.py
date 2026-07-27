@@ -44,8 +44,13 @@ import math
 import re
 import unicodedata
 import json
+import shutil
 from flask_wtf.csrf import CSRFError
 from sqlalchemy import text
+from operational_logging import (
+    configure_operational_logging,
+    register_request_observability,
+)
 from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
@@ -53,6 +58,9 @@ app = Flask(__name__)
 TESTING_MODE = os.environ.get("NEURALTREND_TESTING", "").strip().lower() in {
     "1", "true", "yes", "on"
 }
+
+configure_operational_logging(app, testing_mode=TESTING_MODE)
+register_request_observability(app)
 
 # ✅ Fix proxy handling (Render-safe)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
@@ -166,6 +174,21 @@ FORWARD_RECORD_STORAGE_DIR = os.path.realpath(
     )
 )
 os.makedirs(FORWARD_RECORD_STORAGE_DIR, exist_ok=True)
+
+app.logger.info(
+    "application_initialized testing=%s database_configured=%s redis_configured=%s "
+    "email_configured=%s stripe_monthly_configured=%s "
+    "stripe_annual_configured=%s stripe_webhook_configured=%s "
+    "forward_record_storage_explicit=%s",
+    TESTING_MODE,
+    bool(os.environ.get("DATABASE_URL", "").strip()),
+    bool(os.environ.get("REDIS_URL", "").strip()),
+    bool(os.environ.get("EMAIL_USER", "").strip() and os.environ.get("EMAIL_PASS", "").strip()),
+    bool(STRIPE_PRO_MONTHLY_PRICE_ID),
+    bool(STRIPE_PRO_ANNUAL_PRICE_ID),
+    bool(STRIPE_WEBHOOK_SECRET),
+    FORWARD_RECORD_STORAGE_EXPLICIT,
+)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -312,9 +335,9 @@ def send_verification_email(user_email):
 
     try:
         mail.send(msg)
-        print("Verification email sent to:", user_email)
-    except Exception as e:
-        print("EMAIL ERROR (verify):", str(e))
+        app.logger.info("Verification email sent")
+    except Exception:
+        app.logger.exception("Verification email delivery failed")
 
 def normalize_email(email):
     return str(email or "").strip().lower()
@@ -2844,8 +2867,11 @@ def get_latest_csv_date_for_ticker(ticker):
     try:
         df = load_epoch_csv_for_ticker(ticker)
         return df.index.max().date()
-    except Exception as e:
-        print(f"Could not read latest CSV date for {ticker}:", str(e))
+    except Exception:
+        app.logger.exception(
+            "Could not read latest CSV date ticker=%s",
+            normalize_ticker(ticker),
+        )
         return None
 
 # --------------------
@@ -3208,6 +3234,291 @@ def me():
         "signal_email_alerts_available": False,
     })
 
+
+
+# --------------------
+# Admin operational monitoring
+# --------------------
+
+def _utc_iso(value):
+    if value is None:
+        return None
+    if getattr(value, "tzinfo", None) is None:
+        return value.isoformat() + "Z"
+    return value.isoformat()
+
+
+def _forward_storage_inventory():
+    file_count = 0
+    total_bytes = 0
+    for root, dirs, files in os.walk(FORWARD_RECORD_STORAGE_DIR):
+        dirs[:] = [
+            name for name in dirs
+            if not os.path.islink(os.path.join(root, name))
+        ]
+        for name in files:
+            path = os.path.join(root, name)
+            try:
+                if os.path.islink(path) or not os.path.isfile(path):
+                    continue
+                file_count += 1
+                total_bytes += os.path.getsize(path)
+            except OSError:
+                continue
+    return file_count, total_bytes
+
+
+def build_operational_status():
+    """Build a read-only, admin-safe production status summary.
+
+    The result contains counts and component states only. It intentionally
+    excludes user email addresses, database URLs, filesystem paths, Stripe
+    identifiers, request bodies, tokens, and other secrets.
+    """
+    now = datetime.utcnow()
+    warnings = []
+    errors = []
+
+    result = {
+        "generated_at": _utc_iso(now),
+        "status": "ok",
+        "release": {
+            "service": os.environ.get("RENDER_SERVICE_NAME") or "unknown",
+            "commit": (os.environ.get("RENDER_GIT_COMMIT") or "unknown")[:12],
+            "environment": os.environ.get("RENDER") and "render" or "local",
+        },
+        "configuration": {
+            "database_configured": bool(os.environ.get("DATABASE_URL", "").strip()),
+            "redis_configured": bool(os.environ.get("REDIS_URL", "").strip()),
+            "email_configured": bool(
+                os.environ.get("EMAIL_USER", "").strip()
+                and os.environ.get("EMAIL_PASS", "").strip()
+            ),
+            "stripe_monthly_configured": bool(STRIPE_PRO_MONTHLY_PRICE_ID),
+            "stripe_annual_configured": bool(STRIPE_PRO_ANNUAL_PRICE_ID),
+            "stripe_webhook_configured": bool(STRIPE_WEBHOOK_SECRET),
+            "stripe_portal_configured": bool(
+                STRIPE_BILLING_PORTAL_CONFIGURATION_ID
+            ),
+            "forward_record_storage_explicit": FORWARD_RECORD_STORAGE_EXPLICIT,
+        },
+        "database": {"status": "ok", "counts": {}},
+        "processing": {
+            "failed_webhooks_24h": None,
+            "stale_webhooks": None,
+            "latest_webhook_failure_at": None,
+            "latest_webhook_failure_type": None,
+            "failed_alerts_24h": None,
+            "stale_alerts": None,
+            "latest_alert_failure_at": None,
+        },
+        "forward_record": {
+            "assets": {
+                "sandbox": {"active": 0, "retired": 0, "removed": 0},
+                "public": {"active": 0, "retired": 0, "removed": 0},
+            },
+            "latest_publication_at": None,
+            "latest_publication_mode": None,
+            "latest_publication_count": 0,
+        },
+        "storage": {"status": "ok"},
+        "market_data": {"status": "ok"},
+        "warnings": warnings,
+        "errors": errors,
+    }
+
+    if not result["configuration"]["redis_configured"]:
+        warnings.append(
+            "REDIS_URL is not configured; rate limits may not be shared "
+            "across multiple web workers."
+        )
+    if not FORWARD_RECORD_STORAGE_EXPLICIT:
+        warnings.append(
+            "Forward Record storage is using the application directory "
+            "instead of an explicitly mounted persistent path."
+        )
+
+    try:
+        db.session.execute(text("SELECT 1")).scalar()
+
+        result["database"]["counts"] = {
+            "users": User.query.count(),
+            "active_pro_users": User.query.filter(
+                User.subscription_type == "pro",
+                User.subscription_status.in_(tuple(PAID_SUBSCRIPTION_STATUSES)),
+            ).count(),
+            "active_live_simulations": LiveSimulation.query.filter_by(
+                status="active"
+            ).count(),
+            "watchlist_items": WatchlistItem.query.count(),
+            "enabled_email_alerts": WatchlistItem.query.filter_by(
+                email_alert_enabled=True
+            ).count(),
+        }
+
+        webhook_cutoff = now - timedelta(hours=24)
+        processing_cutoff = now - timedelta(minutes=15)
+        failed_webhooks = StripeWebhookEvent.query.filter(
+            StripeWebhookEvent.processing_status == "failed",
+            StripeWebhookEvent.received_at >= webhook_cutoff,
+        ).count()
+        stale_webhooks = StripeWebhookEvent.query.filter(
+            StripeWebhookEvent.processing_status == "processing",
+            StripeWebhookEvent.processing_started_at < processing_cutoff,
+        ).count()
+        latest_webhook_failure = StripeWebhookEvent.query.filter_by(
+            processing_status="failed"
+        ).order_by(StripeWebhookEvent.received_at.desc()).first()
+
+        failed_alerts = SignalAlertDelivery.query.filter(
+            SignalAlertDelivery.processing_status == "failed",
+            SignalAlertDelivery.created_at >= webhook_cutoff,
+        ).count()
+        stale_alerts = SignalAlertDelivery.query.filter(
+            SignalAlertDelivery.processing_status == "processing",
+            SignalAlertDelivery.processing_started_at < processing_cutoff,
+        ).count()
+        latest_alert_failure = SignalAlertDelivery.query.filter_by(
+            processing_status="failed"
+        ).order_by(SignalAlertDelivery.created_at.desc()).first()
+
+        result["processing"] = {
+            "failed_webhooks_24h": failed_webhooks,
+            "stale_webhooks": stale_webhooks,
+            "latest_webhook_failure_at": _utc_iso(
+                latest_webhook_failure.received_at
+                if latest_webhook_failure else None
+            ),
+            "latest_webhook_failure_type": (
+                latest_webhook_failure.event_type
+                if latest_webhook_failure else None
+            ),
+            "failed_alerts_24h": failed_alerts,
+            "stale_alerts": stale_alerts,
+            "latest_alert_failure_at": _utc_iso(
+                latest_alert_failure.created_at
+                if latest_alert_failure else None
+            ),
+        }
+
+        forward_counts = {}
+        for mode in ("sandbox", "public"):
+            forward_counts[mode] = {
+                status: ForwardRecordAsset.query.filter_by(
+                    record_mode=mode,
+                    status=status,
+                ).count()
+                for status in ("active", "retired", "removed")
+            }
+
+        latest_batch = ForwardPublicationBatch.query.order_by(
+            ForwardPublicationBatch.published_at.desc()
+        ).first()
+        result["forward_record"] = {
+            "assets": forward_counts,
+            "latest_publication_at": _utc_iso(
+                latest_batch.published_at if latest_batch else None
+            ),
+            "latest_publication_mode": (
+                latest_batch.record_mode if latest_batch else None
+            ),
+            "latest_publication_count": (
+                latest_batch.publication_count if latest_batch else 0
+            ),
+        }
+
+        if failed_webhooks:
+            warnings.append(
+                f"{failed_webhooks} Stripe webhook event(s) failed in the last 24 hours."
+            )
+        if stale_webhooks:
+            warnings.append(
+                f"{stale_webhooks} Stripe webhook event(s) have remained in processing for more than 15 minutes."
+            )
+        if failed_alerts:
+            warnings.append(
+                f"{failed_alerts} signal-alert delivery attempt(s) failed in the last 24 hours."
+            )
+        if stale_alerts:
+            warnings.append(
+                f"{stale_alerts} signal-alert delivery attempt(s) have remained in processing for more than 15 minutes."
+            )
+    except Exception:
+        db.session.rollback()
+        app.logger.exception("Operational status database checks failed")
+        result["database"]["status"] = "error"
+        errors.append("Database operational checks failed.")
+
+    try:
+        storage_ready = (
+            os.path.isdir(FORWARD_RECORD_STORAGE_DIR)
+            and os.access(FORWARD_RECORD_STORAGE_DIR, os.R_OK | os.W_OK)
+        )
+        if not storage_ready:
+            raise OSError("storage directory is not readable and writable")
+
+        usage = shutil.disk_usage(FORWARD_RECORD_STORAGE_DIR)
+        file_count, total_bytes = _forward_storage_inventory()
+        free_percent = (usage.free / usage.total * 100.0) if usage.total else 0.0
+        result["storage"].update({
+            "file_count": file_count,
+            "used_by_forward_record_bytes": total_bytes,
+            "disk_free_bytes": usage.free,
+            "disk_total_bytes": usage.total,
+            "disk_free_percent": round(free_percent, 1),
+        })
+        if usage.free < 512 * 1024 * 1024 or free_percent < 10.0:
+            warnings.append("Persistent storage is running low on free space.")
+    except Exception:
+        app.logger.exception("Operational status storage checks failed")
+        result["storage"]["status"] = "error"
+        errors.append("Forward Record storage checks failed.")
+
+    try:
+        latest_date = get_latest_csv_date_for_ticker("BTC-USD")
+        if latest_date is None:
+            raise ValueError("BTC-USD latest date is unavailable")
+        age_days = max(0, (now.date() - latest_date).days)
+        result["market_data"].update({
+            "btc_latest_date": latest_date.isoformat(),
+            "age_days": age_days,
+        })
+        if age_days > 3:
+            warnings.append(
+                f"BTC-USD working market data is {age_days} days old."
+            )
+    except Exception:
+        app.logger.exception("Operational status market-data check failed")
+        result["market_data"]["status"] = "error"
+        errors.append("BTC-USD market-data check failed.")
+
+    if errors:
+        result["status"] = "error"
+    elif warnings:
+        result["status"] = "warning"
+
+    return result
+
+
+@app.route("/admin/operations")
+@login_required
+def admin_operations():
+    if not is_admin_user(current_user):
+        abort(404)
+    return render_template(
+        "admin_operations.html",
+        operations=build_operational_status(),
+    )
+
+
+@app.route("/admin/operations.json")
+@login_required
+def admin_operations_json():
+    if not is_admin_user(current_user):
+        abort(404)
+    response = jsonify(build_operational_status())
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    return response
 
 
 # --------------------
@@ -5695,8 +6006,8 @@ def compute_signals_summary_cached(csv_version, period_days):
                 'coverage_end': sigs['coverage_end'],
                 'data_through': sigs['data_through'],
             })
-        except Exception as e:
-            print(f"Skipping {t}: {e}")
+        except Exception:
+            app.logger.exception("Skipping signal summary ticker=%s", t)
 
     return results
 
