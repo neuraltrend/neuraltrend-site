@@ -27,10 +27,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-dev.txt
 
+      - name: Verify repository layout
+        run: |
+          test -f app.py
+          test -f tests/conftest.py
+
       - name: Compile Python
         run: |
           python -m compileall -q app.py models.py extensions.py tools tests
 
       - name: Run test suite
         run: |
-          pytest --cov=app --cov=models --cov=tools --cov-report=term-missing
+          python -m pytest --cov=app --cov=models --cov=tools --cov-report=term-missing
