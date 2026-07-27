@@ -14,6 +14,16 @@ from pathlib import Path
 
 import pytest
 
+# Flask 2.3.x still reads ``werkzeug.__version__`` when constructing its
+# test client. Werkzeug 3 removed that deprecated module attribute. Production
+# requests do not use this path, so provide the real installed version only in
+# the isolated test process rather than changing application behavior.
+import importlib.metadata
+import werkzeug
+
+if not hasattr(werkzeug, "__version__"):
+    werkzeug.__version__ = importlib.metadata.version("Werkzeug")
+
 # Ensure the repository root (where app.py lives) is importable even when
 # pytest is launched through its console-script entry point in GitHub Actions.
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
