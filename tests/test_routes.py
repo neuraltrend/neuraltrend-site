@@ -40,19 +40,22 @@ def test_health_check_reports_database_and_storage(client):
 
 
 def test_health_check_is_exempt_from_global_rate_limits(app):
-    # Render probes this endpoint every few seconds. It must never consume the
-    # application's default per-IP request allowance.
+    # The test environment intentionally imports the application with rate
+    # limiting disabled, so Flask-Limiter does not create a storage backend.
+    # Verify the exemption registration directly instead of trying to enable
+    # and reset an extension that was never initialized in this process.
     import app as application
+    from flask_limiter.constants import ExemptionScope
 
-    application.limiter.enabled = True
-    application.limiter.reset()
-    try:
-        probe_client = app.test_client()
-        responses = [probe_client.get("/healthz") for _ in range(60)]
-        assert all(response.status_code == 200 for response in responses)
-    finally:
-        application.limiter.reset()
-        application.limiter.enabled = False
+    exemption_scope = application.limiter.limit_manager.exemption_scope(
+        app,
+        "healthz",
+        None,
+    )
+
+    assert exemption_scope & ExemptionScope.DEFAULT
+    assert exemption_scope & ExemptionScope.APPLICATION
+    assert exemption_scope & ExemptionScope.META
 
 
 def test_admin_routes_require_login(client):
