@@ -45,12 +45,18 @@ import re
 import unicodedata
 import json
 from flask_wtf.csrf import CSRFError
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
 
+TESTING_MODE = os.environ.get("NEURALTREND_TESTING", "").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+
 # ✅ Fix proxy handling (Render-safe)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+app.config["RATELIMIT_ENABLED"] = not TESTING_MODE
 
 limiter = Limiter(
     key_func=get_remote_address,
@@ -72,6 +78,7 @@ app.config.update(
     MAIL_USE_TLS=True,
     MAIL_USERNAME=os.environ.get("EMAIL_USER"),
     MAIL_PASSWORD=os.environ.get("EMAIL_PASS"),
+    MAIL_SUPPRESS_SEND=TESTING_MODE,
 )
 
 mail = Mail(app)
@@ -96,6 +103,15 @@ app.config["WTF_CSRF_SSL_STRICT"] = True
 # rejecting oversized bodies reduces accidental/malicious memory and parser use.
 app.config["MAX_CONTENT_LENGTH"] = 64 * 1024  # 64 KiB
 app.config["MAX_FORM_MEMORY_SIZE"] = 64 * 1024
+
+# Test runs are isolated through environment variables before app import. Keep
+# production defaults strict while making Flask's test client deterministic.
+app.config["TESTING"] = TESTING_MODE
+if TESTING_MODE:
+    app.config["SESSION_COOKIE_SECURE"] = False
+    app.config["WTF_CSRF_SSL_STRICT"] = False
+    app.config["MAIL_SUPPRESS_SEND"] = True
+    app.config["PROPAGATE_EXCEPTIONS"] = True
 
 # Stripe
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
@@ -2835,6 +2851,48 @@ def get_latest_csv_date_for_ticker(ticker):
 # --------------------
 # Routes
 # --------------------
+
+@app.route("/healthz")
+def healthz():
+    """Lightweight readiness check for Render and deployment smoke tests.
+
+    The response intentionally exposes only component status, never database
+    credentials, filesystem paths, Stripe configuration, or user information.
+    """
+    checks = {
+        "database": "ok",
+        "forward_record_storage": "ok",
+    }
+    healthy = True
+
+    try:
+        db.session.execute(text("SELECT 1")).scalar()
+    except Exception:
+        db.session.rollback()
+        app.logger.exception("Health check database probe failed")
+        checks["database"] = "error"
+        healthy = False
+
+    try:
+        storage_ready = (
+            os.path.isdir(FORWARD_RECORD_STORAGE_DIR)
+            and os.access(FORWARD_RECORD_STORAGE_DIR, os.R_OK | os.W_OK)
+        )
+    except OSError:
+        storage_ready = False
+
+    if not storage_ready:
+        checks["forward_record_storage"] = "error"
+        healthy = False
+
+    response = jsonify({
+        "status": "ok" if healthy else "degraded",
+        "checks": checks,
+    })
+    response.status_code = 200 if healthy else 503
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    return response
+
 
 @app.route("/ai-crypto-trading-signals")
 def ai_crypto_trading_signals():
