@@ -108,6 +108,9 @@ STRIPE_PRO_MONTHLY_PRICE_ID = (
 )
 STRIPE_PRO_ANNUAL_PRICE_ID = os.environ.get("STRIPE_PRO_ANNUAL_PRICE_ID")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
+STRIPE_BILLING_PORTAL_CONFIGURATION_ID = os.environ.get(
+    "STRIPE_BILLING_PORTAL_CONFIGURATION_ID"
+)
 
 STRIPE_PRO_PRICE_IDS_BY_INTERVAL = {
     "monthly": STRIPE_PRO_MONTHLY_PRICE_ID,
@@ -810,7 +813,7 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "ZIG-USD", "ZKJ-USD", "ZRX-USD"]
 
 TOP_FREE_TICKERS = {"BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD"}
-ADMIN_ONLY_TICKERS = {"MU", "ASML", "JNJ", "BRKB"}
+ADMIN_ONLY_TICKERS = {"MU", "ASML", "JNJ", "AVGO", "BRKB"}
 ALL_SUPPORTED_TICKERS = frozenset(
     str(ticker).strip().upper()
     for ticker in [*SUPPORTED_TICKERS, *ADMIN_ONLY_TICKERS]
@@ -5737,6 +5740,108 @@ def stripe_subscription_uses_pro_price(subscription):
     )
 
 
+def pro_billing_interval_for_price_id(price_id):
+    for interval, configured_price_id in STRIPE_PRO_PRICE_IDS_BY_INTERVAL.items():
+        if configured_price_id and price_id == configured_price_id:
+            return interval
+
+    return None
+
+
+def pro_subscription_item(subscription):
+    subscription = stripe_to_dict(subscription)
+    items = ((subscription.get("items") or {}).get("data") or [])
+
+    for item in items:
+        price_id = (item.get("price") or {}).get("id")
+        interval = pro_billing_interval_for_price_id(price_id)
+
+        if interval:
+            return item, interval
+
+    return None, None
+
+
+def subscription_period_end_timestamp(subscription, item=None):
+    subscription = stripe_to_dict(subscription)
+    item = stripe_to_dict(item) if item else {}
+
+    return (
+        subscription.get("cancel_at")
+        or subscription.get("current_period_end")
+        or item.get("current_period_end")
+    )
+
+
+def subscription_cancellation_pending(subscription):
+    subscription = stripe_to_dict(subscription)
+    return bool(
+        subscription.get("cancel_at_period_end")
+        or subscription.get("cancel_at")
+    )
+
+
+def get_current_user_pro_subscription(user):
+    customer_id = getattr(user, "stripe_customer_id", None)
+
+    if not customer_id or not stripe.api_key:
+        return None
+
+    stored_subscription_id = getattr(user, "stripe_subscription_id", None)
+
+    if stored_subscription_id:
+        try:
+            subscription = stripe.Subscription.retrieve(stored_subscription_id)
+            subscription = stripe_to_dict(subscription)
+
+            if (
+                subscription.get("customer") == customer_id
+                and subscription.get("status") in BLOCKING_STRIPE_SUBSCRIPTION_STATUSES
+                and stripe_subscription_uses_pro_price(subscription)
+            ):
+                return subscription
+
+        except stripe.error.InvalidRequestError:
+            app.logger.warning(
+                "Stored Stripe subscription was not found while loading billing state: user_id=%s subscription_id=%s",
+                user.id,
+                stored_subscription_id,
+            )
+
+    return find_existing_blocking_pro_subscription(customer_id)
+
+
+def subscription_management_payload(user, subscription=None):
+    if subscription is None:
+        subscription = get_current_user_pro_subscription(user)
+
+    if not subscription:
+        return {
+            "is_paid": False,
+            "status": getattr(user, "subscription_status", None) or "inactive",
+            "current_interval": None,
+            "cancel_at_period_end": False,
+            "period_end": None,
+            "portal_configuration_ready": bool(
+                STRIPE_BILLING_PORTAL_CONFIGURATION_ID
+            ),
+        }
+
+    item, interval = pro_subscription_item(subscription)
+    period_end = subscription_period_end_timestamp(subscription, item)
+
+    return {
+        "is_paid": subscription.get("status") in PAID_SUBSCRIPTION_STATUSES,
+        "status": subscription.get("status") or "inactive",
+        "current_interval": interval,
+        "cancel_at_period_end": subscription_cancellation_pending(subscription),
+        "period_end": period_end,
+        "portal_configuration_ready": bool(
+            STRIPE_BILLING_PORTAL_CONFIGURATION_ID
+        ),
+    }
+
+
 def find_existing_blocking_pro_subscription(customer_id):
     subscriptions = stripe.Subscription.list(
         customer=customer_id,
@@ -6132,22 +6237,204 @@ def create_checkout_session():
         }), 500
 
 
+@app.route("/subscription-state", methods=["GET"])
+@login_required
+@limiter.limit("30 per minute")
+def subscription_state():
+    if not stripe.api_key:
+        return jsonify({
+            "error": "Billing is temporarily unavailable."
+        }), 503
+
+    try:
+        return jsonify(subscription_management_payload(current_user))
+
+    except stripe.error.StripeError:
+        app.logger.exception(
+            "Could not load Stripe subscription state for user_id=%s",
+            current_user.id,
+        )
+        return jsonify({
+            "error": "Could not load billing details. Please try again."
+        }), 502
+
+
 @app.route("/billing-portal", methods=["POST"])
 @login_required
+@limiter.limit("10 per minute")
 def billing_portal():
     if not current_user.stripe_customer_id:
         return jsonify({"error": "No billing customer found."}), 400
 
+    payload = request.get_json(silent=True) or {}
+    action = str(payload.get("action") or "manage").strip().lower()
+
+    if action not in {"manage", "switch", "cancel", "resume"}:
+        return jsonify({"error": "Unsupported billing action."}), 400
+
     try:
+        session_parameters = {
+            "customer": current_user.stripe_customer_id,
+            "return_url": f"{BASE_URL}/subscription",
+        }
+
+        if STRIPE_BILLING_PORTAL_CONFIGURATION_ID:
+            session_parameters["configuration"] = (
+                STRIPE_BILLING_PORTAL_CONFIGURATION_ID
+            )
+
+        if action == "manage":
+            portal_session = stripe.billing_portal.Session.create(
+                **session_parameters
+            )
+            return jsonify({"url": portal_session.url})
+
+        subscription = get_current_user_pro_subscription(current_user)
+
+        if not subscription:
+            return jsonify({
+                "error": "No active Pro subscription was found."
+            }), 409
+
+        subscription_id = subscription.get("id")
+        item, current_interval = pro_subscription_item(subscription)
+
+        if action == "resume":
+            if not subscription_cancellation_pending(subscription):
+                return jsonify({
+                    "message": "Your Pro subscription is already active.",
+                    "state": subscription_management_payload(
+                        current_user,
+                        subscription,
+                    ),
+                })
+
+            updated_subscription = stripe.Subscription.modify(
+                subscription_id,
+                cancel_at_period_end=False,
+            )
+            updated_subscription = stripe_to_dict(updated_subscription)
+
+            return jsonify({
+                "message": "Your Pro subscription will continue.",
+                "state": subscription_management_payload(
+                    current_user,
+                    updated_subscription,
+                ),
+            })
+
+        if not STRIPE_BILLING_PORTAL_CONFIGURATION_ID:
+            return jsonify({
+                "error": (
+                    "Plan switching is not configured yet. "
+                    "Open Manage Billing or contact support."
+                ),
+                "configuration_required": True,
+            }), 503
+
+        if action == "cancel":
+            session_parameters["flow_data"] = {
+                "type": "subscription_cancel",
+                "subscription_cancel": {
+                    "subscription": subscription_id,
+                },
+                "after_completion": {
+                    "type": "redirect",
+                    "redirect": {
+                        "return_url": (
+                            f"{BASE_URL}/subscription?billing=cancelled"
+                        ),
+                    },
+                },
+            }
+
+        if action == "switch":
+            target_interval = str(
+                payload.get("billing_interval") or ""
+            ).strip().lower()
+
+            if target_interval not in VALID_PRO_BILLING_INTERVALS:
+                return jsonify({
+                    "error": "Choose either monthly or annual billing."
+                }), 400
+
+            target_price_id = get_pro_price_id_for_interval(target_interval)
+
+            if not target_price_id:
+                return jsonify({
+                    "error": "That billing option is temporarily unavailable."
+                }), 503
+
+            if not item or not item.get("id"):
+                return jsonify({
+                    "error": "The Pro subscription item could not be identified."
+                }), 409
+
+            if current_interval == target_interval:
+                if subscription_cancellation_pending(subscription):
+                    return jsonify({
+                        "error": (
+                            "This plan is scheduled to end. Keep Pro first, "
+                            "then choose a different billing schedule."
+                        ),
+                        "resume_required": True,
+                    }), 409
+
+                return jsonify({
+                    "message": "That is already your current billing plan.",
+                    "no_change": True,
+                })
+
+            session_parameters["flow_data"] = {
+                "type": "subscription_update_confirm",
+                "subscription_update_confirm": {
+                    "subscription": subscription_id,
+                    "items": [
+                        {
+                            "id": item.get("id"),
+                            "price": target_price_id,
+                            "quantity": int(item.get("quantity") or 1),
+                        }
+                    ],
+                },
+                "after_completion": {
+                    "type": "redirect",
+                    "redirect": {
+                        "return_url": (
+                            f"{BASE_URL}/subscription?billing=updated"
+                        ),
+                    },
+                },
+            }
+
         portal_session = stripe.billing_portal.Session.create(
-            customer=current_user.stripe_customer_id,
-            return_url=f"{BASE_URL}/subscription"
+            **session_parameters
         )
 
-        return jsonify({"url": portal_session.url})
+        return jsonify({
+            "url": portal_session.url,
+            "action": action,
+        })
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except stripe.error.StripeError:
+        app.logger.exception(
+            "Stripe billing portal failed for user_id=%s action=%s",
+            current_user.id,
+            action,
+        )
+        return jsonify({
+            "error": "Could not open billing management. Please try again."
+        }), 502
+
+    except Exception:
+        app.logger.exception(
+            "Billing management failed for user_id=%s action=%s",
+            current_user.id,
+            action,
+        )
+        return jsonify({
+            "error": "Could not manage billing. Please try again."
+        }), 500
 
 def stripe_api_key_livemode(api_key):
     """Return True for live keys, False for test keys, or None if unknown."""
