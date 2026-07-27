@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Operations | NeuralTrend Admin{% endblock %}
+{% block meta_description %}Admin-only operational status for NeuralTrend.{% endblock %}
+
+{% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-admin-operations.css') }}">
+{% endblock %}
+
+{% block content %}
+<main class="nt-ops-page">
+    <section class="nt-ops-hero">
+        <div class="nt-ops-shell nt-ops-hero-grid">
+            <div>
+                <div class="nt-ops-kicker">Admin only · read only</div>
+                <h1>Operational status</h1>
+                <p>
+                    A privacy-safe view of NeuralTrend’s database, processing queues,
+                    persistent storage, market-data freshness, and deployment configuration.
+                </p>
+                <div class="nt-ops-actions">
+                    <a class="nt-ops-primary" href="{{ url_for('admin_operations') }}">Refresh checks</a>
+                    <a class="nt-ops-secondary" href="{{ url_for('admin_signal_alerts') }}">Alerts &amp; Forward Record</a>
+                    <a class="nt-ops-secondary" href="{{ url_for('admin_operations_json') }}">JSON view</a>
+                </div>
+            </div>
+            <aside class="nt-ops-overall is-{{ operations.status }}">
+                <span>Overall state</span>
+                <strong>{{ operations.status|upper }}</strong>
+                <small>Generated {{ operations.generated_at }}</small>
+                <small>Commit {{ operations.release.commit }}</small>
+            </aside>
+        </div>
+    </section>
+
+    {% if operations.errors %}
+    <section class="nt-ops-shell nt-ops-message is-error" role="alert">
+        <strong>Errors requiring attention</strong>
+        <ul>{% for message in operations.errors %}<li>{{ message }}</li>{% endfor %}</ul>
+    </section>
+    {% endif %}
+
+    {% if operations.warnings %}
+    <section class="nt-ops-shell nt-ops-message is-warning">
+        <strong>Warnings to review</strong>
+        <ul>{% for message in operations.warnings %}<li>{{ message }}</li>{% endfor %}</ul>
+    </section>
+    {% endif %}
+
+    <section class="nt-ops-shell nt-ops-grid" aria-label="Operational components">
+        <article class="nt-ops-card">
+            <div class="nt-ops-card-heading">
+                <h2>Database</h2>
+                <span class="nt-ops-status is-{{ operations.database.status }}">{{ operations.database.status }}</span>
+            </div>
+            <dl>
+                <div><dt>Users</dt><dd>{{ operations.database.counts.users|default('—') }}</dd></div>
+                <div><dt>Active Pro</dt><dd>{{ operations.database.counts.active_pro_users|default('—') }}</dd></div>
+                <div><dt>Active simulations</dt><dd>{{ operations.database.counts.active_live_simulations|default('—') }}</dd></div>
+                <div><dt>Watchlist items</dt><dd>{{ operations.database.counts.watchlist_items|default('—') }}</dd></div>
+                <div><dt>Enabled alerts</dt><dd>{{ operations.database.counts.enabled_email_alerts|default('—') }}</dd></div>
+            </dl>
+        </article>
+
+        <article class="nt-ops-card">
+            <div class="nt-ops-card-heading"><h2>Processing</h2></div>
+            <dl>
+                <div><dt>Failed webhooks · 24h</dt><dd>{{ operations.processing.failed_webhooks_24h|default('—') }}</dd></div>
+                <div><dt>Stale webhooks</dt><dd>{{ operations.processing.stale_webhooks|default('—') }}</dd></div>
+                <div><dt>Failed alerts · 24h</dt><dd>{{ operations.processing.failed_alerts_24h|default('—') }}</dd></div>
+                <div><dt>Stale alerts</dt><dd>{{ operations.processing.stale_alerts|default('—') }}</dd></div>
+                <div><dt>Last webhook failure</dt><dd>{{ operations.processing.latest_webhook_failure_at or 'None' }}</dd></div>
+            </dl>
+        </article>
+
+        <article class="nt-ops-card">
+            <div class="nt-ops-card-heading">
+                <h2>Persistent storage</h2>
+                <span class="nt-ops-status is-{{ operations.storage.status }}">{{ operations.storage.status }}</span>
+            </div>
+            <dl>
+                <div><dt>Approved files</dt><dd>{{ operations.storage.file_count|default('—') }}</dd></div>
+                <div><dt>Forward Record bytes</dt><dd>{{ operations.storage.used_by_forward_record_bytes|default('—') }}</dd></div>
+                <div><dt>Disk free</dt><dd>{{ operations.storage.disk_free_percent|default('—') }}{% if operations.storage.disk_free_percent is defined %}%{% endif %}</dd></div>
+                <div><dt>Explicit persistent path</dt><dd>{{ 'Yes' if operations.configuration.forward_record_storage_explicit else 'No' }}</dd></div>
+            </dl>
+        </article>
+
+        <article class="nt-ops-card">
+            <div class="nt-ops-card-heading">
+                <h2>Market data</h2>
+                <span class="nt-ops-status is-{{ operations.market_data.status }}">{{ operations.market_data.status }}</span>
+            </div>
+            <dl>
+                <div><dt>BTC latest date</dt><dd>{{ operations.market_data.btc_latest_date|default('—') }}</dd></div>
+                <div><dt>Age</dt><dd>{{ operations.market_data.age_days|default('—') }}{% if operations.market_data.age_days is defined %} day(s){% endif %}</dd></div>
+            </dl>
+        </article>
+
+        <article class="nt-ops-card nt-ops-card-wide">
+            <div class="nt-ops-card-heading"><h2>Forward Record lifecycle</h2></div>
+            <div class="nt-ops-forward-grid">
+                {% for mode in ['public', 'sandbox'] %}
+                <section>
+                    <h3>{{ mode|capitalize }}</h3>
+                    <dl>
+                        <div><dt>Active</dt><dd>{{ operations.forward_record.assets[mode].active|default('—') }}</dd></div>
+                        <div><dt>Retired</dt><dd>{{ operations.forward_record.assets[mode].retired|default('—') }}</dd></div>
+                        <div><dt>Removed</dt><dd>{{ operations.forward_record.assets[mode].removed|default('—') }}</dd></div>
+                    </dl>
+                </section>
+                {% endfor %}
+                <section>
+                    <h3>Latest approval</h3>
+                    <dl>
+                        <div><dt>Time</dt><dd>{{ operations.forward_record.latest_publication_at or 'None' }}</dd></div>
+                        <div><dt>Mode</dt><dd>{{ operations.forward_record.latest_publication_mode or '—' }}</dd></div>
+                        <div><dt>Assets</dt><dd>{{ operations.forward_record.latest_publication_count|default(0) }}</dd></div>
+                    </dl>
+                </section>
+            </div>
+        </article>
+
+        <article class="nt-ops-card nt-ops-card-wide">
+            <div class="nt-ops-card-heading"><h2>Configuration presence</h2></div>
+            <div class="nt-ops-config-grid">
+                {% for label, key in [
+                    ('Database', 'database_configured'),
+                    ('Redis', 'redis_configured'),
+                    ('Email', 'email_configured'),
+                    ('Stripe monthly', 'stripe_monthly_configured'),
+                    ('Stripe annual', 'stripe_annual_configured'),
+                    ('Stripe webhook', 'stripe_webhook_configured'),
+                    ('Stripe portal', 'stripe_portal_configured')
+                ] %}
+                <div>
+                    <span>{{ label }}</span>
+                    <strong class="{{ 'is-present' if operations.configuration[key] else 'is-missing' }}">
+                        {{ 'Configured' if operations.configuration[key] else 'Missing' }}
+                    </strong>
+                </div>
+                {% endfor %}
+            </div>
+        </article>
+    </section>
+
+    <section class="nt-ops-shell nt-ops-note">
+        This page never displays customer emails, tokens, Stripe IDs, database URLs,
+        request bodies, or storage paths. For a command-line version, run
+        <code>python tools/operational_check.py</code> in the Render Shell.
+    </section>
+</main>
+{% endblock %}
