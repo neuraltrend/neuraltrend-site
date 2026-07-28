@@ -4,6 +4,8 @@ from flask import (
     request,
     jsonify,
     send_from_directory,
+    send_file,
+    flash,
     Response,
     session,
     redirect,
@@ -52,6 +54,15 @@ from operational_logging import (
     register_request_observability,
 )
 from sqlalchemy.exc import IntegrityError
+from pathlib import Path
+from backup_manager import (
+    create_database_backup,
+    create_forward_backup,
+    delete_backup,
+    enforce_retention,
+    list_backups,
+    resolve_managed_file,
+)
 
 app = Flask(__name__)
 
@@ -174,6 +185,21 @@ FORWARD_RECORD_STORAGE_DIR = os.path.realpath(
     )
 )
 os.makedirs(FORWARD_RECORD_STORAGE_DIR, exist_ok=True)
+
+# Admin-managed backup storage. Configure this inside the Render persistent disk
+# for retention across deploys; the safe default remains temporary.
+BACKUP_STORAGE_EXPLICIT = bool(os.environ.get("NEURALTREND_BACKUP_DIR", "").strip())
+BACKUP_STORAGE_DIR = os.path.realpath(
+    os.environ.get("NEURALTREND_BACKUP_DIR", "/tmp/neuraltrend-admin-backups")
+)
+try:
+    BACKUP_RETENTION_COUNT = max(1, min(
+        int(os.environ.get("NEURALTREND_BACKUP_RETENTION", "10")), 100
+    ))
+except ValueError:
+    BACKUP_RETENTION_COUNT = 10
+    app.logger.warning("invalid_backup_retention_using_default")
+os.makedirs(BACKUP_STORAGE_DIR, mode=0o700, exist_ok=True)
 
 app.logger.info(
     "application_initialized testing=%s database_configured=%s redis_configured=%s "
@@ -3519,6 +3545,97 @@ def admin_operations_json():
     response = jsonify(build_operational_status())
     response.headers["Cache-Control"] = "no-store, max-age=0"
     return response
+
+
+def _format_backup_bytes(value):
+    value = float(value or 0)
+    for unit in ("B", "KiB", "MiB", "GiB"):
+        if value < 1024 or unit == "GiB":
+            return f"{value:.1f} {unit}" if unit != "B" else f"{int(value)} B"
+        value /= 1024
+
+
+@app.route("/admin/backups")
+@login_required
+def admin_backups():
+    if not is_admin_user(current_user):
+        abort(404)
+    response = app.make_response(render_template(
+        "admin_backups.html",
+        backups=list_backups(Path(BACKUP_STORAGE_DIR)),
+        persistent=BACKUP_STORAGE_EXPLICIT,
+        retention=BACKUP_RETENTION_COUNT,
+        format_bytes=_format_backup_bytes,
+    ))
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    return response
+
+
+@app.route("/admin/backups/create", methods=["POST"])
+@login_required
+@limiter.limit("4 per hour")
+def admin_backup_create():
+    if not is_admin_user(current_user):
+        abort(404)
+    kind = request.form.get("kind", "").strip()
+    try:
+        if kind == "database":
+            database_url = os.environ.get("DATABASE_URL", "").strip()
+            if not database_url:
+                raise RuntimeError("DATABASE_URL is not configured.")
+            created = create_database_backup(Path(BACKUP_STORAGE_DIR), database_url)
+        elif kind == "forward_record":
+            created = create_forward_backup(
+                Path(BACKUP_STORAGE_DIR),
+                Path(FORWARD_RECORD_STORAGE_DIR),
+                os.environ.get("RENDER_GIT_COMMIT", "unknown"),
+            )
+        else:
+            abort(400)
+        removed = enforce_retention(Path(BACKUP_STORAGE_DIR), BACKUP_RETENTION_COUNT)
+        app.logger.warning(
+            "admin_backup_created kind=%s filename=%s retention_removed=%s user_id=%s",
+            kind, created.name, len(removed), current_user.id,
+        )
+        flash(f"Created and verified {created.name}.", "success")
+    except Exception as exc:
+        app.logger.exception("admin_backup_creation_failed kind=%s user_id=%s", kind, current_user.id)
+        flash(f"Backup creation failed: {exc}", "error")
+    return redirect(url_for("admin_backups"))
+
+
+@app.route("/admin/backups/download/<path:filename>")
+@login_required
+@limiter.limit("30 per hour")
+def admin_backup_download(filename):
+    if not is_admin_user(current_user):
+        abort(404)
+    try:
+        path = resolve_managed_file(Path(BACKUP_STORAGE_DIR), filename)
+    except ValueError:
+        abort(404)
+    if not path.is_file():
+        abort(404)
+    app.logger.warning("admin_backup_downloaded filename=%s user_id=%s", path.name, current_user.id)
+    response = send_file(path, as_attachment=True, download_name=path.name, conditional=True)
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@app.route("/admin/backups/delete/<path:filename>", methods=["POST"])
+@login_required
+@limiter.limit("20 per hour")
+def admin_backup_delete(filename):
+    if not is_admin_user(current_user):
+        abort(404)
+    try:
+        delete_backup(Path(BACKUP_STORAGE_DIR), filename)
+    except (ValueError, FileNotFoundError):
+        abort(404)
+    app.logger.warning("admin_backup_deleted filename=%s user_id=%s", filename, current_user.id)
+    flash(f"Deleted {filename} and its checksum.", "success")
+    return redirect(url_for("admin_backups"))
 
 
 # --------------------
