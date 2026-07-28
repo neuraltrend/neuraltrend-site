@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Admin Backups | NeuralTrend{% endblock %}
+{% block page_styles %}
+<style>
+.nt-backup-page{max-width:1180px;margin:0 auto;padding:34px 20px 64px}.nt-backup-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:22px}.nt-backup-head h1{margin:0 0 8px}.nt-backup-actions,.nt-backup-links{display:flex;gap:10px;flex-wrap:wrap}.nt-backup-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:20px;margin-bottom:18px;box-shadow:0 4px 16px rgba(15,23,42,.04)}.nt-backup-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.nt-backup-form{border:1px solid #e2e8f0;border-radius:12px;padding:16px}.nt-backup-form h2{font-size:18px;margin:0 0 8px}.nt-btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:9px;padding:10px 14px;font-weight:700;text-decoration:none;cursor:pointer}.nt-btn-primary{background:#111827;color:#fff}.nt-btn-secondary{background:#eef2f7;color:#111827}.nt-btn-danger{background:#fff1f2;color:#9f1239;border:1px solid #fecdd3}.nt-backup-table{width:100%;border-collapse:collapse}.nt-backup-table th,.nt-backup-table td{text-align:left;padding:12px 10px;border-bottom:1px solid #e2e8f0;vertical-align:middle}.nt-backup-table th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#64748b}.nt-backup-row-actions{display:flex;gap:8px;flex-wrap:wrap}.nt-backup-notice{padding:12px 14px;border-radius:10px;margin-bottom:12px}.nt-backup-notice-ok{background:#ecfdf5;color:#065f46}.nt-backup-notice-error{background:#fff1f2;color:#9f1239}.nt-backup-warning{background:#fffbeb;color:#92400e;border:1px solid #fde68a}.nt-muted{color:#64748b;font-size:14px}.nt-kind{font-weight:700}.nt-code{word-break:break-all}.nt-empty{text-align:center;color:#64748b;padding:30px}.nt-inline-form{display:inline}.nt-confirm{display:flex;align-items:center;gap:8px;font-size:13px;margin:10px 0}.nt-config-list{display:grid;gap:8px}.nt-config-list div{display:flex;justify-content:space-between;gap:15px}@media(max-width:760px){.nt-backup-grid{grid-template-columns:1fr}.nt-backup-head{display:block}.nt-backup-table thead{display:none}.nt-backup-table,.nt-backup-table tbody,.nt-backup-table tr,.nt-backup-table td{display:block;width:100%}.nt-backup-table tr{padding:12px 0;border-bottom:1px solid #e2e8f0}.nt-backup-table td{border:0;padding:5px 0}.nt-backup-table td:before{content:attr(data-label);font-weight:700;color:#64748b;margin-right:8px}}
+</style>
+{% endblock %}
+{% block content %}
+<main id="nt-main-content" class="nt-backup-page">
+  <div class="nt-backup-head">
+    <div><div class="nt-muted">Admin tools</div><h1>Backups</h1><p class="nt-muted">Create, verify, download, and remove controlled production backups.</p></div>
+    <div class="nt-backup-links"><a class="nt-btn nt-btn-secondary" href="{{ url_for('admin_operations') }}">Operations</a><a class="nt-btn nt-btn-secondary" href="{{ url_for('admin_backups') }}">Refresh</a></div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="nt-backup-notice {{ 'nt-backup-notice-error' if category == 'error' else 'nt-backup-notice-ok' }}">{{ message }}</div>{% endfor %}{% endwith %}
+
+  {% if not persistent %}<div class="nt-backup-card nt-backup-warning"><strong>Temporary storage:</strong> <code>NEURALTREND_BACKUP_DIR</code> is not configured. Backups can still be created and downloaded, but may disappear after restart or deployment.</div>{% endif %}
+
+  <section class="nt-backup-card nt-backup-grid">
+    <form class="nt-backup-form" method="post" action="{{ url_for('admin_backup_create') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="kind" value="database">
+      <h2>PostgreSQL database</h2><p class="nt-muted">Creates a custom-format dump, verifies its catalog, and writes a SHA-256 checksum.</p>
+      <button class="nt-btn nt-btn-primary" type="submit">Create database backup</button>
+    </form>
+    <form class="nt-backup-form" method="post" action="{{ url_for('admin_backup_create') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="kind" value="forward_record">
+      <h2>Forward Record files</h2><p class="nt-muted">Creates a verified archive of approved Forward Record storage and its checksum.</p>
+      <button class="nt-btn nt-btn-primary" type="submit">Create Forward Record backup</button>
+    </form>
+  </section>
+
+  <section class="nt-backup-card">
+    <div class="nt-config-list"><div><span>Retention</span><strong>{{ retention }} per backup type</strong></div><div><span>Storage mode</span><strong>{{ 'Persistent/configured' if persistent else 'Temporary/default' }}</strong></div><div><span>Available backups</span><strong>{{ backups|length }}</strong></div></div>
+  </section>
+
+  <section class="nt-backup-card">
+    <h2>Available backups</h2>
+    <div style="overflow-x:auto"><table class="nt-backup-table"><thead><tr><th>Type</th><th>Created (UTC)</th><th>Size</th><th>Checksum</th><th>Actions</th></tr></thead><tbody>
+    {% for backup in backups %}<tr>
+      <td data-label="Type" class="nt-kind">{{ 'Database' if backup.kind == 'database' else 'Forward Record' }}</td>
+      <td data-label="Created">{{ backup.modified_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+      <td data-label="Size">{{ format_bytes(backup.size) }}</td>
+      <td data-label="Checksum">{{ 'Available' if backup.checksum_available else 'Missing' }}</td>
+      <td data-label="Actions"><div class="nt-backup-row-actions"><a class="nt-btn nt-btn-secondary" href="{{ url_for('admin_backup_download', filename=backup.name) }}">Download</a>{% if backup.checksum_available %}<a class="nt-btn nt-btn-secondary" href="{{ url_for('admin_backup_download', filename=backup.name ~ '.sha256') }}">SHA-256</a>{% endif %}<form class="nt-inline-form" method="post" action="{{ url_for('admin_backup_delete', filename=backup.name) }}" onsubmit="return confirm('Permanently delete this backup and checksum?');"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="nt-btn nt-btn-danger" type="submit">Delete</button></form></div></td>
+    </tr>{% else %}<tr><td colspan="5" class="nt-empty">No managed backups yet.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+
+  <section class="nt-backup-card nt-backup-warning"><strong>Important:</strong> Download verified backups to protected storage outside Render. Do not commit them to GitHub. A backup stored only on the same Render service or disk is not complete disaster recovery.</section>
+</main>
+{% endblock %}
