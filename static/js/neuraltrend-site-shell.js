@@ -260,11 +260,11 @@
                 createUserMenuDivider(),
                 createUserMenuSectionLabel("Administration"),
                 createUserMenuAction(
-                    "Alerts & Forward Record",
-                    () => { window.location.href = "/admin/signal-alerts"; },
+                    "Admin Operations",
+                    () => { window.location.href = "/admin/operations"; },
                     {
-                        icon: "✉",
-                        description: "Manual alerts, sandbox testing, and public launch"
+                        icon: "⚙",
+                        description: "Health, alerts, Forward Record, backups, and recovery"
                     }
                 )
             );
