@@ -68,7 +68,59 @@ def test_sandbox_publish_appends_only_after_admin_approval(
         assert len(pd.read_csv(approved_path)) == 2
 
 
-def test_previously_approved_history_cannot_be_rewritten(
+def test_working_history_changes_do_not_rewrite_approved_record(
+    app,
+    create_user,
+    monkeypatch,
+    tmp_path,
+):
+    admin_id = create_user(email="admin@example.com")
+    working = tmp_path / "epoch_BTC.csv"
+    today = date.today()
+    next_day = today + timedelta(days=1)
+    write_working_csv(working, [(today.isoformat(), 100, 1)])
+    monkeypatch.setattr(forward, "get_epoch_csv_path", lambda ticker: str(working))
+
+    with app.app_context():
+        preview = forward.build_publication_preview("BTC-USD", record_mode="sandbox")
+        forward.publish_forward_batch(
+            admin_user_id=admin_id,
+            expected_approval_signature=preview["approval_signature"],
+            ticker="BTC-USD",
+            record_mode="sandbox",
+        )
+        approved_path = Path(
+            forward.get_forward_record_csv_path("BTC-USD", "sandbox")
+        )
+
+        # The working CSV may revise an old row used by Signal Overview. The
+        # approved Forward Record keeps its original immutable value and only
+        # the genuinely new date becomes a publication candidate.
+        write_working_csv(
+            working,
+            [
+                (today.isoformat(), 999, -1),
+                (next_day.isoformat(), 105, 0),
+            ],
+        )
+        preview = forward.build_publication_preview("BTC-USD", record_mode="sandbox")
+        assert preview["error_count"] == 0
+        assert preview["new_row_count"] == 1
+        forward.publish_forward_batch(
+            admin_user_id=admin_id,
+            expected_approval_signature=preview["approval_signature"],
+            ticker="BTC-USD",
+            record_mode="sandbox",
+        )
+
+        approved = pd.read_csv(approved_path)
+        assert len(approved) == 2
+        assert float(approved.iloc[0]["Close"]) == 100
+        assert int(approved.iloc[0]["epoch_signal"]) == 1
+        assert float(approved.iloc[1]["Close"]) == 105
+
+
+def test_approved_file_tampering_is_still_blocked(
     app,
     create_user,
     monkeypatch,
@@ -88,10 +140,14 @@ def test_previously_approved_history_cannot_be_rewritten(
             ticker="BTC-USD",
             record_mode="sandbox",
         )
-        write_working_csv(working, [(today.isoformat(), 100, -1)])
+        approved_path = Path(
+            forward.get_forward_record_csv_path("BTC-USD", "sandbox")
+        )
+        write_working_csv(approved_path, [(today.isoformat(), 100, -1)])
+
         preview = forward.build_publication_preview("BTC-USD", record_mode="sandbox")
         assert preview["error_count"] == 1
-        assert "changed previously approved" in preview["errors"][0]
+        assert "changed outside the approval workflow" in preview["errors"][0]
 
 
 def test_blank_batch_updates_only_already_enrolled_assets(
