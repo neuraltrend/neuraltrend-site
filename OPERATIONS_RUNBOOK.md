@@ -150,3 +150,16 @@ python tools/operational_check.py --strict
 ```
 
 `--strict` returns a non-zero status for warnings as well as errors.
+
+## Forward Record source-of-truth rule
+
+The large working market CSV powers Signal Overview and may occasionally be recalculated or corrected. Once a date has been approved for the Forward Record, the compact approved CSV on persistent disk becomes the source of truth for that date.
+
+Normal sandbox/public previews therefore:
+
+- preserve all already-approved rows from the compact approved CSV;
+- ignore later changes or deletions affecting the same dates in the large working CSV;
+- consider only rows dated after the latest approved date as new publication candidates;
+- still block publication if the approved compact CSV itself no longer matches its stored digest or metadata.
+
+Changing published performance history requires a separate, explicit correction workflow; editing the large working CSV does not rewrite the public Forward Record.
