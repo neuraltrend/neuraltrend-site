@@ -62,6 +62,7 @@ from backup_manager import (
     enforce_retention,
     list_backups,
     resolve_managed_file,
+    sha256_file,
 )
 
 app = Flask(__name__)
@@ -3534,6 +3535,9 @@ def admin_operations():
     return render_template(
         "admin_operations.html",
         operations=build_operational_status(),
+        backup_recovery=_backup_recovery_summary(),
+        format_bytes=_format_backup_bytes,
+        active_admin_page="operations",
     )
 
 
@@ -3555,6 +3559,43 @@ def _format_backup_bytes(value):
         value /= 1024
 
 
+def _backup_checksum_status(filename):
+    try:
+        backup = resolve_managed_file(Path(BACKUP_STORAGE_DIR), filename, allow_checksum=False)
+        sidecar = Path(str(backup) + ".sha256")
+        if not backup.is_file() or not sidecar.is_file():
+            return "missing"
+        expected = sidecar.read_text(encoding="utf-8").strip().split()[0].lower()
+        if not re.fullmatch(r"[0-9a-f]{64}", expected):
+            return "invalid"
+        return "verified" if hmac.compare_digest(expected, sha256_file(backup)) else "mismatch"
+    except Exception:
+        app.logger.exception("backup_checksum_status_failed filename=%s", filename)
+        return "error"
+
+
+def _backup_recovery_summary():
+    backups = list_backups(Path(BACKUP_STORAGE_DIR))
+    now = datetime.utcnow().replace(tzinfo=None)
+    summary = {}
+    for kind in ("database", "forward_record"):
+        item = next((entry for entry in backups if entry.kind == kind), None)
+        if item is None:
+            summary[kind] = {"available": False, "status": "missing"}
+            continue
+        modified = item.modified_at.replace(tzinfo=None)
+        age_hours = max(0, int((now - modified).total_seconds() // 3600))
+        summary[kind] = {
+            "available": True,
+            "item": item,
+            "age_hours": age_hours,
+            "checksum_status": _backup_checksum_status(item.name),
+            "status": "ready" if item.checksum_available and _backup_checksum_status(item.name) == "verified" else "attention",
+        }
+    summary["ready"] = all(summary[k].get("status") == "ready" for k in ("database", "forward_record"))
+    return summary
+
+
 @app.route("/admin/backups")
 @login_required
 def admin_backups():
@@ -3566,6 +3607,26 @@ def admin_backups():
         persistent=BACKUP_STORAGE_EXPLICIT,
         retention=BACKUP_RETENTION_COUNT,
         format_bytes=_format_backup_bytes,
+        active_admin_page="backups",
+    ))
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    return response
+
+
+
+
+@app.route("/admin/recovery")
+@login_required
+def admin_recovery():
+    if not is_admin_user(current_user):
+        abort(404)
+    response = app.make_response(render_template(
+        "admin_recovery.html",
+        recovery=_backup_recovery_summary(),
+        persistent=BACKUP_STORAGE_EXPLICIT,
+        retention=BACKUP_RETENTION_COUNT,
+        format_bytes=_format_backup_bytes,
+        active_admin_page="recovery",
     ))
     response.headers["Cache-Control"] = "no-store, max-age=0"
     return response

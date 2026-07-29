@@ -71,3 +71,14 @@ python tools/production_smoke_test.py https://neuraltrend.org --include-summary
 ```
 
 Then create one backup of each type through the admin page, download both archives and both `.sha256` files, and delete the Render copies only if you do not want them retained there.
+
+## Admin recovery center
+
+After deployment, authorized admins can open:
+
+- `/admin/operations` — health and operational status
+- `/admin/signal-alerts` — alerts and Forward Record controls
+- `/admin/backups` — create, download and delete backups
+- `/admin/recovery` — recovery readiness, latest verified files and safe restore sequence
+
+The recovery page intentionally does not provide one-click production restore. Restore downloaded files into staging first, validate them, and then perform a controlled production recovery.
