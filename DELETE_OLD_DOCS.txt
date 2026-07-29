@@ -1,0 +1,10 @@
+After copying the docs/ directory into the project, delete these superseded root files:
+
+ADMIN_BACKUPS_SETUP.md
+BACKUP_RECOVERY.md
+DEPLOYMENT_ROLLBACK.md
+OPERATIONS_RUNBOOK.md
+PRELAUNCH_TESTING.md
+RENDER_MONITORING_SETUP.md
+
+Their content has been consolidated into the new documentation manual.
