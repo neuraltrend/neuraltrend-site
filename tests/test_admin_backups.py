@@ -21,7 +21,9 @@ def test_admin_backups_lists_and_downloads_managed_file(admin_client, monkeypatc
     (tmp_path / (backup.name + ".sha256")).write_text("abc  file\n")
     page = admin_client.get("/admin/backups")
     assert page.status_code == 200
-    assert backup.name.encode() not in page.data  # filenames are intentionally not displayed
+    # The filename is necessarily present in protected download/delete URLs,
+    # but it must not be rendered as visible page text.
+    assert f">{backup.name}<".encode() not in page.data
     download = admin_client.get(f"/admin/backups/download/{backup.name}")
     assert download.status_code == 200
     assert download.data == b"safe-test-backup"
