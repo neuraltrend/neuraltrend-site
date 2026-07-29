@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Recovery | NeuralTrend Admin{% endblock %}
+{% block meta_description %}Admin-only NeuralTrend disaster-recovery readiness and controlled restore guidance.{% endblock %}
+{% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-admin-system-nav.css') }}">
+<style>
+.nt-recovery-page{max-width:1180px;margin:0 auto;padding:28px 20px 68px}.nt-recovery-hero{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;margin-bottom:22px}.nt-recovery-hero h1{margin:4px 0 8px}.nt-kicker{color:#64748b;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.nt-state{min-width:220px;padding:18px;border-radius:15px;border:1px solid}.nt-state.is-ready{background:#ecfdf5;border-color:#a7f3d0;color:#065f46}.nt-state.is-attention{background:#fffbeb;border-color:#fde68a;color:#92400e}.nt-state strong{display:block;font-size:24px;margin-top:4px}.nt-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.nt-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:20px;box-shadow:0 4px 16px rgba(15,23,42,.04);margin-bottom:16px}.nt-card h2{margin:0 0 12px}.nt-card dl{display:grid;gap:9px;margin:0}.nt-card dl div{display:flex;justify-content:space-between;gap:15px;border-bottom:1px solid #eef2f7;padding-bottom:8px}.nt-card dt{color:#64748b}.nt-card dd{margin:0;font-weight:700;text-align:right}.nt-badge{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:800}.nt-badge.is-verified{background:#dcfce7;color:#166534}.nt-badge.is-bad{background:#fee2e2;color:#991b1b}.nt-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.nt-btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:9px;text-decoration:none;font-weight:750;background:#111827;color:#fff}.nt-btn.secondary{background:#eef2f7;color:#111827}.nt-checklist{display:grid;gap:10px;padding:0;list-style:none;counter-reset:step}.nt-checklist li{counter-increment:step;padding:12px 14px 12px 48px;border:1px solid #e2e8f0;border-radius:12px;position:relative}.nt-checklist li:before{content:counter(step);position:absolute;left:14px;top:10px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#111827;color:#fff;font-weight:800;font-size:12px}.nt-warning{background:#fff7ed;border-color:#fed7aa;color:#9a3412}.nt-code{background:#0f172a;color:#e2e8f0;border-radius:12px;padding:15px;overflow:auto;white-space:pre-wrap}.nt-muted{color:#64748b}@media(max-width:760px){.nt-grid{grid-template-columns:1fr}.nt-recovery-hero{display:block}.nt-state{margin-top:14px}}
+</style>
+{% endblock %}
+{% block content %}
+{% include '_admin_system_nav.html' %}
+<main class="nt-recovery-page">
+  <section class="nt-recovery-hero">
+    <div><div class="nt-kicker">Admin only · controlled recovery</div><h1>Recovery readiness</h1><p class="nt-muted">Confirm that both recovery components exist and are intact before an emergency occurs.</p></div>
+    <aside class="nt-state {{ 'is-ready' if recovery.ready else 'is-attention' }}"><span>Recovery state</span><strong>{{ 'READY' if recovery.ready else 'ATTENTION' }}</strong><small>{{ 'Both latest backups passed checksum verification.' if recovery.ready else 'One or more recovery components need review.' }}</small></aside>
+  </section>
+  {% if not persistent %}<section class="nt-card nt-warning"><strong>Backups are not on configured persistent storage.</strong> Set <code>NEURALTREND_BACKUP_DIR</code> to a mounted persistent-disk location before relying on these files.</section>{% endif %}
+  <section class="nt-grid">
+    {% for kind, label in [('database','PostgreSQL database'),('forward_record','Forward Record files')] %}
+    {% set item = recovery[kind] %}
+    <article class="nt-card"><h2>{{ label }}</h2>
+      {% if item.available %}<dl><div><dt>Latest file</dt><dd>{{ item.item.name }}</dd></div><div><dt>Created</dt><dd>{{ item.item.modified_at.strftime('%Y-%m-%d %H:%M UTC') }}</dd></div><div><dt>Age</dt><dd>{{ item.age_hours }} hour(s)</dd></div><div><dt>Size</dt><dd>{{ format_bytes(item.item.size) }}</dd></div><div><dt>Integrity</dt><dd><span class="nt-badge {{ 'is-verified' if item.checksum_status == 'verified' else 'is-bad' }}">{{ item.checksum_status|upper }}</span></dd></div></dl><div class="nt-actions"><a class="nt-btn" href="{{ url_for('admin_backup_download', filename=item.item.name) }}">Download backup</a>{% if item.item.checksum_available %}<a class="nt-btn secondary" href="{{ url_for('admin_backup_download', filename=item.item.name ~ '.sha256') }}">Download checksum</a>{% endif %}</div>
+      {% else %}<p>No managed {{ label|lower }} backup exists.</p><div class="nt-actions"><a class="nt-btn" href="{{ url_for('admin_backups') }}">Create backup</a></div>{% endif %}
+    </article>{% endfor %}
+  </section>
+  <section class="nt-card"><h2>Safe recovery sequence</h2><ol class="nt-checklist"><li>Download the chosen <code>.dump</code> or <code>.tar.gz</code> file and its matching <code>.sha256</code>.</li><li>Verify the checksum after transfer.</li><li>Create or select a temporary staging database and storage directory.</li><li>Restore there first—never test directly against production.</li><li>Run <code>python tools/recovery_check.py</code> and the production smoke test.</li><li>Only after validation, switch production to the recovered database/storage or perform a controlled maintenance-window restore.</li><li>Verify login, subscriptions, Stripe webhooks, alerts, dashboard data, and Forward Record.</li></ol></section>
+  <section class="nt-card nt-warning"><h2>No one-click production restore</h2><p>NeuralTrend intentionally does not restore production data from a browser button. A database restore can overwrite newer users, subscriptions, simulations, and webhook records. Restoration must be performed through a controlled Render Shell or staging workflow.</p></section>
+  <section class="nt-card"><h2>Database restore command pattern</h2><p class="nt-muted">Use this only after selecting the correct target database and placing the downloaded dump in the controlled environment.</p><pre class="nt-code">pg_restore --clean --if-exists --no-owner --no-acl \
+  --dbname="$RESTORE_DATABASE_URL" \
+  neuraltrend-postgres-YYYYMMDDTHHMMSSZ.dump</pre></section>
+  <section class="nt-card"><h2>Forward Record restore pattern</h2><pre class="nt-code">mkdir -p /tmp/neuraltrend-forward-restore
+
+tar -xzf neuraltrend-forward-record-YYYYMMDDTHHMMSSZ.tar.gz \
+  -C /tmp/neuraltrend-forward-restore
+
+# Inspect and validate before copying into FORWARD_RECORD_STORAGE_DIR.</pre></section>
+</main>
+{% endblock %}

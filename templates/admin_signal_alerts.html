@@ -8,9 +8,11 @@ Admin-only manual controls for NeuralTrend signal alerts, private Forward Record
 
 {% block page_styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-admin-alerts.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-admin-system-nav.css') }}">
 {% endblock %}
 
 {% block content %}
+{% include '_admin_system_nav.html' %}
 <main class="nt-alert-admin-page">
     <section class="nt-alert-admin-hero">
         <div class="nt-alert-admin-shell nt-alert-admin-hero-grid">

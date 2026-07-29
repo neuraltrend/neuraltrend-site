@@ -5,9 +5,11 @@
 
 {% block page_styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-admin-operations.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-admin-system-nav.css') }}">
 {% endblock %}
 
 {% block content %}
+{% include '_admin_system_nav.html' %}
 <main class="nt-ops-page">
     <section class="nt-ops-hero">
         <div class="nt-ops-shell nt-ops-hero-grid">
@@ -143,6 +145,15 @@
                 {% endfor %}
             </div>
         </article>
+    </section>
+
+    <section class="nt-ops-shell nt-ops-grid" aria-label="Recovery readiness">
+        {% for kind, label in [('database','Latest database backup'),('forward_record','Latest Forward Record backup')] %}
+        {% set item = backup_recovery[kind] %}
+        <article class="nt-ops-card">
+            <div class="nt-ops-card-heading"><h2>{{ label }}</h2><span class="nt-ops-status is-{{ 'ok' if item.status == 'ready' else 'warning' }}">{{ item.status }}</span></div>
+            {% if item.available %}<dl><div><dt>Created</dt><dd>{{ item.item.modified_at.strftime('%Y-%m-%d %H:%M UTC') }}</dd></div><div><dt>Age</dt><dd>{{ item.age_hours }} hour(s)</dd></div><div><dt>Size</dt><dd>{{ format_bytes(item.item.size) }}</dd></div><div><dt>Checksum</dt><dd>{{ item.checksum_status }}</dd></div></dl>{% else %}<p>No managed backup available.</p>{% endif %}
+        </article>{% endfor %}
     </section>
 
     <section class="nt-ops-shell nt-ops-note">

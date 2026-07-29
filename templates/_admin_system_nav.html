@@ -1,0 +1,6 @@
+<nav class="nt-system-nav" aria-label="Admin system tools">
+  <a class="{{ 'is-active' if active_admin_page == 'operations' else '' }}" href="{{ url_for('admin_operations') }}">Health &amp; Operations</a>
+  <a class="{{ 'is-active' if active_admin_page == 'alerts' else '' }}" href="{{ url_for('admin_signal_alerts') }}">Alerts &amp; Forward Record</a>
+  <a class="{{ 'is-active' if active_admin_page == 'backups' else '' }}" href="{{ url_for('admin_backups') }}">Backups</a>
+  <a class="{{ 'is-active' if active_admin_page == 'recovery' else '' }}" href="{{ url_for('admin_recovery') }}">Recovery</a>
+</nav>
