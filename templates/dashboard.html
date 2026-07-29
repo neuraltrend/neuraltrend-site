@@ -317,148 +317,38 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                 <div id="signal-overview" class="nt-signal-board-shell">
                     <div class="nt-signal-board-inner">
                 
-                        <!-- TITLE -->
-                        <div class="nt-page-header nt-page-header-center">
-                            <h3 class="nt-page-title">
-                                EpochSignaler (Basic) Signal Overview
-                            </h3>
-                        </div>
-
-                        <!-- SELECTED ASSET PERFORMANCE CARDS -->
-                        <div id="selected-performance-panel" class="nt-performance-panel">
-                        
-                            <div class="nt-selected-meta">
-                                Selected Asset:
-                                <span id="metric-selected-ticker">BTC-USD</span>
-                                &nbsp; | &nbsp;
-                                Return Horizon:
-                                <span id="metric-selected-horizon">5Y</span>
+                        <!-- COMPACT ASSET / ALERT TOOLBAR -->
+                        <div class="nt-overview-toolbar" aria-label="Selected asset and alert controls">
+                            <div class="nt-overview-live-status" aria-live="polite">
+                                <span id="metric-freshness-badge" class="nt-freshness-badge nt-freshness-unknown">Checking</span>
+                                <span>Live through <strong id="metric-data-through">—</strong></span>
+                                <span class="nt-overview-toolbar-divider" aria-hidden="true">•</span>
+                                <span>Updated <strong id="metric-site-data-updated">—</strong></span>
                             </div>
 
-                            <div id="metric-data-freshness" class="nt-data-freshness-strip" aria-live="polite">
-                                <span id="metric-freshness-badge" class="nt-freshness-badge nt-freshness-unknown">
-                                    Checking
-                                </span>
-                                <span>
-                                    Latest signal uses completed data through
-                                    <strong id="metric-data-through">—</strong>
-                                </span>
-                                <span class="nt-data-freshness-divider" aria-hidden="true">•</span>
-                                <span>
-                                    Site data file updated
-                                    <strong id="metric-site-data-updated">—</strong>
-                                </span>
-                            </div>
-                        
-                            <div class="nt-metric-grid">
-                        
-                                <div class="nt-metric-card">
-                                    <div class="nt-card-icon nt-icon-blue">↗</div>
-                                    <div>
-                                        <div class="nt-metric-label">
-                                            AI Strategy Return (<span class="metric-horizon-text">5Y</span>)
-                                        </div>
-                                        <div id="metric-strategy-return" class="nt-metric-value return-neutral">—</div>
-                                        <div id="metric-strategy-sub" class="nt-metric-sub">
-                                            Normalized $1 → —
-                                        </div>
-                                    </div>
-                                </div>
-                        
-                                <div class="nt-metric-card">
-                                    <div class="nt-card-icon nt-icon-purple">↗</div>
-                                    <div>
-                                        <div class="nt-metric-label">
-                                            Buy & Hold Return (<span class="metric-horizon-text">5Y</span>)
-                                        </div>
-                                        <div id="metric-buyhold-return" class="nt-metric-value return-neutral">—</div>
-                                        <div id="metric-buyhold-sub" class="nt-metric-sub">
-                                            Normalized $1 → —
-                                        </div>
-                                    </div>
-                                </div>
-                        
-                                <div class="nt-metric-card">
-                                    <div class="nt-card-icon nt-icon-green">⚖</div>
-                                    <div>
-                                        <div class="nt-metric-label">
-                                            AI Return Spread (<span class="metric-horizon-text">5Y</span>)
-                                        </div>
-                                        <div id="metric-outperformance" class="nt-metric-value return-neutral">—</div>
-                                        <div class="nt-metric-sub">
-                                            Percentage-point difference
-                                        </div>
-                                    </div>
-                                </div>
-                        
-                                <div class="nt-metric-card">
-                                    <div class="nt-card-icon nt-icon-neutral">◎</div>
-                                    <div>
-                                        <div class="nt-metric-label">Today’s Signal</div>
-                                        <div id="metric-today-signal" class="nt-signal-value">
-                                            <span class="signal-badge signal-hold">— HOLD</span>
-                                        </div>
-                                        <div class="nt-metric-sub" id="metric-signal-sub">
-                                            Neutral
-                                        </div>
-                                    </div>
-                                </div>
-                        
-                            </div>
-
-                            <div class="nt-risk-metric-grid" aria-label="Selected asset risk metrics">
-                                <article class="nt-risk-metric-card">
-                                    <div class="nt-risk-metric-label">AI Max Drawdown</div>
-                                    <div id="metric-strategy-max-drawdown" class="nt-risk-metric-value">—</div>
-                                    <div class="nt-risk-metric-sub">Largest peak-to-trough decline</div>
-                                </article>
-
-                                <article class="nt-risk-metric-card">
-                                    <div class="nt-risk-metric-label">Buy &amp; Hold Max Drawdown</div>
-                                    <div id="metric-buyhold-max-drawdown" class="nt-risk-metric-value">—</div>
-                                    <div class="nt-risk-metric-sub">Same asset and horizon</div>
-                                </article>
-
-                                <article class="nt-risk-metric-card">
-                                    <div class="nt-risk-metric-label">AI Sharpe Ratio</div>
-                                    <div id="metric-strategy-sharpe" class="nt-risk-metric-value">—</div>
-                                    <div class="nt-risk-metric-sub">Annualized from daily equity returns</div>
-                                </article>
-
-                                <article class="nt-risk-metric-card">
-                                    <div class="nt-risk-metric-label">Market Exposure</div>
-                                    <div id="metric-market-exposure" class="nt-risk-metric-value">—</div>
-                                    <div id="metric-trade-count" class="nt-risk-metric-sub">— executed trades</div>
-                                </article>
-                            </div>
-
-                            <div class="nt-watchlist-toolbar" aria-label="Selected asset watchlist controls">
+                            <div class="nt-overview-watch-controls">
                                 <button
                                     type="button"
                                     id="selected-watchlist-toggle"
-                                    class="nt-watchlist-primary-btn"
+                                    class="nt-watchlist-primary-btn nt-watchlist-primary-btn-compact"
                                     aria-pressed="false"
                                 >
                                     <span id="selected-watchlist-star" aria-hidden="true">☆</span>
                                     <span id="selected-watchlist-label">Add to Watchlist</span>
                                 </button>
 
-                                <label class="nt-watchlist-alert-control" for="selected-watchlist-alert-toggle">
-                                    <input
-                                        type="checkbox"
-                                        id="selected-watchlist-alert-toggle"
-                                        disabled
-                                    >
+                                <label class="nt-watchlist-alert-control nt-watchlist-alert-control-compact" for="selected-watchlist-alert-toggle">
+                                    <input type="checkbox" id="selected-watchlist-alert-toggle" disabled>
                                     <span>
-                                        Email me when the published signal changes
-                                        <small id="selected-watchlist-alert-note">Pro feature · daily published signals, not real-time execution alerts</small>
+                                        Email signal changes
+                                        <small id="selected-watchlist-alert-note">Pro · daily published signals</small>
                                     </span>
                                 </label>
 
                                 <span id="selected-watchlist-message" class="nt-watchlist-message" aria-live="polite"></span>
                             </div>
                         </div>
-                        <!-- SELECTED ASSET PERFORMANCE CARDS END -->
+                        <!-- COMPACT ASSET / ALERT TOOLBAR END -->
 
                         <!-- CONTROL PANEL -->
                         <div class="nt-controls-card">
@@ -670,15 +560,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                             </div>
                             
                             <!-- BODY -->
-                            <div
-                                id="signal-board"
-                                style="
-                                    max-height: 280px;
-                                    overflow-y: auto;
-                                    width: 100%;
-                                    background: #fff;
-                                "
-                            >
+                            <div id="signal-board" class="nt-signal-board-scroll">
                                 <div class="nt-board-state nt-board-state-loading" role="status" aria-live="polite" aria-label="Loading signal data">
                                     <div class="nt-board-loading-copy">
                                         <span class="nt-board-loading-spinner" aria-hidden="true"></span>
@@ -763,31 +645,69 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                 
                         </div>
 
-                        <div id="equity-preview-risk-grid" class="nt-preview-risk-grid" aria-label="Equity preview risk metrics">
-                            <article>
-                                <span>AI Max Drawdown</span>
-                                <strong id="preview-strategy-max-drawdown">—</strong>
-                            </article>
-                            <article>
-                                <span>B&amp;H Max Drawdown</span>
-                                <strong id="preview-buyhold-max-drawdown">—</strong>
-                            </article>
-                            <article>
-                                <span>AI Sharpe</span>
-                                <strong id="preview-strategy-sharpe">—</strong>
-                            </article>
-                            <article>
-                                <span>AI Volatility</span>
-                                <strong id="preview-strategy-volatility">—</strong>
-                            </article>
-                            <article>
-                                <span>Exposure / Trades</span>
-                                <strong id="preview-exposure-trades">—</strong>
-                            </article>
+                        <div class="nt-preview-workspace">
+                            <aside id="selected-performance-panel" class="nt-preview-metrics-panel" aria-label="Selected asset performance summary">
+                                <div class="nt-preview-selected-meta">
+                                    <strong id="metric-selected-ticker">BTC-USD</strong>
+                                    <span id="metric-selected-horizon">5Y</span>
+                                </div>
+
+                                <div class="nt-preview-metric-grid">
+                                    <article class="nt-preview-metric-card">
+                                        <span>AI Strategy Return (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <strong id="metric-strategy-return" class="return-neutral">—</strong>
+                                        <small id="metric-strategy-sub">Normalized $1 → —</small>
+                                    </article>
+                                    <article class="nt-preview-metric-card">
+                                        <span>Buy &amp; Hold Return (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <strong id="metric-buyhold-return" class="return-neutral">—</strong>
+                                        <small id="metric-buyhold-sub">Normalized $1 → —</small>
+                                    </article>
+                                    <article class="nt-preview-metric-card">
+                                        <span>AI Return Spread (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <strong id="metric-outperformance" class="return-neutral">—</strong>
+                                        <small>Percentage-point difference</small>
+                                    </article>
+                                    <article class="nt-preview-metric-card">
+                                        <span>Today’s Signal</span>
+                                        <strong id="metric-today-signal" class="nt-signal-value"><span class="signal-badge signal-hold">— HOLD</span></strong>
+                                        <small id="metric-signal-sub">Neutral</small>
+                                    </article>
+                                    <article class="nt-preview-metric-card">
+                                        <span>AI Max Drawdown</span>
+                                        <strong id="metric-strategy-max-drawdown">—</strong>
+                                        <small>Largest peak-to-trough decline</small>
+                                    </article>
+                                    <article class="nt-preview-metric-card">
+                                        <span>B&amp;H Max Drawdown</span>
+                                        <strong id="metric-buyhold-max-drawdown">—</strong>
+                                        <small>Same asset and horizon</small>
+                                    </article>
+                                    <article class="nt-preview-metric-card">
+                                        <span>AI Sharpe Ratio</span>
+                                        <strong id="metric-strategy-sharpe">—</strong>
+                                        <small>Annualized</small>
+                                    </article>
+                                    <article class="nt-preview-metric-card">
+                                        <span>Exposure / Trades</span>
+                                        <strong id="metric-market-exposure">—</strong>
+                                        <small id="metric-trade-count">— executed trades</small>
+                                    </article>
+                                </div>
+                            </aside>
+
+                            <div id="equity-preview-chart" class="nt-preview-chart">
+                                <!-- chart injected by JS -->
+                            </div>
                         </div>
-                
-                        <div id="equity-preview-chart" class="nt-preview-chart">
-                            <!-- chart injected by JS -->
+
+                        <!-- Compatibility metrics retained for the current preview renderer. -->
+                        <div id="equity-preview-risk-grid" class="nt-preview-risk-grid nt-preview-compat-metrics" aria-hidden="true">
+                            <article><span>AI Max Drawdown</span><strong id="preview-strategy-max-drawdown">—</strong></article>
+                            <article><span>B&amp;H Max Drawdown</span><strong id="preview-buyhold-max-drawdown">—</strong></article>
+                            <article><span>AI Sharpe</span><strong id="preview-strategy-sharpe">—</strong></article>
+                            <article><span>AI Volatility</span><strong id="preview-strategy-volatility">—</strong></article>
+                            <article><span>Exposure / Trades</span><strong id="preview-exposure-trades">—</strong></article>
                         </div>
                 
                     </div>
