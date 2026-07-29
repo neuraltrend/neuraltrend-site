@@ -9764,39 +9764,35 @@ body.nt-account-modal-open {
     font-weight: 800;
 }
 
-
 /* ==================================================
-   DASHBOARD V2.2 — REMOVE REDUNDANT MODEL WRAPPER
-   Keep model selector, but make EpochSignaler workspace
-   a single clean dashboard surface.
+   DASHBOARD MODEL-HEADER CLEANUP — v2.3
+   Remove the selected-card pointer/half-shadow artifact and keep the
+   active model heading flat inside the existing single workspace.
 ================================================== */
 
-.nt-model-panel {
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    padding: 0;
+/* The downward pointer under the selected model card was appearing as a
+   detached half-shadow/rectangle above the EpochSignaler heading. */
+.nt-product-card.active::after {
+    content: none !important;
+    display: none !important;
+    border: 0 !important;
+    filter: none !important;
+    box-shadow: none !important;
 }
 
-.nt-model-panel-header {
-    margin: 0 0 18px 0;
-    padding: 0;
+/* The model heading is informational text, not a second card. */
+.nt-model-panel > .nt-model-panel-header:first-child {
+    margin: 0 0 18px 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
 }
 
-.nt-model-panel-title {
-    font-size: 22px;
-    font-weight: 900;
-}
-
-.nt-model-panel-description {
-    margin-top: 6px;
-}
-
-/* Remove the floating/shadowed inner tool wrapper */
-.nt-epoch-subnav-card {
-    background: #ffffff;
-    border: 1px solid var(--nt-border);
-    box-shadow: none;
-    border-radius: 14px;
+@media (max-width: 700px) {
+    .nt-model-panel > .nt-model-panel-header:first-child {
+        margin-bottom: 14px !important;
+        padding: 0 !important;
+    }
 }
