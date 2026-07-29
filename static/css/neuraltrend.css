@@ -9763,3 +9763,40 @@ body.nt-account-modal-open {
     background: rgba(255, 255, 255, 0.18);
     font-weight: 800;
 }
+
+
+/* ==================================================
+   DASHBOARD V2.2 — REMOVE REDUNDANT MODEL WRAPPER
+   Keep model selector, but make EpochSignaler workspace
+   a single clean dashboard surface.
+================================================== */
+
+.nt-model-panel {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+}
+
+.nt-model-panel-header {
+    margin: 0 0 18px 0;
+    padding: 0;
+}
+
+.nt-model-panel-title {
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.nt-model-panel-description {
+    margin-top: 6px;
+}
+
+/* Remove the floating/shadowed inner tool wrapper */
+.nt-epoch-subnav-card {
+    background: #ffffff;
+    border: 1px solid var(--nt-border);
+    box-shadow: none;
+    border-radius: 14px;
+}
