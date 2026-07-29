@@ -1493,8 +1493,45 @@
             executedSellDates.includes(d) ? equity[i] : null
         );
     
+        const ntPerformanceShadePlugin = {
+            id: "ntPerformanceShade",
+            beforeDatasetsDraw(chart) {
+                const {ctx, chartArea, scales} = chart;
+                if (!chartArea) return;
+
+                const y = scales.y;
+                const x = scales.x;
+                const ai = chart.data.datasets[0].data;
+                const bh = chart.data.datasets[1].data;
+
+                ctx.save();
+                for (let i = 1; i < ai.length; i++) {
+                    const x1 = x.getPixelForValue(i - 1);
+                    const x2 = x.getPixelForValue(i);
+                    const yAI1 = y.getPixelForValue(ai[i - 1]);
+                    const yAI2 = y.getPixelForValue(ai[i]);
+                    const yBH1 = y.getPixelForValue(bh[i - 1]);
+                    const yBH2 = y.getPixelForValue(bh[i]);
+
+                    ctx.beginPath();
+                    ctx.moveTo(x1, yAI1);
+                    ctx.lineTo(x2, yAI2);
+                    ctx.lineTo(x2, yBH2);
+                    ctx.lineTo(x1, yBH1);
+                    ctx.closePath();
+
+                    ctx.fillStyle = ai[i] >= bh[i]
+                        ? "rgba(22, 163, 74, 0.10)"
+                        : "rgba(220, 38, 38, 0.10)";
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+        };
+
         previewChart = new Chart(ctx, {
             type: "line",
+            plugins: [ntPerformanceShadePlugin],
             data: {
                 labels: dates,
                 datasets: [
