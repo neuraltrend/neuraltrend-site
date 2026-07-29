@@ -213,31 +213,23 @@ def _date_map(frame: pd.DataFrame) -> dict[date, tuple[str, int]]:
 
 def verify_approved_history(
     ticker: str,
-    source: pd.DataFrame,
     approved: pd.DataFrame,
     asset: ForwardRecordAsset,
 ) -> str:
-    """Reject deletion or rewriting of any already approved row."""
+    """Verify the immutable approved snapshot stored on persistent disk.
+
+    The large working CSV powers Signal Overview and may legitimately be
+    recalculated or corrected. Once a row has been approved, the compact
+    Forward Record CSV becomes the source of truth for public performance.
+    Therefore ordinary previews do not compare overlapping working-CSV rows
+    against approved history.
+    """
     actual_digest = frame_digest(approved)
     if asset.last_approved_digest and actual_digest != asset.last_approved_digest:
         raise ValueError(
             f"{ticker}: approved Forward Record CSV changed outside the approval "
             "workflow. Restore the approved file before publishing."
         )
-
-    source_rows = _date_map(source)
-    for market_date, expected in _date_map(approved).items():
-        current = source_rows.get(market_date)
-        if current is None:
-            raise ValueError(
-                f"{ticker}: working CSV no longer contains approved date {market_date}. "
-                "Previously approved history cannot be deleted."
-            )
-        if current != expected:
-            raise ValueError(
-                f"{ticker}: working CSV changed previously approved Date/Close/signal "
-                f"history on {market_date}. Restore that row before publishing."
-            )
     return actual_digest
 
 
@@ -329,11 +321,24 @@ def build_publication_preview(
                 approved_before = load_approved_data(clean, mode)
                 approved_digest_before = verify_approved_history(
                     clean,
-                    source,
                     approved_before,
                     asset,
                 )
-                previous_through = asset.approved_through_date
+                approved_through_on_disk = (
+                    approved_before["Date"].max().date()
+                    if not approved_before.empty else None
+                )
+                if (
+                    asset.approved_through_date
+                    and approved_through_on_disk
+                    and asset.approved_through_date != approved_through_on_disk
+                ):
+                    raise ValueError(
+                        f"{clean}: approved Forward Record metadata does not match "
+                        "the approved CSV. Restore the approved file or metadata "
+                        "before publishing."
+                    )
+                previous_through = approved_through_on_disk
                 new_rows = _frame_after(
                     _frame_on_or_after(source, start_date),
                     previous_through,
