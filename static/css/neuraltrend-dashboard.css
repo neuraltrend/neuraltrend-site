@@ -190,3 +190,378 @@
         justify-content: flex-start;
     }
 }
+
+/* ==================================================
+   DASHBOARD V2 — SIGNAL-FIRST COMPACT WORKSPACE
+   Keeps the existing board interactions and data flow,
+   while removing the duplicated top KPI section.
+================================================== */
+
+#epoch-tool-overview .nt-signal-board-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.nt-overview-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 42px;
+    padding: 7px 10px;
+    border: 1px solid var(--nt-border);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 1px 5px rgba(15, 23, 42, 0.035);
+}
+
+.nt-overview-live-status,
+.nt-overview-watch-controls {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    color: var(--nt-neutral);
+    font-size: 11px;
+    font-weight: 650;
+}
+
+.nt-overview-live-status strong {
+    color: var(--nt-dark);
+}
+
+.nt-overview-toolbar-divider {
+    color: #cbd5e1;
+}
+
+.nt-watchlist-primary-btn-compact {
+    min-height: 30px;
+    padding: 5px 9px;
+    border-radius: 9px;
+    font-size: 11px;
+}
+
+.nt-watchlist-alert-control-compact {
+    min-height: 30px;
+    padding: 4px 8px;
+    border-radius: 9px;
+    gap: 7px;
+}
+
+.nt-watchlist-alert-control-compact span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.nt-watchlist-alert-control-compact small {
+    display: inline;
+    margin: 0;
+    font-size: 9px;
+    color: var(--nt-neutral);
+}
+
+#epoch-tool-overview .nt-controls-card {
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 13px;
+    box-shadow: 0 1px 5px rgba(15, 23, 42, 0.035);
+}
+
+#epoch-tool-overview .nt-controls-top {
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+#epoch-tool-overview .nt-controls-title {
+    font-size: 15px;
+}
+
+#epoch-tool-overview .nt-controls-subtitle {
+    display: none;
+}
+
+#epoch-tool-overview .nt-section-eyebrow {
+    margin-bottom: 2px;
+    font-size: 10px;
+}
+
+#epoch-tool-overview .nt-controls-grid {
+    grid-template-columns: minmax(210px, 0.9fr) auto auto;
+    gap: 10px;
+}
+
+#epoch-tool-overview .nt-control-label {
+    margin-bottom: 4px;
+    font-size: 10px;
+}
+
+#epoch-tool-overview .nt-search-input {
+    min-height: 34px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+}
+
+#epoch-tool-overview .period-pill,
+#epoch-tool-overview .asset-pill {
+    min-height: 30px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#epoch-tool-overview .nt-active-filter-row {
+    margin: 0;
+    min-height: 32px;
+    padding: 5px 9px;
+    border-radius: 10px;
+}
+
+#epoch-tool-overview .nt-signal-table-card {
+    border-radius: 13px;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.04);
+}
+
+#epoch-tool-overview .nt-signal-header {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    font-size: 11px;
+}
+
+#epoch-tool-overview .nt-header-title {
+    margin-bottom: 3px;
+}
+
+#epoch-tool-overview .nt-signal-filter-select {
+    height: 25px;
+    padding: 2px 6px;
+    font-size: 10px;
+}
+
+#epoch-tool-overview .nt-sort-indicator {
+    margin-top: 2px;
+    font-size: 9px;
+}
+
+.nt-signal-board-scroll {
+    width: 100%;
+    max-height: 228px;
+    overflow-y: auto;
+    overflow-x: visible;
+    background: #fff;
+    scrollbar-gutter: stable;
+}
+
+#signal-board .signal-row {
+    position: relative;
+    min-height: 34px;
+    transition: background-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+#signal-board .signal-row:hover {
+    background: #f8fbff;
+}
+
+#signal-board .signal-row.selected {
+    background: #eef6ff;
+    box-shadow: inset 3px 0 0 #2563eb;
+}
+
+#signal-board .signal-row.selected .signal-ticker {
+    color: #1d4ed8;
+}
+
+#equity-preview-wrapper {
+    margin-top: 10px;
+}
+
+#equity-preview-container.nt-preview-card {
+    padding: 12px;
+    border-radius: 14px;
+    box-shadow: 0 1px 7px rgba(15, 23, 42, 0.045);
+}
+
+#equity-preview-container .nt-preview-header {
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+#equity-preview-container .nt-preview-title {
+    font-size: 17px;
+}
+
+#equity-preview-container .nt-preview-subtitle {
+    margin-top: 2px;
+    font-size: 11px;
+}
+
+#equity-preview-container .nt-preview-meta {
+    gap: 5px;
+    margin-top: 6px;
+}
+
+#equity-preview-container .nt-preview-chip {
+    padding: 3px 7px;
+    font-size: 9px;
+}
+
+#equity-preview-container .nt-scale-btn {
+    padding: 7px 10px;
+    font-size: 11px;
+}
+
+.nt-preview-workspace {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 10px;
+    align-items: stretch;
+}
+
+.nt-preview-metrics-panel {
+    min-width: 0;
+    padding: 0;
+}
+
+.nt-preview-selected-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+    padding: 0 2px;
+    color: var(--nt-neutral);
+    font-size: 10px;
+}
+
+.nt-preview-selected-meta strong {
+    color: var(--nt-dark);
+    font-size: 12px;
+}
+
+.nt-preview-selected-meta span {
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-weight: 800;
+}
+
+.nt-preview-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.nt-preview-metric-card {
+    min-width: 0;
+    min-height: 72px;
+    padding: 8px;
+    border: 1px solid var(--nt-border);
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.nt-preview-metric-card > span {
+    display: block;
+    color: var(--nt-neutral);
+    font-size: 8px;
+    font-weight: 800;
+    line-height: 1.25;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.nt-preview-metric-card > strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--nt-dark);
+    font-size: 15px;
+    font-weight: 850;
+    line-height: 1.15;
+}
+
+.nt-preview-metric-card > small {
+    display: block;
+    margin-top: 4px;
+    color: var(--nt-neutral);
+    font-size: 8px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.nt-preview-metric-card .signal-badge {
+    font-size: 9px;
+}
+
+#equity-preview-container .nt-preview-chart {
+    height: 322px;
+    min-height: 322px;
+    padding: 7px;
+    border-radius: 11px;
+}
+
+.nt-preview-compat-metrics {
+    display: none !important;
+}
+
+@media (min-width: 1280px) and (min-height: 800px) {
+    .nt-signal-board-scroll {
+        max-height: 244px;
+    }
+
+    #equity-preview-container .nt-preview-chart {
+        height: 334px;
+        min-height: 334px;
+    }
+}
+
+@media (max-width: 1100px) {
+    .nt-overview-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    #epoch-tool-overview .nt-controls-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .nt-preview-workspace {
+        grid-template-columns: 220px minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 780px) {
+    .nt-overview-live-status,
+    .nt-overview-watch-controls {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .nt-watchlist-alert-control-compact span {
+        white-space: normal;
+    }
+
+    .nt-signal-board-scroll {
+        max-height: 250px;
+    }
+
+    .nt-preview-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .nt-preview-metric-grid {
+        grid-template-columns: repeat(4, minmax(105px, 1fr));
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+
+    .nt-preview-metric-card {
+        min-width: 105px;
+    }
+
+    #equity-preview-container .nt-preview-chart {
+        height: 300px;
+        min-height: 300px;
+    }
+}
