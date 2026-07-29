@@ -1,4 +1,4 @@
-# NeuralTrend automated testing and deployment verification
+# NeuralTrend Automated Testing and Deployment Verification
 
 ## Local or CI test suite
 
@@ -11,78 +11,123 @@ python -m pip install -r requirements.txt -r requirements-dev.txt
 Run all tests:
 
 ```bash
-pytest
+python -m pytest
 ```
 
-Run with coverage:
+Run the same coverage command used by GitHub Actions:
 
 ```bash
-pytest --cov=app --cov=models --cov=tools --cov-report=term-missing
+python -m pytest \
+  --cov=app \
+  --cov=models \
+  --cov=operational_logging \
+  --cov=tools \
+  --cov-report=term-missing
 ```
 
-The test suite creates a temporary SQLite database and temporary Forward Record
-storage before importing the application. Email sending is suppressed, Stripe
-calls are mocked, rate limits are disabled, and no production CSV is modified.
+The tests use temporary SQLite and Forward Record storage. Email sending is
+suppressed, Stripe calls are mocked, rate limits are disabled, and production
+CSV data is not modified.
+
+## GitHub Actions
+
+`.github/workflows/tests.yml` runs compilation and pytest on every push and pull
+request. A failed workflow should block deployment until the failure is
+understood.
+
+Warnings do not fail the workflow unless configured to do so. Test failures and
+non-zero exits must be fixed before deployment.
 
 ## Render prelaunch check
 
-From the Render web-service Shell, after migrations and environment variables
-are in place:
+After migrations and environment variables are in place:
 
 ```bash
 python tools/prelaunch_check.py
 ```
 
-This checks configuration presence, database connectivity/schema, persistent
-Forward Record storage, and BTC market-data availability. It does not call
-Stripe or send email.
+This checks configuration, database connectivity/schema, persistent Forward
+Record storage, backup-directory configuration when enabled, and required
+market-data availability. It does not call Stripe or send email.
+
+## Operational check
+
+```bash
+python tools/operational_check.py --strict
+```
+
+This reviews database and storage health, failed/stale webhooks, failed/stale
+alerts, disk space, and market-data freshness. `--strict` treats warnings as a
+non-zero result.
+
+## Recovery check
+
+```bash
+python tools/recovery_check.py https://neuraltrend.org
+```
+
+This verifies application initialization and important public routes after a
+deployment, restart, rollback, or restore.
 
 ## Read-only production smoke test
-
-From any machine with the repository dependencies installed:
 
 ```bash
 python tools/production_smoke_test.py https://neuraltrend.org
 ```
 
-Add the heavier Signal Overview calculation only when needed:
+Include the heavier Signal Overview calculation when appropriate:
 
 ```bash
 python tools/production_smoke_test.py https://neuraltrend.org --include-summary
 ```
 
-## GitHub Actions
+## Admin UI verification
 
-`.github/workflows/tests.yml` runs Python compilation and the pytest suite on
-every push and pull request. A failed workflow should block deployment until the
-failure is understood.
+Sign in as an admin and open the username menu → **Admin Operations**.
 
-## Step 10 operational checks
-
-After deploying Step 10:
-
-```bash
-python tools/operational_check.py
-python tools/recovery_check.py https://neuraltrend.org
-```
-
-Open the admin-only status page:
+Verify these hub destinations:
 
 ```text
-https://neuraltrend.org/admin/operations
+/admin/operations
+/admin/signal-alerts
+/admin/backups
+/admin/recovery
 ```
 
-Before a major release or database migration, create both backups and copy them
-off the Render service:
+Confirm:
+
+- the operations page contains no private customer identifiers;
+- alert and Forward Record controls are accessible;
+- backup creation and downloads work;
+- Recovery reports the latest verified pair;
+- non-admin users cannot access admin routes.
+
+## Before a major release or migration
+
+Create both backups through **Admin Operations → Backups**, then download the
+backups and checksum files off Render.
+
+Shell alternatives remain available:
 
 ```bash
 python tools/backup_database.py --output-dir /tmp/neuraltrend-backups
 python tools/backup_forward_record.py --output-dir /tmp/neuraltrend-backups
 ```
 
-Verify downloaded copies from a machine with PostgreSQL client tools:
+Verify downloaded copies:
 
 ```bash
 python tools/verify_database_backup.py /path/to/neuraltrend-postgres-....dump
 python tools/verify_forward_record_backup.py /path/to/neuraltrend-forward-record-....tar.gz
 ```
+
+## Standard post-deployment sequence
+
+```bash
+python tools/prelaunch_check.py
+python tools/operational_check.py --strict
+python tools/recovery_check.py https://neuraltrend.org
+python tools/production_smoke_test.py https://neuraltrend.org --include-summary
+```
+
+Then perform the admin UI and changed-feature manual checks.

@@ -1,55 +1,90 @@
-# NeuralTrend Admin Backups — Render Setup
+# NeuralTrend Admin Backups — Setup and Use
 
-## 1. Deploy these files
+## Purpose
 
-Upload/commit the package, let GitHub Actions pass, and deploy to Render.
+The admin backup interface creates and manages the two backup types needed for
+NeuralTrend data recovery:
 
-## 2. Configure persistent backup storage
+1. PostgreSQL database backup (`.dump`)
+2. Forward Record file backup (`.tar.gz`)
 
-In Render, use a directory inside the service's existing persistent disk, but **outside** the Forward Record directory.
+Each backup is paired with a `.sha256` checksum file.
 
-Example only (adapt to your actual disk mount):
+## Render configuration
+
+Configure a persistent directory that is outside the Forward Record directory.
+Example only; use the actual Render disk mount:
 
 ```text
 NEURALTREND_BACKUP_DIR=/var/data/neuraltrend-backups
 NEURALTREND_BACKUP_RETENTION=10
 ```
 
-Do not set the backup directory equal to, or inside, `FORWARD_RECORD_STORAGE_DIR`.
+Rules:
 
-After adding/changing these variables, redeploy.
+- `NEURALTREND_BACKUP_DIR` must be on the persistent disk.
+- It must not equal or sit inside `FORWARD_RECORD_STORAGE_DIR`.
+- It must not be inside the Git repository, `static/`, or another public path.
+- Redeploy after changing environment variables.
 
-## 3. Open the UI
+## Open the admin interface
 
-Sign in with an email listed in `ADMIN_EMAILS`, then open:
+Sign in with an email listed in `ADMIN_EMAILS`.
+
+From the username menu, select **Admin Operations**. The hub links to:
+
+- Health & Operations
+- Alerts & Forward Record
+- Backups
+- Recovery
+
+Direct routes are:
 
 ```text
-https://neuraltrend.org/admin/backups
+/admin/operations
+/admin/signal-alerts
+/admin/backups
+/admin/recovery
 ```
 
-You can create, verify, download, and delete database and Forward Record backups. Each backup receives a `.sha256` checksum file. Creation and deletion use CSRF-protected POST requests and all routes require admin access.
+## Create and download backups
 
-## 4. Important storage rule
+On **Admin Operations → Backups**:
 
-The Render copy is convenient, but it is not sufficient disaster recovery by itself. Download backups and checksum files to protected storage outside Render. Never commit them to GitHub.
+1. Create a PostgreSQL backup.
+2. Create a Forward Record backup.
+3. Confirm both show a verified checksum.
+4. Download both backup files and both `.sha256` files.
+5. Store the downloaded copies in protected storage outside Render.
 
-## 5. Clean up the earlier shell-created backups
+The UI supports creation, verification, download, retention, and deletion.
+Creation and deletion are CSRF-protected POST actions and require admin access.
 
-First inspect only:
+## Retention and deletion
+
+`NEURALTREND_BACKUP_RETENTION=10` keeps the latest ten backups of each managed
+type and removes older managed copies automatically.
+
+Do not delete the latest verified pair until an off-Render copy has been safely
+downloaded and verified.
+
+## Clean up earlier temporary shell backups
+
+Inspect first:
 
 ```bash
 find /tmp/neuraltrend-backups -maxdepth 1 -type f -printf '%f  %s bytes\n' 2>/dev/null
 find /tmp/neuraltrend-admin-backups -maxdepth 1 -type f -printf '%f  %s bytes\n' 2>/dev/null
 ```
 
-After you have downloaded anything you need, remove temporary shell backups:
+After preserving anything needed:
 
 ```bash
 rm -rf /tmp/neuraltrend-backups
 rm -rf /tmp/neuraltrend-admin-backups
 ```
 
-If you previously saved backups on the persistent disk, locate them without deleting:
+To locate persistent-disk backups without deleting them:
 
 ```bash
 find /var/data -maxdepth 3 -type f \
@@ -58,27 +93,23 @@ find /var/data -maxdepth 3 -type f \
      -o -name '*.sha256' \) -print 2>/dev/null
 ```
 
-Review every path first. Delete only obsolete copies after downloading any backup you intend to retain. Do not run a broad deletion command against `/var/data`.
+Review every path before deleting anything. Never run a broad deletion command
+against `/var/data`.
 
-No Render setting is created by the old `/tmp` commands. The only new settings needed for this UI are `NEURALTREND_BACKUP_DIR` and optionally `NEURALTREND_BACKUP_RETENTION`.
-
-## 6. Post-deploy checks
+## Post-deployment verification
 
 ```bash
 python tools/prelaunch_check.py
 python tools/operational_check.py --strict
+python tools/recovery_check.py https://neuraltrend.org
 python tools/production_smoke_test.py https://neuraltrend.org --include-summary
 ```
 
-Then create one backup of each type through the admin page, download both archives and both `.sha256` files, and delete the Render copies only if you do not want them retained there.
+Then open **Admin Operations** and confirm that Backups and Recovery both report
+verified current files.
 
-## Admin recovery center
+## Safety boundary
 
-After deployment, authorized admins can open:
-
-- `/admin/operations` — health and operational status
-- `/admin/signal-alerts` — alerts and Forward Record controls
-- `/admin/backups` — create, download and delete backups
-- `/admin/recovery` — recovery readiness, latest verified files and safe restore sequence
-
-The recovery page intentionally does not provide one-click production restore. Restore downloaded files into staging first, validate them, and then perform a controlled production recovery.
+The browser UI intentionally does not provide one-click production restore.
+Restore downloaded files into a temporary or staging environment first, verify
+them, and only then perform a controlled production recovery.

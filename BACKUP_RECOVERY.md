@@ -1,125 +1,171 @@
 # NeuralTrend Backup and Recovery
 
-## What must be protected
+## Recovery scope
 
-NeuralTrend production state has two independent parts:
+NeuralTrend production state has two independent data components:
 
-1. PostgreSQL: users, subscriptions, simulations, watchlists, alert delivery
-   ledger, Stripe webhook ledger, and Forward Record lifecycle metadata.
-2. Persistent Forward Record files: approved compact CSV files under
+1. **PostgreSQL** — users, password hashes, subscriptions, simulations,
+   watchlists, alert-delivery ledger, Stripe webhook ledger, and Forward Record
+   lifecycle metadata.
+2. **Persistent Forward Record files** — approved compact CSV files stored under
    `FORWARD_RECORD_STORAGE_DIR`.
 
-A complete recovery requires both from approximately the same time.
+A complete application-data recovery normally requires a verified backup of
+both components from approximately the same time.
 
-## Backup schedule
+These backups do not recreate unrelated platform configuration such as Render
+environment variables, custom domains, Redis settings, Stripe dashboard
+configuration, DNS, or external email-provider settings. Keep those settings
+documented separately.
 
-Recommended minimum:
+## Preferred backup workflow
+
+Use the username menu and open **Admin Operations → Backups**.
+
+Create and download:
+
+- `neuraltrend-postgres-....dump`
+- `neuraltrend-postgres-....dump.sha256`
+- `neuraltrend-forward-record-....tar.gz`
+- `neuraltrend-forward-record-....tar.gz.sha256`
+
+Keep at least one verified copy outside Render. A backup stored only on the same
+service or persistent disk is not sufficient disaster recovery.
+
+## Recommended schedule
+
+At minimum:
 
 - before every database migration or major release;
-- after enrolling, retiring, or removing a public Forward Record asset;
-- weekly while prelaunch or low-volume;
-- more frequently as usage grows.
+- before high-risk data corrections;
+- after major Forward Record enrollment, retirement, or removal changes;
+- weekly while usage is low;
+- more frequently as customer activity grows.
 
-Keep at least one copy outside Render. A backup stored only on the same service
-or disk is not disaster recovery.
+## Understanding the files
 
-## PostgreSQL backup
+### PostgreSQL `.dump`
 
-From Render Shell:
+The `.dump` is a PostgreSQL custom-format database archive. It is not intended
+to be read in a text editor. It is restored with PostgreSQL tools such as
+`pg_restore`.
 
-```bash
-python tools/backup_database.py --output-dir /tmp/neuraltrend-backups
-```
+### Forward Record `.tar.gz`
 
-The command:
+The archive contains approved Forward Record files and a manifest of paths,
+sizes, and SHA-256 hashes. Unsafe paths and symbolic links are rejected.
 
-- reads `DATABASE_URL` without printing it;
-- uses PostgreSQL custom format;
-- excludes owner/ACL portability problems;
-- verifies the catalog with `pg_restore --list` when available;
-- prints file size and SHA-256.
+### `.sha256`
 
-Download/copy the resulting `.dump` off Render.
+The checksum file proves that the downloaded or re-uploaded backup still
+matches the file created by NeuralTrend. It does not replace a restore rehearsal.
 
-Verify a downloaded copy:
+## Verify downloaded files
 
-```bash
-python tools/verify_database_backup.py /path/to/backup.dump
-```
-
-## Forward Record backup
-
-From Render Shell:
+Database:
 
 ```bash
-python tools/backup_forward_record.py --output-dir /tmp/neuraltrend-backups
+python tools/verify_database_backup.py /path/to/neuraltrend-postgres-....dump
 ```
 
-The archive contains only approved Forward Record files plus a manifest of
-paths, sizes, and SHA-256 hashes. Symbolic links and unsafe paths are rejected.
-
-Verify a downloaded copy:
+Forward Record:
 
 ```bash
-python tools/verify_forward_record_backup.py /path/to/backup.tar.gz
+python tools/verify_forward_record_backup.py /path/to/neuraltrend-forward-record-....tar.gz
 ```
 
-## Restore rehearsal
+## Uploading local backups for recovery
+
+Yes, downloaded backup files can later be uploaded from a local computer to a
+controlled Render Shell, staging service, or another trusted host.
+
+Recommended sequence:
+
+1. Upload the backup and matching `.sha256` file.
+2. Verify the checksum after upload.
+3. Restore into temporary/staging resources first.
+4. Run automated and manual checks.
+5. Restore or switch production only after validation.
+
+Do not upload backups into the Git repository or a public/static directory.
+Backups contain sensitive application data.
+
+## PostgreSQL restore rehearsal
 
 Never make the first restore attempt against production.
 
-PostgreSQL rehearsal:
-
 1. Create a temporary empty PostgreSQL database.
-2. Restore the `.dump` into that temporary database using `pg_restore`.
-3. Point a temporary/staging NeuralTrend deployment to it.
-4. Run migrations only if the restored backup predates required migrations.
-5. Run `prelaunch_check.py`, automated tests where applicable, and smoke tests.
-6. Confirm counts and key workflows before considering production recovery.
+2. Upload and verify the `.dump`.
+3. Restore it using `pg_restore`.
+4. Point a staging NeuralTrend deployment to the restored database.
+5. Run migrations only if the restored backup predates required migrations.
+6. Run prelaunch, recovery, and smoke checks.
+7. Verify user counts, subscription state, watchlists, simulations, and admin
+   workflows.
 
-Forward Record rehearsal:
+Typical command pattern:
 
 ```bash
-python tools/restore_forward_record.py /path/to/backup.tar.gz
+pg_restore \
+  --clean \
+  --if-exists \
+  --no-owner \
+  --no-privileges \
+  --dbname="$TARGET_DATABASE_URL" \
+  /path/to/neuraltrend-postgres-....dump
 ```
 
-The default is dry-run. To apply to the configured directory:
+Use a temporary target database first. Confirm the target URL before running
+any destructive command.
+
+## Forward Record restore rehearsal
+
+Dry run:
 
 ```bash
-python tools/restore_forward_record.py /path/to/backup.tar.gz \
+python tools/restore_forward_record.py /path/to/neuraltrend-forward-record-....tar.gz
+```
+
+Apply to the configured directory:
+
+```bash
+python tools/restore_forward_record.py \
+  /path/to/neuraltrend-forward-record-....tar.gz \
   --apply \
   --confirmation RESTORE-FORWARD-RECORD
 ```
 
-Before replacing files, the script creates a safety backup of the current
-Forward Record directory. Run `operational_check.py` immediately afterward.
+The script creates a safety backup of the current Forward Record directory
+before replacement. Run the operational check immediately afterward.
 
 ## Production recovery order
 
-1. Stop customer/admin write actions.
-2. Identify the last consistent database and Forward Record backups.
-3. Prefer restoring into new temporary resources first.
-4. Restore PostgreSQL.
-5. Restore Forward Record files from the corresponding time.
-6. Verify environment variables and disk mount.
-7. Run:
+1. Restrict customer/admin write actions.
+2. Preserve logs and identify the incident start time.
+3. Select the last consistent verified database and Forward Record backups.
+4. Prefer restoring into new temporary resources first.
+5. Restore PostgreSQL.
+6. Restore the corresponding Forward Record files.
+7. Verify environment variables, Redis, disk mount, Stripe, email, and domain
+   configuration.
+8. Run:
 
 ```bash
 python tools/prelaunch_check.py
-python tools/operational_check.py
+python tools/operational_check.py --strict
 python tools/recovery_check.py https://neuraltrend.org
+python tools/production_smoke_test.py https://neuraltrend.org --include-summary
 ```
 
-8. Manually verify login, subscription state, watchlists, public performance,
-   and admin publication controls.
-9. Re-enable traffic/admin actions only after verification.
-10. Record the incident, backup timestamps, restore commands, and final checks.
+9. Manually verify login, subscriptions, watchlists, dashboard data, public
+   performance, alerts, and admin publication controls.
+10. Re-enable traffic and write actions only after validation.
+11. Record the backup timestamps, commands, results, and incident resolution.
 
 ## Important limits
 
-- Forward Record CSV backup does not replace the PostgreSQL backup because
-  lifecycle metadata is stored in PostgreSQL.
-- PostgreSQL backup does not include the approved CSV files on the persistent
-  disk.
-- Verification proves archive integrity/readability, not that every business
-  workflow is semantically correct. A restore rehearsal is still required.
+- PostgreSQL backup does not include persistent Forward Record files.
+- Forward Record backup does not replace PostgreSQL lifecycle metadata.
+- Checksum verification proves integrity, not business-level correctness.
+- A code rollback is not a database rollback.
+- Restoring an older production database can erase newer customer activity.
