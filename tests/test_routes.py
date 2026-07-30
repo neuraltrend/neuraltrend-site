@@ -9,6 +9,7 @@ import pytest
         "/",
         "/dashboard",
         "/subscription",
+        "/contact",
         "/methodology",
         "/performance",
         "/privacy",
