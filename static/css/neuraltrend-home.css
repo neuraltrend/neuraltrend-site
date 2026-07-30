@@ -587,7 +587,9 @@
 .nt-home-mini-chart,
 .nt-home-mini-bars,
 .nt-home-mini-alerts {
-    height: 78px;
+    width: min(100%, 188px);
+    height: 64px;
+    margin: 16px auto 0;
     border: 1px solid #e8eef7;
     border-radius: 12px;
     background: #f8fafc;
@@ -597,21 +599,20 @@
     position: relative;
     display: flex;
     align-items: flex-end;
-    gap: 9px;
-    padding: 14px 18px;
+    gap: 7px;
+    padding: 12px 14px;
 }
 
 .nt-home-mini-chart::after {
     content: "";
     position: absolute;
-    left: 12px;
-    right: 12px;
-    bottom: 19px;
-    height: 2px;
+    inset: 11px 12px 10px;
     background: linear-gradient(90deg, #60a5fa, #2563eb);
-    transform: rotate(-9deg);
-    transform-origin: center;
-    box-shadow: 30px -7px 0 -0.5px #60a5fa, 65px -13px 0 -0.5px #60a5fa;
+    clip-path: polygon(
+        0 82%, 18% 71%, 34% 76%, 50% 54%, 66% 62%, 82% 36%, 100% 16%,
+        100% 24%, 82% 45%, 66% 70%, 50% 62%, 34% 84%, 18% 79%, 0 90%
+    );
+    opacity: 0.96;
 }
 
 .nt-home-mini-chart i {
@@ -629,12 +630,12 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    gap: 14px;
-    padding: 14px;
+    gap: 10px;
+    padding: 11px 14px;
 }
 
 .nt-home-mini-bars i {
-    width: 18px;
+    width: 14px;
     border-radius: 4px 4px 0 0;
     background: linear-gradient(180deg, #c084fc, #7c3aed);
 }
@@ -646,10 +647,10 @@
 
 .nt-home-mini-alerts {
     display: grid;
-    grid-template-columns: 48px 1fr;
+    grid-template-columns: 40px 1fr;
     grid-template-rows: repeat(3, 1fr);
-    gap: 7px 12px;
-    padding: 12px;
+    gap: 6px 9px;
+    padding: 10px;
 }
 
 .nt-home-mini-alerts i {
@@ -660,7 +661,7 @@
     border-radius: 10px;
     background: #dcfce7;
     color: #16a34a;
-    font-size: 27px;
+    font-size: 22px;
     font-style: normal;
 }
 
