@@ -5479,6 +5479,11 @@ def subscription():
     )
 
 
+@app.route("/contact")
+def contact():
+    return render_template("contact.html")
+
+
 @app.route("/methodology")
 def methodology():
     return render_template(
