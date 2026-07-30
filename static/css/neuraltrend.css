@@ -9796,3 +9796,60 @@ body.nt-account-modal-open {
         padding: 0 !important;
     }
 }
+
+/* ==================================================
+   DASHBOARD MODEL CONTAINER + INTRO SUMMARY CLEANUP — v2.4
+   1) Keep one main model workspace instead of a card inside a card.
+   2) Render every four-card model summary inside one complete rectangle.
+   3) Use the same summary treatment for all three models.
+================================================== */
+
+/* dashboard.html nests each model panel inside .nt-models-container, so the
+   earlier direct-child selector did not flatten the actual inner panel. */
+.nt-model-content > .nt-models-container > .nt-model-panel {
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+
+/* Keep the outer model workspace as the single visible containing block. */
+.nt-model-content > .nt-models-container {
+    width: 100%;
+    gap: 0 !important;
+}
+
+/* The heading remains plain text above the summary block. */
+.nt-model-content .nt-model-panel > .nt-model-panel-header:first-child {
+    margin: 0 0 14px 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* A complete, clearly bounded summary container for all four intro cards. */
+.nt-model-content .nt-model-panel > .nt-model-summary-grid {
+    margin: 0 0 18px 0 !important;
+    padding: 12px !important;
+    border: 1px solid var(--nt-border) !important;
+    border-radius: 16px !important;
+    background: #F8FAFC !important;
+    box-shadow: none !important;
+}
+
+@media (max-width: 700px) {
+    .nt-model-content .nt-model-panel > .nt-model-panel-header:first-child {
+        margin-bottom: 12px !important;
+    }
+
+    .nt-model-content .nt-model-panel > .nt-model-summary-grid {
+        padding: 10px !important;
+        border-radius: 14px !important;
+        margin-bottom: 14px !important;
+    }
+}
+
