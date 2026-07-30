@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Contact NeuralTrend | Product, Research & Partnership Enquiries{% endblock %}
+
+{% block meta_description %}
+Contact NeuralTrend about product access, research workflows, data partnerships, technical collaboration, or general feedback.
+{% endblock %}
+
+{% block page_styles_after %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-contact.css') }}">
+{% endblock %}
+
+{% block content %}
+<main>
+    <div class="nt-page-container nt-contact-page">
+        <section class="nt-contact-hero">
+            <div class="nt-section-eyebrow">Contact</div>
+            <h1>Questions, feedback, or partnerships?</h1>
+            <p>Contact NeuralTrend about product access, research workflows, data partnerships, or technical collaboration.</p>
+        </section>
+
+        <section class="nt-contact-layout">
+            <div class="nt-contact-details">
+                <h2>How can we help?</h2>
+                <div class="nt-contact-detail-grid">
+                    <article><span aria-hidden="true">▣</span><strong>Product access</strong><p>Questions about Free or Pro features, supported assets, and billing.</p></article>
+                    <article><span aria-hidden="true">⌁</span><strong>Research workflows</strong><p>Questions about signals, comparisons, paper simulations, and methodology.</p></article>
+                    <article><span aria-hidden="true">↔</span><strong>Partnerships</strong><p>Data partnerships, integrations, research collaboration, and technical enquiries.</p></article>
+                </div>
+                <div class="nt-contact-socials">
+                    <a href="https://www.linkedin.com/company/neuraltrend-llc/" target="_blank" rel="noopener">LinkedIn</a>
+                    <a href="https://x.com/neuraltrendllc?s=21" target="_blank" rel="noopener">X / Twitter</a>
+                    <a href="https://www.instagram.com/neuraltrend_llc/" target="_blank" rel="noopener">Instagram</a>
+                </div>
+            </div>
+
+            <form class="nt-contact-form" action="https://formspree.io/f/xldlavwz" method="post">
+                <label>Name<input name="name" type="text" autocomplete="name" required></label>
+                <label>Email<input name="email" type="email" autocomplete="email" required></label>
+                <label>Topic
+                    <select name="topic">
+                        <option value="Product access">Product access</option>
+                        <option value="Research workflow">Research workflow</option>
+                        <option value="Partnership">Partnership</option>
+                        <option value="Technical issue">Technical issue</option>
+                        <option value="General feedback">General feedback</option>
+                    </select>
+                </label>
+                <label>Message<textarea name="message" rows="7" required></textarea></label>
+                <input type="hidden" name="_subject" value="New NeuralTrend website enquiry">
+                <button type="submit">Send Message →</button>
+                <p>Do not include passwords, API keys, payment details, or other sensitive information.</p>
+            </form>
+        </section>
+    </div>
+</main>
+{% endblock %}

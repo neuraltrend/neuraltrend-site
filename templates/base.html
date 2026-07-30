@@ -43,6 +43,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend.css') }}">
     {% block page_styles %}{% endblock %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-responsive.css') }}">
+    {% block page_styles_after %}{% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-site-footer.css') }}">
 
 </head>
 <body>
@@ -52,8 +54,12 @@
     <!-- Navigation bar -->
     <div class="navbar">
         <div class="logo">
-            <a href="{{ url_for('index') }}" aria-label="NeuralTrend home">
-                <img src="{{ url_for('static', filename='logo.png') }}" alt="NeuralTrend">
+            <a href="{{ url_for('index') }}" aria-label="NeuralTrend home" class="nt-brand-link">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="">
+                <span class="nt-brand-lockup">
+                    <strong>NeuralTrend</strong>
+                    <small>AI-driven market intelligence</small>
+                </span>
             </a>
         </div>
 
@@ -76,7 +82,7 @@
             <a href="{{ url_for('methodology') }}"{% if request.endpoint == 'methodology' %} class="active" aria-current="page"{% endif %}>Methodology</a>
             <a href="{{ url_for('subscription') }}"{% if request.endpoint == 'subscription' %} class="active" aria-current="page"{% endif %}>Pricing</a>
             <a href="{{ url_for('index') }}#resources">Resources</a>
-            <a href="{{ url_for('index') }}#contact">Contact</a>
+            <a href="{{ url_for('contact') }}"{% if request.endpoint == 'contact' %} class="active" aria-current="page"{% endif %}>Contact</a>
             <a href="https://github.com/neuraltrend/" target="_blank" rel="noopener noreferrer">Developers</a>
         </div>
 
@@ -101,16 +107,68 @@
 
     {% block page_scripts %}{% endblock %}
 
-    <!-- Footer -->
-    <footer class="nt-sticky-legal-footer">
-        <div class="nt-sticky-legal-footer-inner">
-            <a href="{{ url_for('methodology') }}">Methodology</a>
-            <a href="{{ url_for('terms') }}">Terms</a>
-            <a href="{{ url_for('privacy') }}">Privacy</a>
-            <a href="{{ url_for('risk_disclaimer') }}">Risk Disclaimer</a>
-            <a href="{{ url_for('refund_policy') }}">Refund &amp; Cancellation</a>
+    <!-- Site footer -->
+    {% if request.endpoint in ['index', 'contact'] %}
+    <footer class="nt-site-footer">
+        <div class="nt-site-footer-inner">
+            <div class="nt-site-footer-brand">
+                <a href="{{ url_for('index') }}" class="nt-site-footer-brand-link">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="">
+                    <span><strong>NeuralTrend</strong><small>AI-driven market intelligence</small></span>
+                </a>
+                <p>Market-intelligence tools with transparent methodology and admin-approved performance records.</p>
+                <div class="nt-site-footer-social">
+                    <a href="https://www.linkedin.com/company/neuraltrend-llc/" target="_blank" rel="noopener" aria-label="NeuralTrend on LinkedIn">in</a>
+                    <a href="https://x.com/neuraltrendllc?s=21" target="_blank" rel="noopener" aria-label="NeuralTrend on X">X</a>
+                    <a href="https://www.instagram.com/neuraltrend_llc/" target="_blank" rel="noopener" aria-label="NeuralTrend on Instagram">◎</a>
+                </div>
+            </div>
+            <nav class="nt-site-footer-column" aria-label="Product links">
+                <strong>Product</strong>
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('dashboard') }}#epochsignaler-section">EpochSignaler</a>
+                <a href="{{ url_for('dashboard') }}#altindexer-section">AltIndexer</a>
+                <a href="{{ url_for('dashboard') }}#epochforecaster-section">EpochForecaster</a>
+            </nav>
+            <nav class="nt-site-footer-column" aria-label="Company links">
+                <strong>Company</strong>
+                <a href="{{ url_for('methodology') }}">Methodology</a>
+                <a href="{{ url_for('subscription') }}">Pricing</a>
+                <a href="{{ url_for('index') }}#resources">Resources</a>
+                <a href="{{ url_for('contact') }}">Contact</a>
+            </nav>
+            <nav class="nt-site-footer-column" aria-label="Legal links">
+                <strong>Legal</strong>
+                <a href="{{ url_for('terms') }}">Terms</a>
+                <a href="{{ url_for('privacy') }}">Privacy</a>
+                <a href="{{ url_for('risk_disclaimer') }}">Risk Disclaimer</a>
+                <a href="{{ url_for('refund_policy') }}">Refund &amp; Cancellation</a>
+            </nav>
+            <div class="nt-site-footer-contact">
+                <strong>Need help or want to collaborate?</strong>
+                <p>Questions about product access, research workflows, or technical partnerships are welcome.</p>
+                <a href="{{ url_for('contact') }}">Contact NeuralTrend →</a>
+            </div>
+        </div>
+        <div class="nt-site-footer-bottom">
+            <span>© 2026 NeuralTrend. All rights reserved.</span>
+            <span>Historical results are informational and are not financial advice.</span>
         </div>
     </footer>
+    {% else %}
+    <footer class="nt-site-footer nt-site-footer-compact">
+        <div class="nt-site-footer-compact-inner">
+            <span>© 2026 NeuralTrend</span>
+            <nav aria-label="Legal links">
+                <a href="{{ url_for('methodology') }}">Methodology</a>
+                <a href="{{ url_for('terms') }}">Terms</a>
+                <a href="{{ url_for('privacy') }}">Privacy</a>
+                <a href="{{ url_for('risk_disclaimer') }}">Risk Disclaimer</a>
+                <a href="{{ url_for('refund_policy') }}">Refund &amp; Cancellation</a>
+            </nav>
+        </div>
+    </footer>
+    {% endif %}
 
     <!-- ✅ LOGIN MODAL -->    
     <div id="loginModal" class="modal">

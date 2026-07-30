@@ -9,6 +9,9 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
 {% block page_styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
+{% endblock %}
+
+{% block page_styles_after %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css') }}">
 {% endblock %}
 
@@ -30,13 +33,17 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                 <!-- LEFT: PRODUCT INTRO -->
                 <div class="nt-market-hero-copy">
         
+                    <div class="nt-market-hero-kicker">
+                        AI-driven <span aria-hidden="true">•</span> Data-verified <span aria-hidden="true">•</span> Transparent
+                    </div>
+
                     <h1 class="nt-market-hero-title">
                         Neural Intelligence<br>
-                        for Financial Markets.
+                        for <span>Financial Markets.</span>
                     </h1>
         
                     <p class="nt-market-hero-subtitle">
-                        Compare NeuralTrend’s AI-driven strategy against buy and hold,
+                        Compare NeuralTrend’s AI-driven strategy against Buy &amp; Hold,
                         then explore market signals, historical performance, and live
                         paper simulations across crypto and traditional assets.
                     </p>
@@ -47,7 +54,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                             href="{{ url_for('dashboard') }}#products"
                             class="nt-market-hero-btn nt-market-hero-btn-primary"
                         >
-                            Explore Signals
+                            Explore Live Signals
                             <span aria-hidden="true">→</span>
                         </a>
         
@@ -60,9 +67,14 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
         
                     </div>
         
+                    <div class="nt-market-hero-assurances" aria-label="Platform assurances">
+                        <span><i aria-hidden="true">✓</i>No exchange access required</span>
+                        <span><i aria-hidden="true">✓</i>Costs and assumptions disclosed</span>
+                        <span><i aria-hidden="true">↻</i>Updated after completed daily data</span>
+                    </div>
+
                     <p class="nt-market-hero-disclaimer">
-                        Historical simulations are for informational purposes only
-                        and do not constitute financial advice.
+                        Historical simulations are for informational purposes only and do not constitute financial advice.
                     </p>
         
                 </div>
@@ -230,6 +242,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                             <!-- ROW 2 LEFT: MORE ASSETS -->
                             <a
                                 href="{{ url_for('dashboard') }}#signal-overview"
+                                id="nt-market-hero-more-assets"
                                 class="nt-market-hero-more-assets"
                             >
                                 <span>More Assets</span>
@@ -390,104 +403,84 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
         
         </section>
 
-        <section class="nt-home-proof-grid" aria-label="Why traders can evaluate NeuralTrend clearly">
-            <article class="nt-home-proof-card">
-                <span class="nt-home-proof-icon" aria-hidden="true">◷</span>
-                <div>
-                    <strong>Previous-day inputs</strong>
-                    <p>Daily signals use completed market data rather than partial current-day bars.</p>
-                </div>
+
+        <section class="nt-home-capability-rail" aria-label="NeuralTrend platform overview">
+            <article>
+                <span class="nt-home-capability-icon nt-home-capability-icon-blue" aria-hidden="true">▣</span>
+                <div><strong>Primary Use</strong><p>AI market-timing signals with research tools and historical comparisons.</p></div>
             </article>
-            <article class="nt-home-proof-card">
-                <span class="nt-home-proof-icon" aria-hidden="true">↔</span>
-                <div>
-                    <strong>Comparable results</strong>
-                    <p>AI strategy and Buy &amp; Hold use the same dates, prices, and disclosed cost assumptions.</p>
-                </div>
+            <article>
+                <span class="nt-home-capability-icon nt-home-capability-icon-green" aria-hidden="true">◎</span>
+                <div><strong>Asset Coverage</strong><p>Major cryptocurrencies plus supported traditional-market assets.</p></div>
             </article>
-            <article class="nt-home-proof-card">
-                <span class="nt-home-proof-icon" aria-hidden="true">✓</span>
-                <div>
-                    <strong>Admin-approved publication</strong>
-                    <p>Customer-facing alerts and Forward Record updates require review and explicit approval.</p>
-                </div>
+            <article>
+                <span class="nt-home-capability-icon nt-home-capability-icon-purple" aria-hidden="true">◷</span>
+                <div><strong>Update Frequency</strong><p>Signals and indicators update after completed daily market data.</p></div>
+            </article>
+            <article>
+                <span class="nt-home-capability-icon nt-home-capability-icon-orange" aria-hidden="true">▥</span>
+                <div><strong>Available Tools</strong><p>Signals, backtests, watchlists, alerts, paper trading, and analytics.</p></div>
             </article>
         </section>
 
-        <section class="nt-trust-methodology-strip" aria-labelledby="nt-trust-methodology-title">
-            <div class="nt-trust-methodology-copy">
-                <div class="nt-section-eyebrow">Transparent by design</div>
-                <h2 id="nt-trust-methodology-title">Understand the evidence without exposing the recipe</h2>
-                <p>
-                    Review signal timing, simulation assumptions, transaction costs,
-                    limitations, and revision policies in one concise methodology page.
-                </p>
-            </div>
-            <div class="nt-trust-methodology-facts" aria-label="Methodology highlights">
-                <span>Completed daily data</span>
-                <span>Chronological evaluation</span>
-                <span>Costs disclosed</span>
-                <span>Revisions documented</span>
-            </div>
-            <a href="{{ url_for('methodology') }}" class="nt-trust-methodology-link">
-                Read Methodology <span aria-hidden="true">→</span>
-            </a>
-        </section>
-
-        {% if forward_record.started %}
-        <section class="nt-forward-home-card" aria-labelledby="nt-forward-home-title">
-            <div class="nt-forward-home-icon" aria-hidden="true">✓</div>
-            <div class="nt-forward-home-copy">
-                <div class="nt-section-eyebrow">Forward Record</div>
-                <h2 id="nt-forward-home-title">Approved performance from each asset's stated start date</h2>
-                <p>
-                    Tracking began {{ forward_record.record_started_date }} and currently includes
-                    {{ forward_record.active_asset_count }} active asset{% if forward_record.active_asset_count != 1 %}s{% endif %}.
-                    Historical simulations remain clearly separate.
-                </p>
-            </div>
-            <div class="nt-forward-home-badges" aria-label="Forward Record characteristics">
-                <span>Admin-approved</span>
-                <span>Hypothetical</span>
-                <span>Asset-specific starts</span>
-            </div>
-            <a href="{{ url_for('performance') }}" class="nt-forward-home-link">
-                View Forward Record <span aria-hidden="true">→</span>
-            </a>
-        </section>
-        {% endif %}
-
-        <section id="products" class="nt-home-section" aria-labelledby="nt-home-products-title">
-            <div class="nt-home-section-heading">
-                <div class="nt-section-eyebrow">Products</div>
-                <h2 id="nt-home-products-title">One focused workspace for signal research</h2>
-                <p>Start with market timing, then move into market breadth and forecasting as your research requires.</p>
+        <section id="products" class="nt-home-section nt-home-models" aria-labelledby="nt-home-products-title">
+            <div class="nt-home-section-heading nt-home-section-heading-centered">
+                <div class="nt-section-eyebrow">Three powerful models</div>
+                <h2 id="nt-home-products-title">One platform. Three research perspectives.</h2>
+                <p>Each model offers a different view of the market, from timing to breadth and probabilistic outlooks.</p>
             </div>
             <div class="nt-home-product-grid">
                 <a href="{{ url_for('dashboard') }}#epochsignaler-section" class="nt-home-product-card nt-home-product-card-primary">
+                    <div class="nt-home-product-icon nt-home-product-icon-blue" aria-hidden="true">◉</div>
                     <div class="nt-home-product-topline">
                         <span>EpochSignaler</span><span class="nt-model-status-badge badge-live">Live</span>
                     </div>
                     <strong>Market timing</strong>
-                    <p>BUY, HOLD, and SELL signals, risk-aware historical comparisons, backtests, watchlists, alerts, and paper simulations.</p>
-                    <span class="nt-home-card-link">Open signal dashboard →</span>
+                    <p>AI-powered BUY, HOLD, and SELL signals with risk-aware analysis, backtests, and historical performance.</p>
+                    <span class="nt-home-card-link">Open Signal Dashboard →</span>
                 </a>
-                <a href="{{ url_for('dashboard') }}#altindexer-section" class="nt-home-product-card">
+                <a href="{{ url_for('dashboard') }}#altindexer-section" class="nt-home-product-card nt-home-product-card-alt">
+                    <div class="nt-home-product-icon nt-home-product-icon-green" aria-hidden="true">↻</div>
                     <div class="nt-home-product-topline">
                         <span>AltIndexer</span><span class="nt-model-status-badge badge-live">Live</span>
                     </div>
-                    <strong>Altcoin market rotation</strong>
+                    <strong>Altcoin rotation</strong>
                     <p>Track broad digital-asset participation and changing leadership across the crypto market.</p>
                     <span class="nt-home-card-link">Explore AltIndexer →</span>
                 </a>
-                <a href="{{ url_for('dashboard') }}#epochforecaster-section" class="nt-home-product-card">
+                <a href="{{ url_for('dashboard') }}#epochforecaster-section" class="nt-home-product-card nt-home-product-card-forecast">
+                    <div class="nt-home-product-icon nt-home-product-icon-orange" aria-hidden="true">⌁</div>
                     <div class="nt-home-product-topline">
                         <span>EpochForecaster</span><span class="nt-model-status-badge badge-dev">In development</span>
                     </div>
                     <strong>Market forecasting</strong>
-                    <p>A developing workspace for probabilistic outlooks and scenario-based price research.</p>
-                    <span class="nt-home-card-link">View development preview →</span>
+                    <p>Scenario-based and probabilistic outlooks for future price research and deeper validation.</p>
+                    <span class="nt-home-card-link">View Development Preview →</span>
                 </a>
+            </div>
+        </section>
+
+        <section class="nt-home-trust-panel" aria-labelledby="nt-home-trust-title">
+            <div class="nt-home-trust-copy">
+                <div class="nt-section-eyebrow">Built on transparency. Focused on trust.</div>
+                <h2 id="nt-home-trust-title">The evidence is open. The process is protected.</h2>
+                <p>
+                    NeuralTrend shows the information needed to evaluate a result—signals,
+                    assumptions, performance, freshness, and limitations—without exposing
+                    proprietary model logic.
+                </p>
+                {% if forward_record.started %}
+                <a href="{{ url_for('performance') }}" class="nt-home-trust-record-link">
+                    Approved Forward Record · {{ forward_record.active_asset_count }} active asset{% if forward_record.active_asset_count != 1 %}s{% endif %} →
+                </a>
+                {% endif %}
+            </div>
+            <div class="nt-home-trust-shield" aria-hidden="true"><span>✓</span></div>
+            <div class="nt-home-trust-facts">
+                <span><i aria-hidden="true">◷</i>Signals use completed data</span>
+                <span><i aria-hidden="true">◇</i>Performance is recorded separately</span>
+                <span><i aria-hidden="true">▤</i>Methodology is documented</span>
+                <span><i aria-hidden="true">△</i>Past performance is not a guarantee</span>
             </div>
         </section>
 
@@ -495,22 +488,32 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
             <div class="nt-home-section-heading">
                 <div class="nt-section-eyebrow">How it works</div>
                 <h2 id="nt-home-how-title">From current signal to deeper validation</h2>
+                <p>Start with a published signal, test the context, then follow it prospectively.</p>
             </div>
             <div class="nt-home-step-grid">
-                <article><span>1</span><strong>Select an asset</strong><p>Review the latest published signal, freshness, returns, drawdown, and risk context.</p></article>
-                <article><span>2</span><strong>Challenge the result</strong><p>Change horizons, compare Buy &amp; Hold, and run a historical backtest with disclosed assumptions.</p></article>
-                <article><span>3</span><strong>Track prospectively</strong><p>Save a watchlist, enable signal-change alerts, or start a paper simulation without connecting an exchange.</p></article>
+                <article>
+                    <div class="nt-home-step-title"><span>1</span><strong>Select an asset</strong></div>
+                    <p>Review the latest published signal, freshness, returns, drawdown, and risk context.</p>
+                    <div class="nt-home-mini-chart nt-home-mini-chart-blue" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+                </article>
+                <article>
+                    <div class="nt-home-step-title"><span>2</span><strong>Challenge the result</strong></div>
+                    <p>Change horizons, compare Buy &amp; Hold, and run a historical backtest with disclosed assumptions.</p>
+                    <div class="nt-home-mini-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+                </article>
+                <article>
+                    <div class="nt-home-step-title"><span>3</span><strong>Track prospectively</strong></div>
+                    <p>Save a watchlist, enable signal-change alerts, or start a paper simulation without exchange access.</p>
+                    <div class="nt-home-mini-alerts" aria-hidden="true"><i>♧</i><span></span><span></span><span></span></div>
+                </article>
             </div>
         </section>
 
         <section class="nt-home-dashboard-cta" aria-labelledby="nt-home-dashboard-title">
             <div>
                 <div class="nt-section-eyebrow">Research workspace</div>
-                <h2 id="nt-home-dashboard-title">The full application now has its own dashboard</h2>
-                <p>
-                    Open the dashboard for Signal Overview, watchlists, alerts, equity previews,
-                    historical backtests, live paper simulations, AltIndexer, and forecasting previews.
-                </p>
+                <h2 id="nt-home-dashboard-title">Everything in one place.</h2>
+                <p>Access signals, watchlists, alerts, paper simulations, backtests, AltIndexer, and forecasting previews from one dashboard.</p>
             </div>
             <div class="nt-home-dashboard-actions">
                 <a href="{{ url_for('dashboard') }}" class="nt-home-primary-action">Open Dashboard →</a>
@@ -518,7 +521,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
             </div>
         </section>
 
-        <section class="nt-home-section" aria-labelledby="nt-home-plan-title">
+        <section class="nt-home-section nt-home-plans" aria-labelledby="nt-home-plan-title">
             <div class="nt-home-section-heading">
                 <div class="nt-section-eyebrow">Plans</div>
                 <h2 id="nt-home-plan-title">Meaningful free access, one clear upgrade</h2>
@@ -541,35 +544,34 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
             </div>
         </section>
 
-        <section id="resources" class="nt-home-section" aria-labelledby="nt-home-resources-title">
+        <section id="resources" class="nt-home-section nt-home-resources" aria-labelledby="nt-home-resources-title">
             <div class="nt-home-section-heading">
                 <div class="nt-section-eyebrow">Resources</div>
                 <h2 id="nt-home-resources-title">Learn the workflow before using it</h2>
             </div>
             <div class="nt-home-resource-grid">
-                <a href="{{ url_for('ai_crypto_trading_signals') }}"><strong>AI Crypto Trading Signals</strong><p>How BUY, HOLD, and SELL signals fit into market research.</p><span>Read guide →</span></a>
-                <a href="{{ url_for('crypto_paper_trading_simulator') }}"><strong>Paper Trading Simulator</strong><p>How daily paper portfolios track signals without exchange access.</p><span>Read guide →</span></a>
-                <a href="{{ url_for('buy_and_hold_vs_ai_strategy') }}"><strong>Buy &amp; Hold vs AI</strong><p>How to interpret strategy comparisons and their limitations.</p><span>Read guide →</span></a>
+                <a href="{{ url_for('ai_crypto_trading_signals') }}">
+                    <span class="nt-home-resource-icon" aria-hidden="true">▤</span>
+                    <div><strong>AI Crypto Trading Signals</strong><p>How BUY, HOLD, and SELL signals fit into market research.</p><span>Read guide →</span></div>
+                </a>
+                <a href="{{ url_for('crypto_paper_trading_simulator') }}">
+                    <span class="nt-home-resource-icon" aria-hidden="true">▧</span>
+                    <div><strong>Paper Trading Simulator</strong><p>How daily paper portfolios track signals without exchange access.</p><span>Read guide →</span></div>
+                </a>
+                <a href="{{ url_for('buy_and_hold_vs_ai_strategy') }}">
+                    <span class="nt-home-resource-icon" aria-hidden="true">⌁</span>
+                    <div><strong>Buy &amp; Hold vs AI</strong><p>How to interpret strategy comparisons and their limitations.</p><span>Read guide →</span></div>
+                </a>
             </div>
         </section>
 
-        <section id="contact" class="nt-home-contact" aria-labelledby="nt-home-contact-title">
+        <section id="contact" class="nt-home-contact-cta" aria-labelledby="nt-home-contact-title">
             <div>
                 <div class="nt-section-eyebrow">Contact</div>
                 <h2 id="nt-home-contact-title">Questions, feedback, or partnerships?</h2>
                 <p>Contact NeuralTrend about product access, research workflows, data partnerships, or technical collaboration.</p>
-                <div class="nt-home-social-row">
-                    <a href="https://www.linkedin.com/company/neuraltrend-llc/" target="_blank" rel="noopener">LinkedIn</a>
-                    <a href="https://x.com/neuraltrendllc?s=21" target="_blank" rel="noopener">X / Twitter</a>
-                    <a href="https://www.instagram.com/neuraltrend_llc/" target="_blank" rel="noopener">Instagram</a>
-                </div>
             </div>
-            <form class="nt-home-contact-form nt-contact-form" action="https://formspree.io/f/xldlavwz" method="post">
-                <label>Name<input name="name" type="text" autocomplete="name" required></label>
-                <label>Email<input name="email" type="email" autocomplete="email" required></label>
-                <label>Message<textarea name="message" rows="4" required></textarea></label>
-                <button type="submit">Send Message</button>
-            </form>
+            <a href="{{ url_for('contact') }}" class="nt-home-contact-action">Contact NeuralTrend →</a>
         </section>
     </div>
 </main>
