@@ -1513,6 +1513,14 @@
                     const yBH1 = y.getPixelForValue(bh[i - 1]);
                     const yBH2 = y.getPixelForValue(bh[i]);
 
+                    // Shade each segment based on the relative performance
+                    // at the middle of the interval. This keeps the green/red
+                    // area aligned with the actual AI vs Buy & Hold crossover
+                    // instead of shifting the color one day forward.
+                    const relativeStart = ai[i - 1] - bh[i - 1];
+                    const relativeEnd = ai[i] - bh[i];
+                    const relativeMid = (relativeStart + relativeEnd) / 2;
+
                     ctx.beginPath();
                     ctx.moveTo(x1, yAI1);
                     ctx.lineTo(x2, yAI2);
@@ -1520,7 +1528,7 @@
                     ctx.lineTo(x1, yBH1);
                     ctx.closePath();
 
-                    ctx.fillStyle = ai[i] >= bh[i]
+                    ctx.fillStyle = relativeMid >= 0
                         ? "rgba(22, 163, 74, 0.10)"
                         : "rgba(220, 38, 38, 0.10)";
                     ctx.fill();
