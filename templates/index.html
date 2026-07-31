@@ -449,6 +449,9 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                     assumptions, performance, freshness, and limitations—without exposing
                     proprietary model logic.
                 </p>
+                <a href="{{ url_for('methodology') }}" class="nt-home-trust-record-link">
+                    Read the methodology →
+                </a>
                 {% if forward_record.started %}
                 <a href="{{ url_for('performance') }}" class="nt-home-trust-record-link">
                     Approved Forward Record · {{ forward_record.active_asset_count }} active asset{% if forward_record.active_asset_count != 1 %}s{% endif %} →
