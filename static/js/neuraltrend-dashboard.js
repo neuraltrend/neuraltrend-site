@@ -1505,33 +1505,72 @@
                 const bh = chart.data.datasets[1].data;
 
                 ctx.save();
+
+                // Draw performance shading with exact crossover points.
+                // When AI equity and Buy & Hold cross between two dates,
+                // interpolate the crossing location instead of waiting for
+                // the next data point. This prevents the one-day visual lag.
                 for (let i = 1; i < ai.length; i++) {
                     const x1 = x.getPixelForValue(i - 1);
                     const x2 = x.getPixelForValue(i);
-                    const yAI1 = y.getPixelForValue(ai[i - 1]);
-                    const yAI2 = y.getPixelForValue(ai[i]);
-                    const yBH1 = y.getPixelForValue(bh[i - 1]);
-                    const yBH2 = y.getPixelForValue(bh[i]);
 
-                    // Shade each segment based on the relative performance
-                    // at the middle of the interval. This keeps the green/red
-                    // area aligned with the actual AI vs Buy & Hold crossover
-                    // instead of shifting the color one day forward.
-                    const relativeStart = ai[i - 1] - bh[i - 1];
-                    const relativeEnd = ai[i] - bh[i];
-                    const relativeMid = (relativeStart + relativeEnd) / 2;
+                    const ai1 = ai[i - 1];
+                    const ai2 = ai[i];
+                    const bh1 = bh[i - 1];
+                    const bh2 = bh[i];
 
-                    ctx.beginPath();
-                    ctx.moveTo(x1, yAI1);
-                    ctx.lineTo(x2, yAI2);
-                    ctx.lineTo(x2, yBH2);
-                    ctx.lineTo(x1, yBH1);
-                    ctx.closePath();
+                    const diff1 = ai1 - bh1;
+                    const diff2 = ai2 - bh2;
 
-                    ctx.fillStyle = relativeMid >= 0
-                        ? "rgba(22, 163, 74, 0.10)"
-                        : "rgba(220, 38, 38, 0.10)";
-                    ctx.fill();
+                    const drawSegment = (xa, ya1, ya2, xb, yb1, yb2, positive) => {
+                        ctx.beginPath();
+                        ctx.moveTo(xa, ya1);
+                        ctx.lineTo(xb, yb2);
+                        ctx.lineTo(xb, yb1);
+                        ctx.lineTo(xa, ya2);
+                        ctx.closePath();
+
+                        ctx.fillStyle = positive
+                            ? "rgba(22, 163, 74, 0.10)"
+                            : "rgba(220, 38, 38, 0.10)";
+                        ctx.fill();
+                    };
+
+                    const yAI1 = y.getPixelForValue(ai1);
+                    const yAI2 = y.getPixelForValue(ai2);
+                    const yBH1 = y.getPixelForValue(bh1);
+                    const yBH2 = y.getPixelForValue(bh2);
+
+                    // No crossover in this interval
+                    if (diff1 === 0 || diff2 === 0 || diff1 * diff2 > 0) {
+                        drawSegment(
+                            x1, yAI1, yBH1,
+                            x2, yAI2, yBH2,
+                            diff1 >= 0
+                        );
+                        continue;
+                    }
+
+                    // Exact crossover point between the two dates
+                    const ratio = Math.abs(diff1) / (Math.abs(diff1) + Math.abs(diff2));
+                    const xc = x1 + ratio * (x2 - x1);
+
+                    const crossValue = ai1 + ratio * (ai2 - ai1);
+                    const yc = y.getPixelForValue(crossValue);
+
+                    // First half
+                    drawSegment(
+                        x1, yAI1, yBH1,
+                        xc, yc, yc,
+                        diff1 >= 0
+                    );
+
+                    // Second half
+                    drawSegment(
+                        xc, yc, yc,
+                        x2, yAI2, yBH2,
+                        diff2 >= 0
+                    );
                 }
                 ctx.restore();
             }
