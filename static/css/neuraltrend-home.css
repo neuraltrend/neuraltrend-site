@@ -474,6 +474,19 @@
     text-decoration: none;
 }
 
+.nt-home-trust-shield-link {
+    display: inline-flex;
+    text-decoration: none;
+}
+
+.nt-home-trust-shield-link:hover .nt-home-trust-shield span {
+    transform: translateY(-3px);
+}
+
+.nt-home-trust-shield span {
+    transition: transform 0.18s ease;
+}
+
 .nt-home-trust-shield {
     display: flex;
     align-items: center;
