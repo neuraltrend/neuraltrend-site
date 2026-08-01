@@ -176,7 +176,7 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                     <h3>Completed market data</h3>
                     <p>
                         Daily price and volume data are collected after a market day is complete.
-                        Technical and calendar indicators are derived from that information.
+                        Technical and other indicators are derived from that information.
                     </p>
                 </div>
             </div>
@@ -186,7 +186,7 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                     <h3>Model evaluation</h3>
                     <p>
                         The asset’s model evaluates information available through the previous
-                        completed day. It does not use today’s high, low, close, or volume.
+                        completed day. It does not use today’s price.
                     </p>
                 </div>
             </div>
@@ -305,9 +305,8 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                 <h3>Forward Record</h3>
                 <p>
                     Calculates performance from compact administrator-approved Date, Close, and
-                    signal rows beginning on each asset's stated public start date. Working CSV
-                    changes do not appear until approved, and earlier approved rows cannot be
-                    silently rewritten through the publication workflow.
+                    signal rows beginning on each asset's stated public start date. Earlier approved
+                    rows cannot be silently rewritten through the publication workflow.
                 </p>
                 {% if forward_record.started %}<a href="{{ url_for('performance') }}">View the Forward Record →</a>{% endif %}
             </article>
@@ -321,8 +320,7 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
             <p>
                 Model quality is monitored regularly. Individual asset models are periodically
                 retrained when performance and data-quality checks indicate that an update is
-                appropriate. This process is currently operator-reviewed and is planned to become
-                more automated over time.
+                appropriate.
             </p>
         </div>
 
@@ -367,7 +365,7 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                         <h3>Inputs and model scope</h3>
                         <p>
                             The independent market inputs are daily open, high, low, close, and
-                            volume observations. NeuralTrend derives technical and calendar indicators
+                            volume observations. NeuralTrend derives technical and other indicators
                             from those inputs. Each currently supported asset uses its own model.
                         </p>
                     </article>
@@ -375,8 +373,8 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
                         <h3>Chronological evaluation</h3>
                         <p>
                             During model development, observations are ordered by time and divided into
-                            60% training, 20% validation, and 20% testing partitions. The current process
-                            uses a fixed chronological holdout rather than continuous walk-forward testing.
+                            training, validation, and testing partitions. The current process uses a 
+                            combination of fixed chronological holdout and continuous walk-forward testing.
                         </p>
                     </article>
                 </div>
@@ -433,7 +431,6 @@ Understand how NeuralTrend signals are timed, how historical simulations are cal
             <h2>Use the results as research evidence—not a promise</h2>
             <ul>
                 <li>Historical performance does not guarantee future performance.</li>
-                <li>A fixed historical split is not the same as continuous walk-forward validation.</li>
                 <li>The Forward Record is an approved historical calculation, not real-time brokerage execution.</li>
                 <li>Upstream data providers may revise source data or discontinue assets.</li>
                 <li>NeuralTrend does not remove assets solely because their model performed poorly.</li>
