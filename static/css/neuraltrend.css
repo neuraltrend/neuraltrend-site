@@ -9853,3 +9853,91 @@ body.nt-account-modal-open {
     }
 }
 
+
+/* ==================================================
+   BACKTEST RESULTS — SINGLE COMPACT 12-METRIC BLOCK
+================================================== */
+.nt-backtest-summary-panel {
+    margin: 0 0 14px;
+    padding: 10px;
+    border: 1px solid var(--nt-border);
+    border-radius: 15px;
+    background: #F8FAFC;
+}
+
+.nt-backtest-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.nt-backtest-summary-card {
+    min-width: 0;
+    min-height: 94px;
+    padding: 11px 12px;
+    border-radius: 11px;
+    box-shadow: none;
+}
+
+.nt-backtest-summary-card .nt-result-label {
+    min-height: 28px;
+    margin-bottom: 4px;
+    font-size: 10px;
+    line-height: 1.35;
+    letter-spacing: 0.015em;
+    text-transform: uppercase;
+}
+
+.nt-backtest-summary-card .nt-result-value {
+    overflow-wrap: anywhere;
+    font-size: clamp(17px, 1.45vw, 21px);
+    line-height: 1.12;
+}
+
+.nt-backtest-summary-card .nt-result-sub {
+    margin-top: 4px;
+    font-size: 10px;
+    line-height: 1.35;
+}
+
+.nt-backtest-summary-panel + .nt-backtest-chart-card {
+    margin-top: 0;
+}
+
+@media (max-width: 1180px) {
+    .nt-backtest-summary-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .nt-backtest-summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .nt-backtest-summary-panel {
+        padding: 8px;
+    }
+
+    .nt-backtest-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+    }
+
+    .nt-backtest-summary-card {
+        min-height: 88px;
+        padding: 10px;
+    }
+}
+
+@media (max-width: 420px) {
+    .nt-backtest-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .nt-backtest-summary-card .nt-result-label {
+        min-height: 0;
+    }
+}
