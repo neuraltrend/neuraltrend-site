@@ -172,91 +172,81 @@
         
                 </div>
         
-                <div class="nt-backtest-results-grid">
-        
-                    <div class="nt-result-card">
-                        <div class="nt-result-label">AI Strategy Final Value</div>
-                        <div class="nt-result-value">${formatBacktestCurrency(final_value_epoch)}</div>
-                        <div class="nt-result-sub">EpochSignaler result</div>
-                    </div>
-        
-                    <div class="nt-result-card">
-                        <div class="nt-result-label">Buy & Hold Final Value</div>
-                        <div class="nt-result-value">${formatBacktestCurrency(final_value)}</div>
-                        <div class="nt-result-sub">Benchmark result</div>
-                    </div>
-        
-                    <div class="nt-result-card">
-                        <div class="nt-result-label">Sharpe Ratio</div>
-                        <div class="nt-result-value">${formatBacktestNumber(sharpe_ratio, 2)}</div>
-                        <div class="nt-result-sub">Based on selected period</div>
-                    </div>
-        
-                    <div class="nt-result-card">
-                        <div class="nt-result-label">AI Strategy Return</div>
-                        <div class="nt-result-value">${aiReturnHTML}</div>
-                        <div class="nt-result-sub">Compared to initial cash</div>
-                    </div>
-        
-                    <div class="nt-result-card">
-                        <div class="nt-result-label">Buy & Hold Return</div>
-                        <div class="nt-result-value">${buyHoldReturnHTML}</div>
-                        <div class="nt-result-sub">Compared to initial cash</div>
-                    </div>
-        
-                    <div class="nt-result-card">
-                        <div class="nt-result-label">AI Return Spread</div>
-                        <div class="nt-result-value">${formatPointSpread(return_spread)}</div>
-                        <div class="nt-result-sub">AI return minus Buy & Hold return</div>
-                    </div>
-        
-                </div>
+                <section class="nt-backtest-summary-panel" aria-label="Backtest performance and risk summary">
+                    <div class="nt-backtest-summary-grid">
 
-                <section class="nt-backtest-risk-section" aria-label="Backtest risk context">
-                    <div class="nt-backtest-risk-heading">
-                        <div>
-                            <div class="nt-section-eyebrow">Risk Context</div>
-                            <h4>Drawdown, volatility, exposure, and activity</h4>
+                        <div class="nt-result-card nt-backtest-summary-card">
+                            <div class="nt-result-label">AI Strategy Final Value</div>
+                            <div class="nt-result-value">${formatBacktestCurrency(final_value_epoch)}</div>
+                            <div class="nt-result-sub">EpochSignaler result</div>
                         </div>
-                        <p>Maximum drawdown is the largest peak-to-trough decline during the selected period.</p>
-                    </div>
 
-                    <div class="nt-backtest-risk-grid">
-                        <div class="nt-result-card nt-result-card-risk">
+                        <div class="nt-result-card nt-backtest-summary-card">
+                            <div class="nt-result-label">Buy & Hold Final Value</div>
+                            <div class="nt-result-value">${formatBacktestCurrency(final_value)}</div>
+                            <div class="nt-result-sub">Benchmark result</div>
+                        </div>
+
+                        <div class="nt-result-card nt-backtest-summary-card">
+                            <div class="nt-result-label">Sharpe Ratio</div>
+                            <div class="nt-result-value">${formatBacktestNumber(sharpe_ratio, 2)}</div>
+                            <div class="nt-result-sub">Based on selected period</div>
+                        </div>
+
+                        <div class="nt-result-card nt-backtest-summary-card">
+                            <div class="nt-result-label">AI Strategy Return</div>
+                            <div class="nt-result-value">${aiReturnHTML}</div>
+                            <div class="nt-result-sub">Compared to initial cash</div>
+                        </div>
+
+                        <div class="nt-result-card nt-backtest-summary-card">
+                            <div class="nt-result-label">Buy & Hold Return</div>
+                            <div class="nt-result-value">${buyHoldReturnHTML}</div>
+                            <div class="nt-result-sub">Compared to initial cash</div>
+                        </div>
+
+                        <div class="nt-result-card nt-backtest-summary-card">
+                            <div class="nt-result-label">AI Return Spread</div>
+                            <div class="nt-result-value">${formatPointSpread(return_spread)}</div>
+                            <div class="nt-result-sub">AI minus Buy & Hold</div>
+                        </div>
+
+                        <div class="nt-result-card nt-backtest-summary-card">
                             <div class="nt-result-label">AI Max Drawdown</div>
                             <div class="nt-result-value">${formatBacktestPercent(strategy_max_drawdown, 1, true)}</div>
                             <div class="nt-result-sub">Strategy equity curve</div>
                         </div>
 
-                        <div class="nt-result-card nt-result-card-risk">
+                        <div class="nt-result-card nt-backtest-summary-card">
                             <div class="nt-result-label">Buy &amp; Hold Max Drawdown</div>
                             <div class="nt-result-value">${formatBacktestPercent(buy_hold_max_drawdown, 1, true)}</div>
                             <div class="nt-result-sub">Benchmark equity curve</div>
                         </div>
 
-                        <div class="nt-result-card nt-result-card-risk">
+                        <div class="nt-result-card nt-backtest-summary-card">
                             <div class="nt-result-label">AI Annualized Volatility</div>
                             <div class="nt-result-value">${formatBacktestPercent(strategy_annualized_volatility, 1, false, false)}</div>
-                            <div class="nt-result-sub">Daily strategy-equity returns</div>
+                            <div class="nt-result-sub">Daily strategy returns</div>
                         </div>
 
-                        <div class="nt-result-card nt-result-card-risk">
+                        <div class="nt-result-card nt-backtest-summary-card">
                             <div class="nt-result-label">B&amp;H Annualized Volatility</div>
                             <div class="nt-result-value">${formatBacktestPercent(buy_hold_annualized_volatility, 1, false, false)}</div>
                             <div class="nt-result-sub">Daily benchmark returns</div>
                         </div>
 
-                        <div class="nt-result-card nt-result-card-risk">
+                        <div class="nt-result-card nt-backtest-summary-card">
                             <div class="nt-result-label">Market Exposure</div>
                             <div class="nt-result-value">${formatBacktestPercent(strategy_market_exposure, 1, false, false)}</div>
-                            <div class="nt-result-sub">Observed days holding a position</div>
+                            <div class="nt-result-sub">Days holding a position</div>
                         </div>
 
-                        <div class="nt-result-card nt-result-card-risk">
+                        <div class="nt-result-card nt-backtest-summary-card">
                             <div class="nt-result-label">Executed Trades</div>
                             <div class="nt-result-value">${Number(executed_trade_count || 0).toLocaleString()}</div>
                             <div class="nt-result-sub">BUY and SELL executions</div>
                         </div>
+
                     </div>
                 </section>
         
