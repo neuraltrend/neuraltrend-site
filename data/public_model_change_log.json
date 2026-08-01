@@ -4,7 +4,7 @@
     "scope": "Platform-wide",
     "change_type": "Methodology disclosure",
     "title": "Public methodology and signal-history disclosure introduced",
-    "summary": "NeuralTrend added a public methodology page, clarified the difference between historical simulations and a future immutable live track record, and introduced a public change-log policy. This website release did not rewrite existing market CSV signal history.",
+    "summary": "NeuralTrend added a public methodology page, clarified the difference between historical simulations and a future immutable live track record, and introduced a public change-log policy. This website release did not rewrite existing market data signal history.",
     "historical_signals_changed": "No",
     "affected_period": "None"
   }
