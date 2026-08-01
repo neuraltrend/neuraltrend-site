@@ -108,7 +108,28 @@
     {% block page_scripts %}{% endblock %}
 
     <!-- Site footer -->
-    {% if request.endpoint in ['index', 'contact'] %}
+    {#
+        Public marketing, research, resource, performance, and legal pages use
+        the complete site footer. Application, account, admin, unsubscribe,
+        confirmation, and error views fall back to the compact footer below.
+    #}
+    {% set full_footer_endpoints = [
+        'index',
+        'subscription',
+        'methodology',
+        'performance',
+        'contact',
+        'market',
+        'knowledge',
+        'ai_crypto_trading_signals',
+        'crypto_paper_trading_simulator',
+        'buy_and_hold_vs_ai_strategy',
+        'terms',
+        'privacy',
+        'risk_disclaimer',
+        'refund_policy'
+    ] %}
+    {% if request.endpoint in full_footer_endpoints %}
     <footer class="nt-site-footer">
         <div class="nt-site-footer-inner">
             <div class="nt-site-footer-brand">
