@@ -825,8 +825,8 @@
 }
 
 .nt-home-step-grid article {
-    min-height: 250px;
-    padding: 22px;
+    min-height: 0;
+    padding: 18px 20px;
     overflow: hidden;
     border: 1px solid rgba(210, 222, 238, 0.95);
     border-radius: 17px;
@@ -872,11 +872,11 @@
 }
 
 .nt-home-step-grid p {
-    min-height: 70px;
-    margin: 16px 0 22px;
+    min-height: 0;
+    margin: 13px 0 7px;
     color: var(--home-muted);
     font-size: 12px;
-    line-height: 1.62;
+    line-height: 1.55;
 }
 
 .nt-home-workflow-cta {
@@ -919,11 +919,11 @@
 .nt-home-mini-chart,
 .nt-home-mini-bars,
 .nt-home-mini-alerts {
-    width: 96px;
-    height: 72px;
+    width: 88px;
+    height: 60px;
     box-sizing: border-box;
     flex: 0 0 auto;
-    margin: 14px auto 0;
+    margin: 5px auto 0;
     border: 1px solid #e8eef7;
     border-radius: 12px;
     background: #f8fafc;
@@ -956,11 +956,11 @@
     border-radius: 4px 4px 0 0;
     background: #dbeafe;
 }
-.nt-home-mini-chart i:nth-child(1) { height: 16px; }
-.nt-home-mini-chart i:nth-child(2) { height: 24px; }
-.nt-home-mini-chart i:nth-child(3) { height: 32px; }
-.nt-home-mini-chart i:nth-child(4) { height: 28px; }
-.nt-home-mini-chart i:nth-child(5) { height: 42px; }
+.nt-home-mini-chart i:nth-child(1) { height: 12px; }
+.nt-home-mini-chart i:nth-child(2) { height: 19px; }
+.nt-home-mini-chart i:nth-child(3) { height: 26px; }
+.nt-home-mini-chart i:nth-child(4) { height: 23px; }
+.nt-home-mini-chart i:nth-child(5) { height: 34px; }
 
 .nt-home-mini-bars {
     display: flex;
@@ -976,11 +976,11 @@
     border-radius: 4px 4px 0 0;
     background: linear-gradient(180deg, #c084fc, #7c3aed);
 }
-.nt-home-mini-bars i:nth-child(1) { height: 20px; }
-.nt-home-mini-bars i:nth-child(2) { height: 34px; }
-.nt-home-mini-bars i:nth-child(3) { height: 28px; }
-.nt-home-mini-bars i:nth-child(4) { height: 42px; }
-.nt-home-mini-bars i:nth-child(5) { height: 36px; }
+.nt-home-mini-bars i:nth-child(1) { height: 16px; }
+.nt-home-mini-bars i:nth-child(2) { height: 27px; }
+.nt-home-mini-bars i:nth-child(3) { height: 22px; }
+.nt-home-mini-bars i:nth-child(4) { height: 34px; }
+.nt-home-mini-bars i:nth-child(5) { height: 29px; }
 
 .nt-home-mini-alerts {
     display: grid;
