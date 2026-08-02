@@ -12,7 +12,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
 {% endblock %}
 
 {% block page_styles_after %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260731-workflow-signal-board-link') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260801-hero-chart-meta-inline') }}">
 {% endblock %}
 
 {% block content %}
@@ -302,14 +302,12 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
             
                             <div class="nt-market-hero-footer-meta">
                                 <span class="nt-market-hero-normalized">
-                                    $1 normalized · executed trade costs included · open positions marked to market
-                                </span>
-                                <span
-                                    id="nt-hero-data-freshness"
-                                    class="nt-market-hero-freshness nt-freshness-unknown"
-                                    title="Freshness is checked when the chart loads."
-                                >
-                                    Data freshness: checking…
+                                    $1 normalized · executed trade costs included ·
+                                    <span
+                                        id="nt-hero-data-freshness"
+                                        class="nt-market-hero-freshness nt-freshness-unknown"
+                                        title="Freshness is checked when the chart loads."
+                                    >Data through — · checking…</span>
                                 </span>
                             </div>
             
