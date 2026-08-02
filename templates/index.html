@@ -477,33 +477,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
             </div>
         </section>
 
-        <section class="nt-home-trust-panel" aria-labelledby="nt-home-trust-title">
-            <div class="nt-home-trust-copy">
-                <div class="nt-section-eyebrow">Built on transparency. Focused on trust.</div>
-                <h2 id="nt-home-trust-title">The evidence is open. The process is protected.</h2>
-                <p>
-                    NeuralTrend shows the information needed to evaluate a result—signals,
-                    assumptions, performance, freshness, and limitations—without exposing
-                    proprietary model logic.
-                </p>
-                <a href="{{ url_for('methodology') }}" class="nt-home-trust-record-link">
-                    Read the methodology →
-                </a>
-                {% if forward_record.started %}
-                <a href="{{ url_for('performance') }}" class="nt-home-trust-record-link">
-                    Approved Forward Record · {{ forward_record.active_asset_count }} active asset{% if forward_record.active_asset_count != 1 %}s{% endif %} →
-                </a>
-                {% endif %}
-            </div>
-            <a href="{{ url_for('methodology') }}" class="nt-home-trust-shield-link" aria-label="Read NeuralTrend methodology"><div class="nt-home-trust-shield"><span>✓</span></div></a>
-            <div class="nt-home-trust-facts">
-                <span><i aria-hidden="true">◷</i>Signals use completed data</span>
-                <span><i aria-hidden="true">◇</i>Performance is recorded separately</span>
-                <span><i aria-hidden="true">▤</i>Methodology is documented</span>
-                <span><i aria-hidden="true">△</i>Past performance is not a guarantee</span>
-            </div>
-        </section>
-
         <section class="nt-home-section nt-home-how" aria-labelledby="nt-home-how-title">
             <a
                 href="{{ url_for('dashboard') }}#signal-overview"
@@ -539,6 +512,34 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                     <strong>Open Signal Board <i>→</i></strong>
                 </div>
             </a>
+        </section>
+
+
+        <section class="nt-home-trust-panel" aria-labelledby="nt-home-trust-title">
+            <div class="nt-home-trust-copy">
+                <div class="nt-section-eyebrow">Built on transparency. Focused on trust.</div>
+                <h2 id="nt-home-trust-title">The evidence is open. The process is protected.</h2>
+                <p>
+                    NeuralTrend shows the information needed to evaluate a result—signals,
+                    assumptions, performance, freshness, and limitations—without exposing
+                    proprietary model logic.
+                </p>
+                <a href="{{ url_for('methodology') }}" class="nt-home-trust-record-link">
+                    Read the methodology →
+                </a>
+                {% if forward_record.started %}
+                <a href="{{ url_for('performance') }}" class="nt-home-trust-record-link">
+                    Approved Forward Record · {{ forward_record.active_asset_count }} active asset{% if forward_record.active_asset_count != 1 %}s{% endif %} →
+                </a>
+                {% endif %}
+            </div>
+            <a href="{{ url_for('methodology') }}" class="nt-home-trust-shield-link" aria-label="Read NeuralTrend methodology"><div class="nt-home-trust-shield"><span>✓</span></div></a>
+            <div class="nt-home-trust-facts">
+                <span><i aria-hidden="true">◷</i>Signals use completed data</span>
+                <span><i aria-hidden="true">◇</i>Performance is recorded separately</span>
+                <span><i aria-hidden="true">▤</i>Methodology is documented</span>
+                <span><i aria-hidden="true">△</i>Past performance is not a guarantee</span>
+            </div>
         </section>
 
         <section class="nt-home-dashboard-cta" aria-labelledby="nt-home-dashboard-title">
