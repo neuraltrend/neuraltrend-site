@@ -483,9 +483,9 @@
 .nt-home-product-card {
     position: relative;
     display: flex;
-    min-height: 250px;
+    min-height: 205px;
     flex-direction: column;
-    padding: 22px;
+    padding: 20px;
     overflow: hidden;
     border: 1px solid #d8e5f5;
     border-radius: 18px;
@@ -637,7 +637,7 @@
 .nt-home-product-card p {
     position: relative;
     z-index: 1;
-    margin: 22px 0 0;
+    margin: 16px 0 0;
     color: var(--home-muted);
     font-size: 13px;
     line-height: 1.62;
@@ -647,7 +647,7 @@
     position: relative;
     z-index: 1;
     margin-top: auto;
-    padding-top: 24px;
+    padding-top: 16px;
     color: #1d4ed8;
     font-size: 12px;
     font-weight: 900;
@@ -666,22 +666,22 @@
     margin: 66px 0;
     padding: 38px 40px 26px;
     overflow: hidden;
-    border: 1px solid rgba(96, 165, 250, 0.18);
+    border: 1px solid #d9e4f2;
     border-radius: 22px;
     background:
-        radial-gradient(circle at 82% 34%, rgba(37, 99, 235, 0.25), transparent 24%),
-        linear-gradient(135deg, #07101f, #0f1c38 62%, #111c35);
-    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.17);
+        radial-gradient(circle at 82% 34%, rgba(59, 130, 246, 0.11), transparent 25%),
+        linear-gradient(135deg, #ffffff, #f7faff 62%, #f4f8ff);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
 }
 
-.nt-home-trust-panel .nt-section-eyebrow { color: #60a5fa; }
-.nt-home-trust-panel h2 { max-width: 700px; color: #fff; }
-.nt-home-trust-panel p { max-width: 740px; color: #cbd5e1; }
+.nt-home-trust-panel .nt-section-eyebrow { color: #2563eb; }
+.nt-home-trust-panel h2 { max-width: 700px; color: var(--home-ink); }
+.nt-home-trust-panel p { max-width: 740px; color: var(--home-muted); }
 
 .nt-home-trust-record-link {
     display: inline-flex;
     margin-top: 18px;
-    color: #7dd3fc;
+    color: #1d4ed8;
     font-size: 12px;
     font-weight: 850;
     text-decoration: none;
@@ -713,11 +713,11 @@
     align-items: center;
     justify-content: center;
     clip-path: polygon(50% 0, 91% 16%, 88% 65%, 50% 100%, 12% 65%, 9% 16%);
-    background: linear-gradient(145deg, rgba(125, 211, 252, 0.72), rgba(37, 99, 235, 0.34));
-    color: #e0f2fe;
+    background: linear-gradient(145deg, #dbeafe, #93c5fd);
+    color: #1d4ed8;
     font-size: 58px;
     font-weight: 950;
-    filter: drop-shadow(0 18px 22px rgba(37, 99, 235, 0.30));
+    filter: drop-shadow(0 16px 20px rgba(37, 99, 235, 0.20));
 }
 
 .nt-home-trust-facts {
@@ -726,14 +726,14 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
     padding-top: 23px;
-    border-top: 1px solid rgba(148, 163, 184, 0.17);
+    border-top: 1px solid #dbe6f4;
 }
 
 .nt-home-trust-facts span {
     display: flex;
     align-items: center;
     gap: 9px;
-    color: #dbeafe;
+    color: #334155;
     font-size: 11px;
     font-weight: 750;
 }
@@ -745,9 +745,10 @@
     flex: 0 0 28px;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(125, 211, 252, 0.28);
+    border: 1px solid #bfdbfe;
     border-radius: 50%;
-    color: #7dd3fc;
+    background: #eff6ff;
+    color: #2563eb;
     font-style: normal;
 }
 
@@ -763,14 +764,14 @@
     display: block;
     padding: clamp(26px, 4vw, 42px);
     overflow: hidden;
-    border: 1px solid #d9e4f2;
+    border: 1px solid rgba(96, 165, 250, 0.20);
     border-radius: 26px;
     background:
-        radial-gradient(circle at 95% 8%, rgba(37, 99, 235, 0.10), transparent 31%),
-        linear-gradient(145deg, #f8fbff 0%, #ffffff 58%, #f7fafc 100%);
+        radial-gradient(circle at 94% 8%, rgba(37, 99, 235, 0.28), transparent 30%),
+        linear-gradient(135deg, #07101f 0%, #0f1c38 60%, #111c35 100%);
     color: inherit;
     text-decoration: none;
-    box-shadow: 0 18px 46px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 22px 50px rgba(15, 23, 42, 0.18);
     transition:
         transform 0.18s ease,
         border-color 0.18s ease,
@@ -791,8 +792,8 @@
 
 .nt-home-workflow-panel:hover {
     transform: translateY(-2px);
-    border-color: #b8cceb;
-    box-shadow: 0 24px 58px rgba(15, 23, 42, 0.12);
+    border-color: rgba(125, 211, 252, 0.42);
+    box-shadow: 0 26px 62px rgba(15, 23, 42, 0.24);
 }
 
 .nt-home-workflow-panel:focus-visible {
@@ -803,6 +804,18 @@
 .nt-home-workflow-heading {
     max-width: 760px;
     margin-bottom: 26px;
+}
+
+.nt-home-workflow-heading .nt-section-eyebrow {
+    color: #60a5fa;
+}
+
+.nt-home-workflow-heading h2 {
+    color: #ffffff;
+}
+
+.nt-home-workflow-heading p {
+    color: #cbd5e1;
 }
 
 .nt-home-step-grid {
@@ -873,13 +886,13 @@
     gap: 18px;
     margin-top: 24px;
     padding: 16px 18px;
-    border: 1px solid #dbe6f4;
+    border: 1px solid rgba(148, 163, 184, 0.22);
     border-radius: 15px;
-    background: rgba(255, 255, 255, 0.78);
+    background: rgba(7, 16, 31, 0.48);
 }
 
 .nt-home-workflow-cta span {
-    color: var(--home-muted);
+    color: #cbd5e1;
     font-size: 12px;
     font-weight: 700;
 }
@@ -888,7 +901,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: #1d4ed8;
+    color: #7dd3fc;
     font-size: 13px;
     font-weight: 900;
     white-space: nowrap;
@@ -1180,7 +1193,7 @@
         grid-template-columns: 1fr;
     }
 
-    .nt-home-product-card { min-height: 240px; }
+    .nt-home-product-card { min-height: 0; }
 
     .nt-home-trust-panel {
         grid-template-columns: 1fr 150px;
