@@ -348,14 +348,6 @@
             legend.textContent = `Buy & Hold (${asset})`;
         }
     
-        const metricSubtitle = document.getElementById(
-            "nt-hero-buyhold-metric-subtitle"
-        );
-    
-        if (metricSubtitle) {
-            metricSubtitle.textContent = `Buy & Hold ${asset}`;
-        }
-    
         const canvas = document.getElementById(
             "nt-market-hero-chart"
         );
@@ -818,6 +810,138 @@
         }
     }
 
+    function initializeHeroSpreadTooltip() {
+        const wrapper = document.querySelector(
+            ".nt-market-hero-spread-info"
+        );
+        const button = document.getElementById(
+            "nt-hero-spread-info-button"
+        );
+        const tooltip = document.getElementById(
+            "nt-hero-spread-tooltip"
+        );
+
+        if (!wrapper || !button || !tooltip) {
+            return;
+        }
+
+        let isPinned = false;
+        let isHovered = false;
+        let hasFocus = false;
+
+        function positionTooltip() {
+            if (!wrapper.classList.contains("is-visible")) {
+                return;
+            }
+
+            const buttonRect = button.getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+            const viewportPadding = 12;
+            const gap = 10;
+
+            let left =
+                buttonRect.left +
+                (buttonRect.width / 2) -
+                (tooltipRect.width / 2);
+
+            left = Math.max(
+                viewportPadding,
+                Math.min(
+                    left,
+                    window.innerWidth - tooltipRect.width - viewportPadding
+                )
+            );
+
+            let top = buttonRect.bottom + gap;
+
+            if (
+                top + tooltipRect.height >
+                window.innerHeight - viewportPadding
+            ) {
+                top = buttonRect.top - tooltipRect.height - gap;
+            }
+
+            tooltip.style.left = `${Math.round(left)}px`;
+            tooltip.style.top = `${Math.round(top)}px`;
+        }
+
+        function showTooltip() {
+            wrapper.classList.add("is-visible");
+            button.setAttribute("aria-expanded", "true");
+            window.requestAnimationFrame(positionTooltip);
+        }
+
+        function hideTooltip(force = false) {
+            if (!force && (isPinned || isHovered || hasFocus)) {
+                return;
+            }
+
+            wrapper.classList.remove("is-visible");
+            button.setAttribute("aria-expanded", "false");
+        }
+
+        wrapper.addEventListener("mouseenter", function () {
+            isHovered = true;
+            showTooltip();
+        });
+
+        wrapper.addEventListener("mouseleave", function () {
+            isHovered = false;
+            hideTooltip();
+        });
+
+        wrapper.addEventListener("focusin", function () {
+            hasFocus = true;
+            showTooltip();
+        });
+
+        wrapper.addEventListener("focusout", function (event) {
+            if (wrapper.contains(event.relatedTarget)) {
+                return;
+            }
+
+            hasFocus = false;
+            hideTooltip();
+        });
+
+        button.addEventListener("click", function (event) {
+            event.stopPropagation();
+            isPinned = !isPinned;
+
+            if (isPinned) {
+                showTooltip();
+            } else {
+                hideTooltip(true);
+            }
+        });
+
+        tooltip.addEventListener("click", function (event) {
+            event.stopPropagation();
+        });
+
+        document.addEventListener("click", function (event) {
+            if (wrapper.contains(event.target)) {
+                return;
+            }
+
+            isPinned = false;
+            hideTooltip(true);
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key !== "Escape") {
+                return;
+            }
+
+            isPinned = false;
+            hideTooltip(true);
+            button.blur();
+        });
+
+        window.addEventListener("resize", positionTooltip);
+        window.addEventListener("scroll", positionTooltip, true);
+    }
+
     function initializeHeroPerformanceChart() {
         const canvas = document.getElementById(
             "nt-market-hero-chart"
@@ -967,6 +1091,7 @@
             });
         }
 
+        initializeHeroSpreadTooltip();
         loadHeroPerformanceChart(DEFAULT_HERO_DURATION);
     }
 
