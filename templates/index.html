@@ -403,35 +403,75 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
         <section id="products" class="nt-home-section nt-home-models" aria-labelledby="nt-home-products-title">
             <div class="nt-home-section-heading nt-home-section-heading-centered">
                 <div class="nt-section-eyebrow">Three powerful models</div>
-                <h2 id="nt-home-products-title">One platform. Three research perspectives.</h2>
+                <h2 id="nt-home-products-title">One platform. Three market perspectives.</h2>
                 <p>Each model offers a different view of the market, from timing to breadth and probabilistic outlooks.</p>
             </div>
             <div class="nt-home-product-grid">
                 <a href="{{ url_for('dashboard') }}#epochsignaler-section" class="nt-home-product-card nt-home-product-card-primary">
-                    <div class="nt-home-product-icon nt-home-product-icon-blue" aria-hidden="true">◉</div>
-                    <div class="nt-home-product-topline">
-                        <span>EpochSignaler</span><span class="nt-model-status-badge badge-live">Live</span>
+                    <div class="nt-home-product-header">
+                        <div class="nt-home-product-icon nt-home-product-icon-signal" aria-hidden="true">
+                            <svg viewBox="0 0 52 52" focusable="false">
+                                <path class="nt-signal-up" d="M26 7 37 21H15Z" />
+                                <path class="nt-signal-down" d="M26 45 15 31h22Z" />
+                                <path class="nt-signal-axis" d="M13 26h26" />
+                            </svg>
+                        </div>
+                        <div class="nt-home-product-heading">
+                            <div class="nt-home-product-topline">
+                                <span>EpochSignaler</span><span class="nt-model-status-badge badge-live">Live</span>
+                            </div>
+                            <strong>Market Signals</strong>
+                        </div>
                     </div>
-                    <strong>Market timing</strong>
-                    <p>AI-powered BUY, HOLD, and SELL signals with risk-aware analysis, backtests, and historical performance.</p>
+                    <p>Follow transparent, backtested BUY, HOLD, and SELL alerts</p>
                     <span class="nt-home-card-link">Open Signal Dashboard →</span>
                 </a>
                 <a href="{{ url_for('dashboard') }}#altindexer-section" class="nt-home-product-card nt-home-product-card-alt">
-                    <div class="nt-home-product-icon nt-home-product-icon-green" aria-hidden="true">↻</div>
-                    <div class="nt-home-product-topline">
-                        <span>AltIndexer</span><span class="nt-model-status-badge badge-live">Live</span>
+                    <div class="nt-home-product-header">
+                        <div class="nt-home-product-icon nt-home-product-icon-altindexer" aria-hidden="true">
+                            <svg viewBox="0 0 52 52" focusable="false">
+                                <defs>
+                                    <clipPath id="nt-altindexer-chart-clip">
+                                        <rect x="7" y="7" width="38" height="38" rx="9" />
+                                    </clipPath>
+                                </defs>
+                                <g clip-path="url(#nt-altindexer-chart-clip)">
+                                    <rect class="nt-alt-zone-positive" x="7" y="7" width="38" height="19" />
+                                    <rect class="nt-alt-zone-negative" x="7" y="26" width="38" height="19" />
+                                    <path class="nt-alt-zero-line" d="M7 26h38" />
+                                    <path class="nt-alt-trend-line" d="M10 32 16 28 22 30 28 21 34 23 41 14" />
+                                </g>
+                                <rect class="nt-alt-chart-frame" x="7" y="7" width="38" height="38" rx="9" />
+                            </svg>
+                        </div>
+                        <div class="nt-home-product-heading">
+                            <div class="nt-home-product-topline">
+                                <span>AltIndexer</span><span class="nt-model-status-badge badge-live">Live</span>
+                            </div>
+                            <strong>Altcoin rotation</strong>
+                        </div>
                     </div>
-                    <strong>Altcoin rotation</strong>
-                    <p>Track broad digital-asset participation and changing leadership across the crypto market.</p>
+                    <p>Track capital flow and spot emerging trends across the market</p>
                     <span class="nt-home-card-link">Explore AltIndexer →</span>
                 </a>
                 <a href="{{ url_for('dashboard') }}#epochforecaster-section" class="nt-home-product-card nt-home-product-card-forecast">
-                    <div class="nt-home-product-icon nt-home-product-icon-orange" aria-hidden="true">⌁</div>
-                    <div class="nt-home-product-topline">
-                        <span>EpochForecaster</span><span class="nt-model-status-badge badge-dev">In development</span>
+                    <div class="nt-home-product-header">
+                        <div class="nt-home-product-icon nt-home-product-icon-forecast" aria-hidden="true">
+                            <svg viewBox="0 0 52 52" focusable="false">
+                                <path class="nt-forecast-cone" d="M27 20 45 10v31L27 30Z" />
+                                <path class="nt-forecast-history" d="M7 36 13 31 18 33 23 23 28 27" />
+                                <path class="nt-forecast-midline" d="M28 27c6-1 10-4 17-8" />
+                                <circle class="nt-forecast-junction" cx="28" cy="27" r="2.4" />
+                            </svg>
+                        </div>
+                        <div class="nt-home-product-heading">
+                            <div class="nt-home-product-topline">
+                                <span>EpochForecaster</span><span class="nt-model-status-badge badge-dev">In development</span>
+                            </div>
+                            <strong>Price Forecasting</strong>
+                        </div>
                     </div>
-                    <strong>Market forecasting</strong>
-                    <p>Scenario-based and probabilistic outlooks for future price research and deeper validation.</p>
+                    <p>Plan your next trade using data-driven future scenarios</p>
                     <span class="nt-home-card-link">View Development Preview →</span>
                 </a>
             </div>
