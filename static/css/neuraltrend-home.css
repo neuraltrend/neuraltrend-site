@@ -209,21 +209,31 @@
 }
 
 .nt-home-page .nt-market-hero-footer-meta {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 6px;
+    display: block;
+    min-width: 0;
     text-align: right;
 }
 
-.nt-home-page .nt-market-hero-freshness {
-    display: inline-flex;
-    padding: 4px 9px;
-    border: 1px solid rgba(226, 232, 240, 0.34);
-    border-radius: 999px;
-    color: rgba(241, 245, 249, 0.82);
-    font-size: 9px;
-    font-weight: 800;
+.nt-home-page .nt-market-hero-normalized {
+    display: inline;
+    white-space: nowrap;
+}
+
+.nt-home-page .nt-market-hero-freshness,
+.nt-home-page .nt-market-hero-freshness.nt-freshness-current,
+.nt-home-page .nt-market-hero-freshness.nt-freshness-delayed,
+.nt-home-page .nt-market-hero-freshness.nt-freshness-stale,
+.nt-home-page .nt-market-hero-freshness.nt-freshness-unknown {
+    display: inline;
+    width: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    color: inherit !important;
+    background: transparent !important;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
 }
 
 .nt-home-page .nt-market-hero-metrics {
@@ -1204,8 +1214,11 @@
     }
 
     .nt-home-page .nt-market-hero-footer-meta {
-        align-items: flex-start;
         text-align: left;
+    }
+
+    .nt-home-page .nt-market-hero-normalized {
+        white-space: normal;
     }
 
     .nt-home-page .nt-market-hero-metrics {
