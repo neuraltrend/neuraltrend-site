@@ -1632,6 +1632,48 @@
     background: rgba(255, 255, 255, 0.84);
 }
 
+/* Sequential arrows make the four workflow cards read as one process. */
+.nt-home-path-step {
+    position: relative;
+}
+
+.nt-home-path-step:not(:last-child)::after {
+    content: "→";
+    position: absolute;
+    z-index: 4;
+    top: 50%;
+    right: -23px;
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-50%);
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 17px;
+    font-weight: 950;
+    line-height: 1;
+    box-shadow: 0 5px 14px rgba(37, 99, 235, 0.13);
+    pointer-events: none;
+}
+
+.nt-home-path-panel-discover .nt-home-path-step:not(:last-child)::after {
+    border-color: #e9d5ff;
+    background: #faf5ff;
+    color: #7c3aed;
+    box-shadow: 0 5px 14px rgba(124, 58, 237, 0.13);
+}
+
+.nt-home-path-panel-context .nt-home-path-step:not(:last-child)::after {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #15803d;
+    box-shadow: 0 5px 14px rgba(21, 128, 61, 0.13);
+}
+
 .nt-home-path-step-number {
     display: inline-flex;
     width: 30px;
@@ -2030,6 +2072,39 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    /* Keep the four-step sequence visually continuous in a two-column layout. */
+    .nt-home-path-step:nth-child(1) { grid-column: 1; grid-row: 1; }
+    .nt-home-path-step:nth-child(2) { grid-column: 2; grid-row: 1; }
+    .nt-home-path-step:nth-child(3) { grid-column: 2; grid-row: 2; }
+    .nt-home-path-step:nth-child(4) { grid-column: 1; grid-row: 2; }
+
+    .nt-home-path-step:nth-child(1)::after {
+        top: 50%;
+        right: -23px;
+        bottom: auto;
+        left: auto;
+        transform: translateY(-50%);
+        content: "→";
+    }
+
+    .nt-home-path-step:nth-child(2)::after {
+        top: auto;
+        right: 50%;
+        bottom: -23px;
+        left: auto;
+        transform: translateX(50%);
+        content: "↓";
+    }
+
+    .nt-home-path-step:nth-child(3)::after {
+        top: 50%;
+        right: auto;
+        bottom: auto;
+        left: -23px;
+        transform: translateY(-50%);
+        content: "←";
+    }
+
     .nt-home-tools-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
@@ -2041,6 +2116,23 @@
     .nt-home-tools-grid,
     .nt-home-transparency-grid {
         grid-template-columns: 1fr;
+    }
+
+    .nt-home-path-step:nth-child(n) {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .nt-home-path-step:not(:last-child)::after,
+    .nt-home-path-step:nth-child(1)::after,
+    .nt-home-path-step:nth-child(2)::after,
+    .nt-home-path-step:nth-child(3)::after {
+        top: auto;
+        right: 50%;
+        bottom: -23px;
+        left: auto;
+        transform: translateX(50%);
+        content: "↓";
     }
 
     .nt-home-path-panel-heading {
