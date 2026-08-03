@@ -49,10 +49,14 @@
 }
 
 .nt-home-page .nt-market-hero-grid {
-    grid-template-columns: minmax(620px, 1.06fr) minmax(540px, 0.94fr) !important;
-    gap: clamp(26px, 2.4vw, 36px) !important;
+    width: min(calc(100vw - 32px), 1500px);
+    max-width: none;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    grid-template-columns: minmax(500px, 0.70fr) minmax(680px, 1.30fr) !important;
+    gap: clamp(18px, 1.5vw, 26px) !important;
     min-height: 560px;
-    padding: 44px 42px 46px !important;
+    padding: 44px 24px 46px !important;
 }
 
 .nt-home-page .nt-market-hero-kicker {
@@ -165,7 +169,9 @@
 }
 
 .nt-home-page .nt-market-hero-visual {
+    width: 100%;
     min-width: 0;
+    justify-self: stretch;
 }
 
 .nt-home-page .nt-market-hero-chart-card {
