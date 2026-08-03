@@ -12,11 +12,11 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
 {% endblock %}
 
 {% block page_styles_after %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260802-hero-seamless-v1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260802-home-gap-workflow-center-v1') }}">
 {% endblock %}
 
 {% block content %}
-<main>
+<main class="nt-home-main">
     <div class="nt-page-container nt-home-page">
         <div id="checkout-status-banner" class="nt-checkout-banner" style="display:none;">
             <div>
@@ -482,9 +482,8 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                 class="nt-home-workflow-panel"
                 aria-label="Open the Signal Board to select an asset, compare return horizons, and track signals"
             >
-                <div class="nt-home-section-heading nt-home-workflow-heading">
+                <div class="nt-home-section-heading nt-home-section-heading-centered nt-home-workflow-heading">
                     <h2 id="nt-home-how-title">How it works</h2>
-                    <p>Start with a published signal, test the context, then follow it prospectively.</p>
                 </div>
 
                 <div class="nt-home-step-grid">
