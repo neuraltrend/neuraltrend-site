@@ -31,7 +31,12 @@
 }
 
 .nt-home-page .nt-market-hero {
+    width: min(1600px, calc(100vw - 24px));
+    max-width: none;
+    margin-right: 0;
     margin-bottom: 0;
+    margin-left: 50%;
+    transform: translateX(-50%);
     border: 0 !important;
     border-radius: 0;
     background: #07101f;
@@ -670,22 +675,40 @@
 .nt-home-product-card-alt .nt-home-card-link { color: #15803d; }
 .nt-home-product-card-forecast .nt-home-card-link { color: #c2410c; }
 
-/* Trust panel */
+/* Trust panel — seamless full-width gradient band. */
 .nt-home-trust-panel {
     position: relative;
+    isolation: isolate;
     display: grid;
     grid-template-columns: minmax(0, 1.55fr) 230px;
     gap: 20px 48px;
     align-items: center;
     margin: 66px 0;
-    padding: 38px 40px;
-    overflow: hidden;
-    border: 1px solid #d9e4f2;
-    border-radius: 22px;
+    padding: 42px 40px;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.nt-home-trust-panel::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    bottom: 0;
+    left: calc(50% - 50vw);
+    right: calc(50% - 50vw);
     background:
         radial-gradient(circle at 82% 34%, rgba(59, 130, 246, 0.11), transparent 25%),
         linear-gradient(135deg, #ffffff, #f7faff 62%, #f4f8ff);
-    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+    pointer-events: none;
+}
+
+.nt-home-trust-panel > * {
+    position: relative;
+    z-index: 1;
 }
 
 .nt-home-trust-panel .nt-section-eyebrow { color: #2563eb; }
