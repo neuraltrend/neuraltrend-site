@@ -3,6 +3,12 @@
    Loaded after the shared responsive stylesheet.
 ================================================== */
 
+
+/* Homepage starts directly beneath the fixed navigation, without the shared page gap. */
+.nt-home-main {
+    padding-top: var(--nav-height) !important;
+}
+
 .nt-home-page {
     --home-ink: #0f172a;
     --home-muted: #64748b;
@@ -780,7 +786,10 @@
 
 .nt-home-workflow-heading {
     max-width: 760px;
-    margin-bottom: 26px;
+    margin-right: auto;
+    margin-bottom: 22px;
+    margin-left: auto;
+    text-align: center;
 }
 
 .nt-home-workflow-heading .nt-section-eyebrow {
