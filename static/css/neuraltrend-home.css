@@ -675,7 +675,7 @@
 .nt-home-product-card-alt .nt-home-card-link { color: #15803d; }
 .nt-home-product-card-forecast .nt-home-card-link { color: #c2410c; }
 
-/* Trust panel — seamless full-width gradient band. */
+/* Trust panel — seamless full-width dark band. */
 .nt-home-trust-panel {
     position: relative;
     isolation: isolate;
@@ -701,8 +701,8 @@
     left: calc(50% - 50vw);
     right: calc(50% - 50vw);
     background:
-        radial-gradient(circle at 82% 34%, rgba(59, 130, 246, 0.11), transparent 25%),
-        linear-gradient(135deg, #ffffff, #f7faff 62%, #f4f8ff);
+        radial-gradient(circle at 82% 34%, rgba(59, 130, 246, 0.18), transparent 27%),
+        linear-gradient(135deg, #07101f, #0b1730 62%, #101d38);
     pointer-events: none;
 }
 
@@ -711,17 +711,22 @@
     z-index: 1;
 }
 
-.nt-home-trust-panel .nt-section-eyebrow { color: #2563eb; }
-.nt-home-trust-panel h2 { max-width: 700px; color: var(--home-ink); }
-.nt-home-trust-panel p { max-width: 740px; color: var(--home-muted); }
+.nt-home-trust-panel .nt-section-eyebrow { color: #60a5fa; }
+.nt-home-trust-panel h2 { max-width: 700px; color: #ffffff; }
+.nt-home-trust-panel p { max-width: 740px; color: #cbd5e1; }
 
 .nt-home-trust-record-link {
     display: inline-flex;
     margin-top: 18px;
-    color: #1d4ed8;
+    margin-right: 20px;
+    color: #7dd3fc;
     font-size: 12px;
     font-weight: 850;
     text-decoration: none;
+}
+
+.nt-home-trust-record-link:hover {
+    color: #bae6fd;
 }
 
 .nt-home-trust-shield-link {
@@ -750,14 +755,14 @@
     align-items: center;
     justify-content: center;
     clip-path: polygon(50% 0, 91% 16%, 88% 65%, 50% 100%, 12% 65%, 9% 16%);
-    background: linear-gradient(145deg, #dbeafe, #93c5fd);
+    background: linear-gradient(145deg, #dbeafe, #60a5fa);
     color: #1d4ed8;
     font-size: 58px;
     font-weight: 950;
-    filter: drop-shadow(0 16px 20px rgba(37, 99, 235, 0.20));
+    filter: drop-shadow(0 16px 20px rgba(2, 6, 23, 0.34));
 }
 
-/* Workflow */
+/* Workflow — open light section, matching the model section above. */
 .nt-home-how {
     padding: 0;
     border: 0;
@@ -767,64 +772,52 @@
 .nt-home-workflow-panel {
     position: relative;
     display: block;
-    padding: clamp(26px, 4vw, 42px);
-    overflow: hidden;
+    padding: 0;
+    overflow: visible;
     border: 0;
     border-radius: 0;
-    background:
-        radial-gradient(circle at 92% 18%, rgba(37, 99, 235, 0.17), transparent 26%),
-        #07101f;
+    background: transparent;
     color: inherit;
     text-decoration: none;
-    box-shadow: 0 0 0 100vmax #07101f;
-    clip-path: inset(0 -100vmax);
-    transition:
-        transform 0.18s ease,
-        border-color 0.18s ease,
-        box-shadow 0.18s ease;
+    box-shadow: none;
+    clip-path: none;
+    transition: none;
 }
 
 .nt-home-workflow-panel::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: clamp(26px, 4vw, 42px);
-    right: clamp(26px, 4vw, 42px);
-    height: 3px;
-    border-radius: 0 0 999px 999px;
-    background: linear-gradient(90deg, #2563eb, #7c3aed 52%, #16a34a);
-    opacity: 0.9;
+    display: none;
 }
 
 .nt-home-workflow-panel:hover {
     transform: none;
     border-color: transparent;
-    box-shadow: 0 0 0 100vmax #07101f;
+    box-shadow: none;
 }
 
 .nt-home-workflow-panel:focus-visible {
     outline: 3px solid rgba(37, 99, 235, 0.32);
-    outline-offset: 4px;
+    outline-offset: 8px;
+    border-radius: 18px;
 }
 
 .nt-home-workflow-heading {
-    max-width: 760px;
+    max-width: 780px;
     margin-right: auto;
-    margin-bottom: 22px;
+    margin-bottom: 24px;
     margin-left: auto;
     text-align: center;
 }
 
 .nt-home-workflow-heading .nt-section-eyebrow {
-    color: #60a5fa;
+    color: var(--home-blue);
 }
 
 .nt-home-workflow-heading h2 {
-    color: #ffffff;
+    color: var(--home-ink);
 }
 
 .nt-home-workflow-heading p {
-    color: #cbd5e1;
+    color: var(--home-muted);
 }
 
 .nt-home-step-grid {
@@ -835,23 +828,23 @@
 
 .nt-home-step-grid article {
     min-height: 0;
-    padding: 16px 18px;
+    padding: 17px 19px;
     overflow: hidden;
-    border: 1px solid rgba(148, 163, 184, 0.24);
+    border: 1px solid var(--home-border);
     border-radius: 17px;
-    background: var(--home-dark-card);
-    box-shadow: 0 12px 28px rgba(2, 6, 23, 0.20);
+    background: #ffffff;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
     transition:
         transform 0.18s ease,
         border-color 0.18s ease,
-        background 0.18s ease,
         box-shadow 0.18s ease;
 }
 
 .nt-home-workflow-panel:hover .nt-home-step-grid article {
-    border-color: rgba(125, 211, 252, 0.34);
-    background: var(--home-dark-card-hover);
-    box-shadow: 0 15px 34px rgba(2, 6, 23, 0.24);
+    transform: translateY(-2px);
+    border-color: #bfdbfe;
+    background: #ffffff;
+    box-shadow: 0 15px 32px rgba(15, 23, 42, 0.08);
 }
 
 .nt-home-step-title {
@@ -878,14 +871,14 @@
 .nt-home-step-grid article:nth-child(3) .nt-home-step-title span { background: #16a34a; }
 
 .nt-home-step-title strong {
-    color: #f8fafc;
+    color: var(--home-ink);
     font-size: 15px;
 }
 
 .nt-home-step-grid p {
     min-height: 0;
     margin: 10px 0 0;
-    color: #cbd5e1;
+    color: var(--home-muted);
     font-size: 12px;
     line-height: 1.5;
 }
@@ -895,15 +888,15 @@
     align-items: center;
     justify-content: space-between;
     gap: 18px;
-    margin-top: 24px;
-    padding: 16px 18px;
-    border: 1px solid rgba(148, 163, 184, 0.22);
+    margin-top: 16px;
+    padding: 14px 18px;
+    border: 1px solid #d8e5f5;
     border-radius: 15px;
-    background: rgba(7, 16, 31, 0.48);
+    background: #f8fbff;
 }
 
 .nt-home-workflow-cta span {
-    color: #cbd5e1;
+    color: var(--home-muted);
     font-size: 12px;
     font-weight: 700;
 }
@@ -912,7 +905,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: #7dd3fc;
+    color: #1d4ed8;
     font-size: 13px;
     font-weight: 900;
     white-space: nowrap;
