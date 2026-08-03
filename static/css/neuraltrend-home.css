@@ -26,12 +26,16 @@
 
 .nt-home-page .nt-market-hero {
     margin-bottom: 0;
+    border: 0 !important;
     border-radius: 0;
-    background:
-        radial-gradient(circle at 92% 18%, rgba(37, 99, 235, 0.17), transparent 26%),
-        #07101f;
+    background: #07101f;
     box-shadow: 0 0 0 100vmax #07101f;
     clip-path: inset(0 -100vmax);
+}
+
+/* Keep the hero visually seamless with its full-width black background. */
+.nt-home-page .nt-market-hero::before {
+    display: none;
 }
 
 .nt-home-page .nt-market-hero::after {
