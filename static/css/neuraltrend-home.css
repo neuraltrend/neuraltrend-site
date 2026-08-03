@@ -26,13 +26,17 @@
 }
 
 .nt-home-page .nt-market-hero {
+    width: auto;
+    max-width: none;
+    margin-right: calc(50% - 50vw);
     margin-bottom: 0;
+    margin-left: calc(50% - 50vw);
     border-radius: 0;
     background:
         radial-gradient(circle at 92% 18%, rgba(37, 99, 235, 0.17), transparent 26%),
         #07101f;
-    box-shadow: 0 0 0 100vmax #07101f;
-    clip-path: inset(0 -100vmax);
+    box-shadow: none;
+    clip-path: none;
 }
 
 .nt-home-page .nt-market-hero::after {
@@ -49,14 +53,15 @@
 }
 
 .nt-home-page .nt-market-hero-grid {
-    width: min(calc(100vw - 32px), 1500px);
+    width: min(100%, 1720px);
     max-width: none;
-    margin-left: 50%;
-    transform: translateX(-50%);
-    grid-template-columns: minmax(500px, 0.70fr) minmax(680px, 1.30fr) !important;
-    gap: clamp(18px, 1.5vw, 26px) !important;
+    margin: 0 auto;
+    transform: none;
+    grid-template-columns: minmax(430px, 0.78fr) minmax(0, 1.42fr) !important;
+    column-gap: clamp(44px, 3.4vw, 72px) !important;
+    row-gap: 28px !important;
     min-height: 560px;
-    padding: 44px 24px 46px !important;
+    padding: 44px clamp(28px, 3.2vw, 56px) 46px !important;
 }
 
 .nt-home-page .nt-market-hero-kicker {
@@ -90,7 +95,15 @@
 
 .nt-home-page .nt-market-hero-title-line {
     display: block;
+}
+
+.nt-home-page .nt-market-hero-title-line:first-child {
     white-space: nowrap;
+}
+
+.nt-home-page .nt-market-hero-title-line:nth-child(2) {
+    white-space: normal;
+    text-wrap: balance;
 }
 
 .nt-home-page .nt-market-hero-title-accent {
