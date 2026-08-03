@@ -57,8 +57,8 @@
     max-width: none;
     margin: 0 auto;
     transform: none;
-    grid-template-columns: minmax(430px, 0.78fr) minmax(0, 1.42fr) !important;
-    column-gap: clamp(44px, 3.4vw, 72px) !important;
+    grid-template-columns: minmax(540px, 0.96fr) minmax(620px, 1.14fr) !important;
+    column-gap: clamp(48px, 3.8vw, 68px) !important;
     row-gap: 28px !important;
     min-height: 560px;
     padding: 44px clamp(28px, 3.2vw, 56px) 46px !important;
@@ -89,8 +89,8 @@
 .nt-home-page .nt-market-hero-title {
     width: 100%;
     max-width: none;
-    font-size: clamp(38px, 2.85vw, 46px);
-    line-height: 1.02;
+    font-size: clamp(44px, 3.2vw, 52px);
+    line-height: 1.01;
 }
 
 .nt-home-page .nt-market-hero-title-line {
