@@ -1632,46 +1632,39 @@
     background: rgba(255, 255, 255, 0.84);
 }
 
-/* Sequential arrows make the four workflow cards read as one process. */
+/* Sequential flow arrows: solid connectors, deliberately different from link arrows. */
 .nt-home-path-step {
     position: relative;
 }
 
+.nt-home-path-steps {
+    gap: 42px;
+}
+
 .nt-home-path-step:not(:last-child)::after {
-    content: "→";
+    content: "";
     position: absolute;
     z-index: 4;
     top: 50%;
-    right: -23px;
-    display: inline-flex;
-    width: 30px;
-    height: 30px;
-    align-items: center;
-    justify-content: center;
+    right: -35px;
+    width: 28px;
+    height: 18px;
     transform: translateY(-50%);
-    border: 1px solid #bfdbfe;
-    border-radius: 999px;
-    background: #eff6ff;
+    background: currentColor;
     color: #2563eb;
-    font-size: 17px;
-    font-weight: 950;
-    line-height: 1;
-    box-shadow: 0 5px 14px rgba(37, 99, 235, 0.13);
+    clip-path: polygon(0 39%, 67% 39%, 67% 10%, 100% 50%, 67% 90%, 67% 61%, 0 61%);
+    filter: drop-shadow(0 3px 4px rgba(37, 99, 235, 0.22));
     pointer-events: none;
 }
 
 .nt-home-path-panel-discover .nt-home-path-step:not(:last-child)::after {
-    border-color: #e9d5ff;
-    background: #faf5ff;
     color: #7c3aed;
-    box-shadow: 0 5px 14px rgba(124, 58, 237, 0.13);
+    filter: drop-shadow(0 3px 4px rgba(124, 58, 237, 0.22));
 }
 
 .nt-home-path-panel-context .nt-home-path-step:not(:last-child)::after {
-    border-color: #bbf7d0;
-    background: #f0fdf4;
     color: #15803d;
-    box-shadow: 0 5px 14px rgba(21, 128, 61, 0.13);
+    filter: drop-shadow(0 3px 4px rgba(21, 128, 61, 0.22));
 }
 
 .nt-home-path-step-number {
@@ -2080,29 +2073,26 @@
 
     .nt-home-path-step:nth-child(1)::after {
         top: 50%;
-        right: -23px;
+        right: -35px;
         bottom: auto;
         left: auto;
         transform: translateY(-50%);
-        content: "→";
     }
 
     .nt-home-path-step:nth-child(2)::after {
         top: auto;
         right: 50%;
-        bottom: -23px;
+        bottom: -31px;
         left: auto;
-        transform: translateX(50%);
-        content: "↓";
+        transform: translateX(50%) rotate(90deg);
     }
 
     .nt-home-path-step:nth-child(3)::after {
         top: 50%;
         right: auto;
         bottom: auto;
-        left: -23px;
-        transform: translateY(-50%);
-        content: "←";
+        left: -35px;
+        transform: translateY(-50%) rotate(180deg);
     }
 
     .nt-home-tools-grid {
@@ -2123,16 +2113,19 @@
         grid-row: auto;
     }
 
+    .nt-home-path-steps {
+        gap: 46px;
+    }
+
     .nt-home-path-step:not(:last-child)::after,
     .nt-home-path-step:nth-child(1)::after,
     .nt-home-path-step:nth-child(2)::after,
     .nt-home-path-step:nth-child(3)::after {
         top: auto;
         right: 50%;
-        bottom: -23px;
+        bottom: -33px;
         left: auto;
-        transform: translateX(50%);
-        content: "↓";
+        transform: translateX(50%) rotate(90deg);
     }
 
     .nt-home-path-panel-heading {
