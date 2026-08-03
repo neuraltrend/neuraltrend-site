@@ -1862,3 +1862,104 @@
         border-radius: 20px;
     }
 }
+
+/* ==================================================
+   HERO RETURN-SPREAD INFO TOOLTIP
+   Keeps the helper compact and hides the tooltip until
+   hover, keyboard focus, or click/pin interaction.
+================================================== */
+
+.nt-home-page .nt-market-hero-spread-label {
+    display: inline-flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+}
+
+.nt-home-page .nt-market-hero-spread-info {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+}
+
+.nt-home-page .nt-market-hero-info-button {
+    -webkit-appearance: none;
+    appearance: none;
+    display: inline-flex;
+    width: 17px !important;
+    min-width: 17px !important;
+    height: 17px !important;
+    min-height: 17px !important;
+    align-items: center;
+    justify-content: center;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1px solid rgba(226, 232, 240, 0.52) !important;
+    border-radius: 999px !important;
+    background: rgba(15, 23, 42, 0.18) !important;
+    color: rgba(241, 245, 249, 0.82) !important;
+    box-shadow: none !important;
+    font-family: inherit !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    text-align: center;
+    text-transform: none;
+    cursor: help;
+    transition: border-color .16s ease, background .16s ease, color .16s ease;
+}
+
+.nt-home-page .nt-market-hero-info-button:hover,
+.nt-home-page .nt-market-hero-info-button:focus-visible,
+.nt-home-page .nt-market-hero-spread-info.is-visible .nt-market-hero-info-button {
+    border-color: rgba(147, 197, 253, 0.88) !important;
+    background: rgba(59, 130, 246, 0.20) !important;
+    color: #ffffff !important;
+}
+
+.nt-home-page .nt-market-hero-info-tooltip {
+    position: fixed;
+    z-index: 10000;
+    width: max-content;
+    max-width: min(280px, calc(100vw - 24px));
+    padding: 9px 11px;
+    border: 1px solid rgba(148, 163, 184, 0.30);
+    border-radius: 10px;
+    background: #0f172a;
+    color: #f8fafc;
+    box-shadow: 0 14px 34px rgba(2, 6, 23, 0.36);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-3px);
+    transition: opacity .14s ease, transform .14s ease, visibility 0s linear .14s;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.45;
+    letter-spacing: normal;
+    text-align: left;
+    text-transform: none;
+    white-space: normal;
+}
+
+.nt-home-page .nt-market-hero-spread-info.is-visible .nt-market-hero-info-tooltip {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition-delay: 0s;
+}
+
+@media (max-width: 700px) {
+    .nt-home-page .nt-market-hero-info-button {
+        width: 19px !important;
+        min-width: 19px !important;
+        height: 19px !important;
+        min-height: 19px !important;
+        font-size: 11px !important;
+    }
+}
