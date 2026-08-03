@@ -2083,3 +2083,160 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ==================================================
+   Expanded workflow — clearly interactive actions
+================================================== */
+
+/* Panel-level dashboard links: visually distinct from instructional UI. */
+.nt-home-path-panel-heading > a {
+    position: relative;
+    gap: 9px;
+    overflow: hidden;
+    border-width: 1px;
+    font-weight: 900;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    transition:
+        transform 0.18s ease,
+        color 0.18s ease,
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.nt-home-path-panel-heading > a::after {
+    content: "↗";
+    display: inline-block;
+    font-size: 14px;
+    line-height: 1;
+    transition: transform 0.18s ease;
+}
+
+.nt-home-path-panel-heading > a:hover {
+    transform: translateY(-2px);
+}
+
+.nt-home-path-panel-heading > a:hover::after {
+    transform: translate(2px, -2px);
+}
+
+.nt-home-path-panel-heading > a:active {
+    transform: translateY(0);
+}
+
+.nt-home-path-panel-asset .nt-home-path-panel-heading > a {
+    border-color: #93c5fd;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.nt-home-path-panel-asset .nt-home-path-panel-heading > a:hover {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(37, 99, 235, 0.24);
+}
+
+.nt-home-path-panel-discover .nt-home-path-panel-heading > a {
+    border-color: #d8b4fe;
+    background: #faf5ff;
+    color: #7e22ce;
+}
+
+.nt-home-path-panel-discover .nt-home-path-panel-heading > a:hover {
+    border-color: #9333ea;
+    background: #9333ea;
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(147, 51, 234, 0.24);
+}
+
+.nt-home-path-panel-context .nt-home-path-panel-heading > a {
+    border-color: #86efac;
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.nt-home-path-panel-context .nt-home-path-panel-heading > a:hover {
+    border-color: #16a34a;
+    background: #16a34a;
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(22, 163, 74, 0.24);
+}
+
+/* Actual action links in the final workflow step. */
+.nt-home-demo-actions a {
+    position: relative;
+    gap: 10px;
+    min-height: 42px;
+    border-width: 1px;
+    font-size: 12px;
+    font-weight: 900;
+    box-shadow: 0 5px 12px rgba(15, 23, 42, 0.05);
+    transition:
+        transform 0.18s ease,
+        color 0.18s ease,
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.nt-home-demo-actions a::after {
+    content: "→";
+    margin-left: auto;
+    font-size: 14px;
+    line-height: 1;
+    transition: transform 0.18s ease;
+}
+
+.nt-home-demo-actions a:hover {
+    transform: translateY(-2px);
+}
+
+.nt-home-demo-actions a:hover::after {
+    transform: translateX(4px);
+}
+
+.nt-home-demo-actions a:active {
+    transform: translateY(0);
+}
+
+.nt-home-path-panel-asset .nt-home-demo-actions a {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-actions a:hover {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #fff;
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.22);
+}
+
+.nt-home-path-panel-discover .nt-home-demo-actions a {
+    border-color: #e9d5ff;
+    background: #faf5ff;
+    color: #7e22ce;
+}
+
+.nt-home-path-panel-discover .nt-home-demo-actions a:hover {
+    border-color: #9333ea;
+    background: #9333ea;
+    color: #fff;
+    box-shadow: 0 10px 20px rgba(147, 51, 234, 0.22);
+}
+
+.nt-home-path-panel-heading > a:focus-visible,
+.nt-home-demo-actions a:focus-visible {
+    outline: 3px solid rgba(59, 130, 246, 0.38);
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nt-home-path-panel-heading > a,
+    .nt-home-path-panel-heading > a::after,
+    .nt-home-demo-actions a,
+    .nt-home-demo-actions a::after {
+        transition: none;
+    }
+}
