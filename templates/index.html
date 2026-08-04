@@ -12,7 +12,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
 {% endblock %}
 
 {% block page_styles_after %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260803-workflow-cta-signal-pills-v2') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260804-workflow-filter-matrix-v1') }}">
 {% endblock %}
 
 {% block content %}
@@ -485,10 +485,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                                 <span class="nt-home-demo-search-field">Search ticker…</span>
                                 <strong>BTC-USD</strong>
                             </div>
-                            <div class="nt-home-demo-note" aria-hidden="true">
-                                <span>i</span>
-                                <div><strong>Illustration only</strong><small>Enter a ticker to see real results.</small></div>
-                            </div>
                         </article>
 
                         <article class="nt-home-path-step nt-home-path-step-preview">
@@ -500,10 +496,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                             <p>Switch between short- and long-term horizons to match the way you trade.</p>
                             <div class="nt-home-demo-pills nt-home-demo-muted" aria-hidden="true">
                                 <span>1W</span><span>1M</span><span class="is-preview-selected">3M</span><span>6M</span><span>1Y</span>
-                            </div>
-                            <div class="nt-home-demo-note" aria-hidden="true">
-                                <span>i</span>
-                                <div><strong>Illustration only</strong><small>Example view — not interactive.</small></div>
                             </div>
                         </article>
 
@@ -523,10 +515,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                                 <svg viewBox="0 0 220 56" preserveAspectRatio="none" focusable="false">
                                     <path d="M2 45 L20 41 L38 43 L56 35 L74 37 L92 31 L110 34 L128 26 L146 29 L164 22 L182 25 L218 12" />
                                 </svg>
-                            </div>
-                            <div class="nt-home-demo-note" aria-hidden="true">
-                                <span>i</span>
-                                <div><strong>Illustration only</strong><small>Example metrics — not real-time.</small></div>
                             </div>
                         </article>
 
@@ -576,7 +564,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                                 <div><strong>BTC-USD</strong><em class="is-buy">BUY</em></div>
                                 <div><strong>ETH-USD</strong><em class="is-buy">BUY</em></div>
                             </div>
-                            <div class="nt-home-preview-footer" aria-hidden="true">Preview</div>
                         </article>
 
                         <article class="nt-home-path-step nt-home-path-step-preview">
@@ -590,17 +577,16 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                                 <div class="nt-home-demo-signal-matrix-filters">
                                     <span class="nt-home-demo-signal-matrix-corner">Asset</span>
                                     <span><small>Today</small><b class="is-buy">BUY</b></span>
-                                    <span><small>Yesterday</small><b class="is-sell">SELL</b></span>
-                                    <span><small>Last week</small><b class="is-hold">HOLD</b></span>
-                                    <span><small>Last month</small><b class="is-buy">BUY</b></span>
+                                    <span><small>Yesterday</small><b class="is-hold">HOLD</b></span>
+                                    <span><small>Last week</small><b class="is-sell">SELL</b></span>
+                                    <span><small>Last month</small><b class="is-all">ALL</b></span>
                                 </div>
                                 <div class="nt-home-demo-signal-matrix-results">
-                                    <div><strong>BTC</strong><em class="is-buy">BUY</em><em class="is-sell">SELL</em><em class="is-hold">HOLD</em><em class="is-buy">BUY</em></div>
-                                    <div><strong>ETH</strong><em class="is-buy">BUY</em><em class="is-sell">SELL</em><em class="is-hold">HOLD</em><em class="is-buy">BUY</em></div>
-                                    <div><strong>SOL</strong><em class="is-buy">BUY</em><em class="is-sell">SELL</em><em class="is-hold">HOLD</em><em class="is-buy">BUY</em></div>
+                                    <div><strong>BTC</strong><em class="is-buy">BUY</em><em class="is-hold">HOLD</em><em class="is-sell">SELL</em><em class="is-buy">BUY</em></div>
+                                    <div><strong>ETH</strong><em class="is-buy">BUY</em><em class="is-hold">HOLD</em><em class="is-sell">SELL</em><em class="is-sell">SELL</em></div>
+                                    <div><strong>SOL</strong><em class="is-buy">BUY</em><em class="is-hold">HOLD</em><em class="is-sell">SELL</em><em class="is-hold">HOLD</em></div>
                                 </div>
                             </div>
-                            <div class="nt-home-preview-footer" aria-hidden="true">Preview</div>
                         </article>
 
                         <article class="nt-home-path-step nt-home-path-step-preview">
@@ -616,7 +602,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                                 <div><strong>ETH-USD</strong><em class="is-buy">BUY</em><span class="nt-home-demo-return-value">+52.3%</span></div>
                                 <div><strong>AVAX-USD</strong><em class="is-buy">BUY</em><span class="nt-home-demo-return-value">+41.6%</span></div>
                             </div>
-                            <div class="nt-home-preview-footer" aria-hidden="true">Preview</div>
                         </article>
 
                         <article class="nt-home-path-step nt-home-path-step-actions">
