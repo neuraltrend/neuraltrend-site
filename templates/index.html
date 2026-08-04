@@ -12,7 +12,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
 {% endblock %}
 
 {% block page_styles_after %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260803-current18-flow-arrows-v4') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260803-workflow-preview-actions-v1') }}">
 {% endblock %}
 
 {% block content %}
@@ -474,44 +474,71 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                     </div>
 
                     <div class="nt-home-path-steps">
-                        <article class="nt-home-path-step">
-                            <span class="nt-home-path-step-number">1</span>
+                        <article class="nt-home-path-step nt-home-path-step-preview">
+                            <div class="nt-home-path-step-meta">
+                                <span class="nt-home-path-step-number">1</span>
+                                <span class="nt-home-preview-badge">Preview</span>
+                            </div>
                             <h4>Search your asset</h4>
                             <p>Enter a ticker such as BTC, ETH, NVDA, or AAPL and open its latest published analysis.</p>
-                            <div class="nt-home-demo-search" aria-hidden="true">
-                                <span>Search ticker…</span>
+                            <div class="nt-home-demo-search nt-home-demo-muted" aria-hidden="true">
+                                <span class="nt-home-demo-search-field">Search ticker…</span>
                                 <strong>BTC-USD</strong>
                             </div>
-                        </article>
-
-                        <article class="nt-home-path-step">
-                            <span class="nt-home-path-step-number">2</span>
-                            <h4>Choose the horizon</h4>
-                            <p>Switch between short- and long-term horizons to match the way you trade.</p>
-                            <div class="nt-home-demo-pills" aria-hidden="true">
-                                <span>1W</span><span>1M</span><span class="is-selected">3M</span><span>6M</span><span>1Y</span>
+                            <div class="nt-home-demo-note" aria-hidden="true">
+                                <span>i</span>
+                                <div><strong>Illustration only</strong><small>Enter a ticker to see real results.</small></div>
                             </div>
                         </article>
 
-                        <article class="nt-home-path-step">
-                            <span class="nt-home-path-step-number">3</span>
+                        <article class="nt-home-path-step nt-home-path-step-preview">
+                            <div class="nt-home-path-step-meta">
+                                <span class="nt-home-path-step-number">2</span>
+                                <span class="nt-home-preview-badge">Preview</span>
+                            </div>
+                            <h4>Choose the horizon</h4>
+                            <p>Switch between short- and long-term horizons to match the way you trade.</p>
+                            <div class="nt-home-demo-pills nt-home-demo-muted" aria-hidden="true">
+                                <span>1W</span><span>1M</span><span class="is-preview-selected">3M</span><span>6M</span><span>1Y</span>
+                            </div>
+                            <div class="nt-home-demo-note" aria-hidden="true">
+                                <span>i</span>
+                                <div><strong>Illustration only</strong><small>Example view — not interactive.</small></div>
+                            </div>
+                        </article>
+
+                        <article class="nt-home-path-step nt-home-path-step-preview">
+                            <div class="nt-home-path-step-meta">
+                                <span class="nt-home-path-step-number">3</span>
+                                <span class="nt-home-preview-badge">Preview</span>
+                            </div>
                             <h4>Review signal and performance</h4>
                             <p>See BUY, HOLD, or SELL, then review confidence, freshness, return history, risk, and the equity curve.</p>
-                            <div class="nt-home-demo-metrics" aria-hidden="true">
-                                <span><small>Signal</small><strong class="is-positive">BUY</strong></span>
+                            <div class="nt-home-demo-metrics nt-home-demo-muted" aria-hidden="true">
+                                <span><small>Signal</small><strong>BUY</strong></span>
                                 <span><small>Confidence</small><strong>76%</strong></span>
                                 <span><small>Freshness</small><strong>2h ago</strong></span>
                             </div>
+                            <div class="nt-home-demo-sparkline" aria-hidden="true">
+                                <svg viewBox="0 0 220 56" preserveAspectRatio="none" focusable="false">
+                                    <path d="M2 45 L20 41 L38 43 L56 35 L74 37 L92 31 L110 34 L128 26 L146 29 L164 22 L182 25 L218 12" />
+                                </svg>
+                            </div>
+                            <div class="nt-home-demo-note" aria-hidden="true">
+                                <span>i</span>
+                                <div><strong>Illustration only</strong><small>Example metrics — not real-time.</small></div>
+                            </div>
                         </article>
 
-                        <article class="nt-home-path-step">
-                            <span class="nt-home-path-step-number">4</span>
+                        <article class="nt-home-path-step nt-home-path-step-actions">
+                            <div class="nt-home-path-step-meta">
+                                <span class="nt-home-path-step-number">4</span>
+                            </div>
                             <h4>Choose your next action</h4>
-                            <p>Trade on your exchange, add the asset to a watchlist, or follow it first with a live paper simulation.</p>
-                            <div class="nt-home-demo-actions">
-                                <a href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Take action</a>
-                                <a href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Add to watchlist</a>
-                                <a href="{{ url_for('dashboard') }}#epoch-tool-live" target="_blank" rel="noopener noreferrer">Start live simulation</a>
+                            <div class="nt-home-demo-actions nt-home-demo-actions-solid">
+                                <a class="nt-home-action-take" href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Take action</a>
+                                <a class="nt-home-action-watch" href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Add to watchlist</a>
+                                <a class="nt-home-action-sim" href="{{ url_for('dashboard') }}#epoch-tool-live" target="_blank" rel="noopener noreferrer">Start live simulation</a>
                             </div>
                         </article>
                     </div>
@@ -527,52 +554,72 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                     <div class="nt-home-path-panel-heading">
                         <div>
                             <span class="nt-home-path-panel-kicker">Opportunity-first workflow</span>
-                            <h3>Discover fresh opportunities when no ticker is in mind</h3>
-                            <p>Use the Signal Board as a market screener, then decide which ideas deserve attention.</p>
+                            <h3>Find opportunities without starting from a ticker</h3>
+                            <p>Follow a simple path to surface high-conviction ideas and act with clarity.</p>
                         </div>
                         <a href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">See current opportunities →</a>
                     </div>
 
                     <div class="nt-home-path-steps">
-                        <article class="nt-home-path-step">
-                            <span class="nt-home-path-step-number">1</span>
+                        <article class="nt-home-path-step nt-home-path-step-preview">
+                            <div class="nt-home-path-step-meta">
+                                <span class="nt-home-path-step-number">1</span>
+                                <span class="nt-home-preview-badge">Preview</span>
+                            </div>
                             <h4>Choose market scope</h4>
                             <p>Filter stocks, crypto, or all supported assets to focus the opportunity list.</p>
-                            <div class="nt-home-demo-options" aria-hidden="true">
-                                <span>Stocks</span><span class="is-selected">Crypto</span><span>All</span>
+                            <div class="nt-home-demo-options nt-home-demo-muted" aria-hidden="true">
+                                <span>Stocks</span><span class="is-preview-selected">Crypto</span><span>All</span>
                             </div>
+                            <div class="nt-home-demo-skeleton" aria-hidden="true">
+                                <span class="nt-home-demo-skeleton-icon">◉</span>
+                                <span></span><span></span><span></span>
+                            </div>
+                            <div class="nt-home-preview-footer" aria-hidden="true">Preview</div>
                         </article>
 
-                        <article class="nt-home-path-step">
-                            <span class="nt-home-path-step-number">2</span>
-                            <h4>Filter signals and timing</h4>
+                        <article class="nt-home-path-step nt-home-path-step-preview">
+                            <div class="nt-home-path-step-meta">
+                                <span class="nt-home-path-step-number">2</span>
+                                <span class="nt-home-preview-badge">Preview</span>
+                            </div>
+                            <h4>Filter for signal type and recency</h4>
                             <p>Find BUY signals today, review yesterday’s SELL or HOLD changes, or look for BUY momentum over several periods.</p>
-                            <div class="nt-home-demo-filter-stack" aria-hidden="true">
-                                <span>BUY · Today</span>
-                                <span>SELL / HOLD · Yesterday</span>
-                                <span class="is-selected">Fresh BUY · Last week</span>
+                            <div class="nt-home-demo-filter-chips nt-home-demo-muted" aria-hidden="true">
+                                <span>BUY today</span><span>BUY yesterday</span><span>SELL yesterday</span><span class="is-preview-selected">Fresh BUY signals</span><span>Last week</span>
                             </div>
+                            <div class="nt-home-demo-skeleton nt-home-demo-skeleton-calendar" aria-hidden="true">
+                                <span class="nt-home-demo-skeleton-icon">▣</span>
+                                <span></span><span></span><span></span>
+                            </div>
+                            <div class="nt-home-preview-footer" aria-hidden="true">Preview</div>
                         </article>
 
-                        <article class="nt-home-path-step">
-                            <span class="nt-home-path-step-number">3</span>
-                            <h4>Rank the candidates</h4>
+                        <article class="nt-home-path-step nt-home-path-step-preview">
+                            <div class="nt-home-path-step-meta">
+                                <span class="nt-home-path-step-number">3</span>
+                                <span class="nt-home-preview-badge">Preview</span>
+                            </div>
+                            <h4>Review the opportunities</h4>
                             <p>Sort the results by confidence, freshness, strategy return, or the metric that matters to you.</p>
-                            <div class="nt-home-demo-table" aria-hidden="true">
-                                <span><strong>SOL-USD</strong><em>BUY</em><b>86%</b></span>
-                                <span><strong>ETH-USD</strong><em>BUY</em><b>82%</b></span>
-                                <span><strong>LINK-USD</strong><em>BUY</em><b>78%</b></span>
+                            <div class="nt-home-demo-opportunity-table nt-home-demo-muted" aria-hidden="true">
+                                <div class="nt-home-demo-table-head"><span>Asset</span><span>Signal</span><span>Freshness</span><span></span></div>
+                                <div><strong>SOL-USD</strong><em>BUY</em><span>2h ago</span><b>⌁</b></div>
+                                <div><strong>ETH-USD</strong><em>BUY</em><span>5h ago</span><b>⌁</b></div>
+                                <div><strong>AVAX-USD</strong><em>BUY</em><span>1d ago</span><b>⌁</b></div>
                             </div>
+                            <div class="nt-home-preview-footer" aria-hidden="true">Preview</div>
                         </article>
 
-                        <article class="nt-home-path-step">
-                            <span class="nt-home-path-step-number">4</span>
+                        <article class="nt-home-path-step nt-home-path-step-actions">
+                            <div class="nt-home-path-step-meta">
+                                <span class="nt-home-path-step-number">4</span>
+                            </div>
                             <h4>Research or follow the idea</h4>
-                            <p>Open the asset analysis, act on your exchange, save it to a watchlist, or test it in a live simulation.</p>
-                            <div class="nt-home-demo-actions">
-                                <a href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Open analysis</a>
-                                <a href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Add to watchlist</a>
-                                <a href="{{ url_for('dashboard') }}#epoch-tool-live" target="_blank" rel="noopener noreferrer">Start live simulation</a>
+                            <div class="nt-home-demo-actions nt-home-demo-actions-outline">
+                                <a class="nt-home-action-take" href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Take action</a>
+                                <a class="nt-home-action-watch" href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Add to watchlist</a>
+                                <a class="nt-home-action-sim" href="{{ url_for('dashboard') }}#epoch-tool-live" target="_blank" rel="noopener noreferrer">Start live simulation</a>
                             </div>
                         </article>
                     </div>
@@ -588,57 +635,74 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                     <div class="nt-home-path-panel-heading">
                         <div>
                             <span class="nt-home-path-panel-kicker">Market-context workflow</span>
-                            <h3>Decide how aggressively to participate in the market</h3>
-                            <p>Use AltIndexer to understand broad direction before buying, selling, or changing exposure.</p>
+                            <h3>Read the market backdrop before you act</h3>
+                            <p>Understand market breadth, trends, and conditions to make smarter decisions.</p>
                         </div>
                         <a href="{{ url_for('dashboard') }}#altindexer-section" target="_blank" rel="noopener noreferrer">Open AltIndexer →</a>
                     </div>
 
                     <div class="nt-home-path-steps">
-                        <article class="nt-home-path-step">
-                            <span class="nt-home-path-step-number">1</span>
+                        <article class="nt-home-path-step nt-home-path-step-preview">
+                            <div class="nt-home-path-step-meta">
+                                <span class="nt-home-path-step-number">1</span>
+                                <span class="nt-home-preview-badge">Preview</span>
+                            </div>
                             <h4>Open AltIndexer</h4>
-                            <p>Start with the market-level view when you are unsure whether conditions favor risk-taking.</p>
-                            <div class="nt-home-demo-gauge" aria-hidden="true">
-                                <small>Market score</small>
-                                <strong>72</strong>
-                                <span>Bullish</span>
+                            <p>Explore real-time market breadth and key indicators in AltIndexer.</p>
+                            <div class="nt-home-demo-market-card nt-home-demo-muted" aria-hidden="true">
+                                <div><small>Market Breadth</small><span>Live</span></div>
+                                <strong>62 <small>/100</small></strong>
+                                <em>Bullish</em>
+                                <svg viewBox="0 0 220 58" preserveAspectRatio="none" focusable="false"><path d="M2 49 L22 44 L42 47 L62 37 L82 41 L102 31 L122 35 L142 24 L162 29 L182 18 L218 8" /></svg>
+                                <div class="nt-home-demo-progress"><span></span></div>
                             </div>
                         </article>
 
-                        <article class="nt-home-path-step">
-                            <span class="nt-home-path-step-number">2</span>
-                            <h4>Change the horizon</h4>
-                            <p>Compare short and longer horizons to see whether market breadth is strengthening or weakening.</p>
-                            <div class="nt-home-demo-pills" aria-hidden="true">
-                                <span>1W</span><span>1M</span><span class="is-selected">3M</span><span>6M</span><span>1Y</span>
+                        <article class="nt-home-path-step nt-home-path-step-preview">
+                            <div class="nt-home-path-step-meta">
+                                <span class="nt-home-path-step-number">2</span>
+                                <span class="nt-home-preview-badge">Preview</span>
                             </div>
+                            <h4>Choose the horizon</h4>
+                            <p>Select the time horizon that best matches your planning window.</p>
+                            <div class="nt-home-demo-pills nt-home-demo-muted" aria-hidden="true">
+                                <span>1W</span><span>1M</span><span class="is-preview-selected">3M</span><span>6M</span><span>1Y</span>
+                            </div>
+                            <div class="nt-home-demo-selection-note" aria-hidden="true">Example selection</div>
                         </article>
 
-                        <article class="nt-home-path-step">
-                            <span class="nt-home-path-step-number">3</span>
-                            <h4>Read the market backdrop</h4>
-                            <p>Review direction, breadth, regime, and recent movement to understand whether conditions are improving.</p>
-                            <div class="nt-home-demo-context" aria-hidden="true">
+                        <article class="nt-home-path-step nt-home-path-step-preview">
+                            <div class="nt-home-path-step-meta">
+                                <span class="nt-home-path-step-number">3</span>
+                                <span class="nt-home-preview-badge">Preview</span>
+                            </div>
+                            <h4>Review market context</h4>
+                            <p>See the current market picture across direction, breadth, regime, and conditions.</p>
+                            <div class="nt-home-demo-context-grid nt-home-demo-muted" aria-hidden="true">
                                 <span><small>Direction</small><strong>Bullish</strong></span>
-                                <span><small>Breadth</small><strong>Strong</strong></span>
-                                <span><small>Trend</small><strong>Improving</strong></span>
+                                <span><small>Breadth</small><strong>62 <em>/100</em></strong></span>
+                                <span><small>Regime</small><strong>Expansion</strong></span>
+                                <span><small>Conditions</small><strong>Improving</strong></span>
                             </div>
                         </article>
 
-                        <article class="nt-home-path-step">
-                            <span class="nt-home-path-step-number">4</span>
-                            <h4>Adjust your exposure</h4>
-                            <p>Use the backdrop to buy more aggressively, add gradually, reduce exposure, or wait for clearer conditions.</p>
-                            <div class="nt-home-demo-outcomes" aria-hidden="true">
-                                <span class="is-positive">Buy more aggressively</span>
-                                <span class="is-positive">Buy gradually</span>
-                                <span class="is-caution">Reduce exposure</span>
+                        <article class="nt-home-path-step nt-home-path-step-preview">
+                            <div class="nt-home-path-step-meta">
+                                <span class="nt-home-path-step-number">4</span>
+                                <span class="nt-home-preview-badge">Preview</span>
+                            </div>
+                            <h4>Decide how to act</h4>
+                            <p>Use the context to guide your next steps with greater conviction.</p>
+                            <div class="nt-home-demo-outcomes nt-home-demo-muted" aria-hidden="true">
+                                <span>Buy more aggressively</span>
+                                <span>Buy gradually</span>
+                                <span>Reduce exposure</span>
                                 <span>Wait and monitor</span>
                             </div>
                         </article>
                     </div>
                 </section>
+
             </div>
         </section>
 
