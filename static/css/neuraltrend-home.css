@@ -3554,3 +3554,100 @@
         0 0 24px rgba(99, 102, 241, 0.14),
         0 1px 0 rgba(255, 255, 255, 0.28) inset;
 }
+
+/* ==================================================
+   Combined workflow actions — Aug 4, 2026
+================================================== */
+
+/* Ways 1 and 2 now use two actions: a combined dashboard/watchlist
+   action and a separate live-simulation action. */
+.nt-home-path-panel-asset .nt-home-demo-actions-two .nt-home-action-combined,
+.nt-home-path-panel-discover .nt-home-demo-actions-two .nt-home-action-combined {
+    border-color: #1d4ed8;
+    background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+    color: #ffffff;
+    box-shadow:
+        0 10px 22px rgba(37, 99, 235, 0.25),
+        0 0 18px rgba(14, 165, 233, 0.10),
+        0 1px 0 rgba(255, 255, 255, 0.25) inset;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-actions-two .nt-home-action-sim,
+.nt-home-path-panel-discover .nt-home-demo-actions-two .nt-home-action-sim {
+    border-color: #4f46e5;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: #ffffff;
+    box-shadow:
+        0 10px 22px rgba(79, 70, 229, 0.25),
+        0 0 18px rgba(124, 58, 237, 0.10),
+        0 1px 0 rgba(255, 255, 255, 0.25) inset;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-actions-two .nt-home-action-combined:hover,
+.nt-home-path-panel-discover .nt-home-demo-actions-two .nt-home-action-combined:hover {
+    border-color: #1e40af;
+    background: linear-gradient(135deg, #1d4ed8 0%, #0284c7 100%);
+    color: #ffffff;
+    box-shadow:
+        0 14px 28px rgba(37, 99, 235, 0.34),
+        0 0 25px rgba(14, 165, 233, 0.16),
+        0 1px 0 rgba(255, 255, 255, 0.28) inset;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-actions-two .nt-home-action-sim:hover,
+.nt-home-path-panel-discover .nt-home-demo-actions-two .nt-home-action-sim:hover {
+    border-color: #4338ca;
+    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+    color: #ffffff;
+    box-shadow:
+        0 14px 28px rgba(79, 70, 229, 0.34),
+        0 0 25px rgba(124, 58, 237, 0.16),
+        0 1px 0 rgba(255, 255, 255, 0.28) inset;
+}
+
+.nt-home-action-combined {
+    min-width: 0;
+    flex-wrap: nowrap;
+    gap: 7px !important;
+    font-size: 12px !important;
+}
+
+.nt-home-action-combined::before {
+    content: none !important;
+    display: none !important;
+}
+
+.nt-home-action-combined-part {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.nt-home-action-inline-icon {
+    display: inline-flex;
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    line-height: 1;
+}
+
+.nt-home-action-divider {
+    color: rgba(255, 255, 255, 0.68);
+    font-weight: 700;
+}
+
+@media (max-width: 1180px) {
+    .nt-home-action-combined {
+        flex-wrap: wrap;
+        row-gap: 3px !important;
+    }
+
+    .nt-home-action-combined::after {
+        align-self: center;
+    }
+}
