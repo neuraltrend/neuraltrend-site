@@ -2825,3 +2825,267 @@
         border-top: 0 !important;
     }
 }
+
+/* ==================================================
+   Workflow preview color pass — light instructional accents
+   Keeps preview UI non-interactive while restoring visual energy.
+================================================== */
+
+/* The preview cards use soft, workflow-specific tints. */
+.nt-home-path-panel-asset .nt-home-path-step-preview {
+    border-color: #cfe0ff;
+    background: linear-gradient(180deg, #ffffff 0%, #f5f9ff 100%);
+}
+
+.nt-home-path-panel-discover .nt-home-path-step-preview {
+    border-color: #e9d5ff;
+    background: linear-gradient(180deg, #ffffff 0%, #fcf8ff 100%);
+}
+
+.nt-home-path-panel-context .nt-home-path-step-preview {
+    border-color: #c9efd5;
+    background: linear-gradient(180deg, #ffffff 0%, #f5fcf7 100%);
+}
+
+/* Soft preview labels, deliberately quieter than action buttons. */
+.nt-home-path-panel-asset .nt-home-preview-badge,
+.nt-home-path-panel-asset .nt-home-preview-footer {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.nt-home-path-panel-discover .nt-home-preview-badge,
+.nt-home-path-panel-discover .nt-home-preview-footer {
+    border-color: #ddd6fe;
+    background: #f5f3ff;
+    color: #7c3aed;
+}
+
+.nt-home-path-panel-context .nt-home-preview-badge,
+.nt-home-path-panel-context .nt-home-preview-footer {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+/* Asset-first preview UI — light blue, not button blue. */
+.nt-home-path-panel-asset .nt-home-demo-muted,
+.nt-home-path-panel-asset .nt-home-demo-muted span,
+.nt-home-path-panel-asset .nt-home-demo-muted strong,
+.nt-home-path-panel-asset .nt-home-demo-muted em,
+.nt-home-path-panel-asset .nt-home-demo-muted b,
+.nt-home-path-panel-asset .nt-home-demo-muted small {
+    color: #475569 !important;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-search span,
+.nt-home-path-panel-asset .nt-home-demo-search strong,
+.nt-home-path-panel-asset .nt-home-demo-metrics span {
+    border-color: #cfe0ff !important;
+    background: #f8fbff !important;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-search strong {
+    color: #1d4ed8 !important;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-pills span {
+    border-color: #d6e5ff !important;
+    background: #f8fbff !important;
+    color: #475569 !important;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-pills .is-preview-selected {
+    border-color: #93c5fd !important;
+    background: #dbeafe !important;
+    color: #1d4ed8 !important;
+    box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.05) !important;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-metrics span:first-child strong {
+    color: #15803d !important;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-sparkline {
+    border-color: #cfe0ff;
+    background: #f8fbff;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-sparkline path {
+    stroke: #3b82f6;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-note {
+    border-color: #d6e5ff;
+    background: #f8fbff;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-note > span {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-note strong { color: #3b82f6; }
+.nt-home-path-panel-asset .nt-home-demo-note small { color: #64748b; }
+
+/* Opportunity-first preview UI — light purple with green signal cues. */
+.nt-home-path-panel-discover .nt-home-demo-muted,
+.nt-home-path-panel-discover .nt-home-demo-muted span,
+.nt-home-path-panel-discover .nt-home-demo-muted strong,
+.nt-home-path-panel-discover .nt-home-demo-muted em,
+.nt-home-path-panel-discover .nt-home-demo-muted b,
+.nt-home-path-panel-discover .nt-home-demo-muted small {
+    color: #5b6475 !important;
+}
+
+.nt-home-path-panel-discover .nt-home-demo-options span,
+.nt-home-path-panel-discover .nt-home-demo-filter-chips span {
+    border-color: #e9d5ff !important;
+    background: #fcf8ff !important;
+    color: #6b21a8 !important;
+}
+
+.nt-home-path-panel-discover .nt-home-demo-options .is-preview-selected,
+.nt-home-path-panel-discover .nt-home-demo-filter-chips .is-preview-selected {
+    border-color: #c4b5fd !important;
+    background: #ede9fe !important;
+    color: #6d28d9 !important;
+    box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.05) !important;
+}
+
+.nt-home-path-panel-discover .nt-home-demo-skeleton {
+    border-color: #e9d5ff;
+    background: #fcf8ff;
+}
+
+.nt-home-path-panel-discover .nt-home-demo-skeleton-icon {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.nt-home-path-panel-discover .nt-home-demo-skeleton > span:not(.nt-home-demo-skeleton-icon) {
+    background: #e9ddf7;
+}
+
+.nt-home-path-panel-discover .nt-home-demo-opportunity-table {
+    border-color: #e9d5ff;
+    background: #fdfaff;
+}
+
+.nt-home-path-panel-discover .nt-home-demo-opportunity-table > div {
+    border-color: #f0e5fb;
+    background: #ffffff !important;
+    color: #64748b !important;
+}
+
+.nt-home-path-panel-discover .nt-home-demo-opportunity-table .nt-home-demo-table-head {
+    background: #faf5ff !important;
+    color: #7c3aed !important;
+}
+
+.nt-home-path-panel-discover .nt-home-demo-opportunity-table strong {
+    color: #334155 !important;
+}
+
+.nt-home-path-panel-discover .nt-home-demo-opportunity-table em {
+    border: 1px solid #bbf7d0;
+    background: #f0fdf4 !important;
+    color: #15803d !important;
+}
+
+.nt-home-path-panel-discover .nt-home-demo-opportunity-table b {
+    color: #16a34a !important;
+}
+
+/* Market-context preview UI — light green with calm semantic accents. */
+.nt-home-path-panel-context .nt-home-demo-muted,
+.nt-home-path-panel-context .nt-home-demo-muted span,
+.nt-home-path-panel-context .nt-home-demo-muted strong,
+.nt-home-path-panel-context .nt-home-demo-muted em,
+.nt-home-path-panel-context .nt-home-demo-muted b,
+.nt-home-path-panel-context .nt-home-demo-muted small {
+    color: #52606d !important;
+}
+
+.nt-home-path-panel-context .nt-home-demo-market-card {
+    border-color: #c9efd5;
+    background: #f7fff9;
+}
+
+.nt-home-path-panel-context .nt-home-demo-market-card > strong,
+.nt-home-path-panel-context .nt-home-demo-market-card > em {
+    color: #15803d !important;
+}
+
+.nt-home-path-panel-context .nt-home-demo-market-card path {
+    stroke: #16a34a;
+}
+
+.nt-home-path-panel-context .nt-home-demo-progress {
+    background: #dcfce7 !important;
+}
+
+.nt-home-path-panel-context .nt-home-demo-progress span {
+    background: linear-gradient(90deg, #4ade80, #16a34a) !important;
+}
+
+.nt-home-path-panel-context .nt-home-demo-pills span {
+    border-color: #c9efd5 !important;
+    background: #f7fff9 !important;
+    color: #52606d !important;
+}
+
+.nt-home-path-panel-context .nt-home-demo-pills .is-preview-selected {
+    border-color: #86efac !important;
+    background: #dcfce7 !important;
+    color: #15803d !important;
+    box-shadow: inset 0 0 0 1px rgba(22, 163, 74, 0.05) !important;
+}
+
+.nt-home-path-panel-context .nt-home-demo-selection-note {
+    color: #15803d;
+}
+
+.nt-home-path-panel-context .nt-home-demo-context-grid {
+    border-color: #c9efd5;
+    background: #f7fff9;
+}
+
+.nt-home-path-panel-context .nt-home-demo-context-grid span {
+    border-color: #dcfce7 !important;
+    background: #fafffb !important;
+}
+
+.nt-home-path-panel-context .nt-home-demo-context-grid small {
+    color: #64748b !important;
+}
+
+.nt-home-path-panel-context .nt-home-demo-context-grid strong {
+    color: #15803d !important;
+}
+
+.nt-home-path-panel-context .nt-home-demo-context-grid em {
+    color: #64748b !important;
+}
+
+/* Context outcomes are colorful but remain clearly passive: no arrows, hover, or pointer. */
+.nt-home-path-panel-context .nt-home-demo-outcomes span:nth-child(1),
+.nt-home-path-panel-context .nt-home-demo-outcomes span:nth-child(2) {
+    border-color: #bbf7d0 !important;
+    background: #f0fdf4 !important;
+    color: #15803d !important;
+}
+
+.nt-home-path-panel-context .nt-home-demo-outcomes span:nth-child(3) {
+    border-color: #fed7aa !important;
+    background: #fff7ed !important;
+    color: #c2410c !important;
+}
+
+.nt-home-path-panel-context .nt-home-demo-outcomes span:nth-child(4) {
+    border-color: #bfdbfe !important;
+    background: #eff6ff !important;
+    color: #475569 !important;
+}
