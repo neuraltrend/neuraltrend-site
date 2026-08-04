@@ -3478,3 +3478,10 @@
     background: #eff6ff !important;
     color: #475569 !important;
 }
+
+/* Way 2 filter matrix: neutral ALL filter pill. */
+.nt-home-path-panel-discover .nt-home-demo-signal-matrix .is-all {
+    border-color: #cbd5e1 !important;
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+}
