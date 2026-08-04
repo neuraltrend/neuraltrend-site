@@ -1,0 +1,751 @@
+{% extends "base.html" %}
+
+{% block title %}NeuralTrend | AI Market Signals & Strategy Research{% endblock %}
+
+{% block meta_description %}
+Explore NeuralTrend's AI market signals, transparent historical simulations, approved Forward Record, paper-trading tools, and asset-specific research workflows.
+{% endblock %}
+
+{% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
+{% endblock %}
+
+{% block page_styles_after %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260803-current18-flow-arrows-v4') }}">
+{% endblock %}
+
+{% block content %}
+<main class="nt-home-main">
+    <div class="nt-page-container nt-home-page">
+        <div id="checkout-status-banner" class="nt-checkout-banner" style="display:none;">
+            <div>
+                <strong id="checkout-status-title">—</strong>
+                <p id="checkout-status-text">—</p>
+            </div>
+            <button type="button" id="checkout-status-close" class="nt-checkout-banner-close">×</button>
+        </div>
+
+        <section class="nt-market-hero">
+
+            <div class="nt-market-hero-grid">
+        
+                <!-- LEFT: PRODUCT INTRO -->
+                <div class="nt-market-hero-copy">
+        
+                    <h1 class="nt-market-hero-title">
+                        <span>Neural</span> intelligence<br>
+                        for financial markets <span>Trends</span>
+                    </h1>
+        
+                    <p class="nt-market-hero-subtitle">
+                        Outperform the market with transparent signals.
+                    </p>
+        
+                    <div class="nt-market-hero-actions">
+        
+                        <a
+                            href="{{ url_for('dashboard') }}#products"
+                            class="nt-market-hero-btn nt-market-hero-btn-primary"
+                        >
+                            Explore Live Signals
+                            <span aria-hidden="true">→</span>
+                        </a>
+        
+                        <a
+                            href="{{ url_for('subscription') }}"
+                            class="nt-market-hero-btn nt-market-hero-btn-secondary"
+                        >
+                            View Pro Plan
+                        </a>
+        
+                    </div>
+        
+                    <p class="nt-market-hero-disclaimer">
+                        Historical simulations are for informational purposes only and do not constitute financial advice.
+                    </p>
+        
+                </div>
+        
+                <!-- RIGHT: BTC STRATEGY COMPARISON -->
+                <div class="nt-market-hero-visual">
+                    <div class="nt-market-hero-chart-card">
+            
+                        <div class="nt-market-hero-chart-header">
+
+                            <!-- ROW 1 LEFT: ASSETS -->
+                            <div
+                                class="nt-market-hero-assets"
+                                role="group"
+                                aria-label="Select hero chart asset"
+                            >
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-asset-btn active"
+                                    data-hero-ticker="BTC-USD"
+                                    aria-pressed="true"
+                                >
+                                    <span class="nt-market-hero-coin-icon nt-coin-btc">
+                                        ₿
+                                    </span>
+                        
+                                    <span class="nt-market-hero-coin-name">
+                                        BTC-USD
+                                    </span>
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-asset-btn"
+                                    data-hero-ticker="ETH-USD"
+                                    aria-pressed="false"
+                                >
+                                    <span
+                                        class="nt-market-hero-coin-icon nt-coin-eth"
+                                        aria-hidden="true"
+                                    >
+                                        <svg
+                                            viewBox="0 0 256 417"
+                                            role="presentation"
+                                            focusable="false"
+                                        >
+                                            <path class="nt-eth-top-left"
+                                                  d="M127.9 0L125.1 9.5V279.1L127.9 281.9L255.8 206.3Z" />
+                                            <path class="nt-eth-top-right"
+                                                  d="M127.9 0L0 206.3L127.9 281.9V154.1Z" />
+                                            <path class="nt-eth-bottom-left"
+                                                  d="M127.9 306.1L126.3 308.1V416.2L127.9 420.8L255.9 230.5Z" />
+                                            <path class="nt-eth-bottom-right"
+                                                  d="M127.9 420.8V306.1L0 230.5Z" />
+                                            <path class="nt-eth-center-left"
+                                                  d="M127.9 281.9L255.8 206.3L127.9 154.1Z" />
+                                            <path class="nt-eth-center-right"
+                                                  d="M0 206.3L127.9 281.9V154.1Z" />
+                                        </svg>
+                                    </span>
+                        
+                                    <span class="nt-market-hero-coin-name">
+                                        ETH-USD
+                                    </span>
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-asset-btn"
+                                    data-hero-ticker="SOL-USD"
+                                    aria-pressed="false"
+                                >
+                                    <span class="nt-market-hero-coin-icon nt-coin-sol">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </span>
+                        
+                                    <span class="nt-market-hero-coin-name">
+                                        SOL-USD
+                                    </span>
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-asset-btn"
+                                    data-hero-ticker="XRP-USD"
+                                    aria-pressed="false"
+                                >
+                                    <span class="nt-market-hero-coin-icon nt-coin-xrp">
+                                        ✕
+                                    </span>
+                        
+                                    <span class="nt-market-hero-coin-name">
+                                        XRP-USD
+                                    </span>
+                                </button>
+                        
+                            </div>
+                        
+                            <!-- ROW 1 RIGHT: PERIODS -->
+                            <div
+                                class="nt-market-hero-periods"
+                                role="group"
+                                aria-label="Hero chart return horizon"
+                            >
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-period"
+                                    data-hero-duration="3mo"
+                                >
+                                    3M
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-period"
+                                    data-hero-duration="6mo"
+                                >
+                                    6M
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-period"
+                                    data-hero-duration="1y"
+                                >
+                                    1Y
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-period"
+                                    data-hero-duration="3y"
+                                >
+                                    3Y
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-period active"
+                                    data-hero-duration="5y"
+                                >
+                                    5Y
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-period"
+                                    data-hero-duration="10y"
+                                >
+                                    10Y
+                                </button>
+                        
+                                <button
+                                    type="button"
+                                    class="nt-market-hero-period"
+                                    data-hero-duration="max"
+                                    title="Use all available history for this asset"
+                                >
+                                    MAX
+                                </button>
+                            </div>
+                            <!-- ROW 2 LEFT: MORE ASSETS -->
+                            <a
+                                href="{{ url_for('dashboard') }}#signal-overview"
+                                id="nt-market-hero-more-assets"
+                                class="nt-market-hero-more-assets"
+                            >
+                                <span>More Assets</span>
+                                <span aria-hidden="true">›</span>
+                            </a>
+                        
+                            <!-- ROW 2 CENTER: DYNAMIC TITLE -->
+                            <div
+                                id="nt-market-hero-performance-title"
+                                class="nt-market-hero-performance-title"
+                                aria-live="polite"
+                            >
+                                5Y performance of AI strategy vs Buy &amp; Hold for BTC
+                            </div>
+                        
+                            <!-- ROW 2 RIGHT: SCALE -->
+                            <button
+                                type="button"
+                                id="nt-market-hero-scale-toggle"
+                                class="nt-market-hero-scale-toggle"
+                                aria-pressed="false"
+                            >
+                                <span>Log Scale</span>
+                        
+                                <span
+                                    class="nt-market-hero-scale-switch"
+                                    aria-hidden="true"
+                                >
+                                    <span class="nt-market-hero-scale-knob"></span>
+                                </span>
+                            </button>
+                        
+                        </div>
+            
+                        <div class="nt-market-hero-chart-shell">
+            
+                            <div
+                                id="nt-market-hero-chart-loading"
+                                class="nt-market-hero-chart-loading"
+                            >
+                                Loading BTC performance…
+                            </div>
+            
+                            <canvas
+                                id="nt-market-hero-chart"
+                                aria-label="BTC NeuralTrend strategy compared with buy and hold"
+                                role="img"
+                            ></canvas>
+            
+                        </div>
+            
+                        <div class="nt-market-hero-chart-footer">
+            
+                            <div class="nt-market-hero-legend">
+            
+                                <span class="nt-market-hero-legend-item">
+                                    <span class="nt-market-hero-legend-line nt-market-hero-legend-ai"></span>
+                                    NeuralTrend Strategy
+                                </span>
+            
+                                <span class="nt-market-hero-legend-item">
+                                    <span class="nt-market-hero-legend-line nt-market-hero-legend-buyhold"></span>
+                                    <span id="nt-hero-buyhold-legend">
+                                        Buy &amp; Hold (BTC)
+                                    </span>
+                                </span>
+                                            
+                            </div>
+            
+                            <div class="nt-market-hero-footer-meta">
+                                <span class="nt-market-hero-normalized">
+                                    $1 normalized · executed trade costs included ·
+                                    <span
+                                        id="nt-hero-data-freshness"
+                                        class="nt-market-hero-freshness nt-freshness-unknown"
+                                        title="Freshness is checked when the chart loads."
+                                    >Data through — · checking…</span>
+                                </span>
+                            </div>
+            
+                        </div>
+            
+                    </div>
+
+                    <div class="nt-market-hero-metrics">
+
+                        <div class="nt-market-hero-metric-card nt-market-hero-metric-ai">
+                    
+                            <div class="nt-market-hero-metric-copy">
+                                <div class="nt-market-hero-metric-label">
+                                    NeuralTrend Strategy Return
+                                    (<span class="nt-hero-metric-horizon">5Y</span>)
+                                </div>
+                    
+                                <div
+                                    id="nt-hero-strategy-return"
+                                    class="nt-market-hero-metric-value"
+                                >
+                                    —
+                                </div>
+                    
+                            </div>
+                        </div>
+                    
+                        <div class="nt-market-hero-metric-card nt-market-hero-metric-buyhold">
+                    
+                            <div class="nt-market-hero-metric-copy">
+                                <div class="nt-market-hero-metric-label">
+                                    Buy &amp; Hold Return
+                                    (<span class="nt-hero-metric-horizon">5Y</span>)
+                                </div>
+                    
+                                <div
+                                    id="nt-hero-buyhold-return"
+                                    class="nt-market-hero-metric-value"
+                                >
+                                    —
+                                </div>
+                    
+                            </div>
+                        </div>
+                    
+                        <div class="nt-market-hero-metric-card nt-market-hero-metric-alpha">
+                    
+                            <div class="nt-market-hero-metric-copy">
+                                <div class="nt-market-hero-metric-label nt-market-hero-spread-label">
+                                    <span>
+                                        NeuralTrend Return Spread
+                                        (<span class="nt-hero-metric-horizon">5Y</span>)
+                                    </span>
+
+                                    <span class="nt-market-hero-spread-info">
+                                        <button
+                                            type="button"
+                                            id="nt-hero-spread-info-button"
+                                            class="nt-market-hero-info-button"
+                                            aria-label="Explain NeuralTrend return spread"
+                                            aria-describedby="nt-hero-spread-tooltip"
+                                            aria-expanded="false"
+                                        >
+                                            i
+                                        </button>
+
+                                        <span
+                                            id="nt-hero-spread-tooltip"
+                                            class="nt-market-hero-info-tooltip"
+                                            role="tooltip"
+                                        >
+                                            NeuralTrend strategy return minus Buy &amp; Hold return
+                                        </span>
+                                    </span>
+                                </div>
+                    
+                                <div
+                                    id="nt-hero-outperformance"
+                                    class="nt-market-hero-metric-value"
+                                >
+                                    —
+                                </div>
+                    
+                            </div>
+                        </div>   
+                        
+                    </div>
+                </div>      
+            </div>
+        
+        </section>
+
+        <section class="nt-home-paths" aria-labelledby="nt-home-paths-title">
+            <div class="nt-home-paths-heading">
+                <h2 id="nt-home-paths-title">Choose how you use NeuralTrend</h2>
+                <p>Pick the starting point that fits your goal. Open a path to see the exact workflow.</p>
+            </div>
+
+            <div class="nt-home-path-tabs" role="tablist" aria-label="Ways to use NeuralTrend">
+                <button
+                    type="button"
+                    class="nt-home-path-tab nt-home-path-tab-asset"
+                    id="nt-home-path-tab-asset"
+                    data-home-path="asset"
+                    aria-controls="nt-home-path-panel-asset"
+                    aria-expanded="false"
+                >
+                    <span class="nt-home-path-number">1</span>
+                    <span class="nt-home-path-copy">
+                        <strong>I already have an asset in mind</strong>
+                        <small>Search, analyze, and act with confidence.</small>
+                        <span class="nt-home-path-more">See more →</span>
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    class="nt-home-path-tab nt-home-path-tab-discover"
+                    id="nt-home-path-tab-discover"
+                    data-home-path="discover"
+                    aria-controls="nt-home-path-panel-discover"
+                    aria-expanded="false"
+                >
+                    <span class="nt-home-path-number">2</span>
+                    <span class="nt-home-path-copy">
+                        <strong>I don’t have an asset in mind</strong>
+                        <small>Discover the strongest opportunities today.</small>
+                        <span class="nt-home-path-more">See more →</span>
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    class="nt-home-path-tab nt-home-path-tab-context"
+                    id="nt-home-path-tab-context"
+                    data-home-path="context"
+                    aria-controls="nt-home-path-panel-context"
+                    aria-expanded="false"
+                >
+                    <span class="nt-home-path-number">3</span>
+                    <span class="nt-home-path-copy">
+                        <strong>I want market context</strong>
+                        <small>Understand the backdrop before you act.</small>
+                        <span class="nt-home-path-more">See more →</span>
+                    </span>
+                </button>
+            </div>
+
+            <div class="nt-home-path-panels">
+                <section
+                    id="nt-home-path-panel-asset"
+                    class="nt-home-path-panel nt-home-path-panel-asset"
+                    data-home-panel="asset"
+                    aria-labelledby="nt-home-path-tab-asset"
+                    hidden
+                >
+                    <div class="nt-home-path-panel-heading">
+                        <div>
+                            <span class="nt-home-path-panel-kicker">Asset-first workflow</span>
+                            <h3>Analyze an asset you already follow</h3>
+                            <p>Move from ticker search to a clear next step without leaving the Signal Board.</p>
+                        </div>
+                        <a href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Open Signal Board →</a>
+                    </div>
+
+                    <div class="nt-home-path-steps">
+                        <article class="nt-home-path-step">
+                            <span class="nt-home-path-step-number">1</span>
+                            <h4>Search your asset</h4>
+                            <p>Enter a ticker such as BTC, ETH, NVDA, or AAPL and open its latest published analysis.</p>
+                            <div class="nt-home-demo-search" aria-hidden="true">
+                                <span>Search ticker…</span>
+                                <strong>BTC-USD</strong>
+                            </div>
+                        </article>
+
+                        <article class="nt-home-path-step">
+                            <span class="nt-home-path-step-number">2</span>
+                            <h4>Choose the horizon</h4>
+                            <p>Switch between short- and long-term horizons to match the way you trade.</p>
+                            <div class="nt-home-demo-pills" aria-hidden="true">
+                                <span>1W</span><span>1M</span><span class="is-selected">3M</span><span>6M</span><span>1Y</span>
+                            </div>
+                        </article>
+
+                        <article class="nt-home-path-step">
+                            <span class="nt-home-path-step-number">3</span>
+                            <h4>Review signal and performance</h4>
+                            <p>See BUY, HOLD, or SELL, then review confidence, freshness, return history, risk, and the equity curve.</p>
+                            <div class="nt-home-demo-metrics" aria-hidden="true">
+                                <span><small>Signal</small><strong class="is-positive">BUY</strong></span>
+                                <span><small>Confidence</small><strong>76%</strong></span>
+                                <span><small>Freshness</small><strong>2h ago</strong></span>
+                            </div>
+                        </article>
+
+                        <article class="nt-home-path-step">
+                            <span class="nt-home-path-step-number">4</span>
+                            <h4>Choose your next action</h4>
+                            <p>Trade on your exchange, add the asset to a watchlist, or follow it first with a live paper simulation.</p>
+                            <div class="nt-home-demo-actions">
+                                <a href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Take action</a>
+                                <a href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Add to watchlist</a>
+                                <a href="{{ url_for('dashboard') }}#epoch-tool-live" target="_blank" rel="noopener noreferrer">Start live simulation</a>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <section
+                    id="nt-home-path-panel-discover"
+                    class="nt-home-path-panel nt-home-path-panel-discover"
+                    data-home-panel="discover"
+                    aria-labelledby="nt-home-path-tab-discover"
+                    hidden
+                >
+                    <div class="nt-home-path-panel-heading">
+                        <div>
+                            <span class="nt-home-path-panel-kicker">Opportunity-first workflow</span>
+                            <h3>Discover fresh opportunities when no ticker is in mind</h3>
+                            <p>Use the Signal Board as a market screener, then decide which ideas deserve attention.</p>
+                        </div>
+                        <a href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">See current opportunities →</a>
+                    </div>
+
+                    <div class="nt-home-path-steps">
+                        <article class="nt-home-path-step">
+                            <span class="nt-home-path-step-number">1</span>
+                            <h4>Choose market scope</h4>
+                            <p>Filter stocks, crypto, or all supported assets to focus the opportunity list.</p>
+                            <div class="nt-home-demo-options" aria-hidden="true">
+                                <span>Stocks</span><span class="is-selected">Crypto</span><span>All</span>
+                            </div>
+                        </article>
+
+                        <article class="nt-home-path-step">
+                            <span class="nt-home-path-step-number">2</span>
+                            <h4>Filter signals and timing</h4>
+                            <p>Find BUY signals today, review yesterday’s SELL or HOLD changes, or look for BUY momentum over several periods.</p>
+                            <div class="nt-home-demo-filter-stack" aria-hidden="true">
+                                <span>BUY · Today</span>
+                                <span>SELL / HOLD · Yesterday</span>
+                                <span class="is-selected">Fresh BUY · Last week</span>
+                            </div>
+                        </article>
+
+                        <article class="nt-home-path-step">
+                            <span class="nt-home-path-step-number">3</span>
+                            <h4>Rank the candidates</h4>
+                            <p>Sort the results by confidence, freshness, strategy return, or the metric that matters to you.</p>
+                            <div class="nt-home-demo-table" aria-hidden="true">
+                                <span><strong>SOL-USD</strong><em>BUY</em><b>86%</b></span>
+                                <span><strong>ETH-USD</strong><em>BUY</em><b>82%</b></span>
+                                <span><strong>LINK-USD</strong><em>BUY</em><b>78%</b></span>
+                            </div>
+                        </article>
+
+                        <article class="nt-home-path-step">
+                            <span class="nt-home-path-step-number">4</span>
+                            <h4>Research or follow the idea</h4>
+                            <p>Open the asset analysis, act on your exchange, save it to a watchlist, or test it in a live simulation.</p>
+                            <div class="nt-home-demo-actions">
+                                <a href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Open analysis</a>
+                                <a href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Add to watchlist</a>
+                                <a href="{{ url_for('dashboard') }}#epoch-tool-live" target="_blank" rel="noopener noreferrer">Start live simulation</a>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <section
+                    id="nt-home-path-panel-context"
+                    class="nt-home-path-panel nt-home-path-panel-context"
+                    data-home-panel="context"
+                    aria-labelledby="nt-home-path-tab-context"
+                    hidden
+                >
+                    <div class="nt-home-path-panel-heading">
+                        <div>
+                            <span class="nt-home-path-panel-kicker">Market-context workflow</span>
+                            <h3>Decide how aggressively to participate in the market</h3>
+                            <p>Use AltIndexer to understand broad direction before buying, selling, or changing exposure.</p>
+                        </div>
+                        <a href="{{ url_for('dashboard') }}#altindexer-section" target="_blank" rel="noopener noreferrer">Open AltIndexer →</a>
+                    </div>
+
+                    <div class="nt-home-path-steps">
+                        <article class="nt-home-path-step">
+                            <span class="nt-home-path-step-number">1</span>
+                            <h4>Open AltIndexer</h4>
+                            <p>Start with the market-level view when you are unsure whether conditions favor risk-taking.</p>
+                            <div class="nt-home-demo-gauge" aria-hidden="true">
+                                <small>Market score</small>
+                                <strong>72</strong>
+                                <span>Bullish</span>
+                            </div>
+                        </article>
+
+                        <article class="nt-home-path-step">
+                            <span class="nt-home-path-step-number">2</span>
+                            <h4>Change the horizon</h4>
+                            <p>Compare short and longer horizons to see whether market breadth is strengthening or weakening.</p>
+                            <div class="nt-home-demo-pills" aria-hidden="true">
+                                <span>1W</span><span>1M</span><span class="is-selected">3M</span><span>6M</span><span>1Y</span>
+                            </div>
+                        </article>
+
+                        <article class="nt-home-path-step">
+                            <span class="nt-home-path-step-number">3</span>
+                            <h4>Read the market backdrop</h4>
+                            <p>Review direction, breadth, regime, and recent movement to understand whether conditions are improving.</p>
+                            <div class="nt-home-demo-context" aria-hidden="true">
+                                <span><small>Direction</small><strong>Bullish</strong></span>
+                                <span><small>Breadth</small><strong>Strong</strong></span>
+                                <span><small>Trend</small><strong>Improving</strong></span>
+                            </div>
+                        </article>
+
+                        <article class="nt-home-path-step">
+                            <span class="nt-home-path-step-number">4</span>
+                            <h4>Adjust your exposure</h4>
+                            <p>Use the backdrop to buy more aggressively, add gradually, reduce exposure, or wait for clearer conditions.</p>
+                            <div class="nt-home-demo-outcomes" aria-hidden="true">
+                                <span class="is-positive">Buy more aggressively</span>
+                                <span class="is-positive">Buy gradually</span>
+                                <span class="is-caution">Reduce exposure</span>
+                                <span>Wait and monitor</span>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <section class="nt-home-tools-band" aria-labelledby="nt-home-tools-title">
+            <div class="nt-home-tools-heading">
+                <h2 id="nt-home-tools-title">Platform tools</h2>
+                <p>Once you know your path, use the tools that support it.</p>
+            </div>
+            <div class="nt-home-tools-grid">
+                <a href="{{ url_for('dashboard') }}#signal-overview" class="nt-home-tool-card nt-home-tool-blue">
+                    <span class="nt-home-tool-icon">✦</span>
+                    <strong>Signal Board</strong>
+                    <p>Search a ticker or screen the market for fresh BUY, HOLD, and SELL signals.</p>
+                    <span>Explore signals →</span>
+                </a>
+                <a href="{{ url_for('dashboard') }}#epoch-tool-backtest" class="nt-home-tool-card nt-home-tool-purple">
+                    <span class="nt-home-tool-icon">▥</span>
+                    <strong>Backtests</strong>
+                    <p>Validate a strategy across historical periods with transparent assumptions.</p>
+                    <span>Run backtests →</span>
+                </a>
+                <a href="{{ url_for('dashboard') }}#signal-overview" class="nt-home-tool-card nt-home-tool-green">
+                    <span class="nt-home-tool-icon">☆</span>
+                    <strong>Watchlists &amp; Alerts</strong>
+                    <p>Follow assets before acting and receive updates when their signals change.</p>
+                    <span>Create watchlist →</span>
+                </a>
+                <a href="{{ url_for('dashboard') }}#epoch-tool-live" class="nt-home-tool-card nt-home-tool-orange">
+                    <span class="nt-home-tool-icon">▶</span>
+                    <strong>Paper Simulations</strong>
+                    <p>Test signals prospectively with virtual capital before committing real money.</p>
+                    <span>Start simulation →</span>
+                </a>
+                <a href="{{ url_for('dashboard') }}#altindexer-section" class="nt-home-tool-card nt-home-tool-teal">
+                    <span class="nt-home-tool-icon">◔</span>
+                    <strong>AltIndexer</strong>
+                    <p>Read market breadth, direction, and regime before changing exposure.</p>
+                    <span>Open AltIndexer →</span>
+                </a>
+            </div>
+        </section>
+
+        <section class="nt-home-transparency-band" aria-labelledby="nt-home-transparency-title">
+            <div class="nt-home-transparency-heading">
+                <h2 id="nt-home-transparency-title">Built on transparency</h2>
+                <p>Evaluate the signal, the history, the methodology, and the risks before relying on a result.</p>
+            </div>
+            <div class="nt-home-transparency-grid">
+                <a href="{{ url_for('dashboard') }}#signal-overview">
+                    <strong>Published signals</strong>
+                    <p>Every signal is time-stamped and available with freshness and supporting context.</p>
+                    <span>View signals →</span>
+                </a>
+                <a href="{{ url_for('performance') }}">
+                    <strong>Public performance record</strong>
+                    <p>Review approved results, resolved costs, full history, and reported risk metrics.</p>
+                    <span>View performance →</span>
+                </a>
+                <a href="{{ url_for('methodology') }}">
+                    <strong>Methodology</strong>
+                    <p>Understand the data, assumptions, and documented process behind the platform.</p>
+                    <span>Read methodology →</span>
+                </a>
+                <a href="{{ url_for('risk_disclaimer') }}">
+                    <strong>Risk disclosures</strong>
+                    <p>Review the limitations, assumptions, and risks before using the research.</p>
+                    <span>View disclosures →</span>
+                </a>
+            </div>
+        </section>
+
+        <section class="nt-home-section nt-home-plans nt-home-plans-redesigned" aria-labelledby="nt-home-plan-title">
+            <div class="nt-home-section-heading nt-home-section-heading-centered">
+                <h2 id="nt-home-plan-title">Membership</h2>
+                <p>Unlock AI strategies designed to outperform traditional methods.</p>
+            </div>
+            <div class="nt-home-plan-grid">
+                <article class="nt-home-plan-card">
+                    <span class="nt-home-plan-label">Free</span>
+                    <h3>$0</h3>
+                    <ul class="nt-home-plan-benefits">
+                        <li>Full signals for BTC, ETH, SOL, and XRP</li>
+                        <li>Core research experience</li>
+                        <li>Limited backtests and simulations</li>
+                    </ul>
+                    <a href="{{ url_for('dashboard') }}#signal-overview">Explore free assets →</a>
+                </article>
+                <article class="nt-home-plan-card nt-home-plan-card-pro">
+                    <span class="nt-home-plan-label">NeuralTrend Pro</span>
+                    <h3>$9.99 <small>/ month</small></h3>
+                    <p><strong>Or $99.99/year</strong> — the same Pro access with annual savings.</p>
+                    <ul class="nt-home-plan-benefits">
+                        <li>All supported assets and markets</li>
+                        <li>Full history, backtests, watchlists, and alerts</li>
+                        <li>Up to 100 live paper simulations</li>
+                    </ul>
+                    <a href="{{ url_for('subscription') }}">View Pro plan →</a>
+                </article>
+            </div>
+        </section>
+
+    </div>
+</main>
+{% endblock %}
+
+{% block page_scripts %}
+<script src="{{ url_for('static', filename='js/neuraltrend-checkout-status.js') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-hero.js') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-home.js') }}"></script>
+{% endblock %}
