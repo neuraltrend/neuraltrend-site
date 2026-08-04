@@ -12,7 +12,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
 {% endblock %}
 
 {% block page_styles_after %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260803-workflow-cta-signal-pills-v1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260803-workflow-cta-signal-pills-v2') }}">
 {% endblock %}
 
 {% block content %}
@@ -573,8 +573,8 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                             </div>
                             <div class="nt-home-demo-crypto-list nt-home-demo-muted" aria-hidden="true">
                                 <div class="nt-home-demo-crypto-list-head"><span>Crypto asset</span><span>Signal</span></div>
-                                <div><strong>BTC-USD</strong><em>BUY</em></div>
-                                <div><strong>ETH-USD</strong><em>BUY</em></div>
+                                <div><strong>BTC-USD</strong><em class="is-buy">BUY</em></div>
+                                <div><strong>ETH-USD</strong><em class="is-buy">BUY</em></div>
                             </div>
                             <div class="nt-home-preview-footer" aria-hidden="true">Preview</div>
                         </article>
@@ -612,9 +612,9 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                             <p>Sort the results by confidence, freshness, strategy return, or the metric that matters to you.</p>
                             <div class="nt-home-demo-opportunity-table nt-home-demo-opportunity-table-return nt-home-demo-muted" aria-hidden="true">
                                 <div class="nt-home-demo-table-head"><span>Asset</span><span>Signal</span><span>Return (1Y) ↓</span></div>
-                                <div><strong>SOL-USD</strong><em>BUY</em><span class="nt-home-demo-return-value">+64.8%</span></div>
-                                <div><strong>ETH-USD</strong><em>BUY</em><span class="nt-home-demo-return-value">+52.3%</span></div>
-                                <div><strong>AVAX-USD</strong><em>BUY</em><span class="nt-home-demo-return-value">+41.6%</span></div>
+                                <div><strong>SOL-USD</strong><em class="is-buy">BUY</em><span class="nt-home-demo-return-value">+64.8%</span></div>
+                                <div><strong>ETH-USD</strong><em class="is-buy">BUY</em><span class="nt-home-demo-return-value">+52.3%</span></div>
+                                <div><strong>AVAX-USD</strong><em class="is-buy">BUY</em><span class="nt-home-demo-return-value">+41.6%</span></div>
                             </div>
                             <div class="nt-home-preview-footer" aria-hidden="true">Preview</div>
                         </article>
@@ -702,7 +702,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                             <h4>Decide how to act</h4>
                             <p>Use the context to guide your next steps with greater conviction.</p>
                             <div class="nt-home-demo-outcomes nt-home-demo-muted" aria-hidden="true">
-                                <span>Buy more aggressively</span>
                                 <span>Buy gradually</span>
                                 <span>Reduce exposure</span>
                                 <span>Wait and monitor</span>
