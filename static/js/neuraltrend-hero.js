@@ -829,8 +829,18 @@
         let isHovered = false;
         let hasFocus = false;
 
+        /*
+         * Render the tooltip outside the transformed/clipped hero.
+         * A fixed element inside the hero is otherwise positioned against the
+         * transformed hero and can be clipped by its full-width clip-path.
+         */
+        const tooltipPortal =
+            document.querySelector(".nt-home-page") || document.body;
+        tooltipPortal.appendChild(tooltip);
+        tooltip.classList.add("nt-market-hero-info-tooltip-portal");
+
         function positionTooltip() {
-            if (!wrapper.classList.contains("is-visible")) {
+            if (!tooltip.classList.contains("is-visible")) {
                 return;
             }
 
@@ -852,14 +862,20 @@
                 )
             );
 
-            let top = buttonRect.bottom + gap;
+            /* Prefer opening above the info icon, then fall back below. */
+            let top = buttonRect.top - tooltipRect.height - gap;
 
-            if (
-                top + tooltipRect.height >
-                window.innerHeight - viewportPadding
-            ) {
-                top = buttonRect.top - tooltipRect.height - gap;
+            if (top < viewportPadding) {
+                top = buttonRect.bottom + gap;
             }
+
+            top = Math.max(
+                viewportPadding,
+                Math.min(
+                    top,
+                    window.innerHeight - tooltipRect.height - viewportPadding
+                )
+            );
 
             tooltip.style.left = `${Math.round(left)}px`;
             tooltip.style.top = `${Math.round(top)}px`;
@@ -867,6 +883,7 @@
 
         function showTooltip() {
             wrapper.classList.add("is-visible");
+            tooltip.classList.add("is-visible");
             button.setAttribute("aria-expanded", "true");
             window.requestAnimationFrame(positionTooltip);
         }
@@ -877,6 +894,7 @@
             }
 
             wrapper.classList.remove("is-visible");
+            tooltip.classList.remove("is-visible");
             button.setAttribute("aria-expanded", "false");
         }
 
@@ -920,7 +938,7 @@
         });
 
         document.addEventListener("click", function (event) {
-            if (wrapper.contains(event.target)) {
+            if (wrapper.contains(event.target) || tooltip.contains(event.target)) {
                 return;
             }
 
