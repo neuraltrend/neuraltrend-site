@@ -368,12 +368,21 @@
         visibility 0s linear 0.14s;
 }
 
-.nt-home-page .nt-market-hero-spread-info.is-visible .nt-market-hero-info-tooltip {
+.nt-home-page .nt-market-hero-spread-info.is-visible .nt-market-hero-info-tooltip,
+.nt-home-page .nt-market-hero-info-tooltip.is-visible {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
     transform: translateY(0);
     transition-delay: 0s;
+}
+
+/*
+ * The tooltip is moved into a page-level portal by JavaScript so it is not
+ * trapped by the hero's transform and clip-path stacking context.
+ */
+.nt-home-page .nt-market-hero-info-tooltip-portal {
+    z-index: 2147483000;
 }
 
 @media (max-width: 700px) {
