@@ -12,7 +12,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
 {% endblock %}
 
 {% block page_styles_after %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260804-workflow-combined-actions-v1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260804-hero-spread-tooltip-v2') }}">
 {% endblock %}
 
 {% block content %}
@@ -477,7 +477,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                         <article class="nt-home-path-step nt-home-path-step-preview">
                             <div class="nt-home-path-step-meta">
                                 <span class="nt-home-path-step-number">1</span>
-                                <span class="nt-home-preview-badge">Preview</span>
                             </div>
                             <h4>Search your asset</h4>
                             <p>Enter a ticker such as BTC, ETH, NVDA, or AAPL and open its latest published analysis.</p>
@@ -490,7 +489,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                         <article class="nt-home-path-step nt-home-path-step-preview">
                             <div class="nt-home-path-step-meta">
                                 <span class="nt-home-path-step-number">2</span>
-                                <span class="nt-home-preview-badge">Preview</span>
                             </div>
                             <h4>Choose the horizon</h4>
                             <p>Switch between short- and long-term horizons to match the way you trade.</p>
@@ -502,7 +500,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                         <article class="nt-home-path-step nt-home-path-step-preview">
                             <div class="nt-home-path-step-meta">
                                 <span class="nt-home-path-step-number">3</span>
-                                <span class="nt-home-preview-badge">Preview</span>
                             </div>
                             <h4>Review signal and performance</h4>
                             <p>See BUY, HOLD, or SELL, then review confidence, freshness, return history, risk, and the equity curve.</p>
@@ -555,7 +552,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                         <article class="nt-home-path-step nt-home-path-step-preview">
                             <div class="nt-home-path-step-meta">
                                 <span class="nt-home-path-step-number">1</span>
-                                <span class="nt-home-preview-badge">Preview</span>
                             </div>
                             <h4>Choose market scope</h4>
                             <p>Filter stocks, crypto, or all supported assets to focus the opportunity list.</p>
@@ -572,7 +568,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                         <article class="nt-home-path-step nt-home-path-step-preview">
                             <div class="nt-home-path-step-meta">
                                 <span class="nt-home-path-step-number">2</span>
-                                <span class="nt-home-preview-badge">Preview</span>
                             </div>
                             <h4>Filter for signal type and recency</h4>
                             <p>Filter today, yesterday, last week, or last month signal (or any combination of them) using BUY/SELL/HOLD filter to find your desired trade setup.</p>
@@ -595,7 +590,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                         <article class="nt-home-path-step nt-home-path-step-preview">
                             <div class="nt-home-path-step-meta">
                                 <span class="nt-home-path-step-number">3</span>
-                                <span class="nt-home-preview-badge">Preview</span>
                             </div>
                             <h4>Review the opportunities</h4>
                             <p>Sort the results by confidence, freshness, strategy return, or the metric that matters to you.</p>
@@ -644,7 +638,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                         <article class="nt-home-path-step nt-home-path-step-preview">
                             <div class="nt-home-path-step-meta">
                                 <span class="nt-home-path-step-number">1</span>
-                                <span class="nt-home-preview-badge">Preview</span>
                             </div>
                             <h4>Open AltIndexer</h4>
                             <p>Explore real-time market breadth and key indicators in AltIndexer.</p>
@@ -660,7 +653,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                         <article class="nt-home-path-step nt-home-path-step-preview">
                             <div class="nt-home-path-step-meta">
                                 <span class="nt-home-path-step-number">2</span>
-                                <span class="nt-home-preview-badge">Preview</span>
                             </div>
                             <h4>Choose the horizon</h4>
                             <p>Select the time horizon that best matches your planning window.</p>
@@ -673,7 +665,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                         <article class="nt-home-path-step nt-home-path-step-preview">
                             <div class="nt-home-path-step-meta">
                                 <span class="nt-home-path-step-number">3</span>
-                                <span class="nt-home-preview-badge">Preview</span>
                             </div>
                             <h4>Review market context</h4>
                             <p>See the current market picture across direction, breadth, regime, and conditions.</p>
@@ -688,7 +679,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                         <article class="nt-home-path-step nt-home-path-step-preview">
                             <div class="nt-home-path-step-meta">
                                 <span class="nt-home-path-step-number">4</span>
-                                <span class="nt-home-preview-badge">Preview</span>
                             </div>
                             <h4>Decide how to act</h4>
                             <p>Use the context to guide your next steps with greater conviction.</p>
@@ -808,6 +798,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
 
 {% block page_scripts %}
 <script src="{{ url_for('static', filename='js/neuraltrend-checkout-status.js') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-hero.js') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-hero.js', v='20260804-hero-spread-tooltip-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-home.js') }}"></script>
 {% endblock %}
