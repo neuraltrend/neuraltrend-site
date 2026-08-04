@@ -12,7 +12,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
 {% endblock %}
 
 {% block page_styles_after %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260804-workflow-cta-polish-v1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260804-workflow-combined-actions-v1') }}">
 {% endblock %}
 
 {% block content %}
@@ -523,9 +523,12 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                                 <span class="nt-home-path-step-number">4</span>
                             </div>
                             <h4>Choose your next action</h4>
-                            <div class="nt-home-demo-actions nt-home-demo-actions-solid">
-                                <a class="nt-home-action-take" href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Take action</a>
-                                <a class="nt-home-action-watch" href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Add to watchlist</a>
+                            <div class="nt-home-demo-actions nt-home-demo-actions-solid nt-home-demo-actions-two">
+                                <a class="nt-home-action-combined" href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">
+                                    <span class="nt-home-action-combined-part"><span class="nt-home-action-inline-icon" aria-hidden="true">⚡</span>Take action</span>
+                                    <span class="nt-home-action-divider" aria-hidden="true">/</span>
+                                    <span class="nt-home-action-combined-part"><span class="nt-home-action-inline-icon" aria-hidden="true">☆</span>Add to watchlist</span>
+                                </a>
                                 <a class="nt-home-action-sim" href="{{ url_for('dashboard') }}#epoch-tool-live" target="_blank" rel="noopener noreferrer">Start live simulation</a>
                             </div>
                         </article>
@@ -609,9 +612,12 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                                 <span class="nt-home-path-step-number">4</span>
                             </div>
                             <h4>Research or follow the idea</h4>
-                            <div class="nt-home-demo-actions nt-home-demo-actions-solid">
-                                <a class="nt-home-action-take" href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Take action</a>
-                                <a class="nt-home-action-watch" href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Add to watchlist</a>
+                            <div class="nt-home-demo-actions nt-home-demo-actions-solid nt-home-demo-actions-two">
+                                <a class="nt-home-action-combined" href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">
+                                    <span class="nt-home-action-combined-part"><span class="nt-home-action-inline-icon" aria-hidden="true">⚡</span>Take action</span>
+                                    <span class="nt-home-action-divider" aria-hidden="true">/</span>
+                                    <span class="nt-home-action-combined-part"><span class="nt-home-action-inline-icon" aria-hidden="true">☆</span>Add to watchlist</span>
+                                </a>
                                 <a class="nt-home-action-sim" href="{{ url_for('dashboard') }}#epoch-tool-live" target="_blank" rel="noopener noreferrer">Start live simulation</a>
                             </div>
                         </article>
