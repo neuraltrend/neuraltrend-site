@@ -28,24 +28,39 @@
         });
     }
     
+    function altIndexerScoreFromRaw(value) {
+        const numericValue = Number(value);
+
+        if (!Number.isFinite(numericValue)) {
+            return null;
+        }
+
+        // The stored AltIndexer series uses a normalized -1 to +1 scale.
+        // Present it to users as an intuitive integer score from 0 to 100.
+        return Math.round(Math.max(0, Math.min(100, (numericValue + 1) * 50)));
+    }
+
     function normalizeAltIndexerRows(data) {
         const dates = Array.isArray(data.dates) ? data.dates : [];
         const values = Array.isArray(data.index) ? data.index : [];
     
         return dates
             .map((dateValue, index) => {
-                const numericValue = Number(values[index]);
+                const rawValue = Number(values[index]);
+                const score = altIndexerScoreFromRaw(rawValue);
                 const dateObj = ntAltParseDate(dateValue);
     
                 return {
                     date: String(dateValue || ""),
                     dateObj,
-                    value: numericValue
+                    rawValue,
+                    value: score
                 };
             })
             .filter(row =>
                 row.date &&
-                Number.isFinite(row.value) &&
+                Number.isFinite(row.rawValue) &&
+                Number.isInteger(row.value) &&
                 !Number.isNaN(row.dateObj.getTime())
             )
             .sort((a, b) => a.dateObj - b.dateObj);
@@ -73,7 +88,7 @@
     }
     
     function altIndexerZone(value) {
-        if (value > 0) {
+        if (value > 50) {
             return {
                 label: "Buy Zone",
                 valueClass: "return-positive",
@@ -82,7 +97,7 @@
             };
         }
     
-        if (value < 0) {
+        if (value < 50) {
             return {
                 label: "Sell Zone",
                 valueClass: "return-negative",
@@ -104,10 +119,7 @@
             return "—";
         }
     
-        const numericValue = Number(value);
-        const sign = numericValue > 0 ? "+" : "";
-    
-        return `${sign}${numericValue.toFixed(3)}`;
+        return String(Math.round(Number(value)));
     }
     
     function updateAltIndexerMetric(metricId, point, fallbackIcon) {
@@ -174,8 +186,9 @@
                 y: rows.map(row => row.value),
                 type: "scatter",
                 mode: "lines",
-                name: "Index",
-                line: { width: 2 }
+                name: "AltIndexer Score",
+                line: { width: 2 },
+                hovertemplate: "%{y}<extra></extra>"
             };
     
             const layout = {
@@ -206,9 +219,13 @@
                 },
     
                 yaxis: {
-                    title: "Index",
-                    zeroline: true,
-                    range: [-1, 1]
+                    title: "AltIndexer Score",
+                    range: [0, 100],
+                    tickmode: "array",
+                    tickvals: [0, 25, 50, 75, 100],
+                    ticktext: ["0", "25", "50", "75", "100"],
+                    zeroline: false,
+                    fixedrange: false
                 },
     
                 shapes: [
@@ -218,8 +235,8 @@
                         yref: "y",
                         x0: 0,
                         x1: 1,
-                        y0: 0,
-                        y1: 1,
+                        y0: 50,
+                        y1: 100,
                         fillcolor: "rgba(34, 197, 94, 0.12)",
                         line: { width: 0 },
                         layer: "below"
@@ -230,10 +247,25 @@
                         yref: "y",
                         x0: 0,
                         x1: 1,
-                        y0: -1,
-                        y1: 0,
+                        y0: 0,
+                        y1: 50,
                         fillcolor: "rgba(239, 68, 68, 0.12)",
                         line: { width: 0 },
+                        layer: "below"
+                    },
+                    {
+                        type: "line",
+                        xref: "paper",
+                        yref: "y",
+                        x0: 0,
+                        x1: 1,
+                        y0: 50,
+                        y1: 50,
+                        line: {
+                            color: "rgba(148, 163, 184, 0.72)",
+                            width: 1,
+                            dash: "dot"
+                        },
                         layer: "below"
                     }
                 ],
@@ -243,7 +275,7 @@
                         xref: "paper",
                         yref: "y",
                         x: 0.5,
-                        y: 0.5,
+                        y: 75,
                         text: "Buy Zone",
                         showarrow: false,
                         font: {
@@ -255,7 +287,7 @@
                         xref: "paper",
                         yref: "y",
                         x: 0.5,
-                        y: -0.5,
+                        y: 25,
                         text: "Sell Zone",
                         showarrow: false,
                         font: {
