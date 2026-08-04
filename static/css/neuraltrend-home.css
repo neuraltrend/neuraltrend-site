@@ -3346,3 +3346,39 @@
         font-size: 7.5px;
     }
 }
+
+/* ==================================================
+   Workflow CTA and signal-pill refinements — Aug 3, 2026
+================================================== */
+
+/* Match the asset-first panel CTA to the exact blue used by the Way 1 number badge. */
+.nt-home-path-panel-asset .nt-home-path-panel-heading > a {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.24);
+}
+
+.nt-home-path-panel-asset .nt-home-path-panel-heading > a:hover {
+    border-color: #1d4ed8;
+    background: #1d4ed8;
+    color: #ffffff;
+    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.30);
+}
+
+/* Render result signals with the same compact colored pill format as the filter header. */
+.nt-home-demo-signal-matrix-filters b,
+.nt-home-demo-signal-matrix-results em {
+    width: max-content;
+    min-width: 34px;
+    min-height: 20px;
+    justify-self: center;
+    align-self: center;
+    padding: 0 7px;
+    border-radius: 999px;
+    line-height: 1;
+}
+
+.nt-home-demo-signal-matrix-results em {
+    display: inline-flex;
+}
