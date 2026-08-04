@@ -3382,3 +3382,99 @@
 .nt-home-demo-signal-matrix-results em {
     display: inline-flex;
 }
+
+/* ==================================================
+   Workflow action color and signal pill refinements — Aug 3, 2026 (final)
+================================================== */
+
+/* Use the approved website-friendly action palette for Ways 1 and 2.
+   Blue = act now, teal = watchlist, purple = live simulation. */
+.nt-home-path-panel-asset .nt-home-demo-actions-solid .nt-home-action-take,
+.nt-home-path-panel-discover .nt-home-demo-actions-solid .nt-home-action-take {
+    border-color: #2563eb;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-actions-solid .nt-home-action-watch,
+.nt-home-path-panel-discover .nt-home-demo-actions-solid .nt-home-action-watch {
+    border-color: #06b6d4;
+    background: linear-gradient(135deg, #22d3ee, #06b6d4);
+    color: #ffffff;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-actions-solid .nt-home-action-sim,
+.nt-home-path-panel-discover .nt-home-demo-actions-solid .nt-home-action-sim {
+    border-color: #6366f1;
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    color: #ffffff;
+}
+
+/* Match BUY / HOLD / SELL pills in Way #2 to signal-board styling.
+   BUY = light green pill with dark green text
+   SELL = light red pill with dark red text
+   HOLD = light gray pill with dark gray text */
+.nt-home-path-panel-discover .nt-home-demo-crypto-list em,
+.nt-home-path-panel-discover .nt-home-demo-opportunity-table em,
+.nt-home-path-panel-discover .nt-home-demo-signal-matrix-filters b,
+.nt-home-path-panel-discover .nt-home-demo-signal-matrix-results em {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    min-width: 38px;
+    min-height: 20px;
+    padding: 0 8px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 8px;
+    line-height: 1;
+    font-style: normal;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+.nt-home-path-panel-discover .nt-home-demo-crypto-list .is-buy,
+.nt-home-path-panel-discover .nt-home-demo-opportunity-table .is-buy,
+.nt-home-path-panel-discover .nt-home-demo-signal-matrix .is-buy {
+    border-color: #bbf7d0 !important;
+    background: #f0fdf4 !important;
+    color: #166534 !important;
+}
+
+.nt-home-path-panel-discover .nt-home-demo-signal-matrix .is-sell {
+    border-color: #fecaca !important;
+    background: #fef2f2 !important;
+    color: #991b1b !important;
+}
+
+.nt-home-path-panel-discover .nt-home-demo-signal-matrix .is-hold {
+    border-color: #d1d5db !important;
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+}
+
+/* Ensure rows in step 3 align neatly with the compact signal pills. */
+.nt-home-path-panel-discover .nt-home-demo-opportunity-table em,
+.nt-home-path-panel-discover .nt-home-demo-crypto-list em {
+    justify-self: start;
+}
+
+/* After removing the first passive outcome, remap the remaining 3 colors. */
+.nt-home-path-panel-context .nt-home-demo-outcomes span:nth-child(1) {
+    border-color: #bbf7d0 !important;
+    background: #f0fdf4 !important;
+    color: #15803d !important;
+}
+
+.nt-home-path-panel-context .nt-home-demo-outcomes span:nth-child(2) {
+    border-color: #fed7aa !important;
+    background: #fff7ed !important;
+    color: #c2410c !important;
+}
+
+.nt-home-path-panel-context .nt-home-demo-outcomes span:nth-child(3) {
+    border-color: #bfdbfe !important;
+    background: #eff6ff !important;
+    color: #475569 !important;
+}
