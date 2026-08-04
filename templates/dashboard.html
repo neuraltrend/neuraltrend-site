@@ -1381,7 +1381,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                             <div>
                                 <div class="nt-model-feature-title">Normalized market-regime score</div>
                                 <div class="nt-model-feature-text">
-                                    The final AltIndexer value is shown on a normalized scale. Positive values indicate a stronger altcoin regime, while negative values indicate a weaker or defensive regime.
+                                    The final AltIndexer value is displayed as an integer from 0 to 100. Scores above 50 indicate a stronger altcoin regime, scores below 50 indicate a weaker or defensive regime, and 50 is neutral.
                                 </div>
                             </div>
                         </div>
@@ -1467,7 +1467,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 <script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-watchlist.js') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest-form.js') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js', v='20260804-score-0-100-v1') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-subscription-bridge.js') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-checkout-status.js') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-model-tabs.js') }}"></script>
