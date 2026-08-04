@@ -12,7 +12,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
 {% endblock %}
 
 {% block page_styles_after %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260803-workflow-color-preview-v1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260803-workflow-detail-refine-v2') }}">
 {% endblock %}
 
 {% block content %}
@@ -517,7 +517,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                             <div class="nt-home-demo-metrics nt-home-demo-muted" aria-hidden="true">
                                 <span><small>Signal</small><strong>BUY</strong></span>
                                 <span><small>Confidence</small><strong>76%</strong></span>
-                                <span><small>Freshness</small><strong>2h ago</strong></span>
+                                <span><small>Return (6M)</small><strong class="nt-home-demo-positive-return">+24.6%</strong></span>
                             </div>
                             <div class="nt-home-demo-sparkline" aria-hidden="true">
                                 <svg viewBox="0 0 220 56" preserveAspectRatio="none" focusable="false">
@@ -571,9 +571,10 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                             <div class="nt-home-demo-options nt-home-demo-muted" aria-hidden="true">
                                 <span>Stocks</span><span class="is-preview-selected">Crypto</span><span>All</span>
                             </div>
-                            <div class="nt-home-demo-skeleton" aria-hidden="true">
-                                <span class="nt-home-demo-skeleton-icon">◉</span>
-                                <span></span><span></span><span></span>
+                            <div class="nt-home-demo-crypto-list nt-home-demo-muted" aria-hidden="true">
+                                <div class="nt-home-demo-crypto-list-head"><span>Crypto asset</span><span>Signal</span></div>
+                                <div><strong>BTC-USD</strong><em>BUY</em></div>
+                                <div><strong>ETH-USD</strong><em>BUY</em></div>
                             </div>
                             <div class="nt-home-preview-footer" aria-hidden="true">Preview</div>
                         </article>
@@ -584,13 +585,20 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                                 <span class="nt-home-preview-badge">Preview</span>
                             </div>
                             <h4>Filter for signal type and recency</h4>
-                            <p>Find BUY signals today, review yesterday’s SELL or HOLD changes, or look for BUY momentum over several periods.</p>
-                            <div class="nt-home-demo-filter-chips nt-home-demo-muted" aria-hidden="true">
-                                <span>BUY today</span><span>BUY yesterday</span><span>SELL yesterday</span><span class="is-preview-selected">Fresh BUY signals</span><span>Last week</span>
-                            </div>
-                            <div class="nt-home-demo-skeleton nt-home-demo-skeleton-calendar" aria-hidden="true">
-                                <span class="nt-home-demo-skeleton-icon">▣</span>
-                                <span></span><span></span><span></span>
+                            <p>Filter today, yesterday, last week, or last month signal (or any combination of them) using BUY/SELL/HOLD filter to find your desired trade setup.</p>
+                            <div class="nt-home-demo-signal-matrix nt-home-demo-muted" aria-hidden="true">
+                                <div class="nt-home-demo-signal-matrix-filters">
+                                    <span class="nt-home-demo-signal-matrix-corner">Asset</span>
+                                    <span><small>Today</small><b class="is-buy">BUY</b></span>
+                                    <span><small>Yesterday</small><b class="is-sell">SELL</b></span>
+                                    <span><small>Last week</small><b class="is-hold">HOLD</b></span>
+                                    <span><small>Last month</small><b class="is-buy">BUY</b></span>
+                                </div>
+                                <div class="nt-home-demo-signal-matrix-results">
+                                    <div><strong>BTC</strong><em class="is-buy">BUY</em><em class="is-sell">SELL</em><em class="is-hold">HOLD</em><em class="is-buy">BUY</em></div>
+                                    <div><strong>ETH</strong><em class="is-buy">BUY</em><em class="is-sell">SELL</em><em class="is-hold">HOLD</em><em class="is-buy">BUY</em></div>
+                                    <div><strong>SOL</strong><em class="is-buy">BUY</em><em class="is-sell">SELL</em><em class="is-hold">HOLD</em><em class="is-buy">BUY</em></div>
+                                </div>
                             </div>
                             <div class="nt-home-preview-footer" aria-hidden="true">Preview</div>
                         </article>
@@ -602,11 +610,11 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                             </div>
                             <h4>Review the opportunities</h4>
                             <p>Sort the results by confidence, freshness, strategy return, or the metric that matters to you.</p>
-                            <div class="nt-home-demo-opportunity-table nt-home-demo-muted" aria-hidden="true">
-                                <div class="nt-home-demo-table-head"><span>Asset</span><span>Signal</span><span>Freshness</span><span></span></div>
-                                <div><strong>SOL-USD</strong><em>BUY</em><span>2h ago</span><b>⌁</b></div>
-                                <div><strong>ETH-USD</strong><em>BUY</em><span>5h ago</span><b>⌁</b></div>
-                                <div><strong>AVAX-USD</strong><em>BUY</em><span>1d ago</span><b>⌁</b></div>
+                            <div class="nt-home-demo-opportunity-table nt-home-demo-opportunity-table-return nt-home-demo-muted" aria-hidden="true">
+                                <div class="nt-home-demo-table-head"><span>Asset</span><span>Signal</span><span>Return (1Y) ↓</span></div>
+                                <div><strong>SOL-USD</strong><em>BUY</em><span class="nt-home-demo-return-value">+64.8%</span></div>
+                                <div><strong>ETH-USD</strong><em>BUY</em><span class="nt-home-demo-return-value">+52.3%</span></div>
+                                <div><strong>AVAX-USD</strong><em>BUY</em><span class="nt-home-demo-return-value">+41.6%</span></div>
                             </div>
                             <div class="nt-home-preview-footer" aria-hidden="true">Preview</div>
                         </article>
@@ -616,7 +624,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                                 <span class="nt-home-path-step-number">4</span>
                             </div>
                             <h4>Research or follow the idea</h4>
-                            <div class="nt-home-demo-actions nt-home-demo-actions-outline">
+                            <div class="nt-home-demo-actions nt-home-demo-actions-solid">
                                 <a class="nt-home-action-take" href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Take action</a>
                                 <a class="nt-home-action-watch" href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">Add to watchlist</a>
                                 <a class="nt-home-action-sim" href="{{ url_for('dashboard') }}#epoch-tool-live" target="_blank" rel="noopener noreferrer">Start live simulation</a>
