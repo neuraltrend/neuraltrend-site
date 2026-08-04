@@ -3089,3 +3089,260 @@
     background: #eff6ff !important;
     color: #475569 !important;
 }
+
+/* ==================================================
+   Workflow detail refinements — Aug 3, 2026
+================================================== */
+
+/* Asset-first: show a useful positive return instead of freshness. */
+.nt-home-path-panel-asset .nt-home-demo-metrics .nt-home-demo-positive-return {
+    color: #15803d !important;
+    font-weight: 950;
+}
+
+/* Panel-level actions use their own strong colors, clearly separate from preview selections. */
+.nt-home-path-panel-asset .nt-home-path-panel-heading > a {
+    border-color: #0f2f6b;
+    background: linear-gradient(135deg, #123b82, #0b275c);
+    color: #ffffff;
+    box-shadow: 0 10px 22px rgba(15, 47, 107, 0.24);
+}
+
+.nt-home-path-panel-asset .nt-home-path-panel-heading > a:hover {
+    border-color: #081d45;
+    background: linear-gradient(135deg, #0f2f6b, #081d45);
+    color: #ffffff;
+    box-shadow: 0 14px 28px rgba(8, 29, 69, 0.30);
+}
+
+.nt-home-path-panel-discover .nt-home-path-panel-heading > a {
+    border-color: #7e22ce;
+    background: linear-gradient(135deg, #9333ea, #7e22ce);
+    color: #ffffff;
+    box-shadow: 0 10px 22px rgba(126, 34, 206, 0.24);
+}
+
+.nt-home-path-panel-discover .nt-home-path-panel-heading > a:hover {
+    border-color: #6b21a8;
+    background: linear-gradient(135deg, #7e22ce, #6b21a8);
+    color: #ffffff;
+    box-shadow: 0 14px 28px rgba(107, 33, 168, 0.30);
+}
+
+/* Action colors are functional colors, not workflow colors. */
+.nt-home-path-panel-asset .nt-home-demo-actions-solid .nt-home-action-take,
+.nt-home-path-panel-discover .nt-home-demo-actions-solid .nt-home-action-take {
+    border-color: #ea580c;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: #ffffff;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-actions-solid .nt-home-action-watch,
+.nt-home-path-panel-discover .nt-home-demo-actions-solid .nt-home-action-watch {
+    border-color: #be185d;
+    background: linear-gradient(135deg, #db2777, #be185d);
+    color: #ffffff;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-actions-solid .nt-home-action-sim,
+.nt-home-path-panel-discover .nt-home-demo-actions-solid .nt-home-action-sim {
+    border-color: #0e7490;
+    background: linear-gradient(135deg, #0891b2, #0e7490);
+    color: #ffffff;
+}
+
+.nt-home-path-panel-asset .nt-home-demo-actions-solid a:hover,
+.nt-home-path-panel-discover .nt-home-demo-actions-solid a:hover {
+    color: #ffffff;
+    filter: brightness(1.08);
+    transform: translateY(-3px);
+    box-shadow: 0 13px 24px rgba(15, 23, 42, 0.18);
+}
+
+/* Opportunity-first step 1: a compact crypto result preview. */
+.nt-home-demo-crypto-list {
+    display: grid;
+    margin-top: 14px;
+    overflow: hidden;
+    border: 1px solid #e9d5ff;
+    border-radius: 12px;
+    background: #fdfaff;
+}
+
+.nt-home-demo-crypto-list > div {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+    min-height: 39px;
+    padding: 0 12px;
+    border-top: 1px solid #f0e5fb;
+    background: #ffffff;
+    font-size: 10px;
+}
+
+.nt-home-demo-crypto-list > div:first-child {
+    border-top: 0;
+}
+
+.nt-home-demo-crypto-list .nt-home-demo-crypto-list-head {
+    min-height: 33px;
+    background: #faf5ff;
+    color: #7c3aed !important;
+    font-size: 9px;
+    font-weight: 900;
+}
+
+.nt-home-demo-crypto-list strong {
+    color: #334155 !important;
+    font-size: 10px;
+}
+
+.nt-home-demo-crypto-list em {
+    display: inline-flex;
+    min-height: 22px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    background: #f0fdf4 !important;
+    color: #15803d !important;
+    font-style: normal;
+    font-weight: 950;
+}
+
+/* Opportunity-first step 2: filter criteria above matching asset rows. */
+.nt-home-demo-signal-matrix {
+    display: grid;
+    margin-top: 14px;
+    overflow: hidden;
+    border: 1px solid #e9d5ff;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.nt-home-demo-signal-matrix-filters,
+.nt-home-demo-signal-matrix-results > div {
+    display: grid;
+    grid-template-columns: .78fr repeat(4, minmax(0, 1fr));
+    align-items: stretch;
+}
+
+.nt-home-demo-signal-matrix-filters {
+    background: #faf5ff;
+    border-bottom: 1px solid #eadcf8;
+}
+
+.nt-home-demo-signal-matrix-filters > span {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 50px;
+    padding: 5px 3px;
+    border-left: 1px solid #eadcf8;
+    text-align: center;
+}
+
+.nt-home-demo-signal-matrix-filters > span:first-child {
+    border-left: 0;
+}
+
+.nt-home-demo-signal-matrix-corner {
+    color: #7c3aed !important;
+    font-size: 9px;
+    font-weight: 900;
+}
+
+.nt-home-demo-signal-matrix-filters small {
+    color: #64748b !important;
+    font-size: 7px;
+    line-height: 1.1;
+}
+
+.nt-home-demo-signal-matrix-filters b,
+.nt-home-demo-signal-matrix-results em {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 20px;
+    padding: 0 5px;
+    border-radius: 5px;
+    font-size: 8px;
+    font-style: normal;
+    font-weight: 950;
+}
+
+.nt-home-demo-signal-matrix-results > div {
+    min-height: 34px;
+    border-top: 1px solid #f0e5fb;
+}
+
+.nt-home-demo-signal-matrix-results > div:first-child {
+    border-top: 0;
+}
+
+.nt-home-demo-signal-matrix-results strong,
+.nt-home-demo-signal-matrix-results em {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-left: 1px solid #f0e5fb;
+}
+
+.nt-home-demo-signal-matrix-results strong {
+    border-left: 0;
+    color: #334155 !important;
+    font-size: 8px;
+}
+
+.nt-home-demo-signal-matrix .is-buy {
+    border: 1px solid #bbf7d0;
+    background: #f0fdf4 !important;
+    color: #15803d !important;
+}
+
+.nt-home-demo-signal-matrix .is-sell {
+    border: 1px solid #fecaca;
+    background: #fef2f2 !important;
+    color: #b91c1c !important;
+}
+
+.nt-home-demo-signal-matrix .is-hold {
+    border: 1px solid #fde68a;
+    background: #fffbeb !important;
+    color: #a16207 !important;
+}
+
+/* Opportunity-first step 3: sorted one-year return column. */
+.nt-home-demo-opportunity-table-return > div {
+    grid-template-columns: 1.25fr .72fr .95fr;
+}
+
+.nt-home-demo-opportunity-table-return .nt-home-demo-table-head span:last-child {
+    color: #7c3aed !important;
+    text-align: right;
+}
+
+.nt-home-demo-opportunity-table-return .nt-home-demo-return-value {
+    color: #15803d !important;
+    font-size: 10px;
+    font-weight: 950;
+    text-align: right;
+}
+
+@media (max-width: 1180px) {
+    .nt-home-demo-signal-matrix-filters small {
+        font-size: 6.5px;
+    }
+
+    .nt-home-demo-signal-matrix-filters b,
+    .nt-home-demo-signal-matrix-results em,
+    .nt-home-demo-signal-matrix-results strong {
+        font-size: 7.5px;
+    }
+}
