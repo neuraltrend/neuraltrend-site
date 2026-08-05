@@ -402,8 +402,9 @@
 }
 
 #equity-preview-container .nt-preview-chip {
-    padding: 3px 7px;
-    font-size: 9px;
+    padding: 4px 8px;
+    font-size: 11px;
+    line-height: 1.25;
 }
 
 #equity-preview-container .nt-scale-btn {
