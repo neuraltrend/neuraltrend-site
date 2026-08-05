@@ -919,3 +919,316 @@
         border-top-color: #6366f1 !important;
     }
 }
+
+/* ==================================================
+   EPOCHSIGNALER UNIFIED SUB-TOOL THEME + INLINE ASSET ACTIONS
+   Aug 5, 2026
+================================================== */
+
+/* All three EpochSignaler tools belong to one blue visual family. */
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"],
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"],
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"] {
+    border-color: #b7d1ff !important;
+    background: linear-gradient(180deg, #ffffff 0%, #eef5ff 100%) !important;
+}
+
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"] strong,
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"] strong,
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"] strong {
+    color: #1d4ed8 !important;
+}
+
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"].active,
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"].active,
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"].active {
+    border-color: #2563eb !important;
+    background: linear-gradient(135deg, #0f2f6b, #1d4ed8) !important;
+    color: #ffffff !important;
+    box-shadow: 0 9px 20px rgba(37, 99, 235, 0.20) !important;
+}
+
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"].active strong,
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"].active strong,
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"].active strong,
+.nt-epoch-tool-tab.active small {
+    color: #ffffff !important;
+}
+
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"] .nt-epoch-tool-tab-icon,
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"] .nt-epoch-tool-tab-icon,
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"] .nt-epoch-tool-tab-icon {
+    background: rgba(37, 99, 235, 0.10) !important;
+}
+
+.nt-epoch-tool-tab.active .nt-epoch-tool-tab-icon {
+    background: rgba(255, 255, 255, 0.14) !important;
+}
+
+@media (min-width: 901px) {
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"]::after,
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"]::after,
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"]::after {
+        border-top-color: #dbeafe !important;
+    }
+
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"].active::after,
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"].active::after,
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"].active::after {
+        border-top-color: #1d4ed8 !important;
+    }
+}
+
+.nt-epoch-tool-content-card[data-active-tool="epoch-tool-overview"],
+.nt-epoch-tool-content-card[data-active-tool="epoch-tool-live"],
+.nt-epoch-tool-content-card[data-active-tool="epoch-tool-backtest"] {
+    border-color: #bfdbfe !important;
+    background: linear-gradient(180deg, #f5f9ff 0%, #ffffff 190px) !important;
+    box-shadow: 0 8px 22px rgba(37, 99, 235, 0.08) !important;
+}
+
+/* Place search, horizons, asset type, and selected-asset actions on one row. */
+#epoch-tool-overview .nt-controls-grid {
+    grid-template-columns: minmax(220px, 1fr) max-content max-content max-content;
+    align-items: end;
+    gap: 9px;
+}
+
+#epoch-tool-overview .nt-control-group-search {
+    min-width: 220px;
+}
+
+#epoch-tool-overview .nt-period-pills,
+#epoch-tool-overview .nt-asset-pills {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
+#epoch-tool-overview .period-pill {
+    padding-right: 8px;
+    padding-left: 8px;
+    font-size: 10px;
+}
+
+#epoch-tool-overview .asset-pill {
+    padding-right: 9px;
+    padding-left: 9px;
+    font-size: 10px;
+}
+
+.nt-control-group-actions {
+    min-width: max-content;
+}
+
+.nt-selected-asset-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    white-space: nowrap;
+}
+
+#epoch-tool-overview .nt-watchlist-primary-btn-compact {
+    min-height: 34px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+/* Mail icon: gray/disabled before watchlisting, outlined when available,
+   and filled blue when signal-change emails are enabled. */
+.nt-signal-mail-control {
+    position: relative;
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    cursor: not-allowed;
+}
+
+.nt-signal-mail-icon {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d7dee9;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #94a3b8;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    transition:
+        color 0.16s ease,
+        border-color 0.16s ease,
+        background-color 0.16s ease,
+        box-shadow 0.16s ease,
+        transform 0.16s ease;
+}
+
+.nt-signal-mail-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.nt-signal-mail-control.is-watching:not(.is-disabled) {
+    cursor: pointer;
+}
+
+.nt-signal-mail-control.is-watching:not(.is-disabled) .nt-signal-mail-icon {
+    border-color: #93c5fd;
+    background: #ffffff;
+    color: #2563eb;
+}
+
+.nt-signal-mail-control.is-watching:not(.is-disabled):hover .nt-signal-mail-icon {
+    border-color: #2563eb;
+    background: #eff6ff;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 12px rgba(37, 99, 235, 0.13);
+}
+
+.nt-signal-mail-control.is-active .nt-signal-mail-icon {
+    border-color: #2563eb !important;
+    background: #2563eb !important;
+    color: #ffffff !important;
+    box-shadow: 0 5px 13px rgba(37, 99, 235, 0.22);
+}
+
+.nt-signal-mail-control.is-disabled .nt-signal-mail-icon {
+    opacity: 0.58;
+}
+
+.nt-signal-mail-control input:focus-visible + .nt-signal-mail-icon {
+    outline: 3px solid rgba(59, 130, 246, 0.30);
+    outline-offset: 2px;
+}
+
+/* Compact information control with hover plus click-to-pin behavior. */
+.nt-signal-alert-info {
+    position: relative;
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+}
+
+.nt-signal-alert-info-button {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid #cbd5e1;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #475569;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    transition: border-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.nt-signal-alert-info-button:hover,
+.nt-signal-alert-info-button:focus-visible,
+.nt-signal-alert-info.is-open .nt-signal-alert-info-button {
+    border-color: #60a5fa;
+    color: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 12px rgba(37, 99, 235, 0.13);
+}
+
+.nt-signal-alert-info-tooltip {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 10px);
+    width: 260px;
+    padding: 10px 12px;
+    border: 1px solid #dbe4f0;
+    border-radius: 11px;
+    background: #ffffff;
+    color: #334155;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.45;
+    white-space: normal;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(5px);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
+    transition: opacity 0.15s ease, visibility 0.15s ease, transform 0.15s ease;
+    z-index: 999;
+}
+
+.nt-signal-alert-info-tooltip::after {
+    content: "";
+    position: absolute;
+    right: 11px;
+    top: 100%;
+    border: 7px solid transparent;
+    border-top-color: #ffffff;
+}
+
+.nt-signal-alert-info:hover .nt-signal-alert-info-tooltip,
+.nt-signal-alert-info:focus-within .nt-signal-alert-info-tooltip,
+.nt-signal-alert-info.is-open .nt-signal-alert-info-tooltip {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+@media (max-width: 1240px) {
+    #epoch-tool-overview .nt-controls-grid {
+        grid-template-columns: minmax(220px, 1fr) max-content;
+    }
+
+    .nt-control-group-period,
+    .nt-control-group-assets,
+    .nt-control-group-actions {
+        min-width: 0;
+    }
+}
+
+@media (max-width: 780px) {
+    #epoch-tool-overview .nt-controls-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #epoch-tool-overview .nt-period-pills,
+    #epoch-tool-overview .nt-asset-pills {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    .nt-selected-asset-actions {
+        flex-wrap: wrap;
+    }
+
+    .nt-signal-alert-info-tooltip {
+        right: auto;
+        left: 0;
+        width: min(260px, calc(100vw - 48px));
+    }
+
+    .nt-signal-alert-info-tooltip::after {
+        right: auto;
+        left: 11px;
+    }
+}
