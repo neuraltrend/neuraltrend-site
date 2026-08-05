@@ -269,7 +269,7 @@
                         x1: 1,
                         y0: 0,
                         y1: 20,
-                        fillcolor: "rgba(239, 68, 68, 0.38)",
+                        fillcolor: "rgba(153, 27, 27, 0.80)",
                         line: { width: 0 },
                         layer: "below"
                     },
@@ -281,7 +281,7 @@
                         x1: 1,
                         y0: 20,
                         y1: 40,
-                        fillcolor: "rgba(220, 38, 38, 0.14)",
+                        fillcolor: "rgba(220, 38, 38, 0.58)",
                         line: { width: 0 },
                         layer: "below"
                     },
@@ -293,7 +293,7 @@
                         x1: 1,
                         y0: 40,
                         y1: 60,
-                        fillcolor: "rgba(255, 255, 255, 0.96)",
+                        fillcolor: "rgba(100, 116, 139, 0.58)",
                         line: { width: 0 },
                         layer: "below"
                     },
@@ -305,7 +305,7 @@
                         x1: 1,
                         y0: 60,
                         y1: 80,
-                        fillcolor: "rgba(34, 197, 94, 0.15)",
+                        fillcolor: "rgba(22, 163, 74, 0.50)",
                         line: { width: 0 },
                         layer: "below"
                     },
@@ -317,7 +317,7 @@
                         x1: 1,
                         y0: 80,
                         y1: 100,
-                        fillcolor: "rgba(34, 197, 94, 0.36)",
+                        fillcolor: "rgba(22, 101, 52, 0.78)",
                         line: { width: 0 },
                         layer: "below"
                     },
@@ -356,17 +356,17 @@
                     {
                         xref: "paper", yref: "y", x: 0.5, y: 30,
                         text: "<b>Sell</b>", showarrow: false,
-                        font: { size: 23, color: "rgba(153, 27, 27, 0.92)" }
+                        font: { size: 23, color: "rgba(255, 255, 255, 0.96)" }
                     },
                     {
                         xref: "paper", yref: "y", x: 0.5, y: 50,
                         text: "<b>Neutral</b>", showarrow: false,
-                        font: { size: 23, color: "rgba(100, 116, 139, 0.92)" }
+                        font: { size: 23, color: "rgba(255, 255, 255, 0.96)" }
                     },
                     {
                         xref: "paper", yref: "y", x: 0.5, y: 70,
                         text: "<b>Buy</b>", showarrow: false,
-                        font: { size: 23, color: "rgba(21, 128, 61, 0.94)" }
+                        font: { size: 23, color: "rgba(255, 255, 255, 0.96)" }
                     },
                     {
                         xref: "paper", yref: "y", x: 0.5, y: 90,
