@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Resources | NeuralTrend Guides{% endblock %}
+
+{% block meta_description %}
+Learn how NeuralTrend signals, paper simulations, and AI-versus-buy-and-hold comparisons fit into a transparent market-research workflow.
+{% endblock %}
+
+{% block page_styles_after %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-resources.css', v='20260805-resources-v1') }}">
+{% endblock %}
+
+{% block content %}
+<main class="nt-resources-main">
+    <section class="nt-resources-hero" aria-labelledby="nt-resources-title">
+        <div class="nt-resources-inner">
+            <div class="nt-resources-heading">
+                <div class="nt-resources-eyebrow">Resources</div>
+                <h1 id="nt-resources-title">Learn the workflow before using it</h1>
+                <p>Practical guides to help you understand NeuralTrend signals, paper simulations, and strategy comparisons.</p>
+            </div>
+
+            <div class="nt-resources-grid">
+                <a class="nt-resource-card" href="{{ url_for('ai_crypto_trading_signals') }}">
+                    <span class="nt-resource-icon" aria-hidden="true">▤</span>
+                    <div>
+                        <strong>AI Crypto Trading Signals</strong>
+                        <p>How BUY, HOLD, and SELL signals fit into market research.</p>
+                        <span class="nt-resource-link">Read guide →</span>
+                    </div>
+                </a>
+
+                <a class="nt-resource-card" href="{{ url_for('crypto_paper_trading_simulator') }}">
+                    <span class="nt-resource-icon" aria-hidden="true">▧</span>
+                    <div>
+                        <strong>Paper Trading Simulator</strong>
+                        <p>How daily paper portfolios track signals without exchange access.</p>
+                        <span class="nt-resource-link">Read guide →</span>
+                    </div>
+                </a>
+
+                <a class="nt-resource-card" href="{{ url_for('buy_and_hold_vs_ai_strategy') }}">
+                    <span class="nt-resource-icon" aria-hidden="true">⌁</span>
+                    <div>
+                        <strong>Buy &amp; Hold vs AI</strong>
+                        <p>How to interpret strategy comparisons and their limitations.</p>
+                        <span class="nt-resource-link">Read guide →</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

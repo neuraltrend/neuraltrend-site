@@ -81,7 +81,7 @@
             <a href="{{ url_for('dashboard') }}"{% if request.endpoint == 'dashboard' %} class="active" aria-current="page"{% endif %}>Dashboard</a>
             <a href="{{ url_for('methodology') }}"{% if request.endpoint == 'methodology' %} class="active" aria-current="page"{% endif %}>Methodology</a>
             <a href="{{ url_for('subscription') }}"{% if request.endpoint == 'subscription' %} class="active" aria-current="page"{% endif %}>Pricing</a>
-            <a href="{{ url_for('index') }}#resources">Resources</a>
+            <a href="{{ url_for('resources') }}"{% if request.endpoint == 'resources' %} class="active" aria-current="page"{% endif %}>Resources</a>
             <a href="{{ url_for('contact') }}"{% if request.endpoint == 'contact' %} class="active" aria-current="page"{% endif %}>Contact</a>
             <a href="https://github.com/neuraltrend/" target="_blank" rel="noopener noreferrer">Developers</a>
         </div>
@@ -118,6 +118,7 @@
         'subscription',
         'methodology',
         'performance',
+        'resources',
         'contact',
         'market',
         'knowledge',
@@ -155,7 +156,7 @@
                 <strong>Company</strong>
                 <a href="{{ url_for('methodology') }}">Methodology</a>
                 <a href="{{ url_for('subscription') }}">Pricing</a>
-                <a href="{{ url_for('index') }}#resources">Resources</a>
+                <a href="{{ url_for('resources') }}">Resources</a>
                 <a href="{{ url_for('contact') }}">Contact</a>
             </nav>
             <nav class="nt-site-footer-column" aria-label="Legal links">
