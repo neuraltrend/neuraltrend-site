@@ -565,3 +565,291 @@
         min-height: 300px;
     }
 }
+
+/* ==================================================
+   MODEL + TOOL WORKFLOW COLOR CONTINUITY — Aug 4, 2026
+   Distinct model/tool tabs, matching open-panel tints, and pointers.
+================================================== */
+
+/* ---------- Model selector cards ---------- */
+.nt-model-tabs .nt-model-tab {
+    overflow: visible !important;
+}
+
+/* EpochSignaler — blue */
+.nt-model-tab[data-model-target="epochsignaler-section"] {
+    border-color: #b7d1ff !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f2f7ff 100%) !important;
+}
+
+.nt-model-tab[data-model-target="epochsignaler-section"] .nt-product-card-name,
+.nt-model-tab[data-model-target="epochsignaler-section"] .nt-product-card-category {
+    color: #1d4ed8 !important;
+}
+
+.nt-model-tab[data-model-target="epochsignaler-section"].active {
+    border-color: #2563eb !important;
+    background:
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.28), transparent 42%),
+        linear-gradient(145deg, #0f2f6b 0%, #123b82 58%, #1d4ed8 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 15px 30px rgba(37, 99, 235, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
+}
+
+/* AltIndexer — green */
+.nt-model-tab[data-model-target="altindexer-section"] {
+    border-color: #bde8cb !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f2fbf5 100%) !important;
+}
+
+.nt-model-tab[data-model-target="altindexer-section"] .nt-product-card-name,
+.nt-model-tab[data-model-target="altindexer-section"] .nt-product-card-category {
+    color: #15803d !important;
+}
+
+.nt-model-tab[data-model-target="altindexer-section"].active {
+    border-color: #16a34a !important;
+    background:
+        radial-gradient(circle at top right, rgba(74, 222, 128, 0.25), transparent 42%),
+        linear-gradient(145deg, #064e3b 0%, #067647 58%, #16a34a 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 15px 30px rgba(22, 163, 74, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
+}
+
+/* EpochForecaster — purple */
+.nt-model-tab[data-model-target="epochforecaster-section"] {
+    border-color: #d8c5ff !important;
+    background: linear-gradient(180deg, #ffffff 0%, #faf6ff 100%) !important;
+}
+
+.nt-model-tab[data-model-target="epochforecaster-section"] .nt-product-card-name,
+.nt-model-tab[data-model-target="epochforecaster-section"] .nt-product-card-category {
+    color: #6d28d9 !important;
+}
+
+.nt-model-tab[data-model-target="epochforecaster-section"].active {
+    border-color: #7c3aed !important;
+    background:
+        radial-gradient(circle at top right, rgba(167, 139, 250, 0.27), transparent 42%),
+        linear-gradient(145deg, #3b176f 0%, #5b21b6 58%, #7c3aed 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 15px 30px rgba(124, 58, 237, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
+}
+
+/* Keep active model-card text legible regardless of its model color. */
+.nt-model-tab.active .nt-product-card-name {
+    color: #ffffff !important;
+}
+
+.nt-model-tab.active .nt-product-card-category {
+    color: rgba(255, 255, 255, 0.76) !important;
+}
+
+.nt-model-tab.active .nt-product-card-description {
+    color: rgba(255, 255, 255, 0.76) !important;
+}
+
+/* Three small model pointers, each tied to its own color. */
+@media (min-width: 701px) {
+    .nt-model-tabs .nt-model-tab::after {
+        content: "" !important;
+        display: block !important;
+        position: absolute !important;
+        left: 50% !important;
+        right: auto !important;
+        top: auto !important;
+        bottom: -13px !important;
+        width: 0 !important;
+        height: 0 !important;
+        transform: translateX(-50%) !important;
+        border-left: 12px solid transparent !important;
+        border-right: 12px solid transparent !important;
+        border-bottom: 0 !important;
+        z-index: 9 !important;
+        pointer-events: none;
+        filter: drop-shadow(0 2px 1px rgba(15, 23, 42, 0.08));
+    }
+
+    .nt-model-tab[data-model-target="epochsignaler-section"]::after {
+        border-top: 12px solid #3b82f6 !important;
+    }
+
+    .nt-model-tab[data-model-target="altindexer-section"]::after {
+        border-top: 12px solid #22b869 !important;
+    }
+
+    .nt-model-tab[data-model-target="epochforecaster-section"]::after {
+        border-top: 12px solid #8b5cf6 !important;
+    }
+
+    .nt-model-tab[data-model-target="epochsignaler-section"].active::after {
+        border-top-color: #123b82 !important;
+    }
+
+    .nt-model-tab[data-model-target="altindexer-section"].active::after {
+        border-top-color: #067647 !important;
+    }
+
+    .nt-model-tab[data-model-target="epochforecaster-section"].active::after {
+        border-top-color: #5b21b6 !important;
+    }
+}
+
+/* ---------- Open model workspace ---------- */
+.nt-model-content[data-active-model="epochsignaler-section"] {
+    border-color: #93c5fd !important;
+    background: linear-gradient(180deg, #f3f8ff 0%, #ffffff 210px) !important;
+    box-shadow: 0 10px 28px rgba(37, 99, 235, 0.09) !important;
+}
+
+.nt-model-content[data-active-model="altindexer-section"] {
+    border-color: #86efac !important;
+    background: linear-gradient(180deg, #f2fbf5 0%, #ffffff 210px) !important;
+    box-shadow: 0 10px 28px rgba(22, 163, 74, 0.08) !important;
+}
+
+.nt-model-content[data-active-model="epochforecaster-section"] {
+    border-color: #c4b5fd !important;
+    background: linear-gradient(180deg, #faf6ff 0%, #ffffff 210px) !important;
+    box-shadow: 0 10px 28px rgba(124, 58, 237, 0.08) !important;
+}
+
+/* The EpochSignaler tool selector belongs to the blue model workspace. */
+#epochsignaler-section .nt-epoch-subnav-card {
+    border-color: #bfdbfe !important;
+    background: linear-gradient(180deg, #f7faff 0%, #f2f7ff 100%) !important;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.07) !important;
+}
+
+/* ---------- EpochSignaler tool tabs ---------- */
+.nt-epoch-tool-tabs .nt-epoch-tool-tab {
+    overflow: visible !important;
+}
+
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"] {
+    border-color: #b7d1ff !important;
+    background: linear-gradient(180deg, #ffffff 0%, #eef5ff 100%) !important;
+}
+
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"] strong {
+    color: #1d4ed8;
+}
+
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"] {
+    border-color: #bde8cb !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f1fbf4 100%) !important;
+}
+
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"] strong {
+    color: #15803d;
+}
+
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"] {
+    border-color: #d8c5ff !important;
+    background: linear-gradient(180deg, #ffffff 0%, #faf5ff 100%) !important;
+}
+
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"] strong {
+    color: #6d28d9;
+}
+
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"].active {
+    border-color: #2563eb !important;
+    background: linear-gradient(135deg, #0f2f6b, #1d4ed8) !important;
+    color: #ffffff !important;
+    box-shadow: 0 9px 20px rgba(37, 99, 235, 0.20) !important;
+}
+
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"].active {
+    border-color: #16a34a !important;
+    background: linear-gradient(135deg, #065f46, #16a34a) !important;
+    color: #ffffff !important;
+    box-shadow: 0 9px 20px rgba(22, 163, 74, 0.18) !important;
+}
+
+.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"].active {
+    border-color: #7c3aed !important;
+    background: linear-gradient(135deg, #4c1d95, #7c3aed) !important;
+    color: #ffffff !important;
+    box-shadow: 0 9px 20px rgba(124, 58, 237, 0.18) !important;
+}
+
+.nt-epoch-tool-tab.active strong,
+.nt-epoch-tool-tab.active small {
+    color: #ffffff !important;
+}
+
+/* Three tool pointers remain visible so the color mapping is obvious. */
+@media (min-width: 901px) {
+    .nt-epoch-tool-tabs .nt-epoch-tool-tab::after {
+        content: "" !important;
+        display: block !important;
+        position: absolute !important;
+        left: 50% !important;
+        bottom: -18px !important;
+        width: 0 !important;
+        height: 0 !important;
+        transform: translateX(-50%) !important;
+        border-left: 10px solid transparent !important;
+        border-right: 10px solid transparent !important;
+        border-bottom: 0 !important;
+        z-index: 8 !important;
+        pointer-events: none;
+        filter: drop-shadow(0 2px 1px rgba(15, 23, 42, 0.07));
+    }
+
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"]::after {
+        border-top: 11px solid #3b82f6 !important;
+    }
+
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"]::after {
+        border-top: 11px solid #22b869 !important;
+    }
+
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"]::after {
+        border-top: 11px solid #8b5cf6 !important;
+    }
+
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"].active::after {
+        border-top-color: #1d4ed8 !important;
+    }
+
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"].active::after {
+        border-top-color: #15803d !important;
+    }
+
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"].active::after {
+        border-top-color: #6d28d9 !important;
+    }
+}
+
+/* ---------- Open EpochSignaler tool workspace ---------- */
+.nt-epoch-tool-content-card[data-active-tool="epoch-tool-overview"] {
+    border-color: #bfdbfe !important;
+    background: linear-gradient(180deg, #f5f9ff 0%, #ffffff 190px) !important;
+    box-shadow: 0 8px 22px rgba(37, 99, 235, 0.08) !important;
+}
+
+.nt-epoch-tool-content-card[data-active-tool="epoch-tool-live"] {
+    border-color: #bbf7d0 !important;
+    background: linear-gradient(180deg, #f3fcf6 0%, #ffffff 190px) !important;
+    box-shadow: 0 8px 22px rgba(22, 163, 74, 0.07) !important;
+}
+
+.nt-epoch-tool-content-card[data-active-tool="epoch-tool-backtest"] {
+    border-color: #ddd6fe !important;
+    background: linear-gradient(180deg, #faf7ff 0%, #ffffff 190px) !important;
+    box-shadow: 0 8px 22px rgba(124, 58, 237, 0.07) !important;
+}
+
+@media (max-width: 900px) {
+    .nt-epoch-tool-tabs .nt-epoch-tool-tab::after {
+        display: none !important;
+    }
+}
+
+@media (max-width: 700px) {
+    .nt-model-tabs .nt-model-tab::after {
+        display: none !important;
+    }
+}
