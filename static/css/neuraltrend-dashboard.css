@@ -1232,3 +1232,163 @@
         left: 11px;
     }
 }
+
+/* ==================================================
+   Signal Overview control sizing + grouped asset actions — Aug 4, 2026
+================================================== */
+
+/* Keep normal, readable typography while shortening only the search column. */
+#epoch-tool-overview .nt-controls-grid {
+    grid-template-columns: minmax(280px, 360px) max-content max-content max-content;
+    justify-content: space-between;
+    align-items: end;
+    column-gap: 12px;
+}
+
+#epoch-tool-overview .nt-control-group-search {
+    width: 100%;
+    min-width: 280px;
+    max-width: 360px;
+}
+
+#epoch-tool-overview .nt-control-label {
+    font-size: 12px;
+}
+
+#epoch-tool-overview .nt-search-input {
+    font-size: 14px;
+}
+
+#epoch-tool-overview .period-pill,
+#epoch-tool-overview .asset-pill {
+    min-height: 30px;
+    padding: 6px 9px;
+    font-size: 12px;
+}
+
+#epoch-tool-overview .nt-watchlist-primary-btn-compact {
+    min-height: 32px;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+/* Present watchlist, mail, and information as one connected control group. */
+.nt-selected-asset-actions {
+    display: inline-flex;
+    min-height: 38px;
+    align-items: center;
+    gap: 0;
+    padding: 3px;
+    overflow: visible;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f8ff 100%);
+    box-shadow: 0 2px 7px rgba(37, 99, 235, 0.07);
+    white-space: nowrap;
+}
+
+#epoch-tool-overview .nt-watchlist-primary-btn-compact {
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    box-shadow: none;
+}
+
+#epoch-tool-overview .nt-watchlist-primary-btn-compact:hover:not(:disabled) {
+    border-color: transparent;
+    background: #eff6ff;
+    box-shadow: none;
+    transform: none;
+}
+
+#epoch-tool-overview .nt-watchlist-primary-btn-compact.is-watching {
+    background: #eaf2ff;
+    color: #1d4ed8;
+}
+
+.nt-signal-mail-control,
+.nt-signal-alert-info {
+    position: relative;
+    min-width: 36px;
+    width: 36px;
+    height: 32px;
+    flex: 0 0 36px;
+    margin-left: 3px;
+    padding-left: 4px;
+    border-left: 1px solid #dbeafe;
+}
+
+.nt-signal-mail-icon {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    box-shadow: none;
+}
+
+.nt-signal-mail-icon svg {
+    width: 17px;
+    height: 17px;
+}
+
+.nt-signal-mail-control.is-watching:not(.is-disabled) .nt-signal-mail-icon {
+    border: 0;
+    background: transparent;
+}
+
+.nt-signal-mail-control.is-watching:not(.is-disabled):hover .nt-signal-mail-icon {
+    border: 0;
+    background: #eaf2ff;
+    transform: none;
+    box-shadow: none;
+}
+
+.nt-signal-mail-control.is-active .nt-signal-mail-icon {
+    border: 0 !important;
+    background: #2563eb !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 9px rgba(37, 99, 235, 0.20);
+}
+
+/* Small conventional italic information icon. */
+.nt-signal-alert-info-button {
+    width: 19px;
+    height: 19px;
+    border-width: 1px;
+    color: #475569;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 11px;
+    font-style: italic;
+    font-weight: 700;
+    box-shadow: none;
+}
+
+.nt-signal-alert-info-button:hover,
+.nt-signal-alert-info-button:focus-visible,
+.nt-signal-alert-info.is-open .nt-signal-alert-info-button {
+    transform: none;
+    box-shadow: 0 2px 7px rgba(37, 99, 235, 0.11);
+}
+
+@media (max-width: 1320px) {
+    #epoch-tool-overview .nt-controls-grid {
+        grid-template-columns: minmax(260px, 1fr) max-content;
+        justify-content: stretch;
+    }
+
+    #epoch-tool-overview .nt-control-group-search {
+        max-width: none;
+    }
+}
+
+@media (max-width: 780px) {
+    #epoch-tool-overview .nt-controls-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #epoch-tool-overview .nt-control-group-search {
+        min-width: 0;
+        max-width: none;
+    }
+}

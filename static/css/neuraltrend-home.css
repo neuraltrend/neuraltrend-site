@@ -3845,3 +3845,16 @@
         padding: 22px 24px 26px;
     }
 }
+
+/* ==================================================
+   Compact conventional hero information icon — Aug 4, 2026
+================================================== */
+.nt-home-page .nt-market-hero-info-button {
+    width: 15px;
+    height: 15px;
+    border-width: 1px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 9px;
+    font-style: italic;
+    font-weight: 700;
+}
