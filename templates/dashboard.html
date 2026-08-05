@@ -23,21 +23,6 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
             <button type="button" id="checkout-status-close" class="nt-checkout-banner-close">×</button>
         </div>
 
-        <section class="nt-dashboard-intro" aria-labelledby="nt-dashboard-title">
-            <div>
-                <div class="nt-section-eyebrow">NeuralTrend application</div>
-                <h1 id="nt-dashboard-title">Market Research Dashboard</h1>
-                <p>Explore signals, risk context, watchlists, alerts, historical tests, and paper portfolios in one focused workspace.</p>
-            </div>
-            <div class="nt-dashboard-intro-actions">
-                {% if forward_record.started %}
-                <a href="{{ url_for('performance') }}">Forward Record</a>
-                {% endif %}
-                <a href="{{ url_for('methodology') }}">Methodology</a>
-                <a href="{{ url_for('subscription') }}" class="nt-dashboard-intro-primary">Free &amp; Pro</a>
-            </div>
-        </section>
-
         <!-- Models Section --> 
         <section id="products" class="nt-models-section">
     
@@ -164,78 +149,8 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
             <div class="nt-model-panel-header">
                 <h3 class="nt-model-panel-title">EpochSignaler</h3>
                 <p class="nt-model-panel-description">
-                    An AI-based model for crypto and traditional asset signal analytics.
+                    An AI-based model for crypto and traditional asset daily signal analytics.
                 </p>
-            </div>
-
-            <div class="nt-model-summary-grid">
-
-                <div class="nt-model-summary-card">
-                    <div class="nt-model-summary-icon">⌁</div>
-                    <div>
-                        <div class="nt-model-summary-label">Primary Use</div>
-                        <div class="nt-model-summary-value">Market timing and signal exploration</div>
-                    </div>
-                </div>
-
-                <div class="nt-model-summary-card">
-                    <div class="nt-model-summary-icon">◎</div>
-                    <div>
-                        <div class="nt-model-summary-label">Asset Coverage</div>
-                        <div class="nt-model-summary-value">Crypto and traditional assets</div>
-                    </div>
-                </div>
-
-                <div class="nt-model-summary-card">
-                    <div class="nt-model-summary-icon">⏱</div>
-                    <div>
-                        <div class="nt-model-summary-label">Update Frequency</div>
-                        <div class="nt-model-summary-value">Daily published signal updates</div>
-                    </div>
-                </div>
-
-                <div class="nt-model-summary-card">
-                    <div class="nt-model-summary-icon">⇄</div>
-                    <div>
-                        <div class="nt-model-summary-label">Available Tools</div>
-                        <div class="nt-model-summary-value">Signals, simulations, and backtests</div>
-                    </div>
-                </div>
-
-            </div>
-
-            <div id="pro-upgrade-card" class="nt-pro-upgrade-card">
-
-                <div class="nt-pro-upgrade-copy">
-                    <div id="pro-card-kicker" class="nt-section-eyebrow">
-                        NeuralTrend Pro
-                    </div>
-            
-                    <h3 id="pro-card-title">
-                        Unlock all EpochSignaler assets
-                    </h3>
-            
-                    <p id="pro-card-text">
-                        Free users can access full signals for BTC-USD, ETH-USD, SOL-USD, and XRP-USD.
-                        Pro unlocks all supported assets, full signal history, equity previews, backtests,
-                        and up to 100 live simulations.
-                    </p>
-                </div>
-            
-                <div class="nt-pro-card-actions">
-                    <span id="pro-status-pill" class="nt-pro-status-pill" style="display:none;">
-                        Pro Active
-                    </span>
-            
-                    <button 
-                        type="button" 
-                        id="pro-card-action-btn"
-                        class="nt-pro-upgrade-btn"
-                    >
-                        View Subscription Plan
-                    </button>
-                </div>
-            
             </div>
 
             <!-- EpochSignaler workspace -->
@@ -1238,42 +1153,6 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                 </p>
             </div>
 
-            <div class="nt-model-summary-grid">
-
-                <div class="nt-model-summary-card">
-                    <div class="nt-model-summary-icon">◆</div>
-                    <div>
-                        <div class="nt-model-summary-label">Primary Use</div>
-                        <div class="nt-model-summary-value">Altcoin-season detection</div>
-                    </div>
-                </div>
-            
-                <div class="nt-model-summary-card">
-                    <div class="nt-model-summary-icon">◎</div>
-                    <div>
-                        <div class="nt-model-summary-label">Market Focus</div>
-                        <div class="nt-model-summary-value">Altcoins in buy or sell zones</div>
-                    </div>
-                </div>
-            
-                <div class="nt-model-summary-card">
-                    <div class="nt-model-summary-icon">⏱</div>
-                    <div>
-                        <div class="nt-model-summary-label">Update Frequency</div>
-                        <div class="nt-model-summary-value">Daily index calculation</div>
-                    </div>
-                </div>
-            
-                <div class="nt-model-summary-card">
-                    <div class="nt-model-summary-icon">⇄</div>
-                    <div>
-                        <div class="nt-model-summary-label">Output</div>
-                        <div class="nt-model-summary-value">Forward-looking market regime index</div>
-                    </div>
-                </div>
-            
-            </div>
-
             <!-- AltIndexer Current Metrics -->
             <div id="altindexer-performance-panel" class="nt-performance-panel">
             
@@ -1408,45 +1287,9 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
             <div class="nt-model-panel-header">
                 <h3 class="nt-model-panel-title">EpochForecaster</h3>
                 <p class="nt-model-panel-description">
-                    EpochForecaster is an AI-based LSTM model that provides multi-day price forecasts for BTC-USD. 
+                    EpochForecaster is an AI-based probabilistic model that provides multi-day price forecasts for BTC-USD. 
                     Signals and additional assets are planned for future releases.
                 </p>
-            </div>
-
-            <div class="nt-model-summary-grid">
-
-                <div class="nt-model-summary-card">
-                    <div class="nt-model-summary-icon">⌁</div>
-                    <div>
-                        <div class="nt-model-summary-label">Primary Use</div>
-                        <div class="nt-model-summary-value">Multi-day price forecasting</div>
-                    </div>
-                </div>
-            
-                <div class="nt-model-summary-card">
-                    <div class="nt-model-summary-icon">₿</div>
-                    <div>
-                        <div class="nt-model-summary-label">Current Focus</div>
-                        <div class="nt-model-summary-value">BTC-USD forecasting</div>
-                    </div>
-                </div>
-            
-                <div class="nt-model-summary-card">
-                    <div class="nt-model-summary-icon">◌</div>
-                    <div>
-                        <div class="nt-model-summary-label">Model Type</div>
-                        <div class="nt-model-summary-value">Probabilistic forecasting model</div>
-                    </div>
-                </div>
-            
-                <div class="nt-model-summary-card">
-                    <div class="nt-model-summary-icon">↻</div>
-                    <div>
-                        <div class="nt-model-summary-label">Status</div>
-                        <div class="nt-model-summary-value">BTC and additional assets launch planned</div>
-                    </div>
-                </div>
-            
             </div>
 
             <!-- EpochForecaster Image -->
