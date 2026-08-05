@@ -32,7 +32,7 @@
 }
 
 .nt-home-page .nt-market-hero {
-    width: min(1600px, calc(100vw - 24px));
+    width: 100vw;
     max-width: none;
     margin-right: 0;
     margin-bottom: 0;
@@ -44,11 +44,11 @@
         radial-gradient(circle at 14% 20%, rgba(59, 130, 246, 0.14), transparent 28%),
         radial-gradient(circle at 88% 16%, rgba(147, 51, 234, 0.15), transparent 26%),
         linear-gradient(90deg, var(--home-dark-panel) 0%, var(--home-dark-panel-alt) 46%, var(--home-dark-panel-accent) 100%);
-    box-shadow: 0 0 0 100vmax var(--home-dark-panel);
-    clip-path: inset(0 -100vmax);
+    box-shadow: none;
+    clip-path: none;
 }
 
-/* Keep the hero visually seamless with its full-width black background. */
+/* Keep the hero visually seamless across the full viewport width. */
 .nt-home-page .nt-market-hero::before {
     display: none;
 }
@@ -1192,7 +1192,7 @@
         padding-bottom: 42px;
     }
 
-    .nt-home-page .nt-market-hero {
+   .nt-home-page .nt-market-hero {
         border-radius: 0;
     }
 
