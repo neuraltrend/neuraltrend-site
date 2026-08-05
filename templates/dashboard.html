@@ -7,7 +7,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 {% endblock %}
 
 {% block page_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260805-equity-meta-font-v2') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260805-equity-metric-cards-v1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-watchlist.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
 {% endblock %}
@@ -589,11 +589,6 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 
                         <div class="nt-preview-workspace">
                             <aside id="selected-performance-panel" class="nt-preview-metrics-panel" aria-label="Selected asset performance summary">
-                                <div class="nt-preview-selected-meta">
-                                    <strong id="metric-selected-ticker">BTC-USD</strong>
-                                    <span id="metric-selected-horizon">5Y</span>
-                                </div>
-
                                 <div class="nt-preview-metric-grid">
                                     <article class="nt-preview-metric-card">
                                         <span>AI Strategy Return (<span class="metric-horizon-text">5Y</span>)</span>
@@ -1334,7 +1329,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 
 {% block page_scripts %}
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest.js') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260805-equity-metric-cards-v1') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-watchlist.js', v='20260805-signal-actions-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest-form.js', v='20260804-pointer-continuity-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js', v='20260804-score-0-100-v1') }}"></script>
