@@ -1485,7 +1485,7 @@
 
 /* Metric numbers and the current regime label follow the chart's five bands. */
 .nt-alt-zone-strong-sell {
-    color: #991b1b !important;
+    color: #b91c1c !important;
 }
 
 .nt-alt-zone-sell {
@@ -1493,7 +1493,7 @@
 }
 
 .nt-alt-zone-neutral {
-    color: #475569 !important;
+    color: #64748b !important;
 }
 
 .nt-alt-zone-buy {
@@ -1501,31 +1501,38 @@
 }
 
 .nt-alt-zone-strong-buy {
-    color: #166534 !important;
+    color: #15803d !important;
 }
 
 /* Matching icon treatments keep the four summary cards visually consistent. */
 .nt-alt-icon-strong-sell {
-    color: #7f1d1d !important;
-    background: rgba(153, 27, 27, 0.18) !important;
+    color: #b91c1c !important;
+    background: rgba(239, 68, 68, 0.16) !important;
 }
 
 .nt-alt-icon-sell {
     color: #dc2626 !important;
-    background: rgba(248, 113, 113, 0.15) !important;
+    background: rgba(220, 38, 38, 0.10) !important;
 }
 
 .nt-alt-icon-neutral {
-    color: #475569 !important;
-    background: #f1f5f9 !important;
+    color: #64748b !important;
+    background: #eef2f7 !important;
 }
 
 .nt-alt-icon-buy {
     color: #16a34a !important;
-    background: rgba(74, 222, 128, 0.16) !important;
+    background: rgba(34, 197, 94, 0.12) !important;
 }
 
 .nt-alt-icon-strong-buy {
-    color: #166534 !important;
-    background: rgba(22, 101, 52, 0.17) !important;
+    color: #15803d !important;
+    background: rgba(34, 197, 94, 0.18) !important;
+}
+
+
+/* Make neutral AltIndexer readings visibly color-coded rather than default ink. */
+#altindexer-performance-panel .nt-metric-value.nt-alt-zone-neutral,
+#altindexer-regime-label.nt-alt-zone-neutral {
+    color: #64748b !important;
 }
