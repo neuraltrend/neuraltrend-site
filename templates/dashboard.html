@@ -7,7 +7,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 {% endblock %}
 
 {% block page_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260805-theme-v1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260805-signal-actions-v1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-watchlist.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
 {% endblock %}
@@ -232,38 +232,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                 <div id="signal-overview" class="nt-signal-board-shell">
                     <div class="nt-signal-board-inner">
                 
-                        <!-- COMPACT ASSET / ALERT TOOLBAR -->
-                        <div class="nt-overview-toolbar" aria-label="Selected asset and alert controls">
-                            <div class="nt-overview-live-status" aria-live="polite">
-                                <span id="metric-freshness-badge" class="nt-freshness-badge nt-freshness-unknown">Checking</span>
-                                <span>Live through <strong id="metric-data-through">—</strong></span>
-                                <span class="nt-overview-toolbar-divider" aria-hidden="true">•</span>
-                                <span>Updated <strong id="metric-site-data-updated">—</strong></span>
-                            </div>
 
-                            <div class="nt-overview-watch-controls">
-                                <button
-                                    type="button"
-                                    id="selected-watchlist-toggle"
-                                    class="nt-watchlist-primary-btn nt-watchlist-primary-btn-compact"
-                                    aria-pressed="false"
-                                >
-                                    <span id="selected-watchlist-star" aria-hidden="true">☆</span>
-                                    <span id="selected-watchlist-label">Add to Watchlist</span>
-                                </button>
-
-                                <label class="nt-watchlist-alert-control nt-watchlist-alert-control-compact" for="selected-watchlist-alert-toggle">
-                                    <input type="checkbox" id="selected-watchlist-alert-toggle" disabled>
-                                    <span>
-                                        Email signal changes
-                                        <small id="selected-watchlist-alert-note">Pro · daily published signals</small>
-                                    </span>
-                                </label>
-
-                                <span id="selected-watchlist-message" class="nt-watchlist-message" aria-live="polite"></span>
-                            </div>
-                        </div>
-                        <!-- COMPACT ASSET / ALERT TOOLBAR END -->
 
                         <!-- CONTROL PANEL -->
                         <div class="nt-controls-card">
@@ -285,7 +254,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                             <div class="nt-controls-grid">
                         
                                 <!-- SEARCH -->
-                                <div class="nt-control-group">
+                                <div class="nt-control-group nt-control-group-search">
                                     <label class="nt-control-label" for="ticker-search">
                                         Search ticker
                                     </label>
@@ -311,7 +280,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                 </div>
                         
                                 <!-- PERIOD / RETURN HORIZON BUTTONS -->
-                                <div class="nt-control-group">
+                                <div class="nt-control-group nt-control-group-period">
                                     <span class="nt-control-label">Return Horizon</span>
                         
                                     <div class="nt-period-control">
@@ -345,7 +314,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                 </div>
                         
                                 <!-- ASSET TYPE BUTTONS -->
-                                <div class="nt-control-group">
+                                <div class="nt-control-group nt-control-group-assets">
                                     <span class="nt-control-label">Asset Type</span>
                         
                                     <div class="nt-asset-control">
@@ -368,6 +337,64 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                             </button>
                                         </div>
                         
+                                    </div>
+                                </div>
+
+                                <!-- SELECTED ASSET ACTIONS -->
+                                <div class="nt-control-group nt-control-group-actions">
+                                    <span class="nt-control-label">Selected Asset</span>
+
+                                    <div class="nt-selected-asset-actions">
+                                        <button
+                                            type="button"
+                                            id="selected-watchlist-toggle"
+                                            class="nt-watchlist-primary-btn nt-watchlist-primary-btn-compact"
+                                            aria-pressed="false"
+                                        >
+                                            <span id="selected-watchlist-star" aria-hidden="true">☆</span>
+                                            <span id="selected-watchlist-label">Add to Watchlist</span>
+                                        </button>
+
+                                        <label
+                                            id="selected-watchlist-alert-control"
+                                            class="nt-signal-mail-control"
+                                            for="selected-watchlist-alert-toggle"
+                                            title="Add this asset to your watchlist before enabling email alerts."
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                id="selected-watchlist-alert-toggle"
+                                                class="nt-sr-only"
+                                                disabled
+                                            >
+                                            <span class="nt-signal-mail-icon" aria-hidden="true">
+                                                <svg viewBox="0 0 24 24" focusable="false">
+                                                    <path d="M3.75 6.75A1.75 1.75 0 0 1 5.5 5h13A1.75 1.75 0 0 1 20.25 6.75v10.5A1.75 1.75 0 0 1 18.5 19h-13a1.75 1.75 0 0 1-1.75-1.75V6.75Z" />
+                                                    <path d="m4.5 6 7.5 6 7.5-6" />
+                                                </svg>
+                                            </span>
+                                            <span class="nt-sr-only">Email signal-change alerts</span>
+                                        </label>
+
+                                        <div id="selected-watchlist-info" class="nt-signal-alert-info">
+                                            <button
+                                                type="button"
+                                                id="selected-watchlist-info-button"
+                                                class="nt-signal-alert-info-button"
+                                                aria-expanded="false"
+                                                aria-describedby="selected-watchlist-info-tooltip"
+                                                aria-label="About email signal-change alerts"
+                                            >i</button>
+                                            <div
+                                                id="selected-watchlist-info-tooltip"
+                                                class="nt-signal-alert-info-tooltip"
+                                                role="tooltip"
+                                            >
+                                                Daily published signal changes only · not real-time execution alerts.
+                                            </div>
+                                        </div>
+
+                                        <span id="selected-watchlist-message" class="nt-sr-only" aria-live="polite"></span>
                                     </div>
                                 </div>
                         
@@ -1308,7 +1335,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 {% block page_scripts %}
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest.js') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-watchlist.js') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-watchlist.js', v='20260805-signal-actions-v1') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest-form.js', v='20260804-pointer-continuity-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js', v='20260804-score-0-100-v1') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-subscription-bridge.js') }}"></script>
