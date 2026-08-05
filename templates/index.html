@@ -12,7 +12,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
 {% endblock %}
 
 {% block page_styles_after %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260804-hero-spread-tooltip-v2') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-home.css', v='20260804-membership-enterprise-v1') }}">
 {% endblock %}
 
 {% block content %}
@@ -778,6 +778,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                     </ul>
                     <a href="{{ url_for('dashboard') }}#signal-overview">Explore free assets →</a>
                 </article>
+
                 <article class="nt-home-plan-card nt-home-plan-card-pro">
                     <span class="nt-home-plan-label">NeuralTrend Pro</span>
                     <h3>$9.99 <small>/ month</small></h3>
@@ -789,6 +790,27 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                     </ul>
                     <a href="{{ url_for('subscription') }}">View Pro plan →</a>
                 </article>
+
+                <article class="nt-home-plan-card nt-home-plan-card-enterprise">
+                    <div class="nt-home-enterprise-header">
+                        <span class="nt-home-enterprise-icon" aria-hidden="true">
+                            <svg viewBox="0 0 48 48" focusable="false">
+                                <path d="M7 42V19h12v23M19 42V8h20v34M3 42h42M12 24h2M12 30h2M12 36h2M25 14h3M32 14h3M25 21h3M32 21h3M25 28h3M32 28h3M25 35h3M32 35h3" />
+                            </svg>
+                        </span>
+                        <span class="nt-home-plan-label">Enterprise &amp; API</span>
+                    </div>
+                    <div class="nt-home-enterprise-body">
+                        <h3>Custom access</h3>
+                        <p>Custom access for teams, research, data needs, and planned API usage.</p>
+                        <ul class="nt-home-plan-benefits">
+                            <li>Bulk data and extended history</li>
+                            <li>Dedicated support and service options</li>
+                            <li>API and integration access by inquiry</li>
+                        </ul>
+                        <a href="{{ url_for('contact') }}">Request enterprise access →</a>
+                    </div>
+                </article>
             </div>
         </section>
 
@@ -798,6 +820,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
 
 {% block page_scripts %}
 <script src="{{ url_for('static', filename='js/neuraltrend-checkout-status.js') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-hero.js', v='20260804-hero-spread-tooltip-v2') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-hero.js', v='20260804-membership-enterprise-v1') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-home.js') }}"></script>
 {% endblock %}
