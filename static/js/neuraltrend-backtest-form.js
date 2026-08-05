@@ -41,6 +41,11 @@
                 panel.id === panelId
             );
         });
+
+        const toolContentCard = document.querySelector(".nt-epoch-tool-content-card");
+        if (toolContentCard) {
+            toolContentCard.dataset.activeTool = panelId;
+        }
     
         // Resize visible charts after switching tabs
         setTimeout(() => {
@@ -91,6 +96,11 @@
         document.querySelectorAll(".nt-model-panel").forEach(panel => {
             panel.classList.toggle("nt-model-panel-active", panel.id === panelId);
         });
+
+        const modelContent = document.querySelector(".nt-model-content");
+        if (modelContent) {
+            modelContent.dataset.activeModel = panelId;
+        }
     }
     
     document.querySelectorAll(".nt-model-tab").forEach(tab => {
