@@ -879,7 +879,7 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "ZIG-USD", "ZKJ-USD", "ZRX-USD"]
 
 TOP_FREE_TICKERS = {"BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD"}
-ADMIN_ONLY_TICKERS = {"ASML", "JNJ"}
+ADMIN_ONLY_TICKERS = {"MU", "ASML", "JNJ"}
 ALL_SUPPORTED_TICKERS = frozenset(
     str(ticker).strip().upper()
     for ticker in [*SUPPORTED_TICKERS, *ADMIN_ONLY_TICKERS]
@@ -2946,6 +2946,11 @@ def healthz():
     response.status_code = 200 if healthy else 503
     response.headers["Cache-Control"] = "no-store, max-age=0"
     return response
+
+
+@app.route("/resources")
+def resources():
+    return render_template("resources.html")
 
 
 @app.route("/ai-crypto-trading-signals")
@@ -5632,6 +5637,12 @@ def sitemap_xml():
             "lastmod": today,
             "changefreq": "daily",
             "priority": "0.9"
+        },
+        {
+            "loc": "https://neuraltrend.org/resources",
+            "lastmod": today,
+            "changefreq": "monthly",
+            "priority": "0.8"
         },
         {
             "loc": "https://neuraltrend.org/subscription",
