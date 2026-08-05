@@ -853,3 +853,69 @@
         display: none !important;
     }
 }
+
+/* ==================================================
+   MODEL + TOOL POINTER REFINEMENTS — Aug 4, 2026
+   Connect tool pointers to their tabs and keep all pointers light until active.
+================================================== */
+
+@media (min-width: 701px) {
+    /* Inactive model pointers inherit the light tint of their model card. */
+    .nt-model-tab[data-model-target="epochsignaler-section"]::after {
+        border-top-color: #dbeafe !important;
+    }
+
+    .nt-model-tab[data-model-target="altindexer-section"]::after {
+        border-top-color: #dcfce7 !important;
+    }
+
+    .nt-model-tab[data-model-target="epochforecaster-section"]::after {
+        border-top-color: #ede9fe !important;
+    }
+
+    /* Selected model pointer becomes the strong active color. */
+    .nt-model-tab[data-model-target="epochsignaler-section"].active::after {
+        border-top-color: #123b82 !important;
+    }
+
+    .nt-model-tab[data-model-target="altindexer-section"].active::after {
+        border-top-color: #067647 !important;
+    }
+
+    .nt-model-tab[data-model-target="epochforecaster-section"].active::after {
+        border-top-color: #5b21b6 !important;
+    }
+}
+
+@media (min-width: 901px) {
+    /* Attach each tool pointer directly to the lower edge of its tab. */
+    .nt-epoch-tool-tabs .nt-epoch-tool-tab::after {
+        bottom: -11px !important;
+    }
+
+    /* Inactive tool pointers use the same light tint as their tabs. */
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"]::after {
+        border-top-color: #dbeafe !important;
+    }
+
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"]::after {
+        border-top-color: #dcfce7 !important;
+    }
+
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"]::after {
+        border-top-color: #ede9fe !important;
+    }
+
+    /* Selected tool pointer becomes the strong active color. */
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"].active::after {
+        border-top-color: #1d4ed8 !important;
+    }
+
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"].active::after {
+        border-top-color: #15803d !important;
+    }
+
+    .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"].active::after {
+        border-top-color: #6d28d9 !important;
+    }
+}
