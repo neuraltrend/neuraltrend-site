@@ -736,21 +736,21 @@
 }
 
 .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"] {
-    border-color: #bde8cb !important;
-    background: linear-gradient(180deg, #ffffff 0%, #f1fbf4 100%) !important;
+    border-color: #bfe3ff !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f2f9ff 100%) !important;
 }
 
 .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"] strong {
-    color: #15803d;
+    color: #0f6fcf;
 }
 
 .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"] {
-    border-color: #d8c5ff !important;
-    background: linear-gradient(180deg, #ffffff 0%, #faf5ff 100%) !important;
+    border-color: #cfd6ff !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f5f7ff 100%) !important;
 }
 
 .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"] strong {
-    color: #6d28d9;
+    color: #4f46e5;
 }
 
 .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"].active {
@@ -761,17 +761,17 @@
 }
 
 .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"].active {
-    border-color: #16a34a !important;
-    background: linear-gradient(135deg, #065f46, #16a34a) !important;
+    border-color: #0ea5e9 !important;
+    background: linear-gradient(135deg, #0f4c81, #0ea5e9) !important;
     color: #ffffff !important;
-    box-shadow: 0 9px 20px rgba(22, 163, 74, 0.18) !important;
+    box-shadow: 0 9px 20px rgba(14, 165, 233, 0.18) !important;
 }
 
 .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"].active {
-    border-color: #7c3aed !important;
-    background: linear-gradient(135deg, #4c1d95, #7c3aed) !important;
+    border-color: #6366f1 !important;
+    background: linear-gradient(135deg, #3730a3, #6366f1) !important;
     color: #ffffff !important;
-    box-shadow: 0 9px 20px rgba(124, 58, 237, 0.18) !important;
+    box-shadow: 0 9px 20px rgba(99, 102, 241, 0.18) !important;
 }
 
 .nt-epoch-tool-tab.active strong,
@@ -799,15 +799,15 @@
     }
 
     .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"]::after {
-        border-top: 11px solid #3b82f6 !important;
+        border-top: 11px solid #b7d1ff !important;
     }
 
     .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"]::after {
-        border-top: 11px solid #22b869 !important;
+        border-top: 11px solid #bfe3ff !important;
     }
 
     .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"]::after {
-        border-top: 11px solid #8b5cf6 !important;
+        border-top: 11px solid #cfd6ff !important;
     }
 
     .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-overview"].active::after {
@@ -815,11 +815,11 @@
     }
 
     .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"].active::after {
-        border-top-color: #15803d !important;
+        border-top-color: #0ea5e9 !important;
     }
 
     .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"].active::after {
-        border-top-color: #6d28d9 !important;
+        border-top-color: #6366f1 !important;
     }
 }
 
@@ -831,15 +831,15 @@
 }
 
 .nt-epoch-tool-content-card[data-active-tool="epoch-tool-live"] {
-    border-color: #bbf7d0 !important;
-    background: linear-gradient(180deg, #f3fcf6 0%, #ffffff 190px) !important;
-    box-shadow: 0 8px 22px rgba(22, 163, 74, 0.07) !important;
+    border-color: #bae6fd !important;
+    background: linear-gradient(180deg, #f4fbff 0%, #ffffff 190px) !important;
+    box-shadow: 0 8px 22px rgba(14, 165, 233, 0.07) !important;
 }
 
 .nt-epoch-tool-content-card[data-active-tool="epoch-tool-backtest"] {
-    border-color: #ddd6fe !important;
-    background: linear-gradient(180deg, #faf7ff 0%, #ffffff 190px) !important;
-    box-shadow: 0 8px 22px rgba(124, 58, 237, 0.07) !important;
+    border-color: #c7d2fe !important;
+    background: linear-gradient(180deg, #f7f8ff 0%, #ffffff 190px) !important;
+    box-shadow: 0 8px 22px rgba(99, 102, 241, 0.07) !important;
 }
 
 @media (max-width: 900px) {
@@ -899,11 +899,11 @@
     }
 
     .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"]::after {
-        border-top-color: #dcfce7 !important;
+        border-top-color: #d9efff !important;
     }
 
     .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"]::after {
-        border-top-color: #ede9fe !important;
+        border-top-color: #e2e7ff !important;
     }
 
     /* Selected tool pointer becomes the strong active color. */
@@ -912,10 +912,10 @@
     }
 
     .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"].active::after {
-        border-top-color: #15803d !important;
+        border-top-color: #0ea5e9 !important;
     }
 
     .nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-backtest"].active::after {
-        border-top-color: #6d28d9 !important;
+        border-top-color: #6366f1 !important;
     }
 }

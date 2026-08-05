@@ -48,8 +48,9 @@ body {
     margin-top: 0;
     border-top: 1px solid rgba(148, 163, 184, 0.13);
     background:
-        radial-gradient(circle at 92% 18%, rgba(37, 99, 235, 0.17), transparent 26%),
-        #07101f;
+        radial-gradient(circle at 12% 20%, rgba(59, 130, 246, 0.14), transparent 26%),
+        radial-gradient(circle at 88% 18%, rgba(147, 51, 234, 0.16), transparent 26%),
+        linear-gradient(90deg, #071224 0%, #102756 46%, #211c68 100%);
     color: #cbd5e1;
     box-shadow: none !important;
 }

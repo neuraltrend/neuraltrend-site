@@ -2332,7 +2332,8 @@
         .navbar {
             height: var(--nav-height) !important;
             padding: 8px 28px !important;
-            background: #0F172A !important;
+            background:
+                linear-gradient(90deg, #071224 0%, #102756 46%, #211c68 100%) !important;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 4px 18px rgba(15, 23, 42, 0.18);
         }

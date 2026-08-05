@@ -17,10 +17,11 @@
     --home-green: #16a34a;
     --home-purple: #9333ea;
     --home-orange: #ea580c;
-    --home-dark-panel: #07101f;
-    --home-dark-panel-alt: #0f1c38;
-    --home-dark-card: #17243b;
-    --home-dark-card-hover: #1b2b47;
+    --home-dark-panel: #071224;
+    --home-dark-panel-alt: #102756;
+    --home-dark-panel-accent: #211c68;
+    --home-dark-card: #172a4e;
+    --home-dark-card-hover: #1d3460;
     padding-bottom: 72px;
 }
 
@@ -39,8 +40,11 @@
     transform: translateX(-50%);
     border: 0 !important;
     border-radius: 0;
-    background: #07101f;
-    box-shadow: 0 0 0 100vmax #07101f;
+    background:
+        radial-gradient(circle at 14% 20%, rgba(59, 130, 246, 0.14), transparent 28%),
+        radial-gradient(circle at 88% 16%, rgba(147, 51, 234, 0.15), transparent 26%),
+        linear-gradient(90deg, var(--home-dark-panel) 0%, var(--home-dark-panel-alt) 46%, var(--home-dark-panel-accent) 100%);
+    box-shadow: 0 0 0 100vmax var(--home-dark-panel);
     clip-path: inset(0 -100vmax);
 }
 
@@ -1995,7 +1999,7 @@
     background:
         radial-gradient(circle at 10% 16%, rgba(59, 130, 246, 0.15), transparent 28%),
         radial-gradient(circle at 90% 10%, rgba(147, 51, 234, 0.14), transparent 25%),
-        linear-gradient(135deg, #07101f 0%, #0f1c38 54%, #172554 100%);
+        linear-gradient(90deg, var(--home-dark-panel) 0%, var(--home-dark-panel-alt) 46%, var(--home-dark-panel-accent) 100%);
     color: #fff;
 }
 
