@@ -79,9 +79,9 @@
         const star = document.getElementById("selected-watchlist-star");
         const label = document.getElementById("selected-watchlist-label");
         const alertToggle = document.getElementById("selected-watchlist-alert-toggle");
-        const alertNote = document.getElementById("selected-watchlist-alert-note");
+        const alertControl = document.getElementById("selected-watchlist-alert-control");
 
-        if (!button || !star || !label || !alertToggle || !alertNote) return;
+        if (!button || !star || !label || !alertToggle || !alertControl) return;
 
         const item = currentItem();
         const watching = Boolean(item);
@@ -90,12 +90,24 @@
         button.classList.toggle("is-watching", watching);
         button.setAttribute("aria-pressed", watching ? "true" : "false");
 
+        function syncMailControl(title) {
+            const active = Boolean(alertToggle.checked);
+            const available = watching && !alertToggle.disabled;
+
+            alertControl.classList.toggle("is-watching", watching);
+            alertControl.classList.toggle("is-available", available);
+            alertControl.classList.toggle("is-active", active);
+            alertControl.classList.toggle("is-disabled", alertToggle.disabled);
+            alertControl.title = title;
+            alertControl.setAttribute("aria-label", title);
+        }
+
         if (!isLoggedIn()) {
             star.textContent = "☆";
             label.textContent = "Log in to save";
             alertToggle.checked = false;
             alertToggle.disabled = true;
-            alertNote.textContent = "Log in to create a personal watchlist.";
+            syncMailControl("Log in and add this asset to a watchlist before enabling email alerts.");
             return;
         }
 
@@ -105,9 +117,7 @@
         if (!watching) {
             alertToggle.checked = false;
             alertToggle.disabled = true;
-            alertNote.textContent = state.isPaid
-                ? "Add this asset first, then enable future signal-change emails."
-                : "Pro feature · daily published signals, not real-time execution alerts";
+            syncMailControl("Add this asset to your watchlist before enabling email alerts.");
             return;
         }
 
@@ -116,26 +126,28 @@
         if (item.retired_from_public_tracking) {
             alertToggle.checked = false;
             alertToggle.disabled = true;
-            alertNote.textContent = "Tracking ended · alerts are disabled; the public record remains archived.";
+            syncMailControl("Tracking ended for this asset, so email alerts are unavailable.");
             return;
         }
 
         if (item.locked) {
             alertToggle.disabled = true;
-            alertNote.textContent = "This saved asset is currently locked for your plan.";
+            syncMailControl("This saved asset is currently locked for your plan.");
             return;
         }
 
         if (!state.isPaid) {
             alertToggle.disabled = true;
-            alertNote.textContent = "Pro feature · watchlists remain available on the Free plan.";
+            syncMailControl("Email signal-change alerts are available with NeuralTrend Pro.");
             return;
         }
 
         alertToggle.disabled = state.loading || !item.can_enable_email_alert;
-        alertNote.textContent = item.email_alert_enabled
-            ? "Enabled · an email is sent only when the published daily signal changes."
-            : "Daily published signal changes only · not real-time execution alerts.";
+        syncMailControl(
+            item.email_alert_enabled
+                ? "Email signal-change alerts are enabled. Click to turn them off."
+                : "Click to enable email signal-change alerts."
+        );
     }
 
     function refreshDependentUI() {
@@ -279,6 +291,34 @@
         }
     }
 
+    function initializeAlertInfoTooltip() {
+        const root = document.getElementById("selected-watchlist-info");
+        const button = document.getElementById("selected-watchlist-info-button");
+        if (!root || !button) return;
+
+        function setOpen(open) {
+            root.classList.toggle("is-open", Boolean(open));
+            button.setAttribute("aria-expanded", open ? "true" : "false");
+        }
+
+        button.addEventListener("click", event => {
+            event.preventDefault();
+            event.stopPropagation();
+            setOpen(!root.classList.contains("is-open"));
+        });
+
+        document.addEventListener("click", event => {
+            if (!root.contains(event.target)) setOpen(false);
+        });
+
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape") {
+                setOpen(false);
+                button.blur();
+            }
+        });
+    }
+
     window.neuralTrendWatchlistHasTicker = ticker => (
         state.items.has(normalizeTicker(ticker))
     );
@@ -316,6 +356,8 @@
         state.isPaid = Boolean(state.user?.is_paid);
         loadWatchlist();
     });
+
+    initializeAlertInfoTooltip();
 
     if (window.neuralTrendCurrentUser) {
         state.user = window.neuralTrendCurrentUser;
