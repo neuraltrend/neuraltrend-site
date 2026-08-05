@@ -1485,7 +1485,7 @@
 
 /* Metric numbers and the current regime label follow the chart's five bands. */
 .nt-alt-zone-strong-sell {
-    color: #b91c1c !important;
+    color: #991b1b !important;
 }
 
 .nt-alt-zone-sell {
@@ -1501,13 +1501,13 @@
 }
 
 .nt-alt-zone-strong-buy {
-    color: #15803d !important;
+    color: #166534 !important;
 }
 
 /* Matching icon treatments keep the four summary cards visually consistent. */
 .nt-alt-icon-strong-sell {
-    color: #b91c1c !important;
-    background: rgba(239, 68, 68, 0.16) !important;
+    color: #991b1b !important;
+    background: rgba(153, 27, 27, 0.16) !important;
 }
 
 .nt-alt-icon-sell {
@@ -1526,8 +1526,8 @@
 }
 
 .nt-alt-icon-strong-buy {
-    color: #15803d !important;
-    background: rgba(34, 197, 94, 0.18) !important;
+    color: #166534 !important;
+    background: rgba(22, 101, 52, 0.18) !important;
 }
 
 
