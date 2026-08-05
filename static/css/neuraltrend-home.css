@@ -3660,3 +3660,184 @@
         align-self: center;
     }
 }
+
+/* ==================================================
+   Membership — Enterprise & API option
+================================================== */
+.nt-home-plans-redesigned .nt-home-plan-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    align-items: stretch;
+}
+
+.nt-home-plans-redesigned .nt-home-plan-card {
+    display: flex;
+    min-width: 0;
+    min-height: 390px;
+    flex-direction: column;
+    padding: 30px;
+    border-radius: 18px;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+}
+
+.nt-home-plans-redesigned .nt-home-plan-card-pro {
+    border-color: #93c5fd;
+    background: linear-gradient(145deg, #ffffff 0%, #f1f7ff 100%);
+}
+
+.nt-home-plans-redesigned .nt-home-plan-card h3 {
+    margin-top: 16px;
+    font-size: clamp(29px, 2.4vw, 36px);
+    letter-spacing: -0.035em;
+}
+
+.nt-home-plans-redesigned .nt-home-plan-card h3 small {
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.nt-home-plans-redesigned .nt-home-plan-benefits {
+    margin: 24px 0 22px;
+    padding: 22px 0 0;
+    border-top: 1px solid #dfe7f1;
+    list-style: none;
+}
+
+.nt-home-plans-redesigned .nt-home-plan-benefits li {
+    position: relative;
+    padding-left: 27px;
+}
+
+.nt-home-plans-redesigned .nt-home-plan-benefits li::before {
+    content: "✓";
+    position: absolute;
+    top: 0.2em;
+    left: 0;
+    display: inline-flex;
+    width: 17px;
+    height: 17px;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid #3b82f6;
+    border-radius: 999px;
+    color: #2563eb;
+    font-size: 10px;
+    font-weight: 950;
+    line-height: 1;
+}
+
+.nt-home-plans-redesigned .nt-home-plan-card > a,
+.nt-home-plans-redesigned .nt-home-enterprise-body > a {
+    margin-top: auto;
+}
+
+/* Enterprise card: dark branded header with a white information body. */
+.nt-home-plan-card-enterprise {
+    overflow: hidden;
+    padding: 0 !important;
+    border-color: #cbd5e1 !important;
+    background: #ffffff !important;
+}
+
+.nt-home-enterprise-header {
+    display: flex;
+    min-height: 88px;
+    align-items: center;
+    gap: 15px;
+    padding: 20px 28px;
+    background:
+        radial-gradient(circle at 95% 0%, rgba(99, 102, 241, 0.36), transparent 38%),
+        linear-gradient(135deg, #0b1f43 0%, #172554 62%, #312e81 100%);
+}
+
+.nt-home-enterprise-header .nt-home-plan-label {
+    color: #ffffff;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+}
+
+.nt-home-enterprise-icon {
+    display: inline-flex;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(129, 140, 248, 0.48);
+    border-radius: 11px;
+    background: rgba(49, 46, 129, 0.38);
+    color: #818cf8;
+    box-shadow: 0 8px 20px rgba(30, 27, 75, 0.34);
+}
+
+.nt-home-enterprise-icon svg {
+    width: 29px;
+    height: 29px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.nt-home-enterprise-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 24px 30px 30px;
+}
+
+.nt-home-enterprise-body h3 {
+    margin: 0 !important;
+    font-size: clamp(27px, 2.1vw, 33px) !important;
+}
+
+.nt-home-enterprise-body p {
+    max-width: 34ch;
+}
+
+.nt-home-enterprise-body .nt-home-plan-benefits {
+    margin-top: 22px;
+}
+
+.nt-home-enterprise-body > a {
+    color: #4f46e5;
+}
+
+.nt-home-enterprise-body > a:hover {
+    color: #3730a3;
+}
+
+@media (max-width: 1080px) {
+    .nt-home-plans-redesigned .nt-home-plan-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .nt-home-plan-card-enterprise {
+        grid-column: 1 / -1;
+        min-height: 350px !important;
+    }
+}
+
+@media (max-width: 720px) {
+    .nt-home-plans-redesigned .nt-home-plan-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .nt-home-plan-card-enterprise {
+        grid-column: auto;
+    }
+
+    .nt-home-plans-redesigned .nt-home-plan-card {
+        min-height: 0;
+        padding: 24px;
+    }
+
+    .nt-home-enterprise-header {
+        padding: 18px 22px;
+    }
+
+    .nt-home-enterprise-body {
+        padding: 22px 24px 26px;
+    }
+}
