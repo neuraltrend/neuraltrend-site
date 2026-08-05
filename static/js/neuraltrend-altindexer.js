@@ -269,7 +269,7 @@
                         x1: 1,
                         y0: 0,
                         y1: 20,
-                        fillcolor: "rgba(153, 27, 27, 0.36)",
+                        fillcolor: "rgba(239, 68, 68, 0.38)",
                         line: { width: 0 },
                         layer: "below"
                     },
@@ -281,7 +281,7 @@
                         x1: 1,
                         y0: 20,
                         y1: 40,
-                        fillcolor: "rgba(248, 113, 113, 0.18)",
+                        fillcolor: "rgba(220, 38, 38, 0.14)",
                         line: { width: 0 },
                         layer: "below"
                     },
@@ -305,7 +305,7 @@
                         x1: 1,
                         y0: 60,
                         y1: 80,
-                        fillcolor: "rgba(74, 222, 128, 0.18)",
+                        fillcolor: "rgba(34, 197, 94, 0.15)",
                         line: { width: 0 },
                         layer: "below"
                     },
@@ -317,7 +317,7 @@
                         x1: 1,
                         y0: 80,
                         y1: 100,
-                        fillcolor: "rgba(22, 101, 52, 0.36)",
+                        fillcolor: "rgba(34, 197, 94, 0.36)",
                         line: { width: 0 },
                         layer: "below"
                     },
@@ -350,28 +350,28 @@
                 annotations: [
                     {
                         xref: "paper", yref: "y", x: 0.5, y: 10,
-                        text: "Strong Sell", showarrow: false,
-                        font: { size: 24, color: "rgba(254, 226, 226, 0.82)" }
+                        text: "<b>Strong Sell</b>", showarrow: false,
+                        font: { size: 23, color: "rgba(255, 255, 255, 0.96)" }
                     },
                     {
                         xref: "paper", yref: "y", x: 0.5, y: 30,
-                        text: "Sell", showarrow: false,
-                        font: { size: 24, color: "rgba(254, 226, 226, 0.86)" }
+                        text: "<b>Sell</b>", showarrow: false,
+                        font: { size: 23, color: "rgba(153, 27, 27, 0.92)" }
                     },
                     {
                         xref: "paper", yref: "y", x: 0.5, y: 50,
-                        text: "Neutral", showarrow: false,
-                        font: { size: 24, color: "rgba(71, 85, 105, 0.72)" }
+                        text: "<b>Neutral</b>", showarrow: false,
+                        font: { size: 23, color: "rgba(100, 116, 139, 0.92)" }
                     },
                     {
                         xref: "paper", yref: "y", x: 0.5, y: 70,
-                        text: "Buy", showarrow: false,
-                        font: { size: 24, color: "rgba(220, 252, 231, 0.88)" }
+                        text: "<b>Buy</b>", showarrow: false,
+                        font: { size: 23, color: "rgba(21, 128, 61, 0.94)" }
                     },
                     {
                         xref: "paper", yref: "y", x: 0.5, y: 90,
-                        text: "Strong Buy", showarrow: false,
-                        font: { size: 24, color: "rgba(220, 252, 231, 0.86)" }
+                        text: "<b>Strong Buy</b>", showarrow: false,
+                        font: { size: 23, color: "rgba(255, 255, 255, 0.96)" }
                     }
                 ],
 
