@@ -765,9 +765,6 @@
         const duration = document.getElementById("period-select")?.value || "5y";
         const horizon = durationLabel(duration);
     
-        document.getElementById("metric-selected-ticker").textContent = item.ticker;
-        document.getElementById("metric-selected-horizon").textContent = horizon;
-    
         document.querySelectorAll(".metric-horizon-text").forEach(el => {
             el.textContent = horizon;
         });
