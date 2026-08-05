@@ -88,32 +88,64 @@
     }
     
     function altIndexerZone(value) {
-        if (value > 50) {
+        const numericValue = Number(value);
+
+        if (!Number.isFinite(numericValue)) {
             return {
-                label: "Buy Zone",
-                valueClass: "return-positive",
-                iconClass: "nt-icon-green",
-                icon: "↗"
+                label: "No data",
+                valueClass: "nt-alt-zone-neutral",
+                iconClass: "nt-alt-icon-neutral",
+                icon: "◎"
             };
         }
-    
-        if (value < 50) {
+
+        // Five market-regime bands on the displayed 0–100 scale.
+        // Boundary values remain in the lower band, except 80 which begins
+        // Strong Buy: 0–20, >20–40, >40–60, >60–<80, and 80–100.
+        if (numericValue <= 20) {
             return {
-                label: "Sell Zone",
-                valueClass: "return-negative",
-                iconClass: "nt-icon-neutral",
+                label: "Strong Sell",
+                valueClass: "nt-alt-zone-strong-sell",
+                iconClass: "nt-alt-icon-strong-sell",
+                icon: "↓↓"
+            };
+        }
+
+        if (numericValue <= 40) {
+            return {
+                label: "Sell",
+                valueClass: "nt-alt-zone-sell",
+                iconClass: "nt-alt-icon-sell",
                 icon: "↘"
             };
         }
-    
+
+        if (numericValue <= 60) {
+            return {
+                label: "Neutral",
+                valueClass: "nt-alt-zone-neutral",
+                iconClass: "nt-alt-icon-neutral",
+                icon: "◎"
+            };
+        }
+
+        if (numericValue < 80) {
+            return {
+                label: "Buy",
+                valueClass: "nt-alt-zone-buy",
+                iconClass: "nt-alt-icon-buy",
+                icon: "↗"
+            };
+        }
+
         return {
-            label: "Neutral",
-            valueClass: "return-neutral",
-            iconClass: "nt-icon-neutral",
-            icon: "◎"
+            label: "Strong Buy",
+            valueClass: "nt-alt-zone-strong-buy",
+            iconClass: "nt-alt-icon-strong-buy",
+            icon: "↑↑"
         };
     }
-    
+
     function altIndexerFormatValue(value) {
         if (value === null || value === undefined || Number.isNaN(Number(value))) {
             return "—";
@@ -157,8 +189,8 @@
     
         updateAltIndexerMetric("altindexer-today", todayPoint, "◎");
         updateAltIndexerMetric("altindexer-yesterday", yesterdayPoint, "↩");
-        updateAltIndexerMetric("altindexer-lastweek", lastWeekPoint, "7D");
-        updateAltIndexerMetric("altindexer-lastmonth", lastMonthPoint, "30D");
+        updateAltIndexerMetric("altindexer-lastweek", lastWeekPoint, "1W");
+        updateAltIndexerMetric("altindexer-lastmonth", lastMonthPoint, "1M");
     
         const regimeEl = document.getElementById("altindexer-regime-label");
         const latestDateEl = document.getElementById("altindexer-latest-date");
@@ -187,7 +219,7 @@
                 type: "scatter",
                 mode: "lines",
                 name: "AltIndexer Score",
-                line: { width: 2 },
+                line: { width: 2, color: "#60a5fa" },
                 hovertemplate: "%{y}<extra></extra>"
             };
     
@@ -222,8 +254,8 @@
                     title: "AltIndexer Score",
                     range: [0, 100],
                     tickmode: "array",
-                    tickvals: [0, 25, 50, 75, 100],
-                    ticktext: ["0", "25", "50", "75", "100"],
+                    tickvals: [0, 20, 40, 60, 80, 100],
+                    ticktext: ["0", "20", "40", "60", "80", "100"],
                     zeroline: false,
                     fixedrange: false
                 },
@@ -235,9 +267,9 @@
                         yref: "y",
                         x0: 0,
                         x1: 1,
-                        y0: 50,
-                        y1: 100,
-                        fillcolor: "rgba(34, 197, 94, 0.12)",
+                        y0: 0,
+                        y1: 20,
+                        fillcolor: "rgba(153, 27, 27, 0.36)",
                         line: { width: 0 },
                         layer: "below"
                     },
@@ -247,56 +279,102 @@
                         yref: "y",
                         x0: 0,
                         x1: 1,
-                        y0: 0,
-                        y1: 50,
-                        fillcolor: "rgba(239, 68, 68, 0.12)",
+                        y0: 20,
+                        y1: 40,
+                        fillcolor: "rgba(248, 113, 113, 0.18)",
                         line: { width: 0 },
                         layer: "below"
                     },
                     {
-                        type: "line",
+                        type: "rect",
                         xref: "paper",
                         yref: "y",
                         x0: 0,
                         x1: 1,
-                        y0: 50,
-                        y1: 50,
-                        line: {
-                            color: "rgba(148, 163, 184, 0.72)",
-                            width: 1,
-                            dash: "dot"
-                        },
+                        y0: 40,
+                        y1: 60,
+                        fillcolor: "rgba(255, 255, 255, 0.96)",
+                        line: { width: 0 },
+                        layer: "below"
+                    },
+                    {
+                        type: "rect",
+                        xref: "paper",
+                        yref: "y",
+                        x0: 0,
+                        x1: 1,
+                        y0: 60,
+                        y1: 80,
+                        fillcolor: "rgba(74, 222, 128, 0.18)",
+                        line: { width: 0 },
+                        layer: "below"
+                    },
+                    {
+                        type: "rect",
+                        xref: "paper",
+                        yref: "y",
+                        x0: 0,
+                        x1: 1,
+                        y0: 80,
+                        y1: 100,
+                        fillcolor: "rgba(22, 101, 52, 0.36)",
+                        line: { width: 0 },
+                        layer: "below"
+                    },
+                    {
+                        type: "line", xref: "paper", yref: "y",
+                        x0: 0, x1: 1, y0: 20, y1: 20,
+                        line: { color: "rgba(148, 163, 184, 0.55)", width: 1, dash: "dot" },
+                        layer: "below"
+                    },
+                    {
+                        type: "line", xref: "paper", yref: "y",
+                        x0: 0, x1: 1, y0: 40, y1: 40,
+                        line: { color: "rgba(148, 163, 184, 0.55)", width: 1, dash: "dot" },
+                        layer: "below"
+                    },
+                    {
+                        type: "line", xref: "paper", yref: "y",
+                        x0: 0, x1: 1, y0: 60, y1: 60,
+                        line: { color: "rgba(148, 163, 184, 0.55)", width: 1, dash: "dot" },
+                        layer: "below"
+                    },
+                    {
+                        type: "line", xref: "paper", yref: "y",
+                        x0: 0, x1: 1, y0: 80, y1: 80,
+                        line: { color: "rgba(148, 163, 184, 0.55)", width: 1, dash: "dot" },
                         layer: "below"
                     }
                 ],
-    
+
                 annotations: [
                     {
-                        xref: "paper",
-                        yref: "y",
-                        x: 0.5,
-                        y: 75,
-                        text: "Buy Zone",
-                        showarrow: false,
-                        font: {
-                            size: 40,
-                            color: "rgba(200, 200, 200, 0.6)"
-                        }
+                        xref: "paper", yref: "y", x: 0.5, y: 10,
+                        text: "Strong Sell", showarrow: false,
+                        font: { size: 24, color: "rgba(254, 226, 226, 0.82)" }
                     },
                     {
-                        xref: "paper",
-                        yref: "y",
-                        x: 0.5,
-                        y: 25,
-                        text: "Sell Zone",
-                        showarrow: false,
-                        font: {
-                            size: 40,
-                            color: "rgba(200, 200, 200, 0.6)"
-                        }
+                        xref: "paper", yref: "y", x: 0.5, y: 30,
+                        text: "Sell", showarrow: false,
+                        font: { size: 24, color: "rgba(254, 226, 226, 0.86)" }
+                    },
+                    {
+                        xref: "paper", yref: "y", x: 0.5, y: 50,
+                        text: "Neutral", showarrow: false,
+                        font: { size: 24, color: "rgba(71, 85, 105, 0.72)" }
+                    },
+                    {
+                        xref: "paper", yref: "y", x: 0.5, y: 70,
+                        text: "Buy", showarrow: false,
+                        font: { size: 24, color: "rgba(220, 252, 231, 0.88)" }
+                    },
+                    {
+                        xref: "paper", yref: "y", x: 0.5, y: 90,
+                        text: "Strong Buy", showarrow: false,
+                        font: { size: 24, color: "rgba(220, 252, 231, 0.86)" }
                     }
                 ],
-    
+
                 template: "plotly_dark",
                 hovermode: "x unified",
                 margin: { t: 60, l: 50, r: 30, b: 50 }
