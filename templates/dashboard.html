@@ -7,7 +7,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 {% endblock %}
 
 {% block page_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260805-equity-metric-panel-v2') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260805-altindexer-five-zone-v1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-watchlist.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
 {% endblock %}
@@ -1171,7 +1171,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                 <h3 class="nt-model-panel-title">AltIndexer</h3>
                 <p class="nt-model-panel-description">
                     AltIndexer is an AI-based model for altcoin-season prediction. Unlike traditional altcoin indexes based on past 90-day performance, 
-                    AltIndexer is a forward-looking index based on the number of altcoins currently in buy or sell zones, calculated daily.
+                    AltIndexer is a forward-looking index based on the number of altcoins currently in buy, sell, or neutral zones, calculated daily.
                 </p>
             </div>
 
@@ -1207,7 +1207,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                     </div>
             
                     <div class="nt-metric-card">
-                        <div id="altindexer-lastweek-icon" class="nt-card-icon nt-icon-neutral">7D</div>
+                        <div id="altindexer-lastweek-icon" class="nt-card-icon nt-icon-neutral">1W</div>
                         <div>
                             <div class="nt-metric-label">Last Week Index</div>
                             <div id="altindexer-lastweek-value" class="nt-metric-value return-neutral">—</div>
@@ -1216,7 +1216,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                     </div>
             
                     <div class="nt-metric-card">
-                        <div id="altindexer-lastmonth-icon" class="nt-card-icon nt-icon-neutral">30D</div>
+                        <div id="altindexer-lastmonth-icon" class="nt-card-icon nt-icon-neutral">1M</div>
                         <div>
                             <div class="nt-metric-label">Last Month Index</div>
                             <div id="altindexer-lastmonth-value" class="nt-metric-value return-neutral">—</div>
@@ -1252,7 +1252,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                 
                     <p class="nt-model-preview-text">
                         AltIndexer is a forward-looking market-regime index calculated from the current signal-zone structure of supported altcoins.
-                        Instead of relying only on past 90-day price performance, it evaluates how many assets are currently positioned in model-defined buy or sell zones.
+                        Instead of relying only on past 90-day price performance, it evaluates how many assets are currently positioned in model-defined buy, sell, or neutral zones.
                     </p>
                 
                     <div class="nt-model-feature-list">
@@ -1262,7 +1262,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                             <div>
                                 <div class="nt-model-feature-title">Daily signal-zone scan</div>
                                 <div class="nt-model-feature-text">
-                                    Each day, supported altcoins are classified according to their current model signal condition: buy zone, neutral/hold zone, or sell zone.
+                                    Each day, supported altcoins are classified as BUY, HOLD/neutral, or SELL. Their combined balance produces the daily score, which is then interpreted through the five AltIndexer regimes.
                                 </div>
                             </div>
                         </div>
@@ -1270,9 +1270,9 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                         <div class="nt-model-feature-row">
                             <div class="nt-model-feature-icon">2</div>
                             <div>
-                                <div class="nt-model-feature-title">Buy-zone versus sell-zone balance</div>
+                                <div class="nt-model-feature-title">Buy, neutral, and sell balance</div>
                                 <div class="nt-model-feature-text">
-                                    The index reflects the balance between altcoins showing stronger positive signal conditions and altcoins showing weaker or defensive signal conditions.
+                                    The index reflects the balance among altcoins showing positive, neutral, and defensive signal conditions.
                                 </div>
                             </div>
                         </div>
@@ -1280,9 +1280,9 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                         <div class="nt-model-feature-row">
                             <div class="nt-model-feature-icon">3</div>
                             <div>
-                                <div class="nt-model-feature-title">Normalized market-regime score</div>
+                                <div class="nt-model-feature-title">Five-zone market-regime score</div>
                                 <div class="nt-model-feature-text">
-                                    The final AltIndexer value is displayed as an integer from 0 to 100. Scores above 50 indicate a stronger altcoin regime, scores below 50 indicate a weaker or defensive regime, and 50 is neutral.
+                                    The final AltIndexer value is displayed as an integer from 0 to 100 across five regimes: 0–20 Strong Sell, 20–40 Sell, 40–60 Neutral, 60–80 Buy, and 80–100 Strong Buy.
                                 </div>
                             </div>
                         </div>
@@ -1332,7 +1332,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 <script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260805-equity-metric-panel-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-watchlist.js', v='20260805-signal-actions-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest-form.js', v='20260804-pointer-continuity-v2') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js', v='20260804-score-0-100-v1') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js', v='20260805-five-zone-v1') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-subscription-bridge.js') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-checkout-status.js') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-model-tabs.js') }}"></script>
