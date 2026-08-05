@@ -1438,3 +1438,43 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ==================================================
+   Equity preview metric-panel proportion refinement — Aug 5, 2026
+   Give the eight summary cards enough width to avoid unnecessary wrapping
+   while keeping their total height aligned with the equity chart.
+================================================== */
+#equity-preview-container .nt-preview-workspace {
+    grid-template-columns: 350px minmax(0, 1fr);
+    align-items: stretch;
+}
+
+#equity-preview-container .nt-preview-metric-card {
+    min-height: 74px;
+    padding: 9px 10px;
+}
+
+#equity-preview-container .nt-preview-metric-card > span {
+    line-height: 1.2;
+}
+
+#equity-preview-container .nt-preview-metric-card > strong {
+    margin-top: 4px;
+}
+
+#equity-preview-container .nt-preview-metric-card > small {
+    margin-top: 4px;
+    line-height: 1.2;
+}
+
+@media (max-width: 1180px) {
+    #equity-preview-container .nt-preview-workspace {
+        grid-template-columns: 330px minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 1100px) {
+    #equity-preview-container .nt-preview-workspace {
+        grid-template-columns: 1fr;
+    }
+}
