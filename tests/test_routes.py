@@ -8,6 +8,7 @@ import pytest
     [
         "/",
         "/dashboard",
+        "/resources",
         "/subscription",
         "/contact",
         "/methodology",
