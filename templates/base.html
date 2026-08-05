@@ -40,11 +40,11 @@
     <!-- Plotly CDN (include once per page, ideally in <head>) -->
     <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
     
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend.css', v='20260805-theme-v1') }}">
     {% block page_styles %}{% endblock %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-responsive.css') }}">
     {% block page_styles_after %}{% endblock %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-site-footer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-site-footer.css', v='20260805-theme-v1') }}">
 
 </head>
 <body>
