@@ -221,7 +221,7 @@
                 type: "scatter",
                 mode: "lines",
                 name: "AltIndexer Score",
-                line: { width: 2, color: "#60a5fa" },
+                line: { width: 3, color: "#111827" },
                 hovertemplate: "%{y}<extra></extra>"
             };
     
