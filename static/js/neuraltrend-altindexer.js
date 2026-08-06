@@ -166,6 +166,7 @@
             iconEl.textContent = fallbackIcon || "◎";
             valueEl.className = "nt-metric-value return-neutral";
             valueEl.textContent = "—";
+            subEl.className = "nt-metric-sub nt-alt-zone-neutral";
             subEl.textContent = "No data";
             return;
         }
@@ -178,6 +179,7 @@
         valueEl.className = `nt-metric-value ${zone.valueClass}`;
         valueEl.textContent = altIndexerFormatValue(point.value);
     
+        subEl.className = `nt-metric-sub ${zone.valueClass}`;
         subEl.textContent = `${zone.label} · ${ntAltFormatDate(point.date)}`;
     }
     
