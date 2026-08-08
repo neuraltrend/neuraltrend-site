@@ -7,6 +7,8 @@
     let defaultOrder = [];
     let assetTypeFilter = "crypto";
     let isLogScale = false;
+    let signalSummaryRequestId = 0;
+    let equityPreviewRequestId = 0;
 
     const NT_COLORS = {
         positive: "#16A34A",
@@ -1032,10 +1034,20 @@
     
     function loadSummary() {
         const duration = document.getElementById('period-select')?.value || "5y";
+        const requestId = ++signalSummaryRequestId;
     
         return fetch(`/signals/summary?duration=${duration}&_=${Date.now()}`)
             .then(r => r.json())
             .then(data => {
+                // Ignore an older horizon response if the user changed horizons
+                // again while this request was in flight.
+                if (
+                    requestId !== signalSummaryRequestId ||
+                    (document.getElementById('period-select')?.value || "5y") !== duration
+                ) {
+                    return;
+                }
+
                 if (!Array.isArray(data)) {
                     throw new Error(data.error || "Signal summary response was not a list.");
                 }
@@ -1057,6 +1069,7 @@
                 }
             })
             .catch(err => {
+                if (requestId !== signalSummaryRequestId) return;
                 board.innerHTML = signalBoardStateMarkup(
                     "error",
                     "Signals could not be loaded. Please try again."
@@ -1110,12 +1123,15 @@
                 "Updating the selected horizon…"
             );
     
-            loadSummary();
-    
-            // 🔥 If a ticker is already selected, update its chart too
-            if (currentTicker) {
-                loadTicker(currentTicker);
-            }
+            // Load the summary for the new horizon first, then refresh the
+            // selected asset preview. This prevents a transient state where the
+            // equity chart shows the new window while the metric cards still
+            // display returns from the previous horizon.
+            loadSummary().then(() => {
+                if (currentTicker) {
+                    loadTicker(currentTicker);
+                }
+            });
             updateAssumptionsBar();
         });
 
@@ -1241,6 +1257,7 @@
     function loadTicker(ticker) {
 
         currentTicker = ticker;
+        const requestId = ++equityPreviewRequestId;
         document.dispatchEvent(new CustomEvent("neuralTrendTickerSelected", {
             detail: { ticker }
         }));
@@ -1262,6 +1279,16 @@
         })
         .then(async response => {
             const data = await response.json();
+
+            // Keep the preview tied to the same ticker + horizon that initiated
+            // this request. Slow older responses must never replace newer data.
+            if (
+                requestId !== equityPreviewRequestId ||
+                currentTicker !== ticker ||
+                document.getElementById('period-select').value !== duration
+            ) {
+                return;
+            }
     
             if (!response.ok) {
                 showLockedEquityPreview(data);
@@ -1271,6 +1298,7 @@
             renderEquityPreview(data);
         })
         .catch(error => {
+            if (requestId !== equityPreviewRequestId) return;
             console.error("Equity preview error:", error);
             showLockedEquityPreview({
                 error: "Could not load equity preview.",
