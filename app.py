@@ -701,6 +701,30 @@ def duration_to_days(duration_str: str):
     return delta.years * 365 + delta.months * 30 + delta.days
 
 
+def slice_epoch_data_for_period(df, period_days):
+    """Return the exact dashboard horizon window anchored to the asset's latest row.
+
+    Signal Board summaries and Equity Preview must use the same observations.
+    Horizons are calendar-duration windows (for example, 1W spans exactly seven
+    elapsed calendar days from the latest available market row). For stocks this
+    naturally includes only the trading sessions that fall inside that calendar
+    window; it must not be converted again into an approximate trading-day count.
+    ``None`` means MAX and preserves the complete validated history.
+    """
+    if df is None or len(df) == 0:
+        return df.copy() if hasattr(df, "copy") else df
+
+    if period_days is None:
+        return df.copy()
+
+    if not isinstance(period_days, int) or period_days < 1:
+        raise ValueError("Unsupported signal period.")
+
+    end_date = df.index.max()
+    start_date = end_date - pd.Timedelta(days=period_days)
+    return df[df.index >= start_date].copy()
+
+
 def parse_position_fraction(value):
     """Convert a finite percentage in (0, 100] to a decimal fraction."""
     if value is None:
@@ -859,8 +883,8 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "GHX-USD", "GLQ-USD", "GMEE-USD", "GMRX-USD", "GMT-USD", "GMX-USD", "GODS-USD", "GPU-USD", "GRIFFAIN-USD", "GRT-USD",
                "GSWIFT-USD", "GTAI-USD", "GTC-USD", "HASHAI-USD", "HBAR-USD", "HEART-USD", "HELLO-USD", "HNT-USD", "HONEY-USD",
                "HXD-USD", "HYPC-USD", "HYPE-USD", "IAG-USD", "ICP-USD", "ILV-USD", "IMX-USD", "INJ-USD", "INSP-USD", "IOTX-USD", "IVPAY-USD",
-               "JASMY-USD", "JNJ", "JOE-USD", "JPM", "JST-USD", "JTO-USD", "JUP-USD", "KARATE-USD", "KARRAT-USD", "KAS-USD", "KATA-USD", "KOMPETE-USD",
-               "KRL-USD", "LAI-USD", "LEO-USD", "LFNTY-USD", "LIKE-USD", "LINK-USD", "LLY", "LMWR-USD", "LPT-USD", "LRC-USD", "LTC-USD", "MA",
+               "JASMY-USD", "JNJ", "JOE-USD", "JST-USD", "JTO-USD", "JUP-USD", "KARATE-USD", "KARRAT-USD", "KAS-USD", "KATA-USD", "KOMPETE-USD",
+               "KRL-USD", "LAI-USD", "LEO-USD", "LFNTY-USD", "LIKE-USD", "LINK-USD", "LMWR-USD", "LPT-USD", "LRC-USD", "LTC-USD", "MA",
                "MAGIC-USD", "MASK-USD", "MAVIA-USD", "MBS-USD", 'META', "METIS-USD", "MEW-USD", "MINA-USD", "ML-USD", "MLN-USD", "MNDE-USD",
                "MNT-USD", "MOODENG-USD", "MPLX-USD", "MU", "MUBI-USD", "MXM-USD", "MYRIA-USD", "MYRO-USD", "NAKA-USD", 
                "NEAR-USD", "NEON-USD", "NEURAL-USD", "NEXO-USD", "NMT-USD", "NOS-USD", "NTRN-USD", "NU-USD", "NXRA-USD", "OGN-USD", "OKB-USD",
@@ -879,7 +903,7 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "ZIG-USD", "ZKJ-USD", "ZRX-USD"]
 
 TOP_FREE_TICKERS = {"BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD"}
-ADMIN_ONLY_TICKERS = {"MU", "JNJ", "LLY", "JPM"}
+ADMIN_ONLY_TICKERS = {"MU", "ASML", "JNJ"}
 ALL_SUPPORTED_TICKERS = frozenset(
     str(ticker).strip().upper()
     for ticker in [*SUPPORTED_TICKERS, *ADMIN_ONLY_TICKERS]
@@ -1159,34 +1183,29 @@ def compute_signals_for_ticker(ticker, period_days=365*10, csv_version=None):
         app.logger.info("Not enough data for signal summary ticker=%s", ticker)
         return None
 
-    is_crypto = ticker.endswith("-USD")
-
-    if is_crypto:
-        if period_days is not None:
-            start_date = datetime.today().date() - pd.Timedelta(days=period_days)
-            df = df[df.index >= pd.to_datetime(start_date)].copy()
-        transaction_cost = 0.01
-    else:
-        if period_days is not None:
-            trading_days = int(period_days * (252 / 365))
-            df = df.tail(trading_days).copy()
-        transaction_cost = 0.001
+    # Signal Board returns and Equity Preview use one canonical horizon slice:
+    # a calendar-duration window anchored to this asset's latest available row.
+    # This is especially important for stocks, where converting 7 calendar days
+    # into ~4 trading rows caused the Signal Board and 1W equity chart to disagree.
+    df = slice_epoch_data_for_period(df, period_days)
+    transaction_cost = get_transaction_cost_rate(ticker)
 
     if len(df) < 2:
         return None
 
     prices = df["Close"].astype(float)
 
-    # Normalized Buy & Hold benchmark. Entry cost is included and the open
-    # holding is marked to market at the final observation without an invented
-    # exit trade or exit fee.
-    benchmark_quantity = (
-        (1.0 / (1 + transaction_cost))
-        / float(prices.iloc[0])
+    # Use the exact same normalized benchmark builder as Equity Preview so the
+    # Signal Board B&H return is mathematically identical to the plotted curve.
+    _benchmark_quantity, _benchmark_cash_balance, buy_hold_equity_curve = (
+        build_buy_and_hold_benchmark(
+            initial_cash=1.0,
+            prices=prices.to_numpy(dtype=float),
+            ticker=ticker,
+            transaction_cost_rate=transaction_cost,
+            enforce_whole_stock_shares=False,
+        )
     )
-    buy_hold_equity_curve = (
-        prices * benchmark_quantity
-    ).astype(float).tolist()
 
     cash = 1.0
     shares = 0.0
@@ -5986,10 +6005,7 @@ def equity():
     # Slice from duration ago until the latest row. MAX keeps every available
     # validated row for the selected asset.
     # ---------------------------------------------------
-    if period_days is not None:
-        end_date = signals_df.index.max()
-        start_date = end_date - pd.Timedelta(days=period_days)
-        signals_df = signals_df[signals_df.index >= start_date].copy()
+    signals_df = slice_epoch_data_for_period(signals_df, period_days)
 
     if len(signals_df) < 2:
         return jsonify({"error": "Not enough data in selected duration"}), 400
