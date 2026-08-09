@@ -7,7 +7,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 {% endblock %}
 
 {% block page_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260808-signal-stat-sorting-v2') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260808-signal-header-copy-v3') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-watchlist.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
 {% endblock %}
@@ -390,7 +390,14 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                                 class="nt-signal-alert-info-tooltip"
                                                 role="tooltip"
                                             >
-                                                Daily published signal changes only · not real-time execution alerts.
+                                                Click
+                                                <span class="nt-signal-alert-tooltip-mail-icon" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" focusable="false">
+                                                        <path d="M3.75 6.75A1.75 1.75 0 0 1 5.5 5h13A1.75 1.75 0 0 1 20.25 6.75v10.5A1.75 1.75 0 0 1 18.5 19h-13a1.75 1.75 0 0 1-1.75-1.75V6.75Z" />
+                                                        <path d="m4.5 6 7.5 6 7.5-6" />
+                                                    </svg>
+                                                </span>
+                                                to receive daily published signal changes · not real-time execution alerts.
                                             </div>
                                         </div>
 
@@ -495,7 +502,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                     role="button"
                                     tabindex="0"
                                 >
-                                    AI Return Spread (<span class="metric-horizon-text">5Y</span>)<br>
+                                    AI Excess Return (<span class="metric-horizon-text">5Y</span>)<br>
                                     <span id="outperformance-sort-indicator" class="nt-sort-indicator">▲▼</span>
                                 </div>
 
@@ -506,7 +513,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                     tabindex="0"
                                 >
                                     <div class="nt-stat-header-label">
-                                        <span class="nt-stat-header-sort-label">Average Outperformance (<span class="nt-stat-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-sort-label">Avg. Outperformance (<span class="nt-stat-horizon-text">5Y</span>)</span>
                                         <span class="nt-stat-header-info" data-stat-info-root>
                                             <button
                                                 type="button"
@@ -534,7 +541,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                     tabindex="0"
                                 >
                                     <div class="nt-stat-header-label">
-                                        <span class="nt-stat-header-sort-label">Outperformance Probability (<span class="nt-stat-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-sort-label">Outperformance Prob. (<span class="nt-stat-horizon-text">5Y</span>)</span>
                                         <span class="nt-stat-header-info" data-stat-info-root>
                                             <button
                                                 type="button"
@@ -1394,7 +1401,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 
 {% block page_scripts %}
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest.js') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260808-signal-stat-sorting-v2') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260808-signal-header-copy-v3') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-watchlist.js', v='20260805-signal-actions-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest-form.js', v='20260804-pointer-continuity-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js', v='20260808-altindexer-summary-emphasis-v2') }}"></script>
