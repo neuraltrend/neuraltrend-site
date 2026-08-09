@@ -1641,3 +1641,143 @@
         white-space: normal;
     }
 }
+
+
+/* ==================================================
+   Signal Board model-statistics columns — Aug 8, 2026
+================================================== */
+
+:root {
+    --nt-signal-columns:
+        minmax(135px, 1.12fr)
+        repeat(4, minmax(88px, 0.72fr))
+        minmax(125px, 0.92fr)
+        minmax(135px, 0.98fr)
+        minmax(130px, 0.95fr)
+        minmax(165px, 1.12fr)
+        minmax(175px, 1.18fr);
+}
+
+.nt-signal-header,
+#signal-board .signal-row {
+    min-width: 1260px !important;
+}
+
+.nt-stat-header-cell {
+    overflow: visible;
+    white-space: normal;
+    cursor: default;
+    user-select: text;
+}
+
+.nt-stat-header-cell:hover {
+    color: inherit;
+}
+
+.nt-stat-header-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+    width: 100%;
+    line-height: 1.25;
+}
+
+.nt-stat-header-label > span:first-child {
+    text-align: right;
+    white-space: normal;
+}
+
+.nt-stat-header-info {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+}
+
+.nt-stat-header-info-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 17px;
+    height: 17px;
+    padding: 0;
+    border: 1px solid #94a3b8;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #64748b;
+    font: inherit;
+    font-size: 10px;
+    font-style: italic;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nt-stat-header-info-button:hover,
+.nt-stat-header-info-button:focus-visible,
+.nt-stat-header-info.is-open .nt-stat-header-info-button {
+    border-color: #2563eb;
+    color: #1d4ed8;
+    box-shadow: 0 3px 9px rgba(37, 99, 235, 0.16);
+}
+
+.nt-stat-header-tooltip {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 9px);
+    width: 280px;
+    padding: 9px 11px;
+    border: 1px solid #dbe4f0;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.45;
+    text-align: left;
+    white-space: normal;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(4px);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.17);
+    transition: opacity 0.15s ease, visibility 0.15s ease, transform 0.15s ease;
+    z-index: 1200;
+}
+
+.nt-stat-header-tooltip::after {
+    content: "";
+    position: absolute;
+    right: 3px;
+    bottom: 100%;
+    border: 6px solid transparent;
+    border-bottom-color: #ffffff;
+}
+
+.nt-stat-header-info:hover .nt-stat-header-tooltip,
+.nt-stat-header-info:focus-within .nt-stat-header-tooltip,
+.nt-stat-header-info.is-open .nt-stat-header-tooltip {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.nt-stat-value-cell .return-value {
+    font-weight: 800;
+}
+
+.nt-stat-unavailable {
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+@media (max-width: 980px) {
+    .nt-signal-header,
+    #signal-board .signal-row {
+        min-width: 1260px !important;
+    }
+}
