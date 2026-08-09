@@ -758,6 +758,36 @@ def get_csv_version():
     return max(mtimes) if mtimes else 0
 
 
+def get_stat_csv_version():
+    """Return a hashable signature for the optional ``stat_*.csv`` files.
+
+    Signal-board statistics are generated independently from the market CSVs, so
+    their cache invalidation must not depend on an ``epoch_*.csv`` being updated.
+    A tuple of filename/mtime/size signatures is deterministic within a process
+    and changes whenever a stat file is added, removed, or replaced.
+    """
+    signatures = []
+
+    try:
+        filenames = os.listdir(DATA_DIR)
+    except OSError:
+        return tuple()
+
+    for fname in filenames:
+        if not (fname.startswith("stat_") and fname.endswith(".csv")):
+            continue
+
+        path = os.path.join(DATA_DIR, fname)
+        try:
+            stat_result = os.stat(path)
+        except OSError:
+            continue
+
+        signatures.append((fname, stat_result.st_mtime_ns, stat_result.st_size))
+
+    return tuple(sorted(signatures))
+
+
 FRESHNESS_STATUS_LABELS = {
     "current": "Current",
     "delayed": "Delayed",
@@ -1027,6 +1057,115 @@ def get_epoch_csv_path(ticker):
         raise FileNotFoundError("Market data is unavailable for this asset.")
 
     return csv_path
+
+
+def get_stat_csv_path(ticker, *, must_exist=False):
+    """Return the optional model-statistics CSV path for an allowlisted ticker.
+
+    ``BTC-USD`` maps to ``data/stat_BTC.csv``; stocks such as ``AAPL`` map to
+    ``data/stat_AAPL.csv``. Missing stat files are expected while the long-running
+    statistics generation process is still being completed.
+    """
+    clean = normalize_ticker(ticker)
+    if clean not in ALL_SUPPORTED_TICKERS:
+        raise ValueError("Unsupported asset ticker.")
+
+    base_symbol = clean.split("-", 1)[0]
+    if not re.fullmatch(r"[A-Z0-9.]{1,20}", base_symbol):
+        raise ValueError("Unsupported asset ticker.")
+
+    data_root = os.path.realpath(DATA_DIR)
+    csv_path = os.path.realpath(os.path.join(data_root, f"stat_{base_symbol}.csv"))
+
+    try:
+        inside_data_dir = os.path.commonpath([data_root, csv_path]) == data_root
+    except ValueError:
+        inside_data_dir = False
+
+    if not inside_data_dir:
+        raise ValueError("Unsupported asset ticker.")
+
+    if not os.path.isfile(csv_path):
+        if must_exist:
+            raise FileNotFoundError("Model statistics are unavailable for this asset.")
+        return None
+
+    return csv_path
+
+
+def get_signal_stat_for_horizon(ticker, period_days):
+    """Return Alpha statistics for the requested signal-board horizon.
+
+    ``window`` in ``stat_<asset>.csv`` is measured in calendar-day units, matching
+    the dashboard horizon mapping (1W=7, 1M=30, 3M=90, etc.). For MAX, or when
+    the requested horizon is longer than the generated statistics history, the
+    longest available window is used. Missing/malformed stat files return ``None``
+    values and never suppress the asset from the Signal Board.
+    """
+    try:
+        csv_path = get_stat_csv_path(ticker)
+    except (ValueError, OSError):
+        return {"alpha": None, "alpha_prob": None, "stat_window": None}
+
+    if not csv_path:
+        return {"alpha": None, "alpha_prob": None, "stat_window": None}
+
+    try:
+        stats_df = pd.read_csv(
+            csv_path,
+            usecols=lambda column: column in {"window", "alpha", "alpha_prob"},
+        )
+    except Exception:
+        app.logger.warning(
+            "Could not read signal statistics ticker=%s path=%s",
+            ticker,
+            csv_path,
+            exc_info=True,
+        )
+        return {"alpha": None, "alpha_prob": None, "stat_window": None}
+
+    required_columns = {"window", "alpha", "alpha_prob"}
+    if not required_columns.issubset(stats_df.columns):
+        app.logger.warning(
+            "Signal statistics missing required columns ticker=%s columns=%s",
+            ticker,
+            sorted(stats_df.columns),
+        )
+        return {"alpha": None, "alpha_prob": None, "stat_window": None}
+
+    cleaned = stats_df.loc[:, ["window", "alpha", "alpha_prob"]].copy()
+    for column in ("window", "alpha", "alpha_prob"):
+        cleaned[column] = pd.to_numeric(cleaned[column], errors="coerce")
+
+    cleaned = cleaned.dropna(subset=["window"])
+    cleaned = cleaned[cleaned["window"] >= 1]
+    cleaned = cleaned.sort_values("window").drop_duplicates("window", keep="last")
+
+    if cleaned.empty:
+        return {"alpha": None, "alpha_prob": None, "stat_window": None}
+
+    if period_days is None:
+        selected = cleaned.iloc[-1]
+    else:
+        target_window = max(1, int(period_days))
+        eligible = cleaned[cleaned["window"] <= target_window]
+        selected = eligible.iloc[-1] if not eligible.empty else cleaned.iloc[0]
+
+    alpha = float(selected["alpha"]) if pd.notna(selected["alpha"]) else None
+    alpha_prob = (
+        float(selected["alpha_prob"]) if pd.notna(selected["alpha_prob"]) else None
+    )
+
+    if alpha is not None and not math.isfinite(alpha):
+        alpha = None
+    if alpha_prob is not None and not math.isfinite(alpha_prob):
+        alpha_prob = None
+
+    return {
+        "alpha": alpha,
+        "alpha_prob": alpha_prob,
+        "stat_window": int(selected["window"]),
+    }
 
 
 def get_forward_record_csv_path(ticker, record_mode="public", *, must_exist=False):
@@ -6148,6 +6287,9 @@ def mask_signal_summary_row_for_user(row, user):
         "buy_hold_period_return": row.get("buy_hold_period_return"),
         "strategy_period_return": row.get("strategy_period_return"),
         "return_spread": row.get("return_spread"),
+        "alpha": row.get("alpha"),
+        "alpha_prob": row.get("alpha_prob"),
+        "stat_window": row.get("stat_window"),
         "strategy_max_drawdown": row.get("strategy_max_drawdown"),
         "buy_hold_max_drawdown": row.get("buy_hold_max_drawdown"),
         "strategy_annualized_volatility": row.get("strategy_annualized_volatility"),
@@ -6189,12 +6331,13 @@ def mask_signal_summary_row_for_user(row, user):
 
 # Cached version that invalidates when CSV files change
 @lru_cache(maxsize=1)
-def compute_signals_summary_cached(csv_version, period_days):
+def compute_signals_summary_cached(csv_version, stat_csv_version, period_days):
     results = []
 
     for t in get_all_signal_board_tickers():
         try:
             sigs = compute_signals_for_ticker(t, period_days, csv_version)
+            stat_values = get_signal_stat_for_horizon(t, period_days)
             results.append({
                 'ticker': t,
                 'today_signal': sigs['today'],
@@ -6204,6 +6347,9 @@ def compute_signals_summary_cached(csv_version, period_days):
                 'buy_hold_period_return': sigs['buy_hold_period_return'],
                 'strategy_period_return': sigs['strategy_period_return'],
                 'return_spread': sigs['return_spread'],
+                'alpha': stat_values['alpha'],
+                'alpha_prob': stat_values['alpha_prob'],
+                'stat_window': stat_values['stat_window'],
                 'strategy_max_drawdown': sigs['strategy_max_drawdown'],
                 'buy_hold_max_drawdown': sigs['buy_hold_max_drawdown'],
                 'strategy_annualized_volatility': sigs['strategy_annualized_volatility'],
@@ -6231,9 +6377,15 @@ def signals_summary():
         return jsonify({"error": str(e)}), 400
 
     csv_version = get_csv_version()
+    stat_csv_version = get_stat_csv_version()
 
-    # Full internal cached data
-    raw_results = compute_signals_summary_cached(csv_version, period_days)
+    # Full internal cached data. Stat files are independently versioned because
+    # they may be generated/updated without touching the epoch market CSVs.
+    raw_results = compute_signals_summary_cached(
+        csv_version,
+        stat_csv_version,
+        period_days,
+    )
 
     # Apply admin-only and retired-asset visibility before masking. Fetch the
     # lifecycle set once rather than issuing one database query per asset.
