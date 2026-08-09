@@ -7,7 +7,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 {% endblock %}
 
 {% block page_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260808-signal-header-copy-v3') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260809-return-info-v1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-watchlist.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
 {% endblock %}
@@ -477,32 +477,86 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                 </div>
                             
                                 <div 
-                                    class="nt-header-right"
+                                    class="nt-header-right nt-stat-header-cell"
                                     data-signal-sort-key="buy_hold_period_return"
                                     role="button"
                                     tabindex="0"
                                 >
-                                    Buy&amp;Hold Return (<span class="metric-horizon-text">5Y</span>)<br>
+                                    <div class="nt-stat-header-label">
+                                        <span class="nt-stat-header-sort-label">Buy&amp;Hold Return (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-info" data-stat-info-root>
+                                            <button
+                                                type="button"
+                                                class="nt-stat-header-info-button"
+                                                data-stat-info-button
+                                                aria-expanded="false"
+                                                aria-describedby="buy-hold-return-tooltip"
+                                                aria-label="About Buy and Hold return"
+                                            >i</button>
+                                            <span
+                                                id="buy-hold-return-tooltip"
+                                                class="nt-stat-header-tooltip"
+                                                data-stat-tooltip="buy-hold-return"
+                                                role="tooltip"
+                                            >return of Buy and Hold strategy over the last 5Y</span>
+                                        </span>
+                                    </div>
                                     <span id="buy-hold-sort-indicator" class="nt-sort-indicator">▲▼</span>
                                 </div>
                             
                                 <div 
-                                    class="nt-header-right"
+                                    class="nt-header-right nt-stat-header-cell"
                                     data-signal-sort-key="strategy_period_return"
                                     role="button"
                                     tabindex="0"
                                 >
-                                    AI Return (<span class="metric-horizon-text">5Y</span>)<br>
+                                    <div class="nt-stat-header-label">
+                                        <span class="nt-stat-header-sort-label">AI Return (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-info" data-stat-info-root>
+                                            <button
+                                                type="button"
+                                                class="nt-stat-header-info-button"
+                                                data-stat-info-button
+                                                aria-expanded="false"
+                                                aria-describedby="ai-return-tooltip"
+                                                aria-label="About AI return"
+                                            >i</button>
+                                            <span
+                                                id="ai-return-tooltip"
+                                                class="nt-stat-header-tooltip"
+                                                data-stat-tooltip="ai-return"
+                                                role="tooltip"
+                                            >return of AI strategy over the last 5Y</span>
+                                        </span>
+                                    </div>
                                     <span id="strategy-sort-indicator" class="nt-sort-indicator">▲▼</span>
                                 </div>
                             
                                 <div 
-                                    class="nt-header-right"
+                                    class="nt-header-right nt-stat-header-cell"
                                     data-signal-sort-key="return_spread"
                                     role="button"
                                     tabindex="0"
                                 >
-                                    AI Excess Return (<span class="metric-horizon-text">5Y</span>)<br>
+                                    <div class="nt-stat-header-label">
+                                        <span class="nt-stat-header-sort-label">AI Excess Return (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-info" data-stat-info-root>
+                                            <button
+                                                type="button"
+                                                class="nt-stat-header-info-button"
+                                                data-stat-info-button
+                                                aria-expanded="false"
+                                                aria-describedby="ai-excess-return-tooltip"
+                                                aria-label="About AI excess return"
+                                            >i</button>
+                                            <span
+                                                id="ai-excess-return-tooltip"
+                                                class="nt-stat-header-tooltip"
+                                                data-stat-tooltip="ai-excess-return"
+                                                role="tooltip"
+                                            >return of AI strategy minus Buy and Hold strategy over the last 5Y</span>
+                                        </span>
+                                    </div>
                                     <span id="outperformance-sort-indicator" class="nt-sort-indicator">▲▼</span>
                                 </div>
 
@@ -1401,7 +1455,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 
 {% block page_scripts %}
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest.js') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260808-signal-header-copy-v3') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260809-return-info-v1') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-watchlist.js', v='20260805-signal-actions-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest-form.js', v='20260804-pointer-continuity-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js', v='20260808-altindexer-summary-emphasis-v2') }}"></script>
