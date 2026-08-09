@@ -355,11 +355,13 @@
                 type: "scatter",
                 mode: "lines",
                 name: "AltIndexer Score",
+                showlegend: false,
                 line: { width: 3, color: "#111827" },
                 hovertemplate: "%{y}<extra></extra>"
             };
     
             const layout = {
+                showlegend: false,
                 title: {
                     text: "AltIndexer",
                     x: 0.5
