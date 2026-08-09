@@ -803,10 +803,22 @@
             element.textContent = horizon;
         });
 
+        const buyHoldTooltip = document.querySelector('[data-stat-tooltip="buy-hold-return"]');
+        const aiReturnTooltip = document.querySelector('[data-stat-tooltip="ai-return"]');
+        const aiExcessTooltip = document.querySelector('[data-stat-tooltip="ai-excess-return"]');
         const alphaTooltip = document.querySelector('[data-stat-tooltip="alpha"]');
         const probabilityTooltip = document.querySelector('[data-stat-tooltip="alpha-prob"]');
 
         if (duration === "max") {
+            if (buyHoldTooltip) {
+                buyHoldTooltip.textContent = "return of Buy and Hold strategy over the longest available time horizon";
+            }
+            if (aiReturnTooltip) {
+                aiReturnTooltip.textContent = "return of AI strategy over the longest available time horizon";
+            }
+            if (aiExcessTooltip) {
+                aiExcessTooltip.textContent = "return of AI strategy minus Buy and Hold strategy over the longest available time horizon";
+            }
             if (alphaTooltip) {
                 alphaTooltip.textContent = "AI strategy return divided by buy & hold return, averaged over the longest available time horizon";
             }
@@ -816,6 +828,15 @@
             return;
         }
 
+        if (buyHoldTooltip) {
+            buyHoldTooltip.textContent = `return of Buy and Hold strategy over the last ${horizon}`;
+        }
+        if (aiReturnTooltip) {
+            aiReturnTooltip.textContent = `return of AI strategy over the last ${horizon}`;
+        }
+        if (aiExcessTooltip) {
+            aiExcessTooltip.textContent = `return of AI strategy minus Buy and Hold strategy over the last ${horizon}`;
+        }
         if (alphaTooltip) {
             alphaTooltip.textContent = `AI strategy return divided by buy & hold return, averaged over all ${horizon} time horizons`;
         }
@@ -844,6 +865,12 @@
                 const shouldOpen = !root.classList.contains("is-open");
                 roots.forEach(otherRoot => setOpen(otherRoot, false));
                 setOpen(root, shouldOpen);
+            });
+
+            // The info button sits inside a sortable header. Keep keyboard
+            // interaction with the tooltip from triggering the column sort.
+            button.addEventListener("keydown", event => {
+                event.stopPropagation();
             });
         });
 
