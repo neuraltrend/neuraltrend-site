@@ -1569,23 +1569,31 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 7px 9px;
+    gap: 8px 10px;
     margin-top: 14px;
-    padding: 10px 13px;
-    border: 1px solid #dbe4f0;
+    padding: 13px 16px;
+    border: 1px solid rgba(34, 197, 94, 0.34);
+    border-left: 4px solid #16a34a;
     border-radius: 12px;
-    background: rgba(248, 250, 252, 0.92);
-    color: #475569;
-    font-size: 12px;
-    line-height: 1.4;
+    background: linear-gradient(
+        90deg,
+        rgba(220, 252, 231, 0.92) 0%,
+        rgba(240, 253, 244, 0.96) 48%,
+        rgba(236, 253, 245, 0.84) 100%
+    );
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.08);
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
 }
 
 #altindexer-performance-panel .nt-alt-summary-label {
-    margin-right: 3px;
+    margin-right: 4px;
     color: #0f172a;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 900;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.035em;
     text-transform: uppercase;
 }
 
