@@ -1560,3 +1560,76 @@
 #altindexer-regime-label.nt-alt-zone-strong-buy {
     color: #15803d !important;
 }
+
+
+/* ==================================================
+   AltIndexer movement summary — Aug 8, 2026
+================================================== */
+#altindexer-performance-panel .nt-alt-movement-summary {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px 9px;
+    margin-top: 14px;
+    padding: 10px 13px;
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    background: rgba(248, 250, 252, 0.92);
+    color: #475569;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+#altindexer-performance-panel .nt-alt-summary-label {
+    margin-right: 3px;
+    color: #0f172a;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+#altindexer-performance-panel .nt-alt-summary-item {
+    white-space: nowrap;
+}
+
+#altindexer-performance-panel .nt-alt-summary-item strong {
+    font-weight: 900;
+}
+
+#altindexer-performance-panel .nt-alt-summary-separator {
+    color: #94a3b8;
+    font-weight: 900;
+}
+
+#altindexer-performance-panel .nt-alt-summary-placeholder {
+    color: #64748b;
+}
+
+#altindexer-performance-panel .nt-alt-summary-change-positive {
+    color: #15803d;
+}
+
+#altindexer-performance-panel .nt-alt-summary-change-negative {
+    color: #b91c1c;
+}
+
+#altindexer-performance-panel .nt-alt-summary-change-flat {
+    color: #64748b;
+}
+
+@media (max-width: 900px) {
+    #altindexer-performance-panel .nt-alt-movement-summary {
+        align-items: flex-start;
+    }
+
+    #altindexer-performance-panel .nt-alt-summary-label {
+        flex-basis: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    #altindexer-performance-panel .nt-alt-summary-item {
+        white-space: normal;
+    }
+}
