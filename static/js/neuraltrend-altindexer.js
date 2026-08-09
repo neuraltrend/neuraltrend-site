@@ -153,6 +153,120 @@
     
         return String(Math.round(Number(value)));
     }
+
+
+    function altIndexerFormatMonthYear(value) {
+        const date = value instanceof Date ? value : ntAltParseDate(value);
+
+        if (!date || Number.isNaN(date.getTime())) {
+            return "—";
+        }
+
+        return date.toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short"
+        });
+    }
+
+    function altIndexerDurationDays(startDate, endDate) {
+        if (!(startDate instanceof Date) || !(endDate instanceof Date)) {
+            return 1;
+        }
+
+        const dayMs = 24 * 60 * 60 * 1000;
+        const elapsed = Math.floor((endDate.getTime() - startDate.getTime()) / dayMs);
+        return Math.max(1, elapsed + 1);
+    }
+
+    function altIndexerFormatDuration(days) {
+        const safeDays = Math.max(1, Math.round(Number(days) || 1));
+
+        if (safeDays < 14) {
+            return `${safeDays} ${safeDays === 1 ? "day" : "days"}`;
+        }
+
+        if (safeDays < 60) {
+            const weeks = Math.max(2, Math.round(safeDays / 7));
+            return `${weeks} ${weeks === 1 ? "week" : "weeks"}`;
+        }
+
+        const months = Math.max(2, Math.round(safeDays / 30.4375));
+        return `${months} ${months === 1 ? "month" : "months"}`;
+    }
+
+    function altIndexerFormatPointChange(change) {
+        const rounded = Math.round(Number(change) || 0);
+        const sign = rounded > 0 ? "+" : "";
+        const unit = Math.abs(rounded) === 1 ? "pt" : "pts";
+        return `${sign}${rounded} ${unit}`;
+    }
+
+    function altIndexerSummaryChangeClass(change) {
+        if (change > 0) return "nt-alt-summary-change-positive";
+        if (change < 0) return "nt-alt-summary-change-negative";
+        return "nt-alt-summary-change-flat";
+    }
+
+    function updateAltIndexerMovementSummary(rows) {
+        const summaryEl = document.getElementById("altindexer-movement-summary");
+        if (!summaryEl) return;
+
+        if (!Array.isArray(rows) || !rows.length) {
+            summaryEl.innerHTML = `
+                <span class="nt-alt-summary-label">Market regime summary</span>
+                <span class="nt-alt-summary-placeholder">No movement history available.</span>
+            `;
+            return;
+        }
+
+        const latest = rows[rows.length - 1];
+        const currentZone = altIndexerZone(latest.value);
+
+        let currentStartIndex = rows.length - 1;
+        while (currentStartIndex > 0) {
+            const priorZone = altIndexerZone(rows[currentStartIndex - 1].value);
+            if (priorZone.label !== currentZone.label) break;
+            currentStartIndex -= 1;
+        }
+
+        const currentStart = rows[currentStartIndex];
+        const durationDays = altIndexerDurationDays(currentStart.dateObj, latest.dateObj);
+        const durationText = altIndexerFormatDuration(durationDays);
+
+        const previousPoint = currentStartIndex > 0 ? rows[currentStartIndex - 1] : null;
+        const previousZone = previousPoint ? altIndexerZone(previousPoint.value) : null;
+
+        const monthPoint = altIndexerPointForDaysBack(rows, 30);
+        const monthChange = monthPoint ? latest.value - monthPoint.value : 0;
+        const monthChangeText = monthPoint ? altIndexerFormatPointChange(monthChange) : "—";
+        const monthChangeClass = monthPoint
+            ? altIndexerSummaryChangeClass(monthChange)
+            : "nt-alt-summary-change-flat";
+
+        const previousMarkup = previousZone
+            ? `<strong class="${previousZone.valueClass}">${previousZone.label}</strong>`
+            : `<strong class="nt-alt-zone-neutral">—</strong>`;
+
+        summaryEl.innerHTML = `
+            <span class="nt-alt-summary-label">Market regime summary</span>
+            <span class="nt-alt-summary-item">
+                <strong class="${currentZone.valueClass}">${currentZone.label}</strong>
+                for ${durationText}
+            </span>
+            <span class="nt-alt-summary-separator" aria-hidden="true">·</span>
+            <span class="nt-alt-summary-item">Previous regime: ${previousMarkup}</span>
+            <span class="nt-alt-summary-separator" aria-hidden="true">·</span>
+            <span class="nt-alt-summary-item">
+                Entered <strong class="${currentZone.valueClass}">${currentZone.label}</strong>:
+                ${altIndexerFormatMonthYear(currentStart.dateObj)}
+            </span>
+            <span class="nt-alt-summary-separator" aria-hidden="true">·</span>
+            <span class="nt-alt-summary-item">
+                1M change:
+                <strong class="${monthChangeClass}">${monthChangeText}</strong>
+            </span>
+        `;
+    }
     
     function updateAltIndexerMetric(metricId, point, fallbackIcon) {
         const iconEl = document.getElementById(`${metricId}-icon`);
@@ -214,6 +328,26 @@
             const rows = normalizeAltIndexerRows(data);
     
             updateAltIndexerMetrics(rows);
+            updateAltIndexerMovementSummary(rows);
+
+            const latestRow = rows.length ? rows[rows.length - 1] : null;
+            const oneYearStart = latestRow
+                ? new Date(latestRow.dateObj.getFullYear() - 1, latestRow.dateObj.getMonth(), latestRow.dateObj.getDate())
+                : new Date(new Date().setFullYear(new Date().getFullYear() - 1));
+            const initialRangeEnd = latestRow ? latestRow.dateObj : new Date();
+            const initialLabelDate = new Date((oneYearStart.getTime() + initialRangeEnd.getTime()) / 2);
+
+            const zoneLabelTrace = {
+                x: [initialLabelDate, initialLabelDate, initialLabelDate, initialLabelDate, initialLabelDate],
+                y: [10, 30, 50, 70, 90],
+                type: "scatter",
+                mode: "text",
+                text: ["<b>Strong Sell</b>", "<b>Sell</b>", "<b>Neutral</b>", "<b>Buy</b>", "<b>Strong Buy</b>"],
+                textfont: { size: 23, color: "rgba(255, 255, 255, 0.96)" },
+                hoverinfo: "skip",
+                showlegend: false,
+                cliponaxis: true
+            };
     
             const trace = {
                 x: rows.map(row => row.date),
@@ -233,10 +367,7 @@
     
                 xaxis: {
                     title: "Date",
-                    range: [
-                        new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
-                        new Date()
-                    ],
+                    range: [oneYearStart, initialRangeEnd],
                     rangeselector: {
                         buttons: [
                             {count: 7, label: "1W", step: "day", stepmode: "backward"},
@@ -349,42 +480,41 @@
                     }
                 ],
 
-                annotations: [
-                    {
-                        xref: "paper", yref: "y", x: 0.5, y: 10,
-                        text: "<b>Strong Sell</b>", showarrow: false,
-                        font: { size: 23, color: "rgba(255, 255, 255, 0.96)" }
-                    },
-                    {
-                        xref: "paper", yref: "y", x: 0.5, y: 30,
-                        text: "<b>Sell</b>", showarrow: false,
-                        font: { size: 23, color: "rgba(255, 255, 255, 0.96)" }
-                    },
-                    {
-                        xref: "paper", yref: "y", x: 0.5, y: 50,
-                        text: "<b>Neutral</b>", showarrow: false,
-                        font: { size: 23, color: "rgba(255, 255, 255, 0.96)" }
-                    },
-                    {
-                        xref: "paper", yref: "y", x: 0.5, y: 70,
-                        text: "<b>Buy</b>", showarrow: false,
-                        font: { size: 23, color: "rgba(255, 255, 255, 0.96)" }
-                    },
-                    {
-                        xref: "paper", yref: "y", x: 0.5, y: 90,
-                        text: "<b>Strong Buy</b>", showarrow: false,
-                        font: { size: 23, color: "rgba(255, 255, 255, 0.96)" }
-                    }
-                ],
-
                 template: "plotly_dark",
                 hovermode: "x unified",
                 margin: { t: 60, l: 50, r: 30, b: 50 }
             };
     
-            Plotly.newPlot("epoch-index-chart", [trace], layout, {
+            Plotly.newPlot("epoch-index-chart", [zoneLabelTrace, trace], layout, {
                 responsive: true,
                 displaylogo: false
+            }).then(plotEl => {
+                const updateZoneLabelPosition = eventData => {
+                    if (!eventData) return;
+
+                    let startValue = eventData["xaxis.range[0]"];
+                    let endValue = eventData["xaxis.range[1]"];
+
+                    if ((!startValue || !endValue) && Array.isArray(eventData["xaxis.range"])) {
+                        [startValue, endValue] = eventData["xaxis.range"];
+                    }
+
+                    if ((!startValue || !endValue) && eventData["xaxis.autorange"]) {
+                        startValue = rows.length ? rows[0].date : null;
+                        endValue = rows.length ? rows[rows.length - 1].date : null;
+                    }
+
+                    const startDate = ntAltParseDate(startValue);
+                    const endDate = ntAltParseDate(endValue);
+                    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return;
+
+                    const midpoint = new Date((startDate.getTime() + endDate.getTime()) / 2);
+                    Plotly.restyle(plotEl, {
+                        x: [[midpoint, midpoint, midpoint, midpoint, midpoint]]
+                    }, [0]);
+                };
+
+                plotEl.on("plotly_relayout", updateZoneLabelPosition);
             });
         })
         .catch(error => {
