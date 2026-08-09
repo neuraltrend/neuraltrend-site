@@ -1178,6 +1178,30 @@
     z-index: 999;
 }
 
+
+
+/* Compact envelope glyph inside the Watchlist info tooltip. */
+.nt-signal-alert-tooltip-mail-icon {
+    display: inline-flex;
+    width: 16px;
+    height: 16px;
+    margin: 0 2px;
+    align-items: center;
+    justify-content: center;
+    vertical-align: -3px;
+    color: #2563eb;
+}
+
+.nt-signal-alert-tooltip-mail-icon svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 .nt-signal-alert-info-tooltip::after {
     content: "";
     position: absolute;
@@ -1229,7 +1253,31 @@
         width: min(260px, calc(100vw - 48px));
     }
 
-    .nt-signal-alert-info-tooltip::after {
+    
+
+/* Compact envelope glyph inside the Watchlist info tooltip. */
+.nt-signal-alert-tooltip-mail-icon {
+    display: inline-flex;
+    width: 16px;
+    height: 16px;
+    margin: 0 2px;
+    align-items: center;
+    justify-content: center;
+    vertical-align: -3px;
+    color: #2563eb;
+}
+
+.nt-signal-alert-tooltip-mail-icon svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.nt-signal-alert-info-tooltip::after {
         right: auto;
         left: 11px;
     }
