@@ -1651,27 +1651,27 @@
     --nt-signal-columns:
         minmax(135px, 1.12fr)
         repeat(4, minmax(88px, 0.72fr))
-        minmax(125px, 0.92fr)
-        minmax(135px, 0.98fr)
-        minmax(130px, 0.95fr)
-        minmax(165px, 1.12fr)
-        minmax(175px, 1.18fr);
+        minmax(118px, 0.86fr)
+        minmax(108px, 0.80fr)
+        minmax(126px, 0.90fr)
+        minmax(205px, 1.28fr)
+        minmax(220px, 1.36fr);
 }
 
 .nt-signal-header,
 #signal-board .signal-row {
-    min-width: 1260px !important;
+    min-width: 1325px !important;
 }
 
 .nt-stat-header-cell {
     overflow: visible;
-    white-space: normal;
-    cursor: default;
-    user-select: text;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
 }
 
 .nt-stat-header-cell:hover {
-    color: inherit;
+    color: var(--nt-blue);
 }
 
 .nt-stat-header-label {
@@ -1680,18 +1680,26 @@
     justify-content: flex-end;
     gap: 5px;
     width: 100%;
-    line-height: 1.25;
+    line-height: 1.2;
+    white-space: nowrap;
 }
 
-.nt-stat-header-label > span:first-child {
+.nt-stat-header-sort-label {
     text-align: right;
-    white-space: normal;
+    white-space: nowrap;
 }
 
 .nt-stat-header-info {
     position: relative;
     display: inline-flex;
     flex: 0 0 auto;
+}
+
+.nt-stat-header-cell > .nt-sort-indicator {
+    display: block;
+    width: 100%;
+    margin-top: 2px;
+    text-align: right;
 }
 
 .nt-stat-header-info-button {
@@ -1704,13 +1712,14 @@
     border: 1px solid #94a3b8;
     border-radius: 50%;
     background: #ffffff;
-    color: #64748b;
-    font: inherit;
-    font-size: 10px;
+    color: #475569;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 11px;
     font-style: italic;
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1;
     cursor: pointer;
+    box-shadow: none;
     transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -1778,6 +1787,6 @@
 @media (max-width: 980px) {
     .nt-signal-header,
     #signal-board .signal-row {
-        min-width: 1260px !important;
+        min-width: 1325px !important;
     }
 }
