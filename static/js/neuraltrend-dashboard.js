@@ -622,6 +622,75 @@
         `;
     }
 
+    function ntStatValueClass(value, neutralPoint) {
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue)) return "return-neutral";
+        if (numericValue > neutralPoint) return "return-positive";
+        if (numericValue < neutralPoint) return "return-negative";
+        return "return-neutral";
+    }
+
+    function formatAverageOutperformance(value) {
+        if (value === null || value === undefined || value === "") {
+            return `<span class="nt-stat-unavailable">Not available</span>`;
+        }
+
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue)) {
+            return `<span class="nt-stat-unavailable">Not available</span>`;
+        }
+
+        return `
+            <span class="return-value ${ntStatValueClass(numericValue, 1)}">
+                ${numericValue.toFixed(3)}×
+            </span>
+        `;
+    }
+
+    function formatOutperformanceProbability(value) {
+        if (value === null || value === undefined || value === "") {
+            return `<span class="nt-stat-unavailable">Not available</span>`;
+        }
+
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue)) {
+            return `<span class="nt-stat-unavailable">Not available</span>`;
+        }
+
+        const probability = Math.max(0, Math.min(1, numericValue));
+        return `
+            <span class="return-value ${ntStatValueClass(probability, 0.5)}">
+                ${(probability * 100).toFixed(1)}%
+            </span>
+        `;
+    }
+
+    function signalStatWindowTitle(item, duration) {
+        if (item?.stat_window === null || item?.stat_window === undefined || item?.stat_window === "") {
+            return "Model statistics not available for this asset.";
+        }
+
+        const statWindow = Number(item.stat_window);
+        if (!Number.isFinite(statWindow)) return "Model statistics not available for this asset.";
+
+        const requestedDays = {
+            "1w": 7,
+            "1mo": 30,
+            "3mo": 90,
+            "6mo": 180,
+            "1y": 365,
+            "3y": 1095,
+            "5y": 1825,
+            "10y": 3650
+        }[duration];
+
+        if (duration === "max" || (Number.isFinite(requestedDays) && statWindow < requestedDays)) {
+            return `Using the longest available statistics window (${statWindow.toLocaleString()} days).`;
+        }
+
+        return `Statistics window: ${statWindow.toLocaleString()} days.`;
+    }
+
     function formatMetricNumber(value, decimals = 2) {
         if (value === null || value === undefined) return "—";
         const numberValue = Number(value);
@@ -712,6 +781,70 @@
         };
     
         return labels[value] || value.toUpperCase();
+    }
+
+    function updateSignalStatHeaderCopy() {
+        const duration = document.getElementById("period-select")?.value || "5y";
+        const horizon = durationLabel(duration);
+
+        document.querySelectorAll(".nt-stat-horizon-text").forEach(element => {
+            element.textContent = horizon;
+        });
+
+        const alphaTooltip = document.querySelector('[data-stat-tooltip="alpha"]');
+        const probabilityTooltip = document.querySelector('[data-stat-tooltip="alpha-prob"]');
+
+        if (duration === "max") {
+            if (alphaTooltip) {
+                alphaTooltip.textContent = "AI strategy return divided by buy & hold return, averaged over the longest available time horizon";
+            }
+            if (probabilityTooltip) {
+                probabilityTooltip.textContent = "probability of AI strategy return outperforming buy & hold return, over the longest available time horizon";
+            }
+            return;
+        }
+
+        if (alphaTooltip) {
+            alphaTooltip.textContent = `AI strategy return divided by buy & hold return, averaged over all ${horizon} time horizons`;
+        }
+        if (probabilityTooltip) {
+            probabilityTooltip.textContent = `probability of AI strategy return outperforming buy & hold return, over ${horizon}`;
+        }
+    }
+
+    function initializeSignalStatInfoTooltips() {
+        const roots = Array.from(document.querySelectorAll("[data-stat-info-root]"));
+        if (!roots.length) return;
+
+        function setOpen(root, open) {
+            const button = root.querySelector("[data-stat-info-button]");
+            root.classList.toggle("is-open", Boolean(open));
+            if (button) button.setAttribute("aria-expanded", open ? "true" : "false");
+        }
+
+        roots.forEach(root => {
+            const button = root.querySelector("[data-stat-info-button]");
+            if (!button) return;
+
+            button.addEventListener("click", event => {
+                event.preventDefault();
+                event.stopPropagation();
+                const shouldOpen = !root.classList.contains("is-open");
+                roots.forEach(otherRoot => setOpen(otherRoot, false));
+                setOpen(root, shouldOpen);
+            });
+        });
+
+        document.addEventListener("click", event => {
+            roots.forEach(root => {
+                if (!root.contains(event.target)) setOpen(root, false);
+            });
+        });
+
+        document.addEventListener("keydown", event => {
+            if (event.key !== "Escape") return;
+            roots.forEach(root => setOpen(root, false));
+        });
     }
 
     function updateAssumptionsBar(count) {
@@ -925,6 +1058,8 @@
             return;
         }
 
+        const duration = document.getElementById("period-select")?.value || "5y";
+
         board.innerHTML = data.map(item => {
             const safeTicker = escapeHTML(item.ticker || "");
             const isWatched = typeof window.neuralTrendWatchlistHasTicker === "function"
@@ -989,6 +1124,8 @@
                     <div class="signal-cell-right">${formatPercent(item.buy_hold_period_return)}</div>
                     <div class="signal-cell-right">${formatPercent(item.strategy_period_return)}</div>
                     <div class="signal-cell-right">${formatPointSpread(item.return_spread)}</div>
+                    <div class="signal-cell-right nt-stat-value-cell" title="${escapeHTML(signalStatWindowTitle(item, duration))}">${formatAverageOutperformance(item.alpha)}</div>
+                    <div class="signal-cell-right nt-stat-value-cell" title="${escapeHTML(signalStatWindowTitle(item, duration))}">${formatOutperformanceProbability(item.alpha_prob)}</div>
                 </div>
             `;
         }).join("");
@@ -1100,6 +1237,8 @@
     }
     
     // Load on page start
+    initializeSignalStatInfoTooltips();
+    updateSignalStatHeaderCopy();
     loadSummary();
     
     document.querySelectorAll('.signal-filter').forEach(select => {
@@ -1118,6 +1257,8 @@
     document.getElementById('period-select')
         .addEventListener('change', function() {
     
+            updateSignalStatHeaderCopy();
+
             board.innerHTML = signalBoardStateMarkup(
                 "loading",
                 "Updating the selected horizon…"
