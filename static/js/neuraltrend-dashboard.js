@@ -391,9 +391,9 @@
     function sortLabel(key) {
         if (key === "buy_hold_period_return") return "Buy&Hold Return";
         if (key === "strategy_period_return") return "AI Return";
-        if (key === "return_spread") return "AI Return Spread";
-        if (key === "alpha") return "Average Outperformance";
-        if (key === "alpha_prob") return "Outperformance Probability";
+        if (key === "return_spread") return "AI Excess Return";
+        if (key === "alpha") return "Avg. Outperformance";
+        if (key === "alpha_prob") return "Outperformance Prob.";
         return "";
     }
     
