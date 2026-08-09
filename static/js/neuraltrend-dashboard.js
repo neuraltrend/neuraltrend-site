@@ -389,9 +389,11 @@
     }
     
     function sortLabel(key) {
-        if (key === "buy_hold_period_return") return "Buy & Hold Return";
-        if (key === "strategy_period_return") return "AI Strategy Return";
+        if (key === "buy_hold_period_return") return "Buy&Hold Return";
+        if (key === "strategy_period_return") return "AI Return";
         if (key === "return_spread") return "AI Return Spread";
+        if (key === "alpha") return "Average Outperformance";
+        if (key === "alpha_prob") return "Outperformance Probability";
         return "";
     }
     
@@ -552,8 +554,18 @@
         // 3️⃣ Sorting
         if (currentSort.key) {
             filtered.sort((a, b) => {
-                let valA = a[currentSort.key] ?? 0;
-                let valB = b[currentSort.key] ?? 0;
+                const rawA = a[currentSort.key];
+                const rawB = b[currentSort.key];
+                const valA = Number(rawA);
+                const valB = Number(rawB);
+                const hasA = rawA !== null && rawA !== undefined && rawA !== "" && Number.isFinite(valA);
+                const hasB = rawB !== null && rawB !== undefined && rawB !== "" && Number.isFinite(valB);
+
+                // Keep unavailable statistics at the bottom in either sort direction.
+                if (!hasA && !hasB) return 0;
+                if (!hasA) return 1;
+                if (!hasB) return -1;
+
                 return (valA - valB) * currentSort.direction;
             });
         }
@@ -990,32 +1002,23 @@
     }
     
     function updateSortIndicators() {
-    
-        const buyHoldEl = document.getElementById("buy-hold-sort-indicator");
-        const strategyEl = document.getElementById("strategy-sort-indicator");
-        const outperformanceEl = document.getElementById("outperformance-sort-indicator");
-    
-        if (!buyHoldEl || !strategyEl || !outperformanceEl) return;
-    
-        // Default state
-        buyHoldEl.innerHTML = "▲▼";
-        strategyEl.innerHTML = "▲▼";
-        outperformanceEl.innerHTML = "▲▼";
-    
+        const indicators = {
+            buy_hold_period_return: document.getElementById("buy-hold-sort-indicator"),
+            strategy_period_return: document.getElementById("strategy-sort-indicator"),
+            return_spread: document.getElementById("outperformance-sort-indicator"),
+            alpha: document.getElementById("alpha-sort-indicator"),
+            alpha_prob: document.getElementById("alpha-prob-sort-indicator")
+        };
+
+        Object.values(indicators).forEach(element => {
+            if (element) element.textContent = "▲▼";
+        });
+
         if (!currentSort.key) return;
-    
-        const arrow = currentSort.direction === 1 ? "▲" : "▼";
-    
-        if (currentSort.key === "buy_hold_period_return") {
-            buyHoldEl.innerHTML = arrow;
-        }
-    
-        if (currentSort.key === "strategy_period_return") {
-            strategyEl.innerHTML = arrow;
-        }
-    
-        if (currentSort.key === "return_spread") {
-            outperformanceEl.innerHTML = arrow;
+
+        const activeIndicator = indicators[currentSort.key];
+        if (activeIndicator) {
+            activeIndicator.textContent = currentSort.direction === 1 ? "▲" : "▼";
         }
     }
     
