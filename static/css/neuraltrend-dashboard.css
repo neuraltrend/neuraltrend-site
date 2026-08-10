@@ -1884,3 +1884,144 @@
 #active-filter-row .nt-active-chip.chip-hold {
     color: var(--nt-neutral);
 }
+
+/* ==================================================
+   Dashboard selectors — raised-button affordance
+   Aug 9, 2026
+   Makes the three model selectors and three EpochSignaler tool selectors
+   read as interactive controls rather than passive cards.
+================================================== */
+
+/* Shared physical-button behavior. */
+.nt-model-tabs .nt-model-tab,
+.nt-epoch-tool-tabs .nt-epoch-tool-tab {
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer !important;
+    transform: translateY(-1px);
+    transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        border-color 0.16s ease,
+        background 0.16s ease !important;
+}
+
+/* Top-level model buttons: keep each model's existing color identity while
+   adding a visible lower ridge + soft lift shadow. */
+.nt-model-tab[data-model-target="epochsignaler-section"]:not(.active) {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.98),
+        0 4px 0 #9bbcf2,
+        0 9px 18px rgba(37, 99, 235, 0.13) !important;
+}
+
+.nt-model-tab[data-model-target="altindexer-section"]:not(.active) {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.98),
+        0 4px 0 #9fd8b3,
+        0 9px 18px rgba(22, 163, 74, 0.12) !important;
+}
+
+.nt-model-tab[data-model-target="epochforecaster-section"]:not(.active) {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.98),
+        0 4px 0 #c2b1ef,
+        0 9px 18px rgba(124, 58, 237, 0.12) !important;
+}
+
+.nt-model-tabs .nt-model-tab:not(.active):hover {
+    transform: translateY(-3px) !important;
+}
+
+.nt-model-tab[data-model-target="epochsignaler-section"]:not(.active):hover {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        0 6px 0 #8eb2ef,
+        0 14px 26px rgba(37, 99, 235, 0.18) !important;
+}
+
+.nt-model-tab[data-model-target="altindexer-section"]:not(.active):hover {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        0 6px 0 #8fcea5,
+        0 14px 26px rgba(22, 163, 74, 0.17) !important;
+}
+
+.nt-model-tab[data-model-target="epochforecaster-section"]:not(.active):hover {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        0 6px 0 #b49ee9,
+        0 14px 26px rgba(124, 58, 237, 0.17) !important;
+}
+
+/* Selected model remains visually raised as the current control. */
+.nt-model-tab[data-model-target="epochsignaler-section"].active {
+    transform: translateY(-1px) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 5px 0 #09265c,
+        0 15px 30px rgba(37, 99, 235, 0.24) !important;
+}
+
+.nt-model-tab[data-model-target="altindexer-section"].active {
+    transform: translateY(-1px) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 5px 0 #045232,
+        0 15px 30px rgba(22, 163, 74, 0.22) !important;
+}
+
+.nt-model-tab[data-model-target="epochforecaster-section"].active {
+    transform: translateY(-1px) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 5px 0 #40178b,
+        0 15px 30px rgba(124, 58, 237, 0.23) !important;
+}
+
+/* EpochSignaler tools: one consistent blue raised-button family. */
+.nt-epoch-tool-tabs .nt-epoch-tool-tab:not(.active) {
+    border-color: #a9c8f8 !important;
+    background: linear-gradient(180deg, #ffffff 0%, #edf5ff 100%) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        0 4px 0 #9dbcec,
+        0 8px 16px rgba(37, 99, 235, 0.13) !important;
+}
+
+.nt-epoch-tool-tabs .nt-epoch-tool-tab:not(.active):hover {
+    transform: translateY(-3px) !important;
+    border-color: #7eacf2 !important;
+    background: linear-gradient(180deg, #ffffff 0%, #e5f0ff 100%) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        0 6px 0 #8aafe7,
+        0 13px 23px rgba(37, 99, 235, 0.18) !important;
+}
+
+.nt-epoch-tool-tabs .nt-epoch-tool-tab.active {
+    transform: translateY(-1px) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 5px 0 #0a2b66,
+        0 13px 25px rgba(37, 99, 235, 0.24) !important;
+}
+
+/* A short downward movement on pointer press reinforces the button behavior. */
+.nt-model-tabs .nt-model-tab:active,
+.nt-epoch-tool-tabs .nt-epoch-tool-tab:active {
+    transform: translateY(2px) !important;
+}
+
+.nt-model-tabs .nt-model-tab:focus-visible,
+.nt-epoch-tool-tabs .nt-epoch-tool-tab:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.30) !important;
+    outline-offset: 4px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nt-model-tabs .nt-model-tab,
+    .nt-epoch-tool-tabs .nt-epoch-tool-tab {
+        transition: none !important;
+    }
+}
