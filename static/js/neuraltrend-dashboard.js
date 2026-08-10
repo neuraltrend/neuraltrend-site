@@ -407,30 +407,35 @@
     
         const duration = document.getElementById("period-select")?.value || "5y";
         chips.push({
-            label: `Return Horizon: ${durationLabel(duration)}`,
+            label: "Return Horizon",
+            value: durationLabel(duration),
             className: ""
         });
     
         chips.push({
-            label: `Asset Type: ${assetTypeLabel(assetTypeFilter)}`,
+            label: "Asset Type",
+            value: assetTypeLabel(assetTypeFilter),
             className: ""
         });
     
         const visibleCount = Number.isFinite(count) ? count : allSignals.length;
         chips.push({
-            label: `Assets Shown: ${visibleCount}`,
+            label: "Assets Shown",
+            value: String(visibleCount),
             className: ""
         });
 
         chips.push({
-            label: "Assumptions: $1 normalized · costs on executed trades · open positions marked to market",
+            label: "Assumptions",
+            value: "$1 normalized · costs on executed trades · open positions marked to market",
             className: "chip-assumption"
         });
     
         const searchQuery = document.getElementById("ticker-search")?.value.trim();
         if (searchQuery) {
             chips.push({
-                label: `Search: ${searchQuery}`,
+                label: "Search",
+                value: searchQuery,
                 className: ""
             });
         }
@@ -447,7 +452,8 @@
     
             if (value !== null) {
                 chips.push({
-                    label: `${signalLabels[key]}: ${plainSignalText(value)}`,
+                    label: signalLabels[key],
+                    value: plainSignalText(value),
                     className: signalChipClass(value)
                 });
             }
@@ -457,14 +463,16 @@
             const direction = currentSort.direction === 1 ? "Ascending" : "Descending";
     
             chips.push({
-                label: `Sort: ${sortLabel(currentSort.key)} (${direction})`,
+                label: "Sort",
+                value: `${sortLabel(currentSort.key)} (${direction})`,
                 className: ""
             });
         }
     
         chipsContainer.innerHTML = chips.map(chip => `
             <span class="nt-active-chip ${chip.className}">
-                ${escapeHTML(chip.label)}
+                <span class="nt-active-chip-label">${escapeHTML(chip.label)}:</span>
+                <strong class="nt-active-chip-value">${escapeHTML(chip.value)}</strong>
             </span>
         `).join("");
     }
@@ -671,7 +679,7 @@
 
         const probability = Math.max(0, Math.min(1, numericValue));
         return `
-            <span class="return-value ${ntStatValueClass(probability, 0.5)}">
+            <span class="return-value return-neutral">
                 ${(probability * 100).toFixed(1)}%
             </span>
         `;
@@ -1548,7 +1556,7 @@
     
         const titleEl = document.getElementById("preview-title");
         if (titleEl) {
-            titleEl.innerText = `${ticker} — Pro Equity Preview`;
+            titleEl.innerText = `Compare AI strategy equity vs. Buy&Hold for ${ticker}`;
         }
     
         const previewTickerEl = document.getElementById("preview-selected-ticker");
@@ -1596,7 +1604,7 @@
         const currentHorizonLabel = durationLabel(currentDuration);
         
         document.getElementById("preview-title").innerText =
-            `${data.ticker} — Equity Preview`;
+            `Compare AI strategy equity vs. Buy&Hold for ${data.ticker}`;
         
         const previewTickerEl = document.getElementById("preview-selected-ticker");
         if (previewTickerEl) {
