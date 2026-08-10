@@ -2025,3 +2025,26 @@
         transition: none !important;
     }
 }
+
+/* ==================================================
+   Raised dashboard tabs — longer downward pointers
+   Aug 9, 2026
+   Keep the model/tool triangles fully visible below the raised lower ridge.
+================================================== */
+@media (min-width: 701px) {
+    .nt-model-tabs .nt-model-tab::after {
+        bottom: -18px !important;
+        border-left-width: 12px !important;
+        border-right-width: 12px !important;
+        border-top-width: 17px !important;
+    }
+}
+
+@media (min-width: 901px) {
+    .nt-epoch-tool-tabs .nt-epoch-tool-tab::after {
+        bottom: -16px !important;
+        border-left-width: 10px !important;
+        border-right-width: 10px !important;
+        border-top-width: 16px !important;
+    }
+}
