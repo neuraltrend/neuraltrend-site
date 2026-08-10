@@ -1566,8 +1566,6 @@
 
         const previewDataThrough = document.getElementById("preview-data-through");
         if (previewDataThrough) previewDataThrough.textContent = "—";
-        const previewSiteUpdated = document.getElementById("preview-site-data-updated");
-        if (previewSiteUpdated) previewSiteUpdated.textContent = "—";
         ntApplyFreshnessBadge(
             document.getElementById("preview-freshness-badge"),
             { freshness_status: "unknown", freshness_label: "Locked", freshness_message: "Upgrade to load this asset's data freshness." },
@@ -1630,13 +1628,6 @@
         const previewDataThrough = document.getElementById("preview-data-through");
         if (previewDataThrough) {
             previewDataThrough.textContent = ntFormatDataDate(data.data_through);
-        }
-
-        const previewSiteUpdated = document.getElementById("preview-site-data-updated");
-        if (previewSiteUpdated) {
-            previewSiteUpdated.textContent = ntFormatUtcDataTimestamp(
-                data.site_data_updated_at_utc
-            );
         }
 
         ntApplyFreshnessBadge(
