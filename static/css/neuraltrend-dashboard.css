@@ -1838,3 +1838,49 @@
         min-width: 1325px !important;
     }
 }
+
+
+/* ==================================================
+   Equity header + current-view information hierarchy — Aug 9, 2026
+================================================== */
+/* Give the equity metadata a little more visual weight while preserving
+   the gray-label / dark-value hierarchy. */
+#equity-preview-container .nt-preview-meta {
+    gap: 6px;
+    margin-top: 8px;
+}
+
+#equity-preview-container .nt-preview-chip {
+    padding: 5px 9px;
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--nt-neutral);
+}
+
+#equity-preview-container .nt-preview-chip strong {
+    color: var(--nt-dark);
+    font-weight: 800;
+}
+
+/* Match Current View chips to the same label/value hierarchy. */
+#active-filter-row .nt-active-chip {
+    color: var(--nt-neutral);
+}
+
+#active-filter-row .nt-active-chip-label {
+    color: var(--nt-neutral);
+    font-weight: 700;
+}
+
+#active-filter-row .nt-active-chip-value {
+    color: var(--nt-dark);
+    font-weight: 800;
+}
+
+/* Retain subtle state-tinted chip surfaces without reducing value contrast. */
+#active-filter-row .nt-active-chip.chip-assumption,
+#active-filter-row .nt-active-chip.chip-buy,
+#active-filter-row .nt-active-chip.chip-sell,
+#active-filter-row .nt-active-chip.chip-hold {
+    color: var(--nt-neutral);
+}
