@@ -1,0 +1,1449 @@
+{% extends "base.html" %}
+
+{% block title %}NeuralTrend Dashboard | Signals, Backtests & Paper Simulations{% endblock %}
+
+{% block meta_description %}
+Use the NeuralTrend research dashboard to explore AI signals, compare strategy performance, manage watchlists, run backtests, and track paper simulations.
+{% endblock %}
+
+{% block page_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260809-return-info-v3') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-watchlist.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
+{% endblock %}
+
+{% block content %}
+<main>
+    <div class="nt-page-container nt-dashboard-page">
+        <div id="checkout-status-banner" class="nt-checkout-banner" style="display:none;">
+            <div>
+                <strong id="checkout-status-title">—</strong>
+                <p id="checkout-status-text">—</p>
+            </div>
+            <button type="button" id="checkout-status-close" class="nt-checkout-banner-close">×</button>
+        </div>
+
+        <!-- Models Section --> 
+        <section id="products" class="nt-models-section">
+    
+        <div class="nt-models-header">
+            <h2 class="nt-models-title">
+                Market Intelligence Models
+            </h2>
+        </div>
+    
+        <div class="nt-model-layout">
+
+        <div class="nt-product-selector">
+
+            <div
+                class="nt-model-tabs nt-product-card-grid"
+                role="tablist"
+                aria-label="NeuralTrend market intelligence models"
+            >
+        
+                <!-- EPOCHSIGNALER -->
+        
+                <button
+                    type="button"
+                    class="nt-model-tab nt-product-card active"
+                    data-model-target="epochsignaler-section"
+                    role="tab"
+                    aria-selected="true"
+                >
+                    <div class="nt-product-card-heading">
+                        <div class="nt-product-card-name">
+                            EpochSignaler
+                        </div>
+                
+                        <span class="nt-model-status-badge badge-live">
+                            Live
+                        </span>
+                    </div>
+                
+                    <div class="nt-product-card-category">
+                        Market Timing
+                    </div>
+                
+                    <p class="nt-product-card-description">
+                        Explore current signals, historical strategy performance,
+                        backtests, and live paper simulations.
+                    </p>
+                </button> 
+        
+                <!-- ALTINDEXER -->
+        
+                <button
+                    type="button"
+                    class="nt-model-tab nt-product-card"
+                    data-model-target="altindexer-section"
+                    role="tab"
+                    aria-selected="false"
+                >
+                    <div class="nt-product-card-heading">
+                        <div class="nt-product-card-name">
+                            AltIndexer
+                        </div>
+                
+                        <span class="nt-model-status-badge badge-live">
+                            Live
+                        </span>
+                    </div>
+                
+                    <div class="nt-product-card-category">
+                        Altcoin Market Rotation
+                    </div>
+                
+                    <p class="nt-product-card-description">
+                        Track broad crypto-market participation and identify
+                        changing leadership across digital assets.
+                    </p>
+                </button>
+          
+                <!-- EPOCHFORECASTER -->
+        
+                <button
+                    type="button"
+                    class="nt-model-tab nt-product-card"
+                    data-model-target="epochforecaster-section"
+                    role="tab"
+                    aria-selected="false"
+                >
+                    <div class="nt-product-card-heading">
+                        <div class="nt-product-card-name">
+                            EpochForecaster
+                        </div>
+                
+                        <span class="nt-model-status-badge badge-dev">
+                            In development
+                        </span>
+                    </div>
+                
+                    <div class="nt-product-card-category">
+                        Market Forecasting
+                    </div>
+                
+                    <p class="nt-product-card-description">
+                        A developing forecasting workspace for probabilistic
+                        market outlooks and scenario-based analysis.
+                    </p>
+                </button>
+        
+            </div>
+        
+        </div>
+    
+        <div class="nt-model-content">
+            <div class="nt-models-container">
+        
+        <!-- EpochSignaler -->
+        <div id="epochsignaler-section" class="nt-model-panel nt-model-panel-active">
+        
+            <div class="nt-model-panel-header">
+                <h3 class="nt-model-panel-title">EpochSignaler</h3>
+                <p class="nt-model-panel-description">
+                    An AI-based model for crypto and traditional asset daily signal analytics.
+                </p>
+            </div>
+
+            <!-- EpochSignaler workspace -->
+            <div class="nt-epoch-subworkspace">
+            
+                <div class="nt-epoch-subnav-card">
+            
+                    <div class="nt-epoch-subnav-header">
+                        <div>
+                            <h4 class="nt-epoch-subnav-title">
+                                Choose how you want to use EpochSignaler
+                            </h4>
+                        </div>
+                    </div>
+            
+                    <div class="nt-epoch-tool-tabs" role="tablist" aria-label="EpochSignaler tools">
+
+                    <button
+                        type="button"
+                        class="nt-epoch-tool-tab active"
+                        data-epoch-tool-target="epoch-tool-overview"
+                        aria-selected="true"
+                    >
+                        <span class="nt-epoch-tool-tab-icon">📊</span>
+                        <span>
+                            <strong>Signal Overview</strong>
+                            <small>Board + equity preview</small>
+                        </span>
+                    </button>
+                
+                    <button
+                        type="button"
+                        class="nt-epoch-tool-tab"
+                        data-epoch-tool-target="epoch-tool-live"
+                        aria-selected="false"
+                    >
+                        <span class="nt-epoch-tool-tab-icon">🟢</span>
+                        <span>
+                            <strong>Live Simulation</strong>
+                            <small>Daily paper portfolios</small>
+                        </span>
+                    </button>
+                
+                    <button
+                        type="button"
+                        class="nt-epoch-tool-tab"
+                        data-epoch-tool-target="epoch-tool-backtest"
+                        aria-selected="false"
+                    >
+                        <span class="nt-epoch-tool-tab-icon">🧪</span>
+                        <span>
+                            <strong>Backtest</strong>
+                            <small>Run historical simulations</small>
+                        </span>
+                    </button>
+                
+                </div>
+            
+                </div>
+            
+                <div class="nt-epoch-tool-content-card">
+            
+                    <div class="nt-epoch-tool-panels">
+    
+            <div id="epoch-tool-overview" class="nt-epoch-tool-panel nt-epoch-tool-panel-active">
+    
+            <!-- Trade Signal -->
+            <section class="results-section nt-epoch-dashboard">
+
+                <!-- QUICK SIGNAL BOARD -->
+                <div id="signal-overview" class="nt-signal-board-shell">
+                    <div class="nt-signal-board-inner">
+                
+
+
+                        <!-- CONTROL PANEL -->
+                        <div class="nt-controls-card">
+                        
+                            <div class="nt-controls-top">
+                                <div>
+                                    <h4 class="nt-controls-title">Filter & compare performance</h4>
+                                    <p class="nt-controls-subtitle">
+                                        Search assets, choose a return horizon, and filter by asset type.
+                                    </p>
+                                </div>
+                        
+                                <button id="reset-signal-board" class="nt-reset-btn" type="button">
+                                    Reset View
+                                </button>
+                            </div>
+                        
+                            <div class="nt-controls-grid">
+                        
+                                <!-- SEARCH -->
+                                <div class="nt-control-group nt-control-group-search">
+                                    <label class="nt-control-label" for="ticker-search">
+                                        Search ticker
+                                    </label>
+                        
+                                    <div class="nt-search-shell">
+                                        <span class="nt-search-icon">🔍</span>
+                        
+                                        <input 
+                                            type="search" 
+                                            id="ticker-search"
+                                            name="nt_ticker_search_not_email"
+                                            class="nt-search-input"
+                                            placeholder="Search BTC, ETH, AAPL, NVDA..."
+                                            autocomplete="off"
+                                            autocorrect="off"
+                                            autocapitalize="characters"
+                                            spellcheck="false"
+                                            inputmode="search"
+                                            data-lpignore="true"
+                                            data-form-type="other"
+                                        >
+                                    </div>
+                                </div>
+                        
+                                <!-- PERIOD / RETURN HORIZON BUTTONS -->
+                                <div class="nt-control-group nt-control-group-period">
+                                    <span class="nt-control-label">Return Horizon</span>
+                        
+                                    <div class="nt-period-control">
+                        
+                                        <!-- Keep this hidden select because existing JS depends on #period-select -->
+                                        <select id="period-select" style="display:none;">
+                                            <option value="1w">1W</option>
+                                            <option value="1mo">1M</option>
+                                            <option value="3mo">3M</option>
+                                            <option value="6mo">6M</option>
+                                            <option value="1y">1Y</option>
+                                            <option value="3y">3Y</option>
+                                            <option value="5y" selected>5Y</option>
+                                            <option value="10y">10Y</option>
+                                            <option value="max">MAX</option>
+                                        </select>
+                        
+                                        <div id="period-pill-group" class="nt-period-pills" role="group" aria-label="Return horizon">
+                                            <button type="button" class="period-pill" data-value="1w">1W</button>
+                                            <button type="button" class="period-pill" data-value="1mo">1M</button>
+                                            <button type="button" class="period-pill" data-value="3mo">3M</button>
+                                            <button type="button" class="period-pill" data-value="6mo">6M</button>
+                                            <button type="button" class="period-pill" data-value="1y">1Y</button>
+                                            <button type="button" class="period-pill" data-value="3y">3Y</button>
+                                            <button type="button" class="period-pill active" data-value="5y">5Y</button>
+                                            <button type="button" class="period-pill" data-value="10y">10Y</button>
+                                            <button type="button" class="period-pill" data-value="max" title="Use all available history for this asset">MAX</button>
+                                        </div>
+                        
+                                    </div>
+                                </div>
+                        
+                                <!-- ASSET TYPE BUTTONS -->
+                                <div class="nt-control-group nt-control-group-assets">
+                                    <span class="nt-control-label">Asset Type</span>
+                        
+                                    <div class="nt-asset-control">
+                        
+                                        <!-- Keep this hidden select because existing JS depends on #asset-type-filter -->
+                                        <select id="asset-type-filter" style="display:none;">
+                                            <option value="all">All Assets</option>
+                                            <option value="crypto" selected>Crypto Only</option>
+                                            <option value="stock">Stocks Only</option>
+                                            <option value="watchlist">My Watchlist</option>
+                                        </select>
+                        
+                                        <div id="asset-pill-group" class="nt-asset-pills" role="group" aria-label="Asset type">
+                                            <button type="button" class="asset-pill" data-value="all">All</button>
+                                            <button type="button" class="asset-pill active" data-value="crypto">Crypto</button>
+                                            <button type="button" class="asset-pill" data-value="stock">Stocks</button>
+                                            <button type="button" class="asset-pill nt-watchlist-filter-pill" data-value="watchlist">
+                                                ★ Watchlist
+                                                <span id="watchlist-pill-count" class="nt-watchlist-pill-count">0</span>
+                                            </button>
+                                        </div>
+                        
+                                    </div>
+                                </div>
+
+                                <!-- SELECTED ASSET ACTIONS -->
+                                <div class="nt-control-group nt-control-group-actions">
+                                    <span class="nt-control-label">Selected Asset</span>
+
+                                    <div class="nt-selected-asset-actions">
+                                        <button
+                                            type="button"
+                                            id="selected-watchlist-toggle"
+                                            class="nt-watchlist-primary-btn nt-watchlist-primary-btn-compact"
+                                            aria-pressed="false"
+                                        >
+                                            <span id="selected-watchlist-star" aria-hidden="true">☆</span>
+                                            <span id="selected-watchlist-label">Add to Watchlist</span>
+                                        </button>
+
+                                        <label
+                                            id="selected-watchlist-alert-control"
+                                            class="nt-signal-mail-control"
+                                            for="selected-watchlist-alert-toggle"
+                                            title="Add this asset to your watchlist before enabling email alerts."
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                id="selected-watchlist-alert-toggle"
+                                                class="nt-sr-only"
+                                                disabled
+                                            >
+                                            <span class="nt-signal-mail-icon" aria-hidden="true">
+                                                <svg viewBox="0 0 24 24" focusable="false">
+                                                    <path d="M3.75 6.75A1.75 1.75 0 0 1 5.5 5h13A1.75 1.75 0 0 1 20.25 6.75v10.5A1.75 1.75 0 0 1 18.5 19h-13a1.75 1.75 0 0 1-1.75-1.75V6.75Z" />
+                                                    <path d="m4.5 6 7.5 6 7.5-6" />
+                                                </svg>
+                                            </span>
+                                            <span class="nt-sr-only">Email signal-change alerts</span>
+                                        </label>
+
+                                        <div id="selected-watchlist-info" class="nt-signal-alert-info">
+                                            <button
+                                                type="button"
+                                                id="selected-watchlist-info-button"
+                                                class="nt-signal-alert-info-button"
+                                                aria-expanded="false"
+                                                aria-describedby="selected-watchlist-info-tooltip"
+                                                aria-label="About email signal-change alerts"
+                                            >i</button>
+                                            <div
+                                                id="selected-watchlist-info-tooltip"
+                                                class="nt-signal-alert-info-tooltip"
+                                                role="tooltip"
+                                            >
+                                                Click
+                                                <span class="nt-signal-alert-tooltip-mail-icon" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" focusable="false">
+                                                        <path d="M3.75 6.75A1.75 1.75 0 0 1 5.5 5h13A1.75 1.75 0 0 1 20.25 6.75v10.5A1.75 1.75 0 0 1 18.5 19h-13a1.75 1.75 0 0 1-1.75-1.75V6.75Z" />
+                                                        <path d="m4.5 6 7.5 6 7.5-6" />
+                                                    </svg>
+                                                </span>
+                                                to receive daily published signal changes · not real-time execution alerts.
+                                            </div>
+                                        </div>
+
+                                        <span id="selected-watchlist-message" class="nt-sr-only" aria-live="polite"></span>
+                                    </div>
+                                </div>
+                        
+                            </div>
+                        </div>
+                        <!-- CONTROL PANEL END -->
+
+                        <!-- CURRENT VIEW / ACTIVE FILTERS -->
+                        <div id="active-filter-row" class="nt-active-filter-row">
+                        
+                            <div class="nt-active-filter-left">
+                                <span class="nt-active-filter-label">Current View</span>
+                        
+                                <div id="active-filter-chips" class="nt-active-filter-chips">
+                                    <!-- chips injected by JS -->
+                                </div>
+                            </div>
+                        
+                        </div>
+                        <!-- CURRENT VIEW / ACTIVE FILTERS END -->
+                
+                        <!-- SIGNAL TABLE CARD -->
+                        <div class="nt-signal-table-card">
+                            <div class="nt-mobile-table-hint" aria-hidden="true">
+                                Swipe horizontally to view all signal and return columns →
+                            </div>
+                
+                            <!-- HEADER -->
+                            <div class="nt-signal-header">
+                            
+                                <div>
+                                    Ticker
+                                </div>
+                            
+                                <div>
+                                    <span class="nt-header-title">Today</span>
+                                    <select class="signal-filter nt-signal-filter-select" data-key="today_signal">
+                                        <option value="">All</option>
+                                        <option value="1">BUY</option>
+                                        <option value="0">HOLD</option>
+                                        <option value="-1">SELL</option>
+                                    </select>
+                                </div>
+                            
+                                <div>
+                                    <span class="nt-header-title">Yesterday</span>
+                                    <select class="signal-filter nt-signal-filter-select" data-key="yesterday_signal">
+                                        <option value="">All</option>
+                                        <option value="1">BUY</option>
+                                        <option value="0">HOLD</option>
+                                        <option value="-1">SELL</option>
+                                    </select>
+                                </div>
+                            
+                                <div>
+                                    <span class="nt-header-title">Last Week</span>
+                                    <select class="signal-filter nt-signal-filter-select" data-key="last_week_signal">
+                                        <option value="">All</option>
+                                        <option value="1">BUY</option>
+                                        <option value="0">HOLD</option>
+                                        <option value="-1">SELL</option>
+                                    </select>
+                                </div>
+                            
+                                <div>
+                                    <span class="nt-header-title">Last Month</span>
+                                    <select class="signal-filter nt-signal-filter-select" data-key="last_month_signal">
+                                        <option value="">All</option>
+                                        <option value="1">BUY</option>
+                                        <option value="0">HOLD</option>
+                                        <option value="-1">SELL</option>
+                                    </select>
+                                </div>
+                            
+                                <div 
+                                    class="nt-header-right nt-stat-header-cell"
+                                    data-signal-sort-key="buy_hold_period_return"
+                                    role="button"
+                                    tabindex="0"
+                                >
+                                    <div class="nt-stat-header-label">
+                                        <span class="nt-stat-header-sort-label">Buy&amp;Hold Return (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-info" data-stat-info-root>
+                                            <button
+                                                type="button"
+                                                class="nt-stat-header-info-button"
+                                                data-stat-info-button
+                                                aria-expanded="false"
+                                                aria-describedby="buy-hold-return-tooltip"
+                                                aria-label="About Buy and Hold return"
+                                            >i</button>
+                                            <span
+                                                id="buy-hold-return-tooltip"
+                                                class="nt-stat-header-tooltip"
+                                                data-stat-tooltip="buy-hold-return"
+                                                role="tooltip"
+                                            >return of Buy and Hold strategy over the last 5Y</span>
+                                        </span>
+                                    </div>
+                                    <span id="buy-hold-sort-indicator" class="nt-sort-indicator">▲▼</span>
+                                </div>
+                            
+                                <div 
+                                    class="nt-header-right nt-stat-header-cell"
+                                    data-signal-sort-key="strategy_period_return"
+                                    role="button"
+                                    tabindex="0"
+                                >
+                                    <div class="nt-stat-header-label">
+                                        <span class="nt-stat-header-sort-label">AI Return (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-info" data-stat-info-root>
+                                            <button
+                                                type="button"
+                                                class="nt-stat-header-info-button"
+                                                data-stat-info-button
+                                                aria-expanded="false"
+                                                aria-describedby="ai-return-tooltip"
+                                                aria-label="About AI return"
+                                            >i</button>
+                                            <span
+                                                id="ai-return-tooltip"
+                                                class="nt-stat-header-tooltip"
+                                                data-stat-tooltip="ai-return"
+                                                role="tooltip"
+                                            >return of AI strategy over the last 5Y</span>
+                                        </span>
+                                    </div>
+                                    <span id="strategy-sort-indicator" class="nt-sort-indicator">▲▼</span>
+                                </div>
+                            
+                                <div 
+                                    class="nt-header-right nt-stat-header-cell"
+                                    data-signal-sort-key="return_spread"
+                                    role="button"
+                                    tabindex="0"
+                                >
+                                    <div class="nt-stat-header-label">
+                                        <span class="nt-stat-header-sort-label">AI Excess Return (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-info" data-stat-info-root>
+                                            <button
+                                                type="button"
+                                                class="nt-stat-header-info-button"
+                                                data-stat-info-button
+                                                aria-expanded="false"
+                                                aria-describedby="ai-excess-return-tooltip"
+                                                aria-label="About AI excess return"
+                                            >i</button>
+                                            <span
+                                                id="ai-excess-return-tooltip"
+                                                class="nt-stat-header-tooltip"
+                                                data-stat-tooltip="ai-excess-return"
+                                                role="tooltip"
+                                            >return of AI strategy minus Buy and Hold strategy over the last 5Y</span>
+                                        </span>
+                                    </div>
+                                    <span id="outperformance-sort-indicator" class="nt-sort-indicator">▲▼</span>
+                                </div>
+
+                                <div
+                                    class="nt-header-right nt-stat-header-cell"
+                                    data-signal-sort-key="alpha"
+                                    role="button"
+                                    tabindex="0"
+                                >
+                                    <div class="nt-stat-header-label">
+                                        <span class="nt-stat-header-sort-label">Avg. Outperformance (<span class="nt-stat-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-info" data-stat-info-root>
+                                            <button
+                                                type="button"
+                                                class="nt-stat-header-info-button"
+                                                data-stat-info-button
+                                                aria-expanded="false"
+                                                aria-describedby="average-outperformance-tooltip"
+                                                aria-label="About average outperformance"
+                                            >i</button>
+                                            <span
+                                                id="average-outperformance-tooltip"
+                                                class="nt-stat-header-tooltip"
+                                                data-stat-tooltip="alpha"
+                                                role="tooltip"
+                                            >AI strategy return divided by buy &amp; hold return, averaged over all 5Y time horizons</span>
+                                        </span>
+                                    </div>
+                                    <span id="alpha-sort-indicator" class="nt-sort-indicator">▲▼</span>
+                                </div>
+
+                                <div
+                                    class="nt-header-right nt-stat-header-cell"
+                                    data-signal-sort-key="alpha_prob"
+                                    role="button"
+                                    tabindex="0"
+                                >
+                                    <div class="nt-stat-header-label">
+                                        <span class="nt-stat-header-sort-label">Outperformance Prob. (<span class="nt-stat-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-info" data-stat-info-root>
+                                            <button
+                                                type="button"
+                                                class="nt-stat-header-info-button"
+                                                data-stat-info-button
+                                                aria-expanded="false"
+                                                aria-describedby="outperformance-probability-tooltip"
+                                                aria-label="About outperformance probability"
+                                            >i</button>
+                                            <span
+                                                id="outperformance-probability-tooltip"
+                                                class="nt-stat-header-tooltip"
+                                                data-stat-tooltip="alpha-prob"
+                                                role="tooltip"
+                                            >probability of AI strategy return outperforming buy &amp; hold return, over 5Y</span>
+                                        </span>
+                                    </div>
+                                    <span id="alpha-prob-sort-indicator" class="nt-sort-indicator">▲▼</span>
+                                </div>
+                            
+                            </div>
+                            
+                            <!-- BODY -->
+                            <div id="signal-board" class="nt-signal-board-scroll">
+                                <div class="nt-board-state nt-board-state-loading" role="status" aria-live="polite" aria-label="Loading signal data">
+                                    <div class="nt-board-loading-copy">
+                                        <span class="nt-board-loading-spinner" aria-hidden="true"></span>
+                                        <span>Loading signal data…</span>
+                                    </div>
+                                    {% for _ in range(5) %}
+                                    <div class="nt-board-skeleton-row" aria-hidden="true">
+                                        <span class="nt-board-skeleton nt-board-skeleton-wide"></span>
+                                        <span class="nt-board-skeleton"></span>
+                                        <span class="nt-board-skeleton"></span>
+                                        <span class="nt-board-skeleton"></span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                
+                        </div>
+                
+                    </div>
+                </div>
+                <!-- QUICK SIGNAL BOARD END -->
+
+                <!-- EQUITY PREVIEW SECTION -->
+                <div id="equity-preview-wrapper" class="nt-preview-wrapper">
+                
+                    <div id="equity-preview-container" class="nt-preview-card" style="display: none;">
+                
+                        <div class="nt-preview-header">
+                
+                            <div>
+                                <div class="nt-section-eyebrow">Equity Preview</div>
+                
+                                <h3 id="preview-title" class="nt-preview-title">
+                                    BTC-USD — Equity Preview
+                                </h3>
+                
+                                <p class="nt-preview-subtitle">
+                                    Compare AI strategy equity vs. buy-and-hold for the selected asset.
+                                </p>
+                
+                                <div class="nt-preview-meta">
+                                    <span class="nt-preview-chip">
+                                        Asset: <strong id="preview-selected-ticker">BTC-USD</strong>
+                                    </span>
+                
+                                    <span class="nt-preview-chip">
+                                        Return Horizon: <strong id="preview-horizon-label">5Y</strong>
+                                    </span>
+                
+                                    <span class="nt-preview-chip">
+                                        Scale: <strong id="preview-scale-mode">Linear</strong>
+                                    </span>
+                
+                                    <span class="nt-preview-chip">
+                                        Equity Base: <strong>$1 normalized</strong>
+                                    </span>
+                                    
+                                    <span class="nt-preview-chip">
+                                        Costs: <strong id="preview-cost-label">Executed trades only</strong>
+                                    </span>
+
+                                    <span class="nt-preview-chip">
+                                        Data through: <strong id="preview-data-through">—</strong>
+                                    </span>
+
+                                    <span class="nt-preview-chip nt-preview-freshness-chip">
+                                        Freshness:
+                                        <strong id="preview-freshness-badge" class="nt-inline-freshness nt-freshness-unknown">Checking</strong>
+                                    </span>
+
+                                    <span class="nt-preview-chip">
+                                        Site updated: <strong id="preview-site-data-updated">—</strong>
+                                    </span>
+                                </div>
+                            </div>
+                
+                            <div class="nt-preview-actions">
+                                <button id="scale-toggle-btn" class="nt-scale-btn" type="button">
+                                    Log Scale
+                                </button>
+                            </div>
+                
+                        </div>
+
+                        <div class="nt-preview-workspace">
+                            <aside id="selected-performance-panel" class="nt-preview-metrics-panel" aria-label="Selected asset performance summary">
+                                <div class="nt-preview-metric-grid">
+                                    <article class="nt-preview-metric-card">
+                                        <span>AI Strategy Return (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <strong id="metric-strategy-return" class="return-neutral">—</strong>
+                                        <small id="metric-strategy-sub">Normalized $1 → —</small>
+                                    </article>
+                                    <article class="nt-preview-metric-card">
+                                        <span>Buy &amp; Hold Return (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <strong id="metric-buyhold-return" class="return-neutral">—</strong>
+                                        <small id="metric-buyhold-sub">Normalized $1 → —</small>
+                                    </article>
+                                    <article class="nt-preview-metric-card">
+                                        <span>AI Return Spread (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <strong id="metric-outperformance" class="return-neutral">—</strong>
+                                        <small>Percentage-point difference</small>
+                                    </article>
+                                    <article class="nt-preview-metric-card">
+                                        <span>Today’s Signal</span>
+                                        <strong id="metric-today-signal" class="nt-signal-value"><span class="signal-badge signal-hold">— HOLD</span></strong>
+                                        <small id="metric-signal-sub">Neutral</small>
+                                    </article>
+                                    <article class="nt-preview-metric-card">
+                                        <span>AI Max Drawdown</span>
+                                        <strong id="metric-strategy-max-drawdown">—</strong>
+                                        <small>Largest peak-to-trough decline</small>
+                                    </article>
+                                    <article class="nt-preview-metric-card">
+                                        <span>B&amp;H Max Drawdown</span>
+                                        <strong id="metric-buyhold-max-drawdown">—</strong>
+                                        <small>Same asset and horizon</small>
+                                    </article>
+                                    <article class="nt-preview-metric-card">
+                                        <span>AI Sharpe Ratio</span>
+                                        <strong id="metric-strategy-sharpe">—</strong>
+                                        <small>Annualized</small>
+                                    </article>
+                                    <article class="nt-preview-metric-card">
+                                        <span>Exposure / Trades</span>
+                                        <strong id="metric-market-exposure">—</strong>
+                                        <small id="metric-trade-count">— executed trades</small>
+                                    </article>
+                                </div>
+                            </aside>
+
+                            <div id="equity-preview-chart" class="nt-preview-chart">
+                                <!-- chart injected by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Compatibility metrics retained for the current preview renderer. -->
+                        <div id="equity-preview-risk-grid" class="nt-preview-risk-grid nt-preview-compat-metrics" aria-hidden="true">
+                            <article><span>AI Max Drawdown</span><strong id="preview-strategy-max-drawdown">—</strong></article>
+                            <article><span>B&amp;H Max Drawdown</span><strong id="preview-buyhold-max-drawdown">—</strong></article>
+                            <article><span>AI Sharpe</span><strong id="preview-strategy-sharpe">—</strong></article>
+                            <article><span>AI Volatility</span><strong id="preview-strategy-volatility">—</strong></article>
+                            <article><span>Exposure / Trades</span><strong id="preview-exposure-trades">—</strong></article>
+                        </div>
+                
+                    </div>
+                </div>
+                <!-- EQUITY PREVIEW SECTION END -->
+        
+            </section>
+
+                </div>
+
+                <div id="epoch-tool-backtest" class="nt-epoch-tool-panel">
+
+        <!-- Backtest Simulation -->
+        <section class="results-section nt-backtest-section">
+            <form id="backtest-form" class="trade-form">
+                <div class="nt-backtest-header">
+                    <div>
+                        <div class="nt-section-eyebrow">Backtest Simulation</div>
+                        <h3 class="nt-backtest-title">EpochSignaler Backtest</h3>
+                        <p class="nt-backtest-subtitle">
+                            Test the selected asset with custom cash, duration, and signal-based position sizing.
+                        </p>
+                    </div>
+                </div>
+        
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ticker">Asset Ticker:</label>
+                        <select id="ticker" name="ticker" required>    
+                            {% for ticker in supported_tickers %}
+                                <option value="{{ ticker }}">{{ ticker }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="cash">Initial Cash:</label>
+                        <input type="number" id="cash" name="cash" value="10000" min="1" step="1" required />
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="start">Start Date:</label>
+                        <input type="date" id="start" name="start" required />
+                    </div>
+        
+                    <!-- <div class="form-group">
+                        <label for="end">End Date:</label>
+                        <input type="date" id="end" name="end" required />
+                    </div> -->
+
+                    <div class="form-group">
+                        <label for="duration">Backtest Duration:</label>
+                        <select id="duration" name="duration" required>
+                            <option value="5yr">5 yr</option>
+                            <option value="3yr">3 yr</option>
+                            <option value="2yr">2 yr</option>
+                            <option value="1yr">1 yr</option>
+                            <option value="6mo">6 mo</option>
+                            <option value="3mo">3 mo</option>
+                            <option value="1mo">1 mo</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dca_pct">Position Size per Signal:</label>
+                        <select id="dca_pct" name="dca_pct" required>
+                            <option value="100_pct">100%</option>
+                            <option value="50_pct">50%</option>
+                            <option value="25_pct">25%</option>
+                        </select>
+                    </div>
+        
+                    <div class="form-group" style="align-self: flex-end;">
+                        <button type="submit" class="nt-run-backtest-btn">Run Backtest</button>
+                    </div>
+                </div>
+
+                <p class="nt-backtest-note">
+                    Backtest uses the selected asset, initial cash, duration, and current signal logic.
+                    Costs apply only when a trade executes. Any open position at the final date is marked to market; no artificial closing trade or exit fee is added.
+                </p>
+            </form>
+        
+            <div id="results"></div>
+        </section>
+
+                </div>
+
+                <div id="epoch-tool-live" class="nt-epoch-tool-panel">
+
+        <!-- Live Portfolio Simulation -->
+        <section class="nt-live-sim-section" id="live-simulation-preview">
+        
+            <div class="nt-live-sim-header">
+                <div class="nt-live-sim-title-wrap">
+                    <div class="nt-section-eyebrow">Live Simulation</div>
+        
+                    <h3 class="nt-live-sim-title">
+                        Daily-updated portfolio simulation
+                    </h3>
+        
+                    <p class="nt-live-sim-subtitle">
+                        Create independent paper simulations for individual assets. Each simulation tracks its own cash, position size, trades, strategy equity, and buy-and-hold benchmark.
+                    </p>
+                </div>
+        
+                <div class="nt-live-sim-badge">
+                    <span class="nt-live-sim-dot"></span>
+                    Live Beta
+                </div>
+            </div>
+        
+            <div class="nt-live-sim-layout">
+        
+                <!-- CREATE SIMULATION -->
+                <div class="nt-live-sim-card">
+                    <h4 class="nt-live-sim-card-title">
+                        Create new simulation
+                    </h4>
+                
+                    <form id="live-sim-form" class="nt-live-sim-form">
+        
+                        <div class="nt-live-sim-form-grid">
+        
+                            <div class="nt-live-sim-field">
+                                <label for="live-sim-name">Simulation Name</label>
+                                <input 
+                                    id="live-sim-name" 
+                                    name="name"
+                                    type="text" 
+                                    value="BTC 50% Live Simulation"
+                                >
+                            </div>
+        
+                            <div class="nt-live-sim-field">
+                                <label for="live-sim-ticker">Ticker</label>
+                            
+                                <div class="nt-live-sim-asset-picker">
+                                    <select 
+                                        id="live-sim-ticker" 
+                                        name="ticker"
+                                        class="nt-live-sim-ticker-select"
+                                        required
+                                    >
+                                        <option value="BTC-USD">BTC-USD</option>
+                                    </select>
+                                </div>
+                            
+                                <div id="live-sim-ticker-helper" class="nt-live-sim-field-note">
+                                    Choose from supported assets available in EpochSignaler.
+                                </div>
+                            </div>
+        
+                            <div class="nt-live-sim-field">
+                                <label for="live-sim-cash">Initial Cash</label>
+                                <input 
+                                    id="live-sim-cash" 
+                                    name="initial_cash"
+                                    type="number" 
+                                    value="10000"
+                                    min="1"
+                                    step="1"
+                                    required
+                                >
+                            </div>
+        
+                            <div class="nt-live-sim-field">
+                                <label for="live-sim-position">Position Size per Signal</label>
+                                <select id="live-sim-position" name="position_size_pct" required>
+                                    <option value="100">100%</option>
+                                    <option value="50" selected>50%</option>
+                                    <option value="25">25%</option>
+                                </select>
+                            </div>
+        
+                        </div>
+        
+                        <div class="nt-live-sim-actions">
+                            <button 
+                                type="submit" 
+                                id="live-sim-submit-btn"
+                                class="nt-live-sim-btn nt-live-sim-btn-active"
+                            >
+                                Create Simulation
+                            </button>
+        
+                            <span id="live-sim-message" class="nt-live-sim-small-note">
+                                Login is required to create and track live simulations.
+                            </span>
+                        </div>
+        
+                    </form>
+                </div>
+        
+                <!-- SIMULATION LIST -->
+                <aside class="nt-live-sim-card">
+
+                    <div class="nt-live-sim-list-header nt-live-sim-board-header-signal-style">
+
+                        <div class="nt-live-sim-list-title-area">
+                            <div class="nt-section-eyebrow">Simulation Board</div>
+                    
+                            <h4 class="nt-live-sim-card-title">
+                                My simulations
+                            </h4>
+                    
+                            <div id="live-sim-refresh-status" class="nt-live-sim-small-note">
+                                Auto-updates when this panel loads.
+                            </div>
+                        </div>
+                    
+                        <div class="nt-live-sim-board-top-buttons">
+                            <button 
+                                type="button" 
+                                id="live-sim-refresh-btn" 
+                                class="nt-live-sim-refresh-btn"
+                            >
+                                Refresh
+                            </button>
+                        
+                            <button 
+                                type="button" 
+                                id="reset-live-sim-board" 
+                                class="nt-reset-btn nt-live-sim-reset-view-btn"
+                            >
+                                Reset View
+                            </button>
+                        </div>
+                    
+                    </div>
+                    
+                    <div class="nt-controls-card nt-live-sim-controls-card">
+
+                        <div class="nt-live-sim-controls-grid-main">
+                    
+                            <!-- SEARCH -->
+                            <div class="nt-control-group">
+                                <label class="nt-control-label" for="live-sim-board-search">
+                                    Search simulation
+                                </label>
+                    
+                                <div class="nt-search-shell">
+                                    <span class="nt-search-icon">🔍</span>
+                    
+                                    <input 
+                                        type="text" 
+                                        id="live-sim-board-search" 
+                                        class="nt-search-input"
+                                        placeholder="Search name, ticker..."
+                                    >
+                                </div>
+                            </div>
+                    
+                            <!-- RETURN HORIZON -->
+                            <div class="nt-control-group">
+                                <span class="nt-control-label">Return horizon</span>
+                    
+                                <div class="nt-period-pills nt-live-sim-horizon-pills" role="group" aria-label="Live simulation return horizon">
+                                    <button type="button" class="period-pill live-sim-horizon-pill" data-live-sim-horizon="1d">1D</button>
+                                    <button type="button" class="period-pill live-sim-horizon-pill" data-live-sim-horizon="1w">1W</button>
+                                    <button type="button" class="period-pill live-sim-horizon-pill" data-live-sim-horizon="1mo">1M</button>
+                                    <button type="button" class="period-pill live-sim-horizon-pill" data-live-sim-horizon="3mo">3M</button>
+                                    <button type="button" class="period-pill live-sim-horizon-pill" data-live-sim-horizon="6mo">6M</button>
+                                    <button type="button" class="period-pill live-sim-horizon-pill" data-live-sim-horizon="1y">1Y</button>
+                                    <button type="button" class="period-pill live-sim-horizon-pill active" data-live-sim-horizon="since_start">Since Start</button>
+                                </div>
+                            </div>
+                    
+                            <!-- ASSET TYPE -->
+                            <div class="nt-control-group">
+                                <span class="nt-control-label">Asset type</span>
+                    
+                                <div class="nt-asset-control">
+                                    <div class="nt-asset-pills" role="group" aria-label="Live simulation asset type">
+                                        <button 
+                                            type="button" 
+                                            class="asset-pill live-sim-asset-pill active" 
+                                            data-live-sim-asset-filter="all"
+                                        >
+                                            All
+                                        </button>
+                    
+                                        <button 
+                                            type="button" 
+                                            class="asset-pill live-sim-asset-pill" 
+                                            data-live-sim-asset-filter="crypto"
+                                        >
+                                            Crypto
+                                        </button>
+                    
+                                        <button 
+                                            type="button" 
+                                            class="asset-pill live-sim-asset-pill" 
+                                            data-live-sim-asset-filter="stock"
+                                        >
+                                            Stocks
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                    
+                        </div>
+                    
+                        <!-- SIMULATION STATUS -->
+                        <div class="nt-live-sim-status-row">
+                            <div class="nt-control-group">
+                                <span class="nt-control-label">Simulation status</span>
+                    
+                                <div class="nt-live-sim-status-pills" role="group" aria-label="Simulation status">
+                    
+                                    <button type="button" class="live-sim-status-pill selected" data-live-sim-filter="open">
+                                        Open
+                                        <span id="live-sim-count-open" class="nt-live-sim-filter-count">0</span>
+                                    </button>
+                    
+                                    <button type="button" class="live-sim-status-pill" data-live-sim-filter="active">
+                                        Active
+                                        <span id="live-sim-count-active" class="nt-live-sim-filter-count">0</span>
+                                    </button>
+                    
+                                    <button type="button" class="live-sim-status-pill" data-live-sim-filter="paused">
+                                        Paused
+                                        <span id="live-sim-count-paused" class="nt-live-sim-filter-count">0</span>
+                                    </button>
+                    
+                                    <button type="button" class="live-sim-status-pill" data-live-sim-filter="archived">
+                                        Archived
+                                        <span id="live-sim-count-archived" class="nt-live-sim-filter-count">0</span>
+                                    </button>
+                    
+                                    <button type="button" class="live-sim-status-pill" data-live-sim-filter="all">
+                                        All
+                                        <span id="live-sim-count-all" class="nt-live-sim-filter-count">0</span>
+                                    </button>
+                    
+                                </div>
+                            </div>
+                        </div>
+                    
+                    </div>
+                
+                    <div id="live-sim-limit" class="nt-live-sim-small-note">
+                        Loading simulations...
+                    </div>
+                    
+                    <div id="live-sim-selected-actions" class="nt-live-sim-selected-actions">
+                        <div class="nt-live-sim-selected-actions-empty">
+                            Select a simulation to manage it.
+                        </div>
+                    </div>
+                    
+                    <div id="live-sim-list" class="nt-live-sim-list">
+                        <!-- simulation cards injected by JS -->
+                    </div>
+                </aside>
+        
+                </div>
+            
+                <!-- SELECTED SIMULATION DETAIL -->
+                <div id="live-sim-dashboard" class="nt-live-sim-dashboard" style="display: none;">            
+                
+                    <div class="nt-live-sim-dashboard-header nt-live-sim-dashboard-header-compact">
+                        <div class="nt-live-sim-dashboard-title-area">
+                            <div class="nt-section-eyebrow">Selected Simulation</div>
+                    
+                            <h4 id="live-sim-detail-title" class="nt-live-sim-dashboard-title">
+                                —
+                            </h4>
+                    
+                            <p id="live-sim-detail-subtitle" class="nt-live-sim-dashboard-subtitle">
+                                —
+                            </p>
+
+                            <div id="live-sim-data-freshness" class="nt-live-sim-freshness-strip" aria-live="polite">
+                                <span id="live-sim-freshness-badge" class="nt-freshness-badge nt-freshness-unknown">Checking</span>
+                                <span>Source data through <strong id="live-sim-data-through">—</strong></span>
+                                <span class="nt-data-freshness-divider" aria-hidden="true">•</span>
+                                <span>Simulation processed through <strong id="live-sim-simulation-through">—</strong></span>
+                                <span class="nt-data-freshness-divider" aria-hidden="true">•</span>
+                                <span>Site updated <strong id="live-sim-site-data-updated">—</strong></span>
+                            </div>
+                    
+                            <div id="live-sim-detail-signal-wrap" class="nt-live-sim-detail-signal-wrap">
+                            </div>
+
+                            <!-- LIVE SIMULATION ASSUMPTIONS -->
+                            <details class="nt-live-sim-assumptions">
+                                <summary>
+                                    <span>Live Simulation Assumptions</span>
+                                    <strong id="live-sim-assumption-cost">Cost: 1.00% per trade</strong>
+                                </summary>
+                        
+                                <div class="nt-live-sim-assumption-grid">
+                        
+                                    <div class="nt-live-sim-assumption-item">
+                                        <div class="nt-live-sim-assumption-label">Signal Action</div>
+                                        <div class="nt-live-sim-assumption-text">
+                                            BUY invests the selected percentage of available cash. SELL exits the selected percentage of the current position. HOLD makes no trade.
+                                        </div>
+                                    </div>
+                        
+                                    <div class="nt-live-sim-assumption-item">
+                                        <div class="nt-live-sim-assumption-label">Transaction Costs</div>
+                                        <div class="nt-live-sim-assumption-text">
+                                            Crypto simulations use 1.00% per trade. Stock simulations use 0.10% per trade.
+                                        </div>
+                                    </div>
+                        
+                                    <div class="nt-live-sim-assumption-item">
+                                        <div class="nt-live-sim-assumption-label">Quantity Rule</div>
+                                        <div id="live-sim-assumption-quantity" class="nt-live-sim-assumption-text">
+                                            Crypto allows fractional positions. Stocks use whole-share quantities.
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="nt-live-sim-assumption-item">
+                                        <div class="nt-live-sim-assumption-label">Start & Benchmark</div>
+                                        <div class="nt-live-sim-assumption-text">
+                                            Each simulation starts from the latest available CSV date at creation. The benchmark is Buy & Hold from the same start date, with transaction cost included.
+                                        </div>
+                                    </div>
+                        
+                                </div>
+                        
+                                <div class="nt-live-sim-assumption-warning">
+                                    Paper simulation only. Simulations update from the latest deployed CSV data when the panel loads or when Refresh is clicked. It does not place trades, connect to an exchange, or provide investment advice.
+                                </div>
+                            </details>
+                        </div>
+                    
+                        <div class="nt-live-sim-header-metrics">
+                    
+                            <div class="nt-live-sim-metric-card nt-live-sim-mini-metric">
+                                <div class="nt-live-sim-metric-label">Strategy</div>
+                                <div id="live-sim-strategy-value" class="nt-live-sim-metric-value">—</div>
+                                <div id="live-sim-strategy-return" class="nt-live-sim-metric-sub">—</div>
+                            </div>
+                    
+                            <div class="nt-live-sim-metric-card nt-live-sim-mini-metric">
+                                <div class="nt-live-sim-metric-label">Buy & Hold</div>
+                                <div id="live-sim-benchmark-value" class="nt-live-sim-metric-value">—</div>
+                                <div id="live-sim-benchmark-return" class="nt-live-sim-metric-sub">—</div>
+                            </div>
+                    
+                            <div class="nt-live-sim-metric-card nt-live-sim-mini-metric">
+                                <div class="nt-live-sim-metric-label">Return Spread</div>
+                                <div id="live-sim-spread-value" class="nt-live-sim-metric-value">—</div>
+                                <div id="live-sim-spread-detail" class="nt-live-sim-metric-sub">—</div>
+                            </div>
+                    
+                            <div class="nt-live-sim-metric-card nt-live-sim-mini-metric">
+                                <div class="nt-live-sim-metric-label">Cash / Position</div>
+                                <div id="live-sim-cash-balance" class="nt-live-sim-metric-value">—</div>
+                                <div id="live-sim-position-quantity" class="nt-live-sim-metric-sub">—</div>
+                            </div>
+                    
+                        </div>
+                    </div>
+                
+                    <div class="nt-live-sim-analysis-grid">
+                
+                        <div class="nt-live-sim-chart-card nt-live-sim-chart-card-main">
+                            <div class="nt-live-sim-chart-title">
+                                Equity Curve
+                            </div>
+                
+                            <div class="nt-live-sim-chart-subtitle">
+                                Strategy value compared with Buy & Hold from the same start date.
+                            </div>
+                
+                            <div class="nt-live-sim-chart-shell nt-live-sim-chart-shell-compact">
+                                <canvas id="live-sim-chart"></canvas>
+                            </div>
+                        </div>
+                
+                        <div class="nt-live-sim-trades-card nt-live-sim-trades-card-side">
+                            <div class="nt-live-sim-trades-header">
+                                <div>
+                                    <div class="nt-live-sim-chart-title">
+                                        Recent Trades
+                                    </div>
+                
+                                    <div id="live-sim-trades-subtitle" class="nt-live-sim-chart-subtitle">
+                                        —
+                                    </div>
+                                </div>
+                
+                                <div id="live-sim-trade-count-pill" class="nt-live-sim-trade-count-pill">
+                                    —
+                                </div>
+                            </div>
+                
+                            <div id="live-sim-trades-table" class="nt-live-sim-trades-table">
+                                <!-- trades injected by JS -->
+                            </div>
+                        </div>
+                
+                    </div>
+                
+                </div>
+        
+                 </section>
+        <!-- Live Portfolio Simulation END -->
+
+                </div>
+                <!-- epoch-tool-live END -->
+
+            </div>
+            <!-- nt-epoch-tool-panels END -->
+
+        </div>
+        <!-- nt-epoch-tool-content-card END -->
+
+    </div>
+    <!-- nt-epoch-subworkspace END -->
+
+</div>
+<!-- epochsignaler-section END -->
+
+<!-- AltIndexer -->
+<div id="altindexer-section" class="nt-model-panel">
+        
+            <div class="nt-model-panel-header">
+                <h3 class="nt-model-panel-title">AltIndexer</h3>
+                <p class="nt-model-panel-description">
+                    AltIndexer is an AI-based model for altcoin-season prediction. Unlike traditional altcoin indexes based on past 90-day performance, 
+                    AltIndexer is a forward-looking index based on the number of altcoins currently in buy, sell, or neutral zones, calculated daily.
+                </p>
+            </div>
+
+            <!-- AltIndexer Current Metrics -->
+            <div id="altindexer-performance-panel" class="nt-performance-panel">
+            
+                <div class="nt-selected-meta">
+                    AltIndexer Regime:
+                    <span id="altindexer-regime-label">—</span>
+                    &nbsp; | &nbsp;
+                    Latest Date:
+                    <span id="altindexer-latest-date">—</span>
+                </div>
+            
+                <div class="nt-metric-grid">
+            
+                    <div class="nt-metric-card">
+                        <div id="altindexer-today-icon" class="nt-card-icon nt-icon-neutral">◎</div>
+                        <div>
+                            <div class="nt-metric-label">Today’s Index</div>
+                            <div id="altindexer-today-value" class="nt-metric-value return-neutral">—</div>
+                            <div id="altindexer-today-sub" class="nt-metric-sub">—</div>
+                        </div>
+                    </div>
+            
+                    <div class="nt-metric-card">
+                        <div id="altindexer-yesterday-icon" class="nt-card-icon nt-icon-neutral">↩</div>
+                        <div>
+                            <div class="nt-metric-label">Yesterday’s Index</div>
+                            <div id="altindexer-yesterday-value" class="nt-metric-value return-neutral">—</div>
+                            <div id="altindexer-yesterday-sub" class="nt-metric-sub">—</div>
+                        </div>
+                    </div>
+            
+                    <div class="nt-metric-card">
+                        <div id="altindexer-lastweek-icon" class="nt-card-icon nt-icon-neutral">1W</div>
+                        <div>
+                            <div class="nt-metric-label">Last Week Index</div>
+                            <div id="altindexer-lastweek-value" class="nt-metric-value return-neutral">—</div>
+                            <div id="altindexer-lastweek-sub" class="nt-metric-sub">—</div>
+                        </div>
+                    </div>
+            
+                    <div class="nt-metric-card">
+                        <div id="altindexer-lastmonth-icon" class="nt-card-icon nt-icon-neutral">1M</div>
+                        <div>
+                            <div class="nt-metric-label">Last Month Index</div>
+                            <div id="altindexer-lastmonth-value" class="nt-metric-value return-neutral">—</div>
+                            <div id="altindexer-lastmonth-sub" class="nt-metric-sub">—</div>
+                        </div>
+                    </div>
+            
+                </div>
+
+                <div
+                    id="altindexer-movement-summary"
+                    class="nt-alt-movement-summary"
+                    aria-live="polite"
+                >
+                    <span class="nt-alt-summary-label">Market regime summary</span>
+                    <span class="nt-alt-summary-placeholder">Loading movement history…</span>
+                </div>
+            </div>
+            <!-- AltIndexer Current Metrics END -->
+        
+            <!-- AltIndexer Interactive Chart -->
+            <div style="text-align: center; margin-top: 30px;">
+                <div
+                    id="epoch-index-chart"
+                    style="
+                        width: 100%;
+                        max-width: 900px;
+                        height: 450px;
+                        margin: 0 auto;
+                    "
+                ></div>
+            </div>
+
+            <div class="nt-model-preview-layout nt-model-preview-layout-full">
+
+                <div class="nt-model-preview-card">
+                    <div class="nt-model-preview-kicker">AltIndexer Calculation Logic</div>
+                
+                    <h3 class="nt-model-preview-title">
+                        How AltIndexer measures the altcoin market regime
+                    </h3>
+                
+                    <p class="nt-model-preview-text">
+                        AltIndexer is a forward-looking market-regime index calculated from the current signal-zone structure of supported altcoins.
+                        Instead of relying only on past 90-day price performance, it evaluates how many assets are currently positioned in model-defined buy, sell, or neutral zones.
+                    </p>
+                
+                    <div class="nt-model-feature-list">
+                
+                        <div class="nt-model-feature-row">
+                            <div class="nt-model-feature-icon">1</div>
+                            <div>
+                                <div class="nt-model-feature-title">Daily signal-zone scan</div>
+                                <div class="nt-model-feature-text">
+                                    Each day, supported altcoins are classified as BUY, HOLD/neutral, or SELL. Their combined balance produces the daily score, which is then interpreted through the five AltIndexer regimes.
+                                </div>
+                            </div>
+                        </div>
+                
+                        <div class="nt-model-feature-row">
+                            <div class="nt-model-feature-icon">2</div>
+                            <div>
+                                <div class="nt-model-feature-title">Buy, neutral, and sell balance</div>
+                                <div class="nt-model-feature-text">
+                                    The index reflects the balance among altcoins showing positive, neutral, and defensive signal conditions.
+                                </div>
+                            </div>
+                        </div>
+                
+                        <div class="nt-model-feature-row">
+                            <div class="nt-model-feature-icon">3</div>
+                            <div>
+                                <div class="nt-model-feature-title">Five-zone market-regime score</div>
+                                <div class="nt-model-feature-text">
+                                    The final AltIndexer value is displayed as an integer from 0 to 100 across five regimes: 0–20 Strong Sell, 20–40 Sell, 40–60 Neutral, 60–80 Buy, and 80–100 Strong Buy.
+                                </div>
+                            </div>
+                        </div>
+                
+                        <div class="nt-model-feature-row">
+                            <div class="nt-model-feature-icon">4</div>
+                            <div>
+                                <div class="nt-model-feature-title">Forward-looking interpretation</div>
+                                <div class="nt-model-feature-text">
+                                    Because the calculation is based on current signal-zone conditions, AltIndexer is designed to describe the present market setup rather than only summarize past performance.
+                                </div>
+                            </div>
+                        </div>
+                
+                    </div>
+                </div>
+                  
+            </div>
+        </div>
+
+        <!-- EpochForecaster -->
+        <div id="epochforecaster-section" class="nt-model-panel">
+        
+            <div class="nt-model-panel-header">
+                <h3 class="nt-model-panel-title">EpochForecaster</h3>
+                <p class="nt-model-panel-description">
+                    EpochForecaster is an AI-based probabilistic model that provides multi-day price forecasts for BTC-USD. 
+                    Signals and additional assets are planned for future releases.
+                </p>
+            </div>
+
+            <!-- EpochForecaster Image -->
+            <div style="text-align: center; margin-top: 30px;">
+                <img src="{{ url_for('static', filename='epoch_probabilistic.png') }}" alt="EpochForecaster" style="max-width: 60%; height: auto;">
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+    </div>
+</main>
+{% endblock %}
+
+{% block page_scripts %}
+<script src="{{ url_for('static', filename='js/neuraltrend-backtest.js') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260809-return-info-v1') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-watchlist.js', v='20260805-signal-actions-v2') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-backtest-form.js', v='20260804-pointer-continuity-v2') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js', v='20260808-altindexer-summary-emphasis-v2') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-subscription-bridge.js') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-checkout-status.js') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-model-tabs.js') }}"></script>
+{% endblock %}
