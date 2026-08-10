@@ -2048,3 +2048,23 @@
         border-top-width: 16px !important;
     }
 }
+
+/* ==================================================
+   Current View signal values — restore semantic colors
+   Aug 9, 2026
+================================================== */
+/* Keep Current View labels gray/dark as before, but let BUY / SELL / HOLD
+   values retain their signal meaning instead of inheriting the generic
+   dark value color used by non-signal filters. */
+#active-filter-row .nt-active-chip.chip-buy .nt-active-chip-value {
+    color: var(--nt-positive) !important;
+}
+
+#active-filter-row .nt-active-chip.chip-sell .nt-active-chip-value {
+    color: var(--nt-negative) !important;
+}
+
+#active-filter-row .nt-active-chip.chip-hold .nt-active-chip-value {
+    color: var(--nt-neutral) !important;
+}
+
