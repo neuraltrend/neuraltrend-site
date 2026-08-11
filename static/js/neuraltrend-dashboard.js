@@ -489,11 +489,67 @@
         }
     }
 
+    const DEFAULT_LIVE_SIM_INITIAL_CASH = 10000;
+
+    function parseLiveSimulationCashInput(rawValue) {
+        const text = String(rawValue ?? "").trim();
+
+        if (!text) {
+            return DEFAULT_LIVE_SIM_INITIAL_CASH;
+        }
+
+        // Accept convenient user formats such as 100, 100$, 100 $, $100,
+        // and comma-separated values such as $10,000.
+        const normalized = text.replace(/[\s,$]/g, "");
+
+        if (!/^\d+(?:\.\d+)?$/.test(normalized)) {
+            return null;
+        }
+
+        const value = Number(normalized);
+        return Number.isFinite(value) && value > 0 ? value : null;
+    }
+
+    function liveSimulationCashNamePart(value) {
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue)) return String(DEFAULT_LIVE_SIM_INITIAL_CASH);
+        if (Number.isInteger(numericValue)) return String(numericValue);
+        return String(numericValue).replace(/0+$/, "").replace(/\.$/, "");
+    }
+
     function defaultLiveSimulationName(ticker) {
         const positionSelect = document.getElementById("live-sim-position");
+        const cashInput = document.getElementById("live-sim-cash");
         const positionPct = positionSelect ? positionSelect.value : "50";
-    
-        return `${ticker} ${positionPct}% Live Simulation`;
+        const parsedCash = parseLiveSimulationCashInput(cashInput ? cashInput.value : "");
+        const cashValue = parsedCash === null ? DEFAULT_LIVE_SIM_INITIAL_CASH : parsedCash;
+
+        return `${ticker}_${liveSimulationCashNamePart(cashValue)}_${positionPct}%`;
+    }
+
+    function refreshAutoLiveSimulationName() {
+        const tickerInput = document.getElementById("live-sim-ticker");
+        const nameInput = document.getElementById("live-sim-name");
+
+        if (!tickerInput || !nameInput) return;
+
+        const shouldAutoUpdate =
+            !nameInput.value.trim() ||
+            nameInput.dataset.autoName === "true" ||
+            nameInput.value.includes("Live Simulation");
+
+        if (!shouldAutoUpdate) return;
+
+        const cashInput = document.getElementById("live-sim-cash");
+        const rawCash = cashInput ? String(cashInput.value || "").trim() : "";
+        const parsedCash = parseLiveSimulationCashInput(rawCash);
+
+        // While the user is midway through typing an invalid cash string,
+        // preserve the current auto-name rather than flashing back to $10,000.
+        if (rawCash && parsedCash === null) return;
+
+        nameInput.value = defaultLiveSimulationName(tickerInput.value || "BTC-USD");
+        nameInput.dataset.autoName = "true";
     }
     
     function syncLiveSimulationTicker(ticker) {
@@ -2875,7 +2931,7 @@
                 </div>
     
                 <div class="nt-live-sim-auth-title">
-                    Log in to create live paper simulations
+                    Log in to create live simulations
                 </div>
     
                 <div class="nt-live-sim-auth-text">
@@ -2892,7 +2948,7 @@
                     </button>
     
                     <span class="nt-live-sim-auth-note">
-                        Paper simulation only. No trades are placed.
+                        Simulation only. No trades are placed.
                     </span>
                 </div>
             </div>
@@ -3104,18 +3160,8 @@
     
         updateLiveSimAssumptionPanel(ticker);
     
-        const nameInput = document.getElementById("live-sim-name");
-    
-        if (nameInput && updateName) {
-            const shouldAutoUpdateName =
-                !nameInput.value.trim() ||
-                nameInput.dataset.autoName === "true" ||
-                nameInput.value.includes("Live Simulation");
-    
-            if (shouldAutoUpdateName) {
-                nameInput.value = defaultLiveSimulationName(ticker);
-                nameInput.dataset.autoName = "true";
-            }
+        if (updateName) {
+            refreshAutoLiveSimulationName();
         }
     }
     
@@ -3973,10 +4019,19 @@
             return;
         }
     
+        const cashInput = document.getElementById("live-sim-cash");
+        const parsedInitialCash = parseLiveSimulationCashInput(cashInput ? cashInput.value : "");
+
+        if (parsedInitialCash === null) {
+            setLiveSimMessage("Initial cash must be a positive number, with or without a $ sign.", true);
+            cashInput?.focus();
+            return;
+        }
+
         const payload = {
             name: document.getElementById("live-sim-name").value.trim(),
             ticker: document.getElementById("live-sim-ticker").value.trim(),
-            initial_cash: Number(document.getElementById("live-sim-cash").value),
+            initial_cash: parsedInitialCash,
             position_size_pct: Number(document.getElementById("live-sim-position").value)
         };
 
@@ -4053,15 +4108,23 @@
             });
 
     document.getElementById("live-sim-position")?.addEventListener("change", function () {
-        const tickerInput = document.getElementById("live-sim-ticker");
-        const nameInput = document.getElementById("live-sim-name");
-    
-        if (!tickerInput || !nameInput) return;
-    
-        if (nameInput.dataset.autoName === "true" || nameInput.value.includes("Live Simulation")) {
-            nameInput.value = defaultLiveSimulationName(tickerInput.value || "BTC-USD");
-            nameInput.dataset.autoName = "true";
+        refreshAutoLiveSimulationName();
+    });
+
+    document.getElementById("live-sim-cash")?.addEventListener("input", function () {
+        refreshAutoLiveSimulationName();
+    });
+
+    document.getElementById("live-sim-cash")?.addEventListener("blur", function () {
+        const parsedCash = parseLiveSimulationCashInput(this.value);
+        if (parsedCash === null) return;
+
+        // Keep the placeholder behavior when the user leaves the field blank.
+        // Otherwise normalize obvious currency formatting to a clean number.
+        if (String(this.value || "").trim()) {
+            this.value = liveSimulationCashNamePart(parsedCash);
         }
+        refreshAutoLiveSimulationName();
     });
 
     document.getElementById("live-sim-name")?.addEventListener("input", function () {
