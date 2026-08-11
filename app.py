@@ -6362,6 +6362,9 @@ def compute_signals_summary_cached(csv_version, stat_csv_version, period_days):
     for t in get_all_signal_board_tickers():
         try:
             sigs = compute_signals_for_ticker(t, period_days, csv_version)
+            if not sigs:
+                continue
+
             stat_values = get_signal_stat_for_horizon(t, period_days)
             results.append({
                 'ticker': t,
@@ -6390,6 +6393,12 @@ def compute_signals_summary_cached(csv_version, stat_csv_version, period_days):
         except Exception:
             app.logger.exception("Skipping signal summary ticker=%s", t)
 
+    # Do not cache an all-empty result. A supported production universe cannot
+    # legitimately have zero rows; this indicates a transient file/read/update
+    # problem. Raising here prevents lru_cache from preserving that bad snapshot.
+    if not results:
+        raise RuntimeError("No signal-board assets could be computed.")
+
     return results
 
 @app.route('/signals/summary')
@@ -6406,11 +6415,25 @@ def signals_summary():
 
     # Full internal cached data. Stat files are independently versioned because
     # they may be generated/updated without touching the epoch market CSVs.
-    raw_results = compute_signals_summary_cached(
-        csv_version,
-        stat_csv_version,
-        period_days,
-    )
+    try:
+        raw_results = compute_signals_summary_cached(
+            csv_version,
+            stat_csv_version,
+            period_days,
+        )
+    except Exception:
+        app.logger.exception(
+            "Signal summary temporarily unavailable duration=%s",
+            duration_str,
+        )
+        response = jsonify({
+            "error": "Signal data is temporarily unavailable. Please retry."
+        })
+        response.status_code = 503
+        response.headers["Cache-Control"] = "private, no-store, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Vary"] = "Cookie"
+        return response
 
     # Apply admin-only and retired-asset visibility before masking. Fetch the
     # lifecycle set once rather than issuing one database query per asset.
