@@ -2068,3 +2068,49 @@
     color: var(--nt-neutral) !important;
 }
 
+/* ==================================================
+   Live Simulation form refinements — Aug 10, 2026
+================================================== */
+.nt-live-sim-label-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 16px;
+}
+
+.nt-live-sim-label-row > label {
+    margin: 0;
+}
+
+#live-sim-cash::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+    font-weight: 600;
+}
+
+.nt-live-sim-position-info {
+    align-items: center;
+}
+
+.nt-live-sim-position-info .nt-stat-header-tooltip {
+    left: -4px;
+    right: auto;
+    width: min(320px, 76vw);
+}
+
+.nt-live-sim-position-info .nt-stat-header-tooltip::after {
+    left: 6px;
+    right: auto;
+}
+
+
+/* Rebalance the four create-simulation fields after moving Simulation Name last. */
+@media (min-width: 761px) {
+    .nt-live-sim-layout > .nt-live-sim-card:first-child .nt-live-sim-form-grid {
+        grid-template-columns:
+            minmax(200px, 1.1fr)
+            minmax(140px, 0.75fr)
+            minmax(170px, 0.9fr)
+            minmax(180px, 1fr) !important;
+    }
+}
