@@ -439,6 +439,21 @@ def parse_finite_number(value, field_name, minimum=None, maximum=None):
     return number
 
 
+def normalize_optional_currency_input(value, default_value=10000):
+    """Accept user-friendly currency text such as 100$, $100, or $10,000."""
+    if value is None:
+        return default_value
+
+    if isinstance(value, str):
+        clean = value.strip()
+        if not clean:
+            return default_value
+        clean = re.sub(r"[\s,$]", "", clean)
+        return clean
+
+    return value
+
+
 def validate_simulation_name(value, allow_empty=False):
     if not isinstance(value, str):
         return None, "Simulation name must be text."
@@ -4923,7 +4938,7 @@ def create_live_simulation():
 
     try:
         initial_cash = parse_finite_number(
-            data.get("initial_cash", 10000),
+            normalize_optional_currency_input(data.get("initial_cash"), 10000),
             "Initial cash",
             minimum=MIN_INITIAL_CASH,
             maximum=MAX_INITIAL_CASH,
@@ -4999,7 +5014,11 @@ def create_live_simulation():
         }), 400
 
     if not name:
-        name = f"{ticker} {position_size_pct:.0f}% Live Simulation"
+        if float(initial_cash).is_integer():
+            initial_cash_name = str(int(initial_cash))
+        else:
+            initial_cash_name = f"{initial_cash:.8f}".rstrip("0").rstrip(".")
+        name = f"{ticker}_{initial_cash_name}_{position_size_pct:.0f}%"
 
     sim = LiveSimulation(
         user_id=current_user.id,
