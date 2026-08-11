@@ -11,6 +11,7 @@
     let equityPreviewRequestId = 0;
     let signalBoardAuthRefreshPromise = null;
     let lastSignalBoardAuthSignature = null;
+    let signalSummaryIsLoading = false;
 
     const NT_COLORS = {
         positive: "#16A34A",
@@ -578,6 +579,13 @@
     }
     
     function applyAllFilters() {
+        // Do not let browser autofill, restored controls, or filter events replace
+        // a real Loading/Updating state while a fresh summary is still in flight.
+        // This was the main cause of the board briefly showing the misleading
+        // “No assets match…” message during login/account refreshes.
+        if (signalSummaryIsLoading) {
+            return;
+        }
     
         let filtered = [...defaultOrder];
     
@@ -636,7 +644,8 @@
             });
         }
 
-        allSignals = filtered;
+        // allSignals/defaultOrder remain the full server response. Filtering is
+        // presentation-only; do not replace the canonical source with a subset.
         renderBoard(filtered);
         updateAssumptionsBar(filtered.length);
         updateActiveFilterChips(filtered.length);
@@ -1265,18 +1274,32 @@
     
     board.innerHTML = signalBoardStateMarkup("loading", "Loading signals…");
     
-    function loadSummary() {
+    function signalBoardDelay(ms) {
+        return new Promise(resolve => window.setTimeout(resolve, ms));
+    }
+
+    async function loadSummary() {
         const duration = document.getElementById('period-select')?.value || "5y";
         const requestId = ++signalSummaryRequestId;
-    
-        return fetch(`/signals/summary?duration=${duration}&_=${Date.now()}`, {
-            cache: "no-store",
-            credentials: "same-origin"
-        })
-            .then(r => r.json())
-            .then(data => {
-                // Ignore an older horizon response if the user changed horizons
-                // again while this request was in flight.
+        signalSummaryIsLoading = true;
+
+        try {
+            let data = null;
+            let lastError = null;
+            const retryDelays = [0, 650, 1600];
+
+            for (let attempt = 0; attempt < retryDelays.length; attempt += 1) {
+                if (retryDelays[attempt] > 0) {
+                    if (requestId === signalSummaryRequestId) {
+                        board.innerHTML = signalBoardStateMarkup(
+                            "updating",
+                            "Signal data is updating… retrying automatically."
+                        );
+                    }
+                    await signalBoardDelay(retryDelays[attempt]);
+                }
+
+                // A newer horizon/account request supersedes this one.
                 if (
                     requestId !== signalSummaryRequestId ||
                     (document.getElementById('period-select')?.value || "5y") !== duration
@@ -1284,34 +1307,95 @@
                     return;
                 }
 
-                if (!Array.isArray(data)) {
-                    throw new Error(data.error || "Signal summary response was not a list.");
-                }
-                
-                allSignals = data;
-                defaultOrder = [...data];
-            
-                updateSortIndicators();
-                applyAllFilters();
-            
-                // Auto-load BTC-USD preview only once
-                if (!currentTicker) {
-                    const btcExists = data.find(item => item.ticker === "BTC-USD");
-                    if (btcExists) {
-                        loadTicker("BTC-USD");
+                try {
+                    const response = await fetch(
+                        `/signals/summary?duration=${duration}&_=${Date.now()}`,
+                        {
+                            cache: "no-store",
+                            credentials: "same-origin"
+                        }
+                    );
+
+                    let payload = null;
+                    try {
+                        payload = await response.json();
+                    } catch (_parseError) {
+                        throw new Error(`Signal summary returned HTTP ${response.status}.`);
                     }
-                } else {
-                    updateSelectedPerformanceCards(currentTicker);
+
+                    if (!response.ok) {
+                        throw new Error(
+                            payload?.error || `Signal summary returned HTTP ${response.status}.`
+                        );
+                    }
+
+                    if (!Array.isArray(payload)) {
+                        throw new Error(
+                            payload?.error || "Signal summary response was not a list."
+                        );
+                    }
+
+                    // The application normally has hundreds of supported assets.
+                    // An empty unfiltered server payload therefore means the data
+                    // layer was temporarily unavailable, not that user filters
+                    // matched zero rows. Never convert that condition into the
+                    // misleading “No assets match…” board state.
+                    if (payload.length === 0) {
+                        throw new Error("Signal summary was temporarily empty.");
+                    }
+
+                    data = payload;
+                    break;
+                } catch (error) {
+                    lastError = error;
                 }
-            })
-            .catch(err => {
-                if (requestId !== signalSummaryRequestId) return;
-                board.innerHTML = signalBoardStateMarkup(
-                    "error",
-                    "Signals could not be loaded. Please try again."
-                );
-                console.error(err);
-            });
+            }
+
+            // Ignore stale responses after a horizon/account change.
+            if (
+                requestId !== signalSummaryRequestId ||
+                (document.getElementById('period-select')?.value || "5y") !== duration
+            ) {
+                return;
+            }
+
+            if (!data) {
+                throw lastError || new Error("Signal summary could not be loaded.");
+            }
+
+            allSignals = data;
+            defaultOrder = [...data];
+
+            // Mark the request complete before applying local filters; otherwise
+            // the loading guard would intentionally keep the status message.
+            signalSummaryIsLoading = false;
+
+            updateSortIndicators();
+            applyAllFilters();
+
+            // Auto-load BTC-USD preview only once
+            if (!currentTicker) {
+                const btcExists = data.find(item => item.ticker === "BTC-USD");
+                if (btcExists) {
+                    loadTicker("BTC-USD");
+                }
+            } else {
+                updateSelectedPerformanceCards(currentTicker);
+            }
+        } catch (err) {
+            if (requestId !== signalSummaryRequestId) return;
+
+            signalSummaryIsLoading = false;
+            board.innerHTML = signalBoardStateMarkup(
+                "error",
+                "Signal data is temporarily unavailable. Please try again shortly."
+            );
+            console.error(err);
+        } finally {
+            if (requestId === signalSummaryRequestId) {
+                signalSummaryIsLoading = false;
+            }
+        }
     }
 
     function refreshSignalBoardForCurrentUser() {
