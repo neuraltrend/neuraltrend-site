@@ -63,3 +63,39 @@ def test_live_simulation_rejects_pro_asset_for_free_user(authenticated_client):
     )
     assert response.status_code == 403
     assert response.get_json()["upgrade_required"] is True
+
+def test_live_simulation_default_name_includes_ticker_cash_and_position(
+    authenticated_client,
+    monkeypatch,
+    sample_market_frame,
+):
+    monkeypatch.setattr(
+        application,
+        "load_epoch_csv_for_ticker",
+        lambda ticker: sample_market_frame.copy(),
+    )
+
+    def initialize(simulation, user):
+        simulation.last_processed_date = simulation.start_date
+        db.session.commit()
+        return simulation
+
+    monkeypatch.setattr(
+        application,
+        "update_live_simulation_from_csv",
+        initialize,
+    )
+
+    created = authenticated_client.post(
+        "/live-simulations",
+        json={
+            "ticker": "BTC-USD",
+            "initial_cash": "10,000 $",
+            "position_size_pct": 50,
+        },
+    )
+
+    assert created.status_code == 201
+    payload = created.get_json()["simulation"]
+    assert payload["name"] == "BTC-USD_10000_50%"
+
