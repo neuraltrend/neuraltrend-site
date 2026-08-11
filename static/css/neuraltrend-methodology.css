@@ -358,7 +358,7 @@
 }
 
 .nt-methodology-table-wrap {
-    overflow-x: auto;
+    overflow-x: hidden;
     border: 1px solid #e2e8f0;
     border-radius: 16px;
     background: #fff;
@@ -367,26 +367,72 @@
 
 .nt-methodology-performance-table {
     width: 100%;
-    min-width: 940px;
+    min-width: 0;
+    table-layout: fixed;
     border-collapse: collapse;
 }
 
+/* Compact column proportions keep the full eight-column snapshot visible
+   inside the methodology frame without horizontal scrolling. */
+.nt-methodology-performance-table th:nth-child(1),
+.nt-methodology-performance-table td:nth-child(1) { width: 10%; }
+
+.nt-methodology-performance-table th:nth-child(2),
+.nt-methodology-performance-table td:nth-child(2) { width: 18%; }
+
+.nt-methodology-performance-table th:nth-child(3),
+.nt-methodology-performance-table td:nth-child(3) { width: 10%; }
+
+.nt-methodology-performance-table th:nth-child(4),
+.nt-methodology-performance-table td:nth-child(4) { width: 10%; }
+
+.nt-methodology-performance-table th:nth-child(5),
+.nt-methodology-performance-table td:nth-child(5) { width: 11%; }
+
+.nt-methodology-performance-table th:nth-child(6),
+.nt-methodology-performance-table td:nth-child(6) { width: 12%; }
+
+.nt-methodology-performance-table th:nth-child(7),
+.nt-methodology-performance-table td:nth-child(7) { width: 18%; }
+
+.nt-methodology-performance-table th:nth-child(8),
+.nt-methodology-performance-table td:nth-child(8) { width: 11%; }
+
 .nt-methodology-performance-table th,
 .nt-methodology-performance-table td {
-    padding: 16px 18px;
+    padding: 12px 10px;
     border-bottom: 1px solid #e2e8f0;
     text-align: left;
-    white-space: nowrap;
-    font-size: 13px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 12px;
+    line-height: 1.35;
+    vertical-align: middle;
 }
 
 .nt-methodology-performance-table th {
     background: #f8fafc;
     color: #475569;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 900;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.035em;
     text-transform: uppercase;
+    overflow-wrap: normal;
+}
+
+/* Keep short numeric/signal values visually tidy while allowing the two
+   text-heavy columns (Coverage and Data freshness) to wrap when needed. */
+.nt-methodology-performance-table th:nth-child(3),
+.nt-methodology-performance-table th:nth-child(4),
+.nt-methodology-performance-table th:nth-child(5),
+.nt-methodology-performance-table th:nth-child(6),
+.nt-methodology-performance-table th:nth-child(8),
+.nt-methodology-performance-table td:nth-child(3),
+.nt-methodology-performance-table td:nth-child(4),
+.nt-methodology-performance-table td:nth-child(5),
+.nt-methodology-performance-table td:nth-child(6),
+.nt-methodology-performance-table td:nth-child(8) {
+    white-space: nowrap;
 }
 
 .nt-methodology-performance-table tr:last-child td {
