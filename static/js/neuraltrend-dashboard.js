@@ -9,6 +9,8 @@
     let isLogScale = false;
     let signalSummaryRequestId = 0;
     let equityPreviewRequestId = 0;
+    let signalBoardAuthRefreshPromise = null;
+    let lastSignalBoardAuthSignature = null;
 
     const NT_COLORS = {
         positive: "#16A34A",
@@ -1267,7 +1269,10 @@
         const duration = document.getElementById('period-select')?.value || "5y";
         const requestId = ++signalSummaryRequestId;
     
-        return fetch(`/signals/summary?duration=${duration}&_=${Date.now()}`)
+        return fetch(`/signals/summary?duration=${duration}&_=${Date.now()}`, {
+            cache: "no-store",
+            credentials: "same-origin"
+        })
             .then(r => r.json())
             .then(data => {
                 // Ignore an older horizon response if the user changed horizons
@@ -1309,26 +1314,75 @@
             });
     }
 
-    async function refreshSignalBoardForCurrentUser() {
-        const board = document.getElementById("signal-board");
-    
-        if (board) {
-            board.innerHTML = signalBoardStateMarkup(
-                "updating",
-                "Updating your account access…"
-            );
+    function refreshSignalBoardForCurrentUser() {
+        // Login/account updates can reach this function through both the global
+        // site-shell callback and the neuralTrendUserUpdated event. Coalesce
+        // overlapping calls so the board refreshes exactly once with the new
+        // authenticated session instead of issuing competing requests.
+        if (signalBoardAuthRefreshPromise) {
+            return signalBoardAuthRefreshPromise;
         }
-    
-        try {
-            await loadSummary();
-    
-            if (currentTicker) {
-                loadTicker(currentTicker);
+
+        signalBoardAuthRefreshPromise = (async () => {
+            const board = document.getElementById("signal-board");
+
+            if (board) {
+                board.innerHTML = signalBoardStateMarkup(
+                    "updating",
+                    "Updating your account access…"
+                );
             }
-        } catch (error) {
-            console.error("Could not refresh signal board after login:", error);
-        }
+
+            try {
+                await loadSummary();
+
+                if (currentTicker) {
+                    await loadTicker(currentTicker);
+                }
+            } catch (error) {
+                console.error("Could not refresh signal board after account update:", error);
+            } finally {
+                signalBoardAuthRefreshPromise = null;
+            }
+        })();
+
+        return signalBoardAuthRefreshPromise;
     }
+
+    // Make the refresh hook unambiguously available to the global login shell
+    // and checkout-status code, regardless of how the browser scopes this file.
+    window.refreshSignalBoardForCurrentUser = refreshSignalBoardForCurrentUser;
+
+    function signalBoardAuthSignature(userData) {
+        if (!userData || !userData.email) {
+            return "anonymous";
+        }
+
+        return [
+            String(userData.email).toLowerCase(),
+            `paid:${Boolean(userData.is_paid)}`,
+            `admin:${Boolean(userData.is_admin)}`
+        ].join("|");
+    }
+
+    // The first user-state event simply establishes the page's starting state.
+    // Any later login/account-access change immediately reloads the user-masked
+    // signal payload, which removes Pro locks without requiring a page refresh.
+    document.addEventListener("neuralTrendUserUpdated", function(event) {
+        const nextSignature = signalBoardAuthSignature(event.detail);
+
+        if (lastSignalBoardAuthSignature === null) {
+            lastSignalBoardAuthSignature = nextSignature;
+            return;
+        }
+
+        if (nextSignature === lastSignalBoardAuthSignature) {
+            return;
+        }
+
+        lastSignalBoardAuthSignature = nextSignature;
+        refreshSignalBoardForCurrentUser();
+    });
     
     // Load on page start
     initializeSignalStatInfoTooltips();

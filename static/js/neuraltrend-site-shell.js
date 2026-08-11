@@ -742,7 +742,10 @@
     // Check current user
     // ------------------
     async function checkUser() {
-        const response = await fetch("/me");
+        const response = await fetch("/me", {
+            cache: "no-store",
+            credentials: "same-origin"
+        });
         const data = await response.json();
 
         window.neuralTrendCurrentUser = data;
