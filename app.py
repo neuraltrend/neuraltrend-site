@@ -3418,7 +3418,7 @@ def change_password():
 @app.route("/me")
 def me():
     if current_user.is_authenticated:
-        return jsonify({
+        payload = {
             "email": current_user.email,
             "subscription_type": current_user.subscription_type,
             "subscription_status": current_user.subscription_status,
@@ -3427,17 +3427,23 @@ def me():
             "live_simulation_limit": get_live_simulation_limit_for_user(current_user),
             "watchlist_limit": get_watchlist_limit_for_user(current_user),
             "signal_email_alerts_available": is_paid_user(current_user),
-        })
+        }
+    else:
+        payload = {
+            "email": None,
+            "subscription_type": "anonymous",
+            "subscription_status": "none",
+            "is_paid": False,
+            "live_simulation_limit": 0,
+            "watchlist_limit": 0,
+            "signal_email_alerts_available": False,
+        }
 
-    return jsonify({
-        "email": None,
-        "subscription_type": "anonymous",
-        "subscription_status": "none",
-        "is_paid": False,
-        "live_simulation_limit": 0,
-        "watchlist_limit": 0,
-        "signal_email_alerts_available": False,
-    })
+    response = jsonify(payload)
+    response.headers["Cache-Control"] = "private, no-store, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Vary"] = "Cookie"
+    return response
 
 
 
@@ -6424,7 +6430,11 @@ def signals_summary():
         for row in visible_results
     ]
     
-    return jsonify(safe_results)
+    response = jsonify(safe_results)
+    response.headers["Cache-Control"] = "private, no-store, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Vary"] = "Cookie"
+    return response
 
 def stripe_to_dict(obj):
     if isinstance(obj, dict):
