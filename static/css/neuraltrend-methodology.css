@@ -940,3 +940,226 @@
     color: #64748B;
     white-space: nowrap;
 }
+
+/* ==================================================
+   COLLAPSIBLE METHODOLOGY SECTIONS — Aug 11, 2026
+   Keep the page open through the 1Y performance snapshot, then use
+   layered disclosure for the detailed methodology sections below it.
+================================================== */
+.nt-methodology-collapsible-section {
+    display: block;
+    width: min(1180px, calc(100% - 40px));
+    margin: 0 auto;
+    padding-top: 16px;
+}
+
+#historical-performance + .nt-methodology-collapsible-section {
+    padding-top: 32px;
+}
+
+.nt-methodology-collapsible-section.nt-methodology-final-notes {
+    display: block;
+    grid-template-columns: none;
+    gap: 0;
+    align-items: initial;
+}
+
+.nt-methodology-section-details {
+    overflow: hidden;
+    border: 1px solid #dbe3ee;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 7px 20px rgba(15, 23, 42, 0.035);
+    transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.nt-methodology-section-details[open] {
+    border-color: #bfdbfe;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.065);
+}
+
+.nt-methodology-section-summary,
+.nt-methodology-technical-details > summary.nt-methodology-section-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    min-height: 0;
+    padding: 22px 24px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    background: #ffffff;
+    transition: background 0.16s ease;
+}
+
+.nt-methodology-section-summary::-webkit-details-marker,
+.nt-methodology-technical-details > summary.nt-methodology-section-summary::-webkit-details-marker {
+    display: none;
+}
+
+.nt-methodology-section-summary:hover,
+.nt-methodology-technical-details > summary.nt-methodology-section-summary:hover {
+    background: #f8fbff;
+}
+
+.nt-methodology-section-summary:focus-visible,
+.nt-methodology-technical-details > summary.nt-methodology-section-summary:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.24);
+    outline-offset: -3px;
+}
+
+.nt-methodology-collapsible-section .nt-methodology-section-heading,
+.nt-methodology-technical-details .nt-methodology-section-heading {
+    min-width: 0;
+    max-width: 850px;
+    margin: 0;
+}
+
+.nt-methodology-collapsible-section .nt-methodology-kicker {
+    margin-bottom: 7px;
+    font-size: 11px;
+    letter-spacing: 0.105em;
+}
+
+.nt-methodology-collapsible-section .nt-methodology-section-heading h2,
+.nt-methodology-technical-details .nt-methodology-section-heading h2,
+.nt-methodology-final-notes .nt-methodology-section-heading h2 {
+    margin: 0;
+    font-size: clamp(22px, 2.3vw, 29px);
+    line-height: 1.18;
+    letter-spacing: -0.03em;
+}
+
+.nt-methodology-collapsible-section .nt-methodology-section-heading p,
+.nt-methodology-technical-details .nt-methodology-section-heading p {
+    margin: 8px 0 0;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.58;
+}
+
+.nt-methodology-summary-action {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 10px;
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.nt-methodology-summary-less {
+    display: none;
+}
+
+.nt-methodology-section-details[open] .nt-methodology-summary-more {
+    display: none;
+}
+
+.nt-methodology-section-details[open] .nt-methodology-summary-less {
+    display: inline;
+}
+
+.nt-methodology-section-details .nt-methodology-details-icon,
+.nt-methodology-technical-details .nt-methodology-details-icon {
+    display: grid;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    border: 1px solid #bfdbfe;
+    border-radius: 50%;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1;
+    transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.nt-methodology-section-details[open] .nt-methodology-details-icon,
+.nt-methodology-technical-details[open] .nt-methodology-details-icon {
+    transform: rotate(45deg);
+    background: #1d4ed8;
+    color: #ffffff;
+}
+
+.nt-methodology-section-body {
+    padding: 24px;
+    border-top: 1px solid #e2e8f0;
+    background: #fbfdff;
+}
+
+/* The technical-methodology body already had its own disclosure styling;
+   normalize it into the same accordion system without changing its content. */
+.nt-methodology-technical-details {
+    border: 1px solid #dbe3ee;
+    border-radius: 18px;
+    box-shadow: 0 7px 20px rgba(15, 23, 42, 0.035);
+}
+
+.nt-methodology-technical-content.nt-methodology-section-body {
+    padding: 24px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.nt-methodology-technical-content .nt-methodology-two-column {
+    padding-top: 0;
+}
+
+.nt-methodology-final-notes-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+    gap: 28px;
+    align-items: start;
+}
+
+.nt-methodology-final-notes-body ul {
+    margin: 0;
+}
+
+@media (max-width: 980px) {
+    .nt-methodology-final-notes-body {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 680px) {
+    .nt-methodology-collapsible-section {
+        width: min(100% - 24px, 1180px);
+        padding-top: 12px;
+    }
+
+    #historical-performance + .nt-methodology-collapsible-section {
+        padding-top: 24px;
+    }
+
+    .nt-methodology-section-summary,
+    .nt-methodology-technical-details > summary.nt-methodology-section-summary {
+        gap: 14px;
+        padding: 18px;
+    }
+
+    .nt-methodology-collapsible-section .nt-methodology-section-heading h2,
+    .nt-methodology-technical-details .nt-methodology-section-heading h2,
+    .nt-methodology-final-notes .nt-methodology-section-heading h2 {
+        font-size: 21px;
+    }
+
+    .nt-methodology-collapsible-section .nt-methodology-section-heading p,
+    .nt-methodology-technical-details .nt-methodology-section-heading p {
+        font-size: 13px;
+    }
+
+    .nt-methodology-summary-more,
+    .nt-methodology-summary-less {
+        display: none !important;
+    }
+
+    .nt-methodology-section-body,
+    .nt-methodology-technical-content.nt-methodology-section-body {
+        padding: 18px;
+    }
+}
