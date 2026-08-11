@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}NeuralTrend Dashboard | Signals, Backtests & Paper Simulations{% endblock %}
+{% block title %}NeuralTrend Dashboard | Signals, Backtests & Live Simulations{% endblock %}
 
 {% block meta_description %}
-Use the NeuralTrend research dashboard to explore AI signals, compare strategy performance, manage watchlists, run backtests, and track paper simulations.
+Use the NeuralTrend research dashboard to explore AI signals, compare strategy performance, manage watchlists, run backtests, and track live simulations.
 {% endblock %}
 
 {% block page_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260809-current-view-signal-colors-v1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260810-live-simulation-form-v1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-watchlist.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
 {% endblock %}
@@ -67,7 +67,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                 
                     <p class="nt-product-card-description">
                         Explore current signals, historical strategy performance,
-                        backtests, and live paper simulations.
+                        backtests, and live simulations.
                     </p>
                 </button> 
         
@@ -183,7 +183,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                         <span class="nt-epoch-tool-tab-icon">🟢</span>
                         <span>
                             <strong>Live Simulation</strong>
-                            <small>Daily paper portfolios</small>
+                            <small>Daily simulated portfolios</small>
                         </span>
                     </button>
                 
@@ -839,7 +839,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                     </h3>
         
                     <p class="nt-live-sim-subtitle">
-                        Create independent paper simulations for individual assets. Each simulation tracks its own cash, position size, trades, strategy equity, and buy-and-hold benchmark.
+                        Create independent simulations for individual assets. Each simulation tracks its own cash, position size, trades, strategy equity, and buy-and-hold benchmark.
                     </p>
                 </div>
         
@@ -860,16 +860,6 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                     <form id="live-sim-form" class="nt-live-sim-form">
         
                         <div class="nt-live-sim-form-grid">
-        
-                            <div class="nt-live-sim-field">
-                                <label for="live-sim-name">Simulation Name</label>
-                                <input 
-                                    id="live-sim-name" 
-                                    name="name"
-                                    type="text" 
-                                    value="BTC 50% Live Simulation"
-                                >
-                            </div>
         
                             <div class="nt-live-sim-field">
                                 <label for="live-sim-ticker">Ticker</label>
@@ -895,21 +885,48 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                 <input 
                                     id="live-sim-cash" 
                                     name="initial_cash"
-                                    type="number" 
-                                    value="10000"
-                                    min="1"
-                                    step="1"
-                                    required
+                                    type="text"
+                                    inputmode="decimal"
+                                    placeholder="1000$ or 10000$, ..."
+                                    autocomplete="off"
                                 >
                             </div>
         
                             <div class="nt-live-sim-field">
-                                <label for="live-sim-position">Position Size per Signal</label>
+                                <div class="nt-live-sim-label-row">
+                                    <label for="live-sim-position">Position Size per Signal</label>
+                                    <span class="nt-stat-header-info nt-live-sim-position-info" data-stat-info-root>
+                                        <button
+                                            type="button"
+                                            class="nt-stat-header-info-button"
+                                            data-stat-info-button
+                                            aria-label="About position size per signal"
+                                            aria-expanded="false"
+                                            aria-describedby="live-sim-position-tooltip"
+                                        >i</button>
+                                        <span
+                                            id="live-sim-position-tooltip"
+                                            class="nt-stat-header-tooltip nt-live-sim-position-tooltip"
+                                            role="tooltip"
+                                        >the fraction of available cash that will be used to buy asset on a BUY signal, or a fraction of asset holding that will be sold on a SELL signal</span>
+                                    </span>
+                                </div>
                                 <select id="live-sim-position" name="position_size_pct" required>
                                     <option value="100">100%</option>
                                     <option value="50" selected>50%</option>
                                     <option value="25">25%</option>
                                 </select>
+                            </div>
+
+                            <div class="nt-live-sim-field">
+                                <label for="live-sim-name">Simulation Name</label>
+                                <input 
+                                    id="live-sim-name" 
+                                    name="name"
+                                    type="text" 
+                                    value="BTC-USD_10000_50%"
+                                    data-auto-name="true"
+                                >
                             </div>
         
                         </div>
@@ -1162,7 +1179,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                 </div>
                         
                                 <div class="nt-live-sim-assumption-warning">
-                                    Paper simulation only. Simulations update from the latest deployed CSV data when the panel loads or when Refresh is clicked. It does not place trades, connect to an exchange, or provide investment advice.
+                                    Simulation only. Simulations update from the latest deployed CSV data when the panel loads or when Refresh is clicked. It does not place trades, connect to an exchange, or provide investment advice.
                                 </div>
                             </details>
                         </div>
@@ -1430,7 +1447,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 
 {% block page_scripts %}
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest.js') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260809-raised-dashboard-tabs-v2') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260810-live-simulation-form-v1') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-watchlist.js', v='20260805-signal-actions-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest-form.js', v='20260804-pointer-continuity-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js', v='20260808-altindexer-summary-emphasis-v2') }}"></script>
