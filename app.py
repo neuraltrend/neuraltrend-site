@@ -1109,26 +1109,54 @@ def get_stat_csv_path(ticker, *, must_exist=False):
 
 
 def get_signal_stat_for_horizon(ticker, period_days):
-    """Return Alpha statistics for the requested signal-board horizon.
+    """Return optional model statistics for the requested Signal Board horizon.
 
-    ``window`` in ``stat_<asset>.csv`` is measured in calendar-day units, matching
-    the dashboard horizon mapping (1W=7, 1M=30, 3M=90, etc.). For MAX, or when
-    the requested horizon is longer than the generated statistics history, the
-    longest available window is used. Missing/malformed stat files return ``None``
-    values and never suppress the asset from the Signal Board.
+    ``window`` in ``stat_<asset>.csv`` is measured in calendar-day units,
+    matching the dashboard horizon mapping (1W=7, 1M=30, 3M=90, etc.).
+
+    The selected-window statistics are:
+    - ``alpha``: average AI/B&H terminal-value ratio
+    - ``alpha_prob``: probability AI outperforms B&H
+    - ``strategy_avg_return``: average AI terminal/initial value ratio
+    - ``strategy_profit_prob``: probability the AI strategy finishes in profit
+
+    ``recommended_days`` is independent of the selected dashboard horizon: it is
+    the smallest available ``window`` whose ``strategy_prob`` is at least 0.50.
+
+    For MAX, or when the requested horizon is longer than the generated
+    statistics history, the longest available window is used. Missing/malformed
+    stat files return ``None`` values and never suppress the asset from the
+    Signal Board.
     """
+    empty_result = {
+        "alpha": None,
+        "alpha_prob": None,
+        "strategy_avg_return": None,
+        "strategy_profit_prob": None,
+        "recommended_days": None,
+        "stat_window": None,
+    }
+
     try:
         csv_path = get_stat_csv_path(ticker)
     except (ValueError, OSError):
-        return {"alpha": None, "alpha_prob": None, "stat_window": None}
+        return empty_result.copy()
 
     if not csv_path:
-        return {"alpha": None, "alpha_prob": None, "stat_window": None}
+        return empty_result.copy()
+
+    wanted_columns = {
+        "window",
+        "alpha",
+        "alpha_prob",
+        "strategy_return",
+        "strategy_prob",
+    }
 
     try:
         stats_df = pd.read_csv(
             csv_path,
-            usecols=lambda column: column in {"window", "alpha", "alpha_prob"},
+            usecols=lambda column: column in wanted_columns,
         )
     except Exception:
         app.logger.warning(
@@ -1137,19 +1165,27 @@ def get_signal_stat_for_horizon(ticker, period_days):
             csv_path,
             exc_info=True,
         )
-        return {"alpha": None, "alpha_prob": None, "stat_window": None}
+        return empty_result.copy()
 
-    required_columns = {"window", "alpha", "alpha_prob"}
-    if not required_columns.issubset(stats_df.columns):
+    if "window" not in stats_df.columns:
         app.logger.warning(
-            "Signal statistics missing required columns ticker=%s columns=%s",
+            "Signal statistics missing window column ticker=%s columns=%s",
             ticker,
             sorted(stats_df.columns),
         )
-        return {"alpha": None, "alpha_prob": None, "stat_window": None}
+        return empty_result.copy()
 
-    cleaned = stats_df.loc[:, ["window", "alpha", "alpha_prob"]].copy()
-    for column in ("window", "alpha", "alpha_prob"):
+    # Older/partially generated stat files should remain safe to display.
+    for column in ("alpha", "alpha_prob", "strategy_return", "strategy_prob"):
+        if column not in stats_df.columns:
+            stats_df[column] = math.nan
+
+    cleaned = stats_df.loc[
+        :,
+        ["window", "alpha", "alpha_prob", "strategy_return", "strategy_prob"],
+    ].copy()
+
+    for column in cleaned.columns:
         cleaned[column] = pd.to_numeric(cleaned[column], errors="coerce")
 
     cleaned = cleaned.dropna(subset=["window"])
@@ -1157,7 +1193,18 @@ def get_signal_stat_for_horizon(ticker, period_days):
     cleaned = cleaned.sort_values("window").drop_duplicates("window", keep="last")
 
     if cleaned.empty:
-        return {"alpha": None, "alpha_prob": None, "stat_window": None}
+        return empty_result.copy()
+
+    # Smallest horizon at which the historical probability of the AI strategy
+    # finishing in profit reaches at least 50%.
+    recommended_candidates = cleaned[
+        cleaned["strategy_prob"].notna() & (cleaned["strategy_prob"] >= 0.50)
+    ]
+    recommended_days = (
+        int(recommended_candidates.iloc[0]["window"])
+        if not recommended_candidates.empty
+        else None
+    )
 
     if period_days is None:
         selected = cleaned.iloc[-1]
@@ -1166,19 +1213,18 @@ def get_signal_stat_for_horizon(ticker, period_days):
         eligible = cleaned[cleaned["window"] <= target_window]
         selected = eligible.iloc[-1] if not eligible.empty else cleaned.iloc[0]
 
-    alpha = float(selected["alpha"]) if pd.notna(selected["alpha"]) else None
-    alpha_prob = (
-        float(selected["alpha_prob"]) if pd.notna(selected["alpha_prob"]) else None
-    )
-
-    if alpha is not None and not math.isfinite(alpha):
-        alpha = None
-    if alpha_prob is not None and not math.isfinite(alpha_prob):
-        alpha_prob = None
+    def finite_or_none(value):
+        if pd.isna(value):
+            return None
+        numeric = float(value)
+        return numeric if math.isfinite(numeric) else None
 
     return {
-        "alpha": alpha,
-        "alpha_prob": alpha_prob,
+        "alpha": finite_or_none(selected["alpha"]),
+        "alpha_prob": finite_or_none(selected["alpha_prob"]),
+        "strategy_avg_return": finite_or_none(selected["strategy_return"]),
+        "strategy_profit_prob": finite_or_none(selected["strategy_prob"]),
+        "recommended_days": recommended_days,
         "stat_window": int(selected["window"]),
     }
 
@@ -6325,6 +6371,9 @@ def mask_signal_summary_row_for_user(row, user):
         "outperformance_ratio": row.get("outperformance_ratio"),
         "alpha": row.get("alpha"),
         "alpha_prob": row.get("alpha_prob"),
+        "strategy_avg_return": row.get("strategy_avg_return"),
+        "strategy_profit_prob": row.get("strategy_profit_prob"),
+        "recommended_days": row.get("recommended_days"),
         "stat_window": row.get("stat_window"),
         "strategy_max_drawdown": row.get("strategy_max_drawdown"),
         "buy_hold_max_drawdown": row.get("buy_hold_max_drawdown"),
@@ -6389,6 +6438,9 @@ def compute_signals_summary_cached(csv_version, stat_csv_version, period_days):
                 'outperformance_ratio': sigs['outperformance_ratio'],
                 'alpha': stat_values['alpha'],
                 'alpha_prob': stat_values['alpha_prob'],
+                'strategy_avg_return': stat_values['strategy_avg_return'],
+                'strategy_profit_prob': stat_values['strategy_profit_prob'],
+                'recommended_days': stat_values['recommended_days'],
                 'stat_window': stat_values['stat_window'],
                 'strategy_max_drawdown': sigs['strategy_max_drawdown'],
                 'buy_hold_max_drawdown': sigs['buy_hold_max_drawdown'],
