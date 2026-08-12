@@ -241,18 +241,17 @@
             })}%`;
     }
 
-    function setHeroSpreadValue(elementId, percentagePoints) {
+    function setHeroOutperformanceRatioValue(elementId, ratio) {
         const element = document.getElementById(elementId);
 
         if (!element) return;
 
-        if (!Number.isFinite(percentagePoints)) {
+        if (!Number.isFinite(ratio) || ratio <= 0) {
             element.textContent = "—";
             return;
         }
 
-        const sign = percentagePoints > 0 ? "+" : "";
-        element.textContent = `${sign}${percentagePoints.toFixed(1)} pts`;
+        element.textContent = `${ratio.toFixed(2)}×`;
     }
     
     function updateHeroPerformanceMetrics(
@@ -266,10 +265,11 @@
         const buyHoldReturn =
             getHeroFinalValidValue(buyHoldReturns);
     
-        const returnSpreadPoints =
+        const outperformanceRatio =
             Number.isFinite(strategyReturn) &&
-            Number.isFinite(buyHoldReturn)
-                ? strategyReturn - buyHoldReturn
+            Number.isFinite(buyHoldReturn) &&
+            (1 + (buyHoldReturn / 100)) > 0
+                ? (1 + (strategyReturn / 100)) / (1 + (buyHoldReturn / 100))
                 : null;
     
         setHeroMetricValue(
@@ -282,9 +282,9 @@
             buyHoldReturn
         );
     
-        setHeroSpreadValue(
+        setHeroOutperformanceRatioValue(
             "nt-hero-outperformance",
-            returnSpreadPoints
+            outperformanceRatio
         );
     
         document
@@ -293,6 +293,15 @@
                 element.textContent =
                     heroDurationLabel(duration);
             });
+
+        const ratioTooltip = document.getElementById("nt-hero-spread-tooltip");
+        if (ratioTooltip) {
+            const horizon = heroDurationLabel(duration);
+            const horizonPhrase = duration === "max"
+                ? "the longest available horizon"
+                : `the last ${horizon}`;
+            ratioTooltip.textContent = `Final value of the NeuralTrend strategy divided by the final value of Buy & Hold over ${horizonPhrase}. Above 1.00× means NeuralTrend outperformed; below 1.00× means Buy & Hold outperformed.`;
+        }
     
         const alphaCard = document.querySelector(
             ".nt-market-hero-metric-alpha"
@@ -301,8 +310,8 @@
         if (alphaCard) {
             alphaCard.classList.toggle(
                 "is-negative",
-                Number.isFinite(returnSpreadPoints) &&
-                returnSpreadPoints < 0
+                Number.isFinite(outperformanceRatio) &&
+                outperformanceRatio < 1
             );
         }
     }
@@ -643,13 +652,17 @@
                                     return "";
                                 }
                             
-                                const spreadPoints = ntHeroLogScale
-                                    ? (strategyValue - buyHoldValue) * 100
-                                    : strategyValue - buyHoldValue;
-                            
-                                const sign = spreadPoints > 0 ? "+" : "";
-                            
-                                return `AI return spread: ${sign}${spreadPoints.toFixed(1)} pts`;
+                                const ratio = ntHeroLogScale
+                                    ? (buyHoldValue > 0 ? strategyValue / buyHoldValue : null)
+                                    : ((100 + buyHoldValue) > 0
+                                        ? (100 + strategyValue) / (100 + buyHoldValue)
+                                        : null);
+
+                                if (!Number.isFinite(ratio) || ratio <= 0) {
+                                    return "";
+                                }
+
+                                return `Outperformance ratio: ${ratio.toFixed(2)}×`;
                             }
                         }
                     }

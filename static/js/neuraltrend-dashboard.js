@@ -392,10 +392,10 @@
     }
     
     function sortLabel(key) {
-        if (key === "buy_hold_period_return") return "Buy&Hold Return";
+        if (key === "buy_hold_period_return") return "B&H Return";
         if (key === "strategy_period_return") return "AI Return";
-        if (key === "return_spread") return "AI Excess Return";
-        if (key === "alpha") return "Avg. Outperformance";
+        if (key === "outperformance_ratio") return "Outperformance Ratio";
+        if (key === "alpha") return "Avg. Outperformance Ratio";
         if (key === "alpha_prob") return "Outperformance Prob.";
         return "";
     }
@@ -717,7 +717,7 @@
         return "return-neutral";
     }
 
-    function formatAverageOutperformance(value) {
+    function formatOutperformanceRatio(value) {
         if (value === null || value === undefined || value === "") {
             return `<span class="nt-stat-unavailable">Not available</span>`;
         }
@@ -880,7 +880,7 @@
 
         const buyHoldTooltip = document.querySelector('[data-stat-tooltip="buy-hold-return"]');
         const aiReturnTooltip = document.querySelector('[data-stat-tooltip="ai-return"]');
-        const aiExcessTooltip = document.querySelector('[data-stat-tooltip="ai-excess-return"]');
+        const outperformanceRatioTooltip = document.querySelector('[data-stat-tooltip="outperformance-ratio"]');
         const alphaTooltip = document.querySelector('[data-stat-tooltip="alpha"]');
         const probabilityTooltip = document.querySelector('[data-stat-tooltip="alpha-prob"]');
 
@@ -891,14 +891,14 @@
             if (aiReturnTooltip) {
                 aiReturnTooltip.textContent = "return of AI strategy over the longest available time horizon";
             }
-            if (aiExcessTooltip) {
-                aiExcessTooltip.textContent = "return of AI strategy minus Buy and Hold strategy over the longest available time horizon";
+            if (outperformanceRatioTooltip) {
+                outperformanceRatioTooltip.textContent = "Final value of the AI strategy divided by the final value of Buy & Hold over the longest available time horizon. Above 1.00× means AI outperformed; below 1.00× means Buy & Hold outperformed.";
             }
             if (alphaTooltip) {
-                alphaTooltip.textContent = "AI strategy return divided by buy & hold return, averaged over the longest available time horizon";
+                alphaTooltip.textContent = "AI strategy final value divided by Buy & Hold final value, averaged over all historical periods at the longest available statistics horizon.";
             }
             if (probabilityTooltip) {
-                probabilityTooltip.textContent = "probability of AI strategy return outperforming buy & hold return, over the longest available time horizon";
+                probabilityTooltip.textContent = "Percentage of historical periods at the longest available statistics horizon in which the AI strategy finished with a higher final value than Buy & Hold.";
             }
             return;
         }
@@ -909,14 +909,14 @@
         if (aiReturnTooltip) {
             aiReturnTooltip.textContent = `return of AI strategy over the last ${horizon}`;
         }
-        if (aiExcessTooltip) {
-            aiExcessTooltip.textContent = `return of AI strategy minus Buy and Hold strategy over the last ${horizon}`;
+        if (outperformanceRatioTooltip) {
+            outperformanceRatioTooltip.textContent = `Final value of the AI strategy divided by the final value of Buy & Hold over the last ${horizon}. Above 1.00× means AI outperformed; below 1.00× means Buy & Hold outperformed.`;
         }
         if (alphaTooltip) {
-            alphaTooltip.textContent = `AI strategy return divided by buy & hold return, averaged over all ${horizon} time horizons`;
+            alphaTooltip.textContent = `AI strategy final value divided by Buy & Hold final value, averaged over all historical ${horizon} periods.`;
         }
         if (probabilityTooltip) {
-            probabilityTooltip.textContent = `probability of AI strategy return outperforming buy & hold return, over ${horizon}`;
+            probabilityTooltip.textContent = `Percentage of historical ${horizon} periods in which the AI strategy finished with a higher final value than Buy & Hold.`;
         }
     }
 
@@ -1107,7 +1107,7 @@
         const indicators = {
             buy_hold_period_return: document.getElementById("buy-hold-sort-indicator"),
             strategy_period_return: document.getElementById("strategy-sort-indicator"),
-            return_spread: document.getElementById("outperformance-sort-indicator"),
+            outperformance_ratio: document.getElementById("outperformance-sort-indicator"),
             alpha: document.getElementById("alpha-sort-indicator"),
             alpha_prob: document.getElementById("alpha-prob-sort-indicator")
         };
@@ -1228,8 +1228,8 @@
         
                     <div class="signal-cell-right">${formatPercent(item.buy_hold_period_return)}</div>
                     <div class="signal-cell-right">${formatPercent(item.strategy_period_return)}</div>
-                    <div class="signal-cell-right">${formatPointSpread(item.return_spread)}</div>
-                    <div class="signal-cell-right nt-stat-value-cell" title="${escapeHTML(signalStatWindowTitle(item, duration))}">${formatAverageOutperformance(item.alpha)}</div>
+                    <div class="signal-cell-right">${formatOutperformanceRatio(item.outperformance_ratio)}</div>
+                    <div class="signal-cell-right nt-stat-value-cell" title="${escapeHTML(signalStatWindowTitle(item, duration))}">${formatOutperformanceRatio(item.alpha)}</div>
                     <div class="signal-cell-right nt-stat-value-cell" title="${escapeHTML(signalStatWindowTitle(item, duration))}">${formatOutperformanceProbability(item.alpha_prob)}</div>
                 </div>
             `;
