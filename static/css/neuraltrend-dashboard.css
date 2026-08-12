@@ -2114,3 +2114,234 @@
             minmax(180px, 1fr) !important;
     }
 }
+
+
+/* ==================================================
+   Final Signal Board grouped columns — Aug 12, 2026
+   Five quiet color bands: ticker, signals, recent stats,
+   average stats, and recommended-days.
+================================================== */
+
+:root {
+    --nt-signal-columns:
+        minmax(125px, 1.10fr)
+        repeat(4, minmax(76px, 0.72fr))
+        repeat(3, minmax(92px, 0.86fr))
+        repeat(4, minmax(112px, 0.98fr))
+        minmax(92px, 0.78fr);
+
+    --nt-board-ticker-bg: rgba(248, 250, 252, 0.96);
+    --nt-board-signal-bg: rgba(239, 246, 255, 0.76);
+    --nt-board-recent-bg: rgba(240, 253, 244, 0.74);
+    --nt-board-average-bg: rgba(250, 245, 255, 0.74);
+    --nt-board-recommended-bg: rgba(255, 251, 235, 0.84);
+
+    --nt-board-signal-head: rgba(219, 234, 254, 0.76);
+    --nt-board-recent-head: rgba(220, 252, 231, 0.78);
+    --nt-board-average-head: rgba(243, 232, 255, 0.78);
+    --nt-board-recommended-head: rgba(254, 243, 199, 0.82);
+}
+
+/* Two-level header uses the exact same grid as the data rows. */
+.nt-signal-group-header,
+.nt-signal-header,
+#signal-board .signal-row {
+    grid-template-columns: var(--nt-signal-columns) !important;
+    min-width: 1245px !important;
+}
+
+.nt-signal-group-header {
+    display: grid;
+    align-items: stretch;
+    gap: 0;
+    width: 100%;
+    padding: 0;
+    border-bottom: 1px solid #dbe4f0;
+    background: #fff;
+    box-sizing: border-box;
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 850;
+    color: #334155;
+}
+
+.nt-signal-group-band {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    padding: 8px 6px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.nt-signal-group-ticker {
+    grid-column: 1 / 2;
+    background: var(--nt-board-ticker-bg);
+}
+
+.nt-signal-group-signals {
+    grid-column: 2 / 6;
+    background: var(--nt-board-signal-head);
+    color: #1d4ed8;
+}
+
+.nt-signal-group-recent {
+    grid-column: 6 / 9;
+    background: var(--nt-board-recent-head);
+    color: #15803d;
+}
+
+.nt-signal-group-average {
+    grid-column: 9 / 13;
+    background: var(--nt-board-average-head);
+    color: #7e22ce;
+}
+
+.nt-signal-group-recommended {
+    grid-column: 13 / 14;
+    background: var(--nt-board-recommended-head);
+}
+
+/* Remove padding from the grid itself so each color band extends edge-to-edge. */
+#epoch-tool-overview .nt-signal-header,
+#signal-board .signal-row {
+    padding: 0 !important;
+    background: #fff;
+    align-items: stretch !important;
+}
+
+#epoch-tool-overview .nt-signal-header > div,
+#signal-board .signal-row > div {
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 7px 6px;
+}
+
+/* Let column headers remain compact and centered. */
+#epoch-tool-overview .nt-signal-header > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#epoch-tool-overview .nt-signal-header > div:first-child {
+    align-items: flex-start;
+}
+
+#epoch-tool-overview .nt-signal-header > div:nth-child(n+2):nth-child(-n+5) {
+    align-items: center;
+}
+
+#epoch-tool-overview .nt-stat-header-label {
+    justify-content: center;
+    gap: 3px;
+}
+
+#epoch-tool-overview .nt-stat-header-sort-label {
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: -0.01em;
+}
+
+#epoch-tool-overview .nt-stat-header-cell > .nt-sort-indicator {
+    text-align: center;
+}
+
+/* Group colors continue through the ordinary header row. */
+#epoch-tool-overview .nt-signal-header > div:nth-child(1) {
+    background: var(--nt-board-ticker-bg);
+}
+
+#epoch-tool-overview .nt-signal-header > div:nth-child(n+2):nth-child(-n+5) {
+    background: var(--nt-board-signal-bg);
+}
+
+#epoch-tool-overview .nt-signal-header > div:nth-child(n+6):nth-child(-n+8) {
+    background: var(--nt-board-recent-bg);
+}
+
+#epoch-tool-overview .nt-signal-header > div:nth-child(n+9):nth-child(-n+12) {
+    background: var(--nt-board-average-bg);
+}
+
+#epoch-tool-overview .nt-signal-header > div:nth-child(13) {
+    background: var(--nt-board-recommended-bg);
+}
+
+/* And through every data row, not only the headers. */
+#signal-board .signal-row > div:nth-child(1) {
+    background: var(--nt-board-ticker-bg);
+}
+
+#signal-board .signal-row > div:nth-child(n+2):nth-child(-n+5) {
+    background: var(--nt-board-signal-bg);
+}
+
+#signal-board .signal-row > div:nth-child(n+6):nth-child(-n+8) {
+    background: var(--nt-board-recent-bg);
+}
+
+#signal-board .signal-row > div:nth-child(n+9):nth-child(-n+12) {
+    background: var(--nt-board-average-bg);
+}
+
+#signal-board .signal-row > div:nth-child(13) {
+    background: var(--nt-board-recommended-bg);
+}
+
+/* Soft separators make the five groups readable without heavy borders. */
+#epoch-tool-overview .nt-signal-header > div:nth-child(1),
+#epoch-tool-overview .nt-signal-header > div:nth-child(5),
+#epoch-tool-overview .nt-signal-header > div:nth-child(8),
+#epoch-tool-overview .nt-signal-header > div:nth-child(12),
+#signal-board .signal-row > div:nth-child(1),
+#signal-board .signal-row > div:nth-child(5),
+#signal-board .signal-row > div:nth-child(8),
+#signal-board .signal-row > div:nth-child(12) {
+    border-right: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+/* Preserve the existing row-selection/hover cue on top of the subtle bands. */
+#signal-board .signal-row:hover > div {
+    box-shadow: inset 0 0 0 999px rgba(37, 99, 235, 0.018);
+}
+
+#signal-board .signal-row.selected > div {
+    box-shadow: inset 0 0 0 999px rgba(37, 99, 235, 0.035);
+}
+
+#signal-board .signal-row.selected > div:first-child {
+    box-shadow:
+        inset 3px 0 0 #2563eb,
+        inset 0 0 0 999px rgba(37, 99, 235, 0.035);
+}
+
+#signal-board .signal-cell-right,
+#signal-board .nt-recommended-days-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    text-align: right;
+}
+
+#signal-board .nt-recommended-days-cell .return-value {
+    color: #475569 !important;
+    font-weight: 800;
+}
+
+/* The table fits comfortably on normal desktop widths; smaller viewports
+   still retain the existing horizontal-scroll fallback. */
+@media (max-width: 1280px) {
+    .nt-signal-group-header,
+    .nt-signal-header,
+    #signal-board .signal-row {
+        min-width: 1245px !important;
+    }
+}
+
+@media (max-width: 760px) {
+    .nt-signal-group-header {
+        font-size: 10px;
+    }
+}
