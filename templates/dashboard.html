@@ -7,7 +7,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 {% endblock %}
 
 {% block page_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260811-outperformance-ratio-v1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260812-final-signal-board-columns-v1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-watchlist.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
 {% endblock %}
@@ -414,12 +414,19 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                             </div>
                 
                             <!-- HEADER -->
+                            <div class="nt-signal-group-header" aria-label="Signal Board column groups">
+                                <div class="nt-signal-group-band nt-signal-group-ticker" aria-hidden="true"></div>
+                                <div class="nt-signal-group-band nt-signal-group-signals">Signals</div>
+                                <div id="recent-statistics-group-label" class="nt-signal-group-band nt-signal-group-recent">Recent 5Y Statistics</div>
+                                <div id="average-statistics-group-label" class="nt-signal-group-band nt-signal-group-average">Average 5Y Statistics</div>
+                                <div class="nt-signal-group-band nt-signal-group-recommended" aria-hidden="true"></div>
+                            </div>
+
                             <div class="nt-signal-header">
-                            
                                 <div>
                                     Ticker
                                 </div>
-                            
+
                                 <div>
                                     <span class="nt-header-title">Today</span>
                                     <select class="signal-filter nt-signal-filter-select" data-key="today_signal">
@@ -429,7 +436,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                         <option value="-1">SELL</option>
                                     </select>
                                 </div>
-                            
+
                                 <div>
                                     <span class="nt-header-title">Yesterday</span>
                                     <select class="signal-filter nt-signal-filter-select" data-key="yesterday_signal">
@@ -439,7 +446,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                         <option value="-1">SELL</option>
                                     </select>
                                 </div>
-                            
+
                                 <div>
                                     <span class="nt-header-title">Last Week</span>
                                     <select class="signal-filter nt-signal-filter-select" data-key="last_week_signal">
@@ -449,7 +456,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                         <option value="-1">SELL</option>
                                     </select>
                                 </div>
-                            
+
                                 <div>
                                     <span class="nt-header-title">Last Month</span>
                                     <select class="signal-filter nt-signal-filter-select" data-key="last_month_signal">
@@ -459,15 +466,15 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                         <option value="-1">SELL</option>
                                     </select>
                                 </div>
-                            
-                                <div 
+
+                                <div
                                     class="nt-header-right nt-stat-header-cell"
                                     data-signal-sort-key="buy_hold_period_return"
                                     role="button"
                                     tabindex="0"
                                 >
                                     <div class="nt-stat-header-label">
-                                        <span class="nt-stat-header-sort-label">B&amp;H Return (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-sort-label">B&amp;H Return</span>
                                         <span class="nt-stat-header-info" data-stat-info-root>
                                             <button
                                                 type="button"
@@ -487,15 +494,15 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                     </div>
                                     <span id="buy-hold-sort-indicator" class="nt-sort-indicator">▲▼</span>
                                 </div>
-                            
-                                <div 
+
+                                <div
                                     class="nt-header-right nt-stat-header-cell"
                                     data-signal-sort-key="strategy_period_return"
                                     role="button"
                                     tabindex="0"
                                 >
                                     <div class="nt-stat-header-label">
-                                        <span class="nt-stat-header-sort-label">AI Return (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-sort-label">AI Return</span>
                                         <span class="nt-stat-header-info" data-stat-info-root>
                                             <button
                                                 type="button"
@@ -515,15 +522,15 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                     </div>
                                     <span id="strategy-sort-indicator" class="nt-sort-indicator">▲▼</span>
                                 </div>
-                            
-                                <div 
+
+                                <div
                                     class="nt-header-right nt-stat-header-cell"
                                     data-signal-sort-key="outperformance_ratio"
                                     role="button"
                                     tabindex="0"
                                 >
                                     <div class="nt-stat-header-label">
-                                        <span class="nt-stat-header-sort-label">Outperformance Ratio (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-sort-label">Return Ratio</span>
                                         <span class="nt-stat-header-info" data-stat-info-root>
                                             <button
                                                 type="button"
@@ -531,7 +538,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                                 data-stat-info-button
                                                 aria-expanded="false"
                                                 aria-describedby="outperformance-ratio-tooltip"
-                                                aria-label="About outperformance ratio"
+                                                aria-label="About return ratio"
                                             >i</button>
                                             <span
                                                 id="outperformance-ratio-tooltip"
@@ -551,7 +558,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                     tabindex="0"
                                 >
                                     <div class="nt-stat-header-label">
-                                        <span class="nt-stat-header-sort-label">Avg. Outperformance Ratio (<span class="nt-stat-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-sort-label">Avg. Return Ratio</span>
                                         <span class="nt-stat-header-info" data-stat-info-root>
                                             <button
                                                 type="button"
@@ -559,7 +566,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                                 data-stat-info-button
                                                 aria-expanded="false"
                                                 aria-describedby="average-outperformance-tooltip"
-                                                aria-label="About average outperformance ratio"
+                                                aria-label="About average return ratio"
                                             >i</button>
                                             <span
                                                 id="average-outperformance-tooltip"
@@ -579,7 +586,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                     tabindex="0"
                                 >
                                     <div class="nt-stat-header-label">
-                                        <span class="nt-stat-header-sort-label">Outperformance Prob. (<span class="nt-stat-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-sort-label">Outperformance Prob.</span>
                                         <span class="nt-stat-header-info" data-stat-info-root>
                                             <button
                                                 type="button"
@@ -599,9 +606,92 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                     </div>
                                     <span id="alpha-prob-sort-indicator" class="nt-sort-indicator">▲▼</span>
                                 </div>
-                            
+
+                                <div
+                                    class="nt-header-right nt-stat-header-cell"
+                                    data-signal-sort-key="strategy_avg_return"
+                                    role="button"
+                                    tabindex="0"
+                                >
+                                    <div class="nt-stat-header-label">
+                                        <span class="nt-stat-header-sort-label">AI Avg. Return</span>
+                                        <span class="nt-stat-header-info" data-stat-info-root>
+                                            <button
+                                                type="button"
+                                                class="nt-stat-header-info-button"
+                                                data-stat-info-button
+                                                aria-expanded="false"
+                                                aria-describedby="strategy-average-return-tooltip"
+                                                aria-label="About AI average return"
+                                            >i</button>
+                                            <span
+                                                id="strategy-average-return-tooltip"
+                                                class="nt-stat-header-tooltip"
+                                                data-stat-tooltip="strategy-avg-return"
+                                                role="tooltip"
+                                            >AI strategy final value divided by its initial value, averaged over all 5Y historical periods</span>
+                                        </span>
+                                    </div>
+                                    <span id="strategy-avg-return-sort-indicator" class="nt-sort-indicator">▲▼</span>
+                                </div>
+
+                                <div
+                                    class="nt-header-right nt-stat-header-cell"
+                                    data-signal-sort-key="strategy_profit_prob"
+                                    role="button"
+                                    tabindex="0"
+                                >
+                                    <div class="nt-stat-header-label">
+                                        <span class="nt-stat-header-sort-label">Profit Prob.</span>
+                                        <span class="nt-stat-header-info" data-stat-info-root>
+                                            <button
+                                                type="button"
+                                                class="nt-stat-header-info-button"
+                                                data-stat-info-button
+                                                aria-expanded="false"
+                                                aria-describedby="strategy-profit-probability-tooltip"
+                                                aria-label="About profit probability"
+                                            >i</button>
+                                            <span
+                                                id="strategy-profit-probability-tooltip"
+                                                class="nt-stat-header-tooltip"
+                                                data-stat-tooltip="strategy-profit-prob"
+                                                role="tooltip"
+                                            >Probability of AI strategy being in profit in a 5Y period</span>
+                                        </span>
+                                    </div>
+                                    <span id="strategy-profit-prob-sort-indicator" class="nt-sort-indicator">▲▼</span>
+                                </div>
+
+                                <div
+                                    class="nt-header-right nt-stat-header-cell"
+                                    data-signal-sort-key="recommended_days"
+                                    role="button"
+                                    tabindex="0"
+                                >
+                                    <div class="nt-stat-header-label">
+                                        <span class="nt-stat-header-sort-label">Recommended Days</span>
+                                        <span class="nt-stat-header-info" data-stat-info-root>
+                                            <button
+                                                type="button"
+                                                class="nt-stat-header-info-button"
+                                                data-stat-info-button
+                                                aria-expanded="false"
+                                                aria-describedby="recommended-days-tooltip"
+                                                aria-label="About recommended days"
+                                            >i</button>
+                                            <span
+                                                id="recommended-days-tooltip"
+                                                class="nt-stat-header-tooltip"
+                                                data-stat-tooltip="recommended-days"
+                                                role="tooltip"
+                                            >Recommended number of days to follow the strategy for profitability and outperformance</span>
+                                        </span>
+                                    </div>
+                                    <span id="recommended-days-sort-indicator" class="nt-sort-indicator">▲▼</span>
+                                </div>
                             </div>
-                            
+
                             <!-- BODY -->
                             <div id="signal-board" class="nt-signal-board-scroll">
                                 <div class="nt-board-state nt-board-state-loading" role="status" aria-live="polite" aria-label="Loading signal data">
@@ -1447,7 +1537,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 
 {% block page_scripts %}
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest.js') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260812-outperformance-prob-tooltip-v1') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260812-final-signal-board-columns-v1') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-watchlist.js', v='20260805-signal-actions-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest-form.js', v='20260804-pointer-continuity-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js', v='20260808-altindexer-summary-emphasis-v2') }}"></script>
