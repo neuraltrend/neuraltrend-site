@@ -1193,12 +1193,25 @@
         `;
     }
 
+    function syncSignalBoardScrollbarCompensation() {
+        const tableCard = document.querySelector("#epoch-tool-overview .nt-signal-table-card");
+        const boardEl = document.getElementById("signal-board");
+        if (!tableCard || !boardEl) return;
+
+        // The data area scrolls vertically while the two header rows remain fixed.
+        // Reserve exactly the browser's real scrollbar width in the headers so
+        // every grid track stays aligned from Ticker through Recommended Days.
+        const scrollbarWidth = Math.max(0, boardEl.offsetWidth - boardEl.clientWidth);
+        tableCard.style.setProperty("--nt-board-scrollbar-width", `${scrollbarWidth}px`);
+    }
+
     function renderBoard(data) {
         if (!Array.isArray(data) || data.length === 0) {
             board.innerHTML = signalBoardStateMarkup(
                 "empty",
                 "No assets match the current search and filters."
             );
+            requestAnimationFrame(syncSignalBoardScrollbarCompensation);
             return;
         }
 
@@ -1217,16 +1230,6 @@
                     data-ticker="${safeTicker}"
                     role="button"
                     tabindex="0"
-                    style="
-                        display: grid;
-                        grid-template-columns: 160px 100px 100px 100px 100px 140px 160px 120px;
-                        align-items: center;
-                        padding: 7px 10px;
-                        border-bottom: 1px solid #eee;
-                        cursor: pointer;
-                        box-sizing: border-box;
-                        width: 100%;
-                    "
                 >
                     <div class="signal-ticker-cell">
                         <button
@@ -1276,7 +1279,8 @@
                 </div>
             `;
         }).join("");
-    
+
+        requestAnimationFrame(syncSignalBoardScrollbarCompensation);
         highlightSelectedTicker();
     }
 
@@ -1513,6 +1517,14 @@
     // Load on page start
     initializeSignalStatInfoTooltips();
     updateSignalStatHeaderCopy();
+    syncSignalBoardScrollbarCompensation();
+    window.addEventListener("resize", syncSignalBoardScrollbarCompensation);
+
+    if (typeof ResizeObserver !== "undefined") {
+        const signalBoardResizeObserver = new ResizeObserver(syncSignalBoardScrollbarCompensation);
+        signalBoardResizeObserver.observe(board);
+    }
+
     loadSummary();
     
     document.querySelectorAll('.signal-filter').forEach(select => {
