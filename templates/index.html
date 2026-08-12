@@ -358,7 +358,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                             <div class="nt-market-hero-metric-copy">
                                 <div class="nt-market-hero-metric-label nt-market-hero-spread-label">
                                     <span>
-                                        NeuralTrend Return Spread
+                                        NeuralTrend Outperformance Ratio
                                         (<span class="nt-hero-metric-horizon">5Y</span>)
                                     </span>
 
@@ -367,7 +367,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                                             type="button"
                                             id="nt-hero-spread-info-button"
                                             class="nt-market-hero-info-button"
-                                            aria-label="Explain NeuralTrend return spread"
+                                            aria-label="Explain NeuralTrend outperformance ratio"
                                             aria-describedby="nt-hero-spread-tooltip"
                                             aria-expanded="false"
                                         >
@@ -379,7 +379,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                                             class="nt-market-hero-info-tooltip"
                                             role="tooltip"
                                         >
-                                            NeuralTrend strategy return minus Buy &amp; Hold return
+                                            Final value of the NeuralTrend strategy divided by the final value of Buy &amp; Hold over the selected horizon. Above 1.00× means NeuralTrend outperformed; below 1.00× means Buy &amp; Hold outperformed.
                                         </span>
                                     </span>
                                 </div>
@@ -820,6 +820,6 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
 
 {% block page_scripts %}
 <script src="{{ url_for('static', filename='js/neuraltrend-checkout-status.js') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-hero.js', v='20260804-membership-enterprise-v1') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-hero.js', v='20260811-outperformance-ratio-v1') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-home.js') }}"></script>
 {% endblock %}
