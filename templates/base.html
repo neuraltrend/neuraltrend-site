@@ -26,12 +26,12 @@
     <meta property="og:title" content="NeuralTrend | AI Trading Signals">
     <meta property="og:description" content="AI-powered market signals, backtests, equity previews, and live paper simulations for crypto and traditional assets.">
     <meta property="og:url" content="{{ request.url }}">
-    <meta property="og:image" content="{{ url_for('static', filename='logo.png', _external=True) }}">
+    <meta property="og:image" content="{{ url_for('static', filename='neuraltrend-social-card.png', _external=True) }}">
     
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="NeuralTrend | AI Trading Signals">
     <meta name="twitter:description" content="AI-powered market signals, backtests, equity previews, and live paper simulations.">
-    <meta name="twitter:image" content="{{ url_for('static', filename='logo.png', _external=True) }}">
+    <meta name="twitter:image" content="{{ url_for('static', filename='neuraltrend-social-card.png', _external=True) }}">
     
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     
@@ -40,11 +40,11 @@
     <!-- Plotly CDN (include once per page, ideally in <head>) -->
     <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
     
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend.css', v='20260805-theme-v1') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend.css', v='20260811-logo-v1') }}">
     {% block page_styles %}{% endblock %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-responsive.css') }}">
     {% block page_styles_after %}{% endblock %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-site-footer.css', v='20260805-theme-v1') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-site-footer.css', v='20260811-logo-v1') }}">
 
 </head>
 <body>
@@ -55,11 +55,11 @@
     <div class="navbar">
         <div class="logo">
             <a href="{{ url_for('index') }}" aria-label="NeuralTrend home" class="nt-brand-link">
-                <img src="{{ url_for('static', filename='logo.png') }}" alt="">
-                <span class="nt-brand-lockup">
-                    <strong>NeuralTrend</strong>
-                    <small>AI-driven market intelligence</small>
-                </span>
+                <img
+                    class="nt-brand-wordmark"
+                    src="{{ url_for('static', filename='neuraltrend-logo-light.png') }}"
+                    alt="NeuralTrend"
+                >
             </a>
         </div>
 
@@ -134,9 +134,12 @@
     <footer class="nt-site-footer">
         <div class="nt-site-footer-inner">
             <div class="nt-site-footer-brand">
-                <a href="{{ url_for('index') }}" class="nt-site-footer-brand-link">
-                    <img src="{{ url_for('static', filename='logo.png') }}" alt="">
-                    <span><strong>NeuralTrend</strong><small>AI-driven market intelligence</small></span>
+                <a href="{{ url_for('index') }}" class="nt-site-footer-brand-link" aria-label="NeuralTrend home">
+                    <img
+                        class="nt-site-footer-wordmark"
+                        src="{{ url_for('static', filename='neuraltrend-logo-light.png') }}"
+                        alt="NeuralTrend"
+                    >
                 </a>
                 <p>Market-intelligence tools with transparent methodology and admin-approved performance records.</p>
                 <div class="nt-site-footer-social">
