@@ -7,7 +7,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 {% endblock %}
 
 {% block page_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260810-live-simulation-form-v1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260811-outperformance-ratio-v1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-watchlist.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
 {% endblock %}
@@ -467,7 +467,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                     tabindex="0"
                                 >
                                     <div class="nt-stat-header-label">
-                                        <span class="nt-stat-header-sort-label">Buy&amp;Hold Return (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-sort-label">B&amp;H Return (<span class="metric-horizon-text">5Y</span>)</span>
                                         <span class="nt-stat-header-info" data-stat-info-root>
                                             <button
                                                 type="button"
@@ -518,27 +518,27 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                             
                                 <div 
                                     class="nt-header-right nt-stat-header-cell"
-                                    data-signal-sort-key="return_spread"
+                                    data-signal-sort-key="outperformance_ratio"
                                     role="button"
                                     tabindex="0"
                                 >
                                     <div class="nt-stat-header-label">
-                                        <span class="nt-stat-header-sort-label">AI Excess Return (<span class="metric-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-sort-label">Outperformance Ratio (<span class="metric-horizon-text">5Y</span>)</span>
                                         <span class="nt-stat-header-info" data-stat-info-root>
                                             <button
                                                 type="button"
                                                 class="nt-stat-header-info-button"
                                                 data-stat-info-button
                                                 aria-expanded="false"
-                                                aria-describedby="ai-excess-return-tooltip"
-                                                aria-label="About AI excess return"
+                                                aria-describedby="outperformance-ratio-tooltip"
+                                                aria-label="About outperformance ratio"
                                             >i</button>
                                             <span
-                                                id="ai-excess-return-tooltip"
+                                                id="outperformance-ratio-tooltip"
                                                 class="nt-stat-header-tooltip"
-                                                data-stat-tooltip="ai-excess-return"
+                                                data-stat-tooltip="outperformance-ratio"
                                                 role="tooltip"
-                                            >return of AI strategy minus Buy and Hold strategy over the last 5Y</span>
+                                            >Final value of the AI strategy divided by the final value of Buy &amp; Hold over the last 5Y. Above 1.00× means AI outperformed; below 1.00× means Buy &amp; Hold outperformed.</span>
                                         </span>
                                     </div>
                                     <span id="outperformance-sort-indicator" class="nt-sort-indicator">▲▼</span>
@@ -551,7 +551,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                     tabindex="0"
                                 >
                                     <div class="nt-stat-header-label">
-                                        <span class="nt-stat-header-sort-label">Avg. Outperformance (<span class="nt-stat-horizon-text">5Y</span>)</span>
+                                        <span class="nt-stat-header-sort-label">Avg. Outperformance Ratio (<span class="nt-stat-horizon-text">5Y</span>)</span>
                                         <span class="nt-stat-header-info" data-stat-info-root>
                                             <button
                                                 type="button"
@@ -559,14 +559,14 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                                 data-stat-info-button
                                                 aria-expanded="false"
                                                 aria-describedby="average-outperformance-tooltip"
-                                                aria-label="About average outperformance"
+                                                aria-label="About average outperformance ratio"
                                             >i</button>
                                             <span
                                                 id="average-outperformance-tooltip"
                                                 class="nt-stat-header-tooltip"
                                                 data-stat-tooltip="alpha"
                                                 role="tooltip"
-                                            >AI strategy return divided by buy &amp; hold return, averaged over all 5Y time horizons</span>
+                                            >AI strategy final value divided by Buy &amp; Hold final value, averaged over all historical 5Y periods.</span>
                                         </span>
                                     </div>
                                     <span id="alpha-sort-indicator" class="nt-sort-indicator">▲▼</span>
@@ -594,7 +594,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                                 class="nt-stat-header-tooltip"
                                                 data-stat-tooltip="alpha-prob"
                                                 role="tooltip"
-                                            >probability of AI strategy return outperforming buy &amp; hold return, over 5Y</span>
+                                            >Percentage of historical 5Y periods in which the AI strategy finished with a higher final value than Buy &amp; Hold.</span>
                                         </span>
                                     </div>
                                     <span id="alpha-prob-sort-indicator" class="nt-sort-indicator">▲▼</span>
@@ -1447,7 +1447,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 
 {% block page_scripts %}
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest.js') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260811-signal-board-stability-v1') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260811-compact-board-headers-v1') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-watchlist.js', v='20260805-signal-actions-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest-form.js', v='20260804-pointer-continuity-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js', v='20260808-altindexer-summary-emphasis-v2') }}"></script>
