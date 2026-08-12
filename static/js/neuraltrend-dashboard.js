@@ -394,9 +394,12 @@
     function sortLabel(key) {
         if (key === "buy_hold_period_return") return "B&H Return";
         if (key === "strategy_period_return") return "AI Return";
-        if (key === "outperformance_ratio") return "Outperformance Ratio";
-        if (key === "alpha") return "Avg. Outperformance Ratio";
+        if (key === "outperformance_ratio") return "Return Ratio";
+        if (key === "alpha") return "Avg. Return Ratio";
         if (key === "alpha_prob") return "Outperformance Prob.";
+        if (key === "strategy_avg_return") return "AI Avg. Return";
+        if (key === "strategy_profit_prob") return "Profit Prob.";
+        if (key === "recommended_days") return "Recommended Days";
         return "";
     }
     
@@ -752,6 +755,19 @@
         `;
     }
 
+    function formatRecommendedDays(value) {
+        if (value === null || value === undefined || value === "") {
+            return `<span class="nt-stat-unavailable">Not available</span>`;
+        }
+
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue) || numericValue < 1) {
+            return `<span class="nt-stat-unavailable">Not available</span>`;
+        }
+
+        return `<span class="return-value return-neutral">${Math.round(numericValue)}d</span>`;
+    }
+
     function signalStatWindowTitle(item, duration) {
         if (item?.stat_window === null || item?.stat_window === undefined || item?.stat_window === "") {
             return "Model statistics not available for this asset.";
@@ -874,15 +890,23 @@
         const duration = document.getElementById("period-select")?.value || "5y";
         const horizon = durationLabel(duration);
 
-        document.querySelectorAll(".nt-stat-horizon-text").forEach(element => {
-            element.textContent = horizon;
-        });
+        const recentGroup = document.getElementById("recent-statistics-group-label");
+        const averageGroup = document.getElementById("average-statistics-group-label");
+        if (recentGroup) recentGroup.textContent = `Recent ${horizon} Statistics`;
+        if (averageGroup) averageGroup.textContent = `Average ${horizon} Statistics`;
 
         const buyHoldTooltip = document.querySelector('[data-stat-tooltip="buy-hold-return"]');
         const aiReturnTooltip = document.querySelector('[data-stat-tooltip="ai-return"]');
-        const outperformanceRatioTooltip = document.querySelector('[data-stat-tooltip="outperformance-ratio"]');
+        const returnRatioTooltip = document.querySelector('[data-stat-tooltip="outperformance-ratio"]');
         const alphaTooltip = document.querySelector('[data-stat-tooltip="alpha"]');
-        const probabilityTooltip = document.querySelector('[data-stat-tooltip="alpha-prob"]');
+        const outperformanceProbTooltip = document.querySelector('[data-stat-tooltip="alpha-prob"]');
+        const strategyAvgReturnTooltip = document.querySelector('[data-stat-tooltip="strategy-avg-return"]');
+        const strategyProfitProbTooltip = document.querySelector('[data-stat-tooltip="strategy-profit-prob"]');
+        const recommendedDaysTooltip = document.querySelector('[data-stat-tooltip="recommended-days"]');
+
+        if (recommendedDaysTooltip) {
+            recommendedDaysTooltip.textContent = "Recommended number of days to follow the strategy for profitability and outperformance";
+        }
 
         if (duration === "max") {
             if (buyHoldTooltip) {
@@ -891,14 +915,20 @@
             if (aiReturnTooltip) {
                 aiReturnTooltip.textContent = "return of AI strategy over the longest available time horizon";
             }
-            if (outperformanceRatioTooltip) {
-                outperformanceRatioTooltip.textContent = "Final value of the AI strategy divided by the final value of Buy & Hold over the longest available time horizon. Above 1.00× means AI outperformed; below 1.00× means Buy & Hold outperformed.";
+            if (returnRatioTooltip) {
+                returnRatioTooltip.textContent = "Final value of the AI strategy divided by the final value of Buy & Hold over the longest available time horizon. Above 1.00× means AI outperformed; below 1.00× means Buy & Hold outperformed.";
             }
             if (alphaTooltip) {
                 alphaTooltip.textContent = "AI strategy final value divided by Buy & Hold final value, averaged over all historical periods at the longest available statistics horizon.";
             }
-            if (probabilityTooltip) {
-                probabilityTooltip.textContent = "Probability of AI strategy outperforming Buy and Hold return over the longest available statistics horizon.";
+            if (outperformanceProbTooltip) {
+                outperformanceProbTooltip.textContent = "Probability of AI strategy outperforming Buy and Hold return over the longest available statistics horizon.";
+            }
+            if (strategyAvgReturnTooltip) {
+                strategyAvgReturnTooltip.textContent = "AI strategy final value divided by its initial value, averaged over all historical periods at the longest available statistics horizon";
+            }
+            if (strategyProfitProbTooltip) {
+                strategyProfitProbTooltip.textContent = "Probability of AI strategy being in profit over the longest available statistics horizon";
             }
             return;
         }
@@ -909,14 +939,20 @@
         if (aiReturnTooltip) {
             aiReturnTooltip.textContent = `return of AI strategy over the last ${horizon}`;
         }
-        if (outperformanceRatioTooltip) {
-            outperformanceRatioTooltip.textContent = `Final value of the AI strategy divided by the final value of Buy & Hold over the last ${horizon}. Above 1.00× means AI outperformed; below 1.00× means Buy & Hold outperformed.`;
+        if (returnRatioTooltip) {
+            returnRatioTooltip.textContent = `Final value of the AI strategy divided by the final value of Buy & Hold over the last ${horizon}. Above 1.00× means AI outperformed; below 1.00× means Buy & Hold outperformed.`;
         }
         if (alphaTooltip) {
             alphaTooltip.textContent = `AI strategy final value divided by Buy & Hold final value, averaged over all historical ${horizon} periods.`;
         }
-        if (probabilityTooltip) {
-            probabilityTooltip.textContent = `Probability of AI strategy outperforming Buy and Hold return in a ${horizon} period.`;
+        if (outperformanceProbTooltip) {
+            outperformanceProbTooltip.textContent = `Probability of AI strategy outperforming Buy and Hold return in a ${horizon} period.`;
+        }
+        if (strategyAvgReturnTooltip) {
+            strategyAvgReturnTooltip.textContent = `AI strategy final value divided by its initial value, averaged over all ${horizon} historical periods`;
+        }
+        if (strategyProfitProbTooltip) {
+            strategyProfitProbTooltip.textContent = `Probability of AI strategy being in profit in a ${horizon} period`;
         }
     }
 
@@ -1109,7 +1145,10 @@
             strategy_period_return: document.getElementById("strategy-sort-indicator"),
             outperformance_ratio: document.getElementById("outperformance-sort-indicator"),
             alpha: document.getElementById("alpha-sort-indicator"),
-            alpha_prob: document.getElementById("alpha-prob-sort-indicator")
+            alpha_prob: document.getElementById("alpha-prob-sort-indicator"),
+            strategy_avg_return: document.getElementById("strategy-avg-return-sort-indicator"),
+            strategy_profit_prob: document.getElementById("strategy-profit-prob-sort-indicator"),
+            recommended_days: document.getElementById("recommended-days-sort-indicator")
         };
 
         Object.values(indicators).forEach(element => {
@@ -1231,6 +1270,9 @@
                     <div class="signal-cell-right">${formatOutperformanceRatio(item.outperformance_ratio)}</div>
                     <div class="signal-cell-right nt-stat-value-cell" title="${escapeHTML(signalStatWindowTitle(item, duration))}">${formatOutperformanceRatio(item.alpha)}</div>
                     <div class="signal-cell-right nt-stat-value-cell" title="${escapeHTML(signalStatWindowTitle(item, duration))}">${formatOutperformanceProbability(item.alpha_prob)}</div>
+                    <div class="signal-cell-right nt-stat-value-cell" title="${escapeHTML(signalStatWindowTitle(item, duration))}">${formatOutperformanceRatio(item.strategy_avg_return)}</div>
+                    <div class="signal-cell-right nt-stat-value-cell" title="${escapeHTML(signalStatWindowTitle(item, duration))}">${formatOutperformanceProbability(item.strategy_profit_prob)}</div>
+                    <div class="signal-cell-right nt-recommended-days-cell">${formatRecommendedDays(item.recommended_days)}</div>
                 </div>
             `;
         }).join("");
