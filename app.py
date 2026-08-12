@@ -1390,6 +1390,13 @@ def compute_signals_for_ticker(ticker, period_days=365*10, csv_version=None):
     buy_hold_period_return = buy_hold_value - 1
     strategy_period_return = strategy_value - 1
     return_spread = strategy_period_return - buy_hold_period_return
+    outperformance_ratio = (
+        strategy_value / buy_hold_value
+        if math.isfinite(strategy_value)
+        and math.isfinite(buy_hold_value)
+        and buy_hold_value > 0
+        else None
+    )
 
     output = {
         "today": int(df["epoch_signal"].iloc[-1]),
@@ -1398,8 +1405,11 @@ def compute_signals_for_ticker(ticker, period_days=365*10, csv_version=None):
         "last_month": int(df["epoch_signal"].iloc[-31]) if len(df) >= 31 else int(df["epoch_signal"].iloc[-1]),
         "buy_hold_period_return": buy_hold_period_return,
         "strategy_period_return": strategy_period_return,
-        # Decimal percentage-point spread: 0.12 means AI returned 12 points more.
+        # Decimal percentage-point spread retained for the Equity Preview.
         "return_spread": return_spread,
+        # Terminal AI equity divided by terminal Buy & Hold equity for this
+        # selected (most recent) horizon. 1.00 means equal ending value.
+        "outperformance_ratio": outperformance_ratio,
         "strategy_max_drawdown": calculate_max_drawdown(
             [1.0, *strategy_equity_curve]
         ),
@@ -6312,6 +6322,7 @@ def mask_signal_summary_row_for_user(row, user):
         "buy_hold_period_return": row.get("buy_hold_period_return"),
         "strategy_period_return": row.get("strategy_period_return"),
         "return_spread": row.get("return_spread"),
+        "outperformance_ratio": row.get("outperformance_ratio"),
         "alpha": row.get("alpha"),
         "alpha_prob": row.get("alpha_prob"),
         "stat_window": row.get("stat_window"),
@@ -6375,6 +6386,7 @@ def compute_signals_summary_cached(csv_version, stat_csv_version, period_days):
                 'buy_hold_period_return': sigs['buy_hold_period_return'],
                 'strategy_period_return': sigs['strategy_period_return'],
                 'return_spread': sigs['return_spread'],
+                'outperformance_ratio': sigs['outperformance_ratio'],
                 'alpha': stat_values['alpha'],
                 'alpha_prob': stat_values['alpha_prob'],
                 'stat_window': stat_values['stat_window'],
