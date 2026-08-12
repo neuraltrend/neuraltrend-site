@@ -59,9 +59,9 @@ def test_signal_stat_horizon_selection_and_missing_file_fallback(tmp_path, monke
 
     (tmp_path / "stat_BTC.csv").write_text(
         "window,buy_and_hold_return,strategy_return,alpha,buy_and_hold_prob,strategy_prob,alpha_prob\n"
-        "1,1,1,1.00,0.5,0.5,0.40\n"
-        "7,1,1,1.08,0.5,0.5,0.62\n"
-        "10,1,1,1.15,0.5,0.5,0.70\n",
+        "1,1,1.00,1.00,0.5,0.20,0.40\n"
+        "7,1,1.11,1.08,0.5,0.49,0.62\n"
+        "10,1,1.22,1.15,0.5,0.55,0.70\n",
         encoding="utf-8",
     )
 
@@ -69,13 +69,48 @@ def test_signal_stat_horizon_selection_and_missing_file_fallback(tmp_path, monke
     assert one_week["stat_window"] == 7
     assert one_week["alpha"] == pytest.approx(1.08)
     assert one_week["alpha_prob"] == pytest.approx(0.62)
+    assert one_week["strategy_avg_return"] == pytest.approx(1.11)
+    assert one_week["strategy_profit_prob"] == pytest.approx(0.49)
+    assert one_week["recommended_days"] == 10
 
     longer_than_available = application.get_signal_stat_for_horizon("BTC-USD", 30)
     assert longer_than_available["stat_window"] == 10
     assert longer_than_available["alpha"] == pytest.approx(1.15)
+    assert longer_than_available["strategy_avg_return"] == pytest.approx(1.22)
+    assert longer_than_available["strategy_profit_prob"] == pytest.approx(0.55)
+    assert longer_than_available["recommended_days"] == 10
 
     maximum = application.get_signal_stat_for_horizon("BTC-USD", None)
     assert maximum["stat_window"] == 10
+    assert maximum["recommended_days"] == 10
 
     missing = application.get_signal_stat_for_horizon("ETH-USD", 7)
-    assert missing == {"alpha": None, "alpha_prob": None, "stat_window": None}
+    assert missing == {
+        "alpha": None,
+        "alpha_prob": None,
+        "strategy_avg_return": None,
+        "strategy_profit_prob": None,
+        "recommended_days": None,
+        "stat_window": None,
+    }
+
+
+def test_signal_summary_outperformance_ratio_uses_terminal_values(monkeypatch, sample_market_frame):
+    monkeypatch.setattr(
+        application,
+        "load_epoch_csv_for_ticker",
+        lambda ticker: sample_market_frame.copy(),
+    )
+    monkeypatch.setattr(application, "get_transaction_cost_rate", lambda ticker: 0.0)
+
+    application.cache.clear()
+    result = application.compute_signals_for_ticker(
+        "BTC-USD",
+        None,
+        csv_version=("test",),
+    )
+
+    assert result is not None
+    bh_final = 1.0 + result["buy_hold_period_return"]
+    ai_final = 1.0 + result["strategy_period_return"]
+    assert result["outperformance_ratio"] == pytest.approx(ai_final / bh_final)
