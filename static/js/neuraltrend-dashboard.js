@@ -898,7 +898,7 @@
                 alphaTooltip.textContent = "AI strategy final value divided by Buy & Hold final value, averaged over all historical periods at the longest available statistics horizon.";
             }
             if (probabilityTooltip) {
-                probabilityTooltip.textContent = "Percentage of historical periods at the longest available statistics horizon in which the AI strategy finished with a higher final value than Buy & Hold.";
+                probabilityTooltip.textContent = "Probability of AI strategy outperforming Buy and Hold return over the longest available statistics horizon.";
             }
             return;
         }
@@ -916,7 +916,7 @@
             alphaTooltip.textContent = `AI strategy final value divided by Buy & Hold final value, averaged over all historical ${horizon} periods.`;
         }
         if (probabilityTooltip) {
-            probabilityTooltip.textContent = `Percentage of historical ${horizon} periods in which the AI strategy finished with a higher final value than Buy & Hold.`;
+            probabilityTooltip.textContent = `Probability of AI strategy outperforming Buy and Hold return in a ${horizon} period.`;
         }
     }
 
