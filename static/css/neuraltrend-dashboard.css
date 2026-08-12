@@ -1699,16 +1699,16 @@
     --nt-signal-columns:
         minmax(130px, 1.08fr)
         repeat(4, minmax(84px, 0.68fr))
-        minmax(148px, 0.96fr)
-        minmax(124px, 0.84fr)
-        minmax(156px, 1.00fr)
-        minmax(198px, 1.22fr)
-        minmax(210px, 1.28fr);
+        minmax(144px, 0.94fr)
+        minmax(120px, 0.82fr)
+        minmax(178px, 1.08fr)
+        minmax(222px, 1.32fr)
+        minmax(218px, 1.30fr);
 }
 
 .nt-signal-header,
 #signal-board .signal-row {
-    min-width: 1365px !important;
+    min-width: 1425px !important;
 }
 
 .nt-stat-header-cell {
@@ -1835,7 +1835,7 @@
 @media (max-width: 980px) {
     .nt-signal-header,
     #signal-board .signal-row {
-        min-width: 1325px !important;
+        min-width: 1385px !important;
     }
 }
 
