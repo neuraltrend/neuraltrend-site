@@ -24,6 +24,26 @@
         sell: "#DC2626"
     };
 
+    const NT_SIGNAL_BOARD_COLUMNS = [
+        {key: "ticker", group: "ticker", weight: 1.03, alwaysVisible: true},
+        {key: "today_signal", group: "signals", weight: 0.68, alwaysVisible: true},
+        {key: "yesterday_signal", group: "signals", weight: 0.72},
+        {key: "last_week_signal", group: "signals", weight: 0.72},
+        {key: "last_month_signal", group: "signals", weight: 0.74},
+        {key: "buy_hold_period_return", group: "recent", weight: 0.74},
+        {key: "strategy_period_return", group: "recent", weight: 0.68},
+        {key: "outperformance_ratio", group: "recent", weight: 0.78},
+        {key: "alpha", group: "average", weight: 0.88},
+        {key: "alpha_prob", group: "average", weight: 1.22},
+        {key: "strategy_avg_return", group: "average", weight: 0.78},
+        {key: "strategy_profit_prob", group: "average", weight: 0.72},
+        {key: "recommended_days", group: "recommended", weight: 0.58}
+    ];
+
+    const ntVisibleSignalBoardColumns = new Set(
+        NT_SIGNAL_BOARD_COLUMNS.map(column => column.key)
+    );
+
     function ntIsSmallScreen() {
         return window.innerWidth < 700;
     }
@@ -306,6 +326,9 @@
         };
     
         updateSortIndicators();
+
+        // Reset optional Board Columns visibility to the default all-visible view.
+        resetSignalBoardColumns();
     
         // Reset asset type to Crypto
         assetTypeFilter = "crypto";
@@ -403,6 +426,154 @@
         return "";
     }
     
+    function ntSignalBoardColumnDefinition(key) {
+        return NT_SIGNAL_BOARD_COLUMNS.find(column => column.key === key) || null;
+    }
+
+    function ntVisibleSignalBoardDefinitions() {
+        return NT_SIGNAL_BOARD_COLUMNS.filter(column =>
+            column.alwaysVisible || ntVisibleSignalBoardColumns.has(column.key)
+        );
+    }
+
+    function syncBoardColumnChooserUI() {
+        const visibleDefinitions = ntVisibleSignalBoardDefinitions();
+        const total = NT_SIGNAL_BOARD_COLUMNS.length;
+        const toggleLabel = document.getElementById("board-columns-toggle-label");
+
+        document.querySelectorAll("[data-board-column-toggle]").forEach(input => {
+            input.checked = ntVisibleSignalBoardColumns.has(input.dataset.boardColumnToggle);
+        });
+
+        if (toggleLabel) {
+            toggleLabel.textContent = visibleDefinitions.length === total
+                ? "All columns"
+                : `${visibleDefinitions.length}/${total} shown`;
+        }
+    }
+
+    function applySignalBoardColumnLayout() {
+        const tableCard = document.querySelector("#epoch-tool-overview .nt-signal-table-card");
+        const header = document.querySelector("#epoch-tool-overview .nt-signal-header");
+        const groupHeader = document.querySelector("#epoch-tool-overview .nt-signal-group-header");
+        if (!tableCard || !header || !groupHeader) return;
+
+        const visibleDefinitions = ntVisibleSignalBoardDefinitions();
+        const visibleKeys = new Set(visibleDefinitions.map(column => column.key));
+        const gridTemplate = visibleDefinitions
+            .map(column => `minmax(0, ${column.weight}fr)`)
+            .join(" ");
+
+        tableCard.style.setProperty("--nt-signal-columns", gridTemplate);
+
+        const applyVisibilityToCells = cells => {
+            NT_SIGNAL_BOARD_COLUMNS.forEach((column, index) => {
+                const cell = cells[index];
+                if (!cell) return;
+                cell.classList.toggle("nt-board-column-hidden", !visibleKeys.has(column.key));
+            });
+        };
+
+        applyVisibilityToCells(Array.from(header.children));
+        document.querySelectorAll("#signal-board .signal-row").forEach(row => {
+            applyVisibilityToCells(Array.from(row.children));
+        });
+
+        ["ticker", "signals", "recent", "average", "recommended"].forEach(groupName => {
+            const groupElement = groupHeader.querySelector(`[data-board-group="${groupName}"]`);
+            if (!groupElement) return;
+
+            const groupColumns = visibleDefinitions.filter(column => column.group === groupName);
+            if (!groupColumns.length) {
+                groupElement.classList.add("nt-board-column-hidden");
+                return;
+            }
+
+            groupElement.classList.remove("nt-board-column-hidden");
+            const firstIndex = visibleDefinitions.indexOf(groupColumns[0]) + 1;
+            const lastIndex = visibleDefinitions.indexOf(groupColumns[groupColumns.length - 1]) + 2;
+            groupElement.style.gridColumn = `${firstIndex} / ${lastIndex}`;
+        });
+
+        syncBoardColumnChooserUI();
+        requestAnimationFrame(syncSignalBoardScrollbarCompensation);
+    }
+
+    function closeBoardColumnChooser() {
+        const toggle = document.getElementById("board-columns-toggle");
+        const menu = document.getElementById("board-columns-menu");
+        if (!toggle || !menu) return;
+        menu.hidden = true;
+        toggle.setAttribute("aria-expanded", "false");
+    }
+
+    function setSignalBoardColumnVisibility(key, visible) {
+        const column = ntSignalBoardColumnDefinition(key);
+        if (!column || column.alwaysVisible) return;
+
+        if (visible) {
+            ntVisibleSignalBoardColumns.add(key);
+        } else {
+            ntVisibleSignalBoardColumns.delete(key);
+
+            // Never leave an invisible signal filter active.
+            if (Object.prototype.hasOwnProperty.call(signalFilters, key)) {
+                signalFilters[key] = null;
+                const filter = document.querySelector(`.signal-filter[data-key="${key}"]`);
+                if (filter) {
+                    filter.value = "";
+                    filter.classList.remove("nt-filter-active");
+                }
+            }
+
+            // Never keep sorting by a metric that the user has hidden.
+            if (currentSort.key === key) {
+                currentSort = {key: null, direction: 1};
+                updateSortIndicators();
+            }
+        }
+
+        applySignalBoardColumnLayout();
+        applyAllFilters();
+    }
+
+    function resetSignalBoardColumns() {
+        ntVisibleSignalBoardColumns.clear();
+        NT_SIGNAL_BOARD_COLUMNS.forEach(column => ntVisibleSignalBoardColumns.add(column.key));
+        applySignalBoardColumnLayout();
+    }
+
+    function initializeBoardColumnChooser() {
+        const root = document.getElementById("board-columns-control");
+        const toggle = document.getElementById("board-columns-toggle");
+        const menu = document.getElementById("board-columns-menu");
+        if (!root || !toggle || !menu) return;
+
+        toggle.addEventListener("click", event => {
+            event.preventDefault();
+            const willOpen = menu.hidden;
+            menu.hidden = !willOpen;
+            toggle.setAttribute("aria-expanded", willOpen ? "true" : "false");
+        });
+
+        menu.querySelectorAll("[data-board-column-toggle]").forEach(input => {
+            input.addEventListener("change", () => {
+                setSignalBoardColumnVisibility(input.dataset.boardColumnToggle, input.checked);
+            });
+        });
+
+        document.addEventListener("click", event => {
+            if (!root.contains(event.target)) closeBoardColumnChooser();
+        });
+
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape") closeBoardColumnChooser();
+        });
+
+        syncBoardColumnChooserUI();
+        applySignalBoardColumnLayout();
+    }
+
     function updateActiveFilterChips(count) {
         const row = document.getElementById("active-filter-row");
         const chipsContainer = document.getElementById("active-filter-chips");
@@ -1061,7 +1232,7 @@
             formatPercent(item.buy_hold_period_return);
     
         document.getElementById("metric-outperformance").innerHTML =
-            formatPointSpread(item.return_spread);
+            formatOutperformanceRatio(item.outperformance_ratio);
     
         document.getElementById("metric-today-signal").innerHTML =
         formatSignal(item.today_signal, item.signals_locked);
@@ -1280,6 +1451,8 @@
             `;
         }).join("");
 
+        // Newly rendered rows inherit the current Board Columns selection.
+        applySignalBoardColumnLayout();
         requestAnimationFrame(syncSignalBoardScrollbarCompensation);
         highlightSelectedTicker();
     }
@@ -1517,8 +1690,12 @@
     // Load on page start
     initializeSignalStatInfoTooltips();
     updateSignalStatHeaderCopy();
+    initializeBoardColumnChooser();
     syncSignalBoardScrollbarCompensation();
-    window.addEventListener("resize", syncSignalBoardScrollbarCompensation);
+    window.addEventListener("resize", function () {
+        applySignalBoardColumnLayout();
+        syncSignalBoardScrollbarCompensation();
+    });
 
     if (typeof ResizeObserver !== "undefined") {
         const signalBoardResizeObserver = new ResizeObserver(syncSignalBoardScrollbarCompensation);
