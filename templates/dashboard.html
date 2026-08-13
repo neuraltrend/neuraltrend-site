@@ -7,7 +7,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 {% endblock %}
 
 {% block page_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260812-column-chooser-font-ratio-v1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260813-filter-layout-readability-v1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-watchlist.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
 {% endblock %}
@@ -324,42 +324,6 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                     </div>
                                 </div>
 
-                                <!-- BOARD COLUMN VISIBILITY -->
-                                <div class="nt-control-group nt-control-group-columns">
-                                    <span class="nt-control-label">Board Columns</span>
-
-                                    <div id="board-columns-control" class="nt-board-columns-control">
-                                        <button
-                                            type="button"
-                                            id="board-columns-toggle"
-                                            class="nt-board-columns-toggle"
-                                            aria-expanded="false"
-                                            aria-controls="board-columns-menu"
-                                        >
-                                            <span id="board-columns-toggle-label">All columns</span>
-                                            <span class="nt-board-columns-caret" aria-hidden="true">▾</span>
-                                        </button>
-
-                                        <div id="board-columns-menu" class="nt-board-columns-menu" hidden>
-                                            <div class="nt-board-columns-menu-title">Visible columns</div>
-                                            <div class="nt-board-columns-options">
-                                                <label><input type="checkbox" data-board-column-toggle="yesterday_signal" checked> Yesterday</label>
-                                                <label><input type="checkbox" data-board-column-toggle="last_week_signal" checked> Last Week</label>
-                                                <label><input type="checkbox" data-board-column-toggle="last_month_signal" checked> Last Month</label>
-                                                <label><input type="checkbox" data-board-column-toggle="buy_hold_period_return" checked> B&amp;H Return</label>
-                                                <label><input type="checkbox" data-board-column-toggle="strategy_period_return" checked> AI Return</label>
-                                                <label><input type="checkbox" data-board-column-toggle="outperformance_ratio" checked> Return Ratio</label>
-                                                <label><input type="checkbox" data-board-column-toggle="alpha" checked> Avg. Return Ratio</label>
-                                                <label><input type="checkbox" data-board-column-toggle="alpha_prob" checked> Outperformance Prob.</label>
-                                                <label><input type="checkbox" data-board-column-toggle="strategy_avg_return" checked> AI Avg. Return</label>
-                                                <label><input type="checkbox" data-board-column-toggle="strategy_profit_prob" checked> Profit Prob.</label>
-                                                <label><input type="checkbox" data-board-column-toggle="recommended_days" checked> Min. Days</label>
-                                            </div>
-                                            <div class="nt-board-columns-note">Ticker and Today are always shown.</div>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 <!-- SELECTED ASSET ACTIONS -->
                                 <div class="nt-control-group nt-control-group-actions">
                                     <span class="nt-control-label">Selected Asset</span>
@@ -425,6 +389,42 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                     </div>
                                 </div>
                         
+                                <!-- BOARD COLUMN VISIBILITY -->
+                                <div class="nt-control-group nt-control-group-columns">
+                                    <span class="nt-control-label">Board Columns</span>
+
+                                    <div id="board-columns-control" class="nt-board-columns-control">
+                                        <button
+                                            type="button"
+                                            id="board-columns-toggle"
+                                            class="nt-board-columns-toggle"
+                                            aria-expanded="false"
+                                            aria-controls="board-columns-menu"
+                                        >
+                                            <span id="board-columns-toggle-label">All columns</span>
+                                            <span class="nt-board-columns-caret" aria-hidden="true">▾</span>
+                                        </button>
+
+                                        <div id="board-columns-menu" class="nt-board-columns-menu" hidden>
+                                            <div class="nt-board-columns-menu-title">Visible columns</div>
+                                            <div class="nt-board-columns-options">
+                                                <label><input type="checkbox" data-board-column-toggle="yesterday_signal" checked> Yesterday</label>
+                                                <label><input type="checkbox" data-board-column-toggle="last_week_signal" checked> Last Week</label>
+                                                <label><input type="checkbox" data-board-column-toggle="last_month_signal" checked> Last Month</label>
+                                                <label><input type="checkbox" data-board-column-toggle="buy_hold_period_return" checked> B&amp;H Return</label>
+                                                <label><input type="checkbox" data-board-column-toggle="strategy_period_return" checked> AI Return</label>
+                                                <label><input type="checkbox" data-board-column-toggle="outperformance_ratio" checked> Return Ratio</label>
+                                                <label><input type="checkbox" data-board-column-toggle="alpha" checked> Avg. Return Ratio</label>
+                                                <label><input type="checkbox" data-board-column-toggle="alpha_prob" checked> Outperformance Prob.</label>
+                                                <label><input type="checkbox" data-board-column-toggle="strategy_avg_return" checked> AI Avg. Return</label>
+                                                <label><input type="checkbox" data-board-column-toggle="strategy_profit_prob" checked> Profit Prob.</label>
+                                                <label><input type="checkbox" data-board-column-toggle="recommended_days" checked> Min. Days</label>
+                                            </div>
+                                            <div class="nt-board-columns-note">Ticker and Today are always shown.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
                         <!-- CONTROL PANEL END -->
@@ -821,7 +821,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                     <article class="nt-preview-metric-card">
                                         <span>Return Ratio (<span class="metric-horizon-text">5Y</span>)</span>
                                         <strong id="metric-outperformance" class="return-neutral">—</strong>
-                                        <small>AI final value ÷ B&amp;H final value</small>
+                                        <small>Ratio between AI and B&amp;H final value</small>
                                     </article>
                                     <article class="nt-preview-metric-card">
                                         <span>Today’s Signal</span>
@@ -1573,7 +1573,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 
 {% block page_scripts %}
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest.js') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260812-column-chooser-font-ratio-v1') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260813-filter-layout-readability-v1') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-watchlist.js', v='20260805-signal-actions-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest-form.js', v='20260804-pointer-continuity-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js', v='20260808-altindexer-summary-emphasis-v2') }}"></script>
