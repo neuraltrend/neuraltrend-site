@@ -2571,3 +2571,177 @@
         minmax(86px, 0.80fr)
         minmax(72px, 0.66fr);
 }
+
+
+/* ==================================================
+   Signal Board final readability + Board Columns chooser — Aug 12, 2026
+================================================== */
+#epoch-tool-overview .nt-controls-grid {
+    grid-template-columns: minmax(245px, 1fr) max-content max-content max-content max-content;
+    column-gap: 9px;
+}
+
+.nt-control-group-columns { min-width: 118px; }
+.nt-board-columns-control { position: relative; }
+
+.nt-board-columns-toggle {
+    display: inline-flex;
+    min-width: 118px;
+    min-height: 32px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 9px;
+    padding: 6px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #fff;
+    color: #334155;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+.nt-board-columns-toggle:hover,
+.nt-board-columns-toggle:focus-visible,
+.nt-board-columns-toggle[aria-expanded="true"] {
+    border-color: #93c5fd;
+    background: #f8fbff;
+    color: #1d4ed8;
+}
+
+.nt-board-columns-caret {
+    font-size: 11px;
+    transition: transform 0.16s ease;
+}
+.nt-board-columns-toggle[aria-expanded="true"] .nt-board-columns-caret { transform: rotate(180deg); }
+
+.nt-board-columns-menu {
+    position: absolute;
+    z-index: 80;
+    top: calc(100% + 7px);
+    right: 0;
+    width: 292px;
+    padding: 11px;
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16);
+}
+.nt-board-columns-menu[hidden] { display: none !important; }
+
+.nt-board-columns-menu-title {
+    margin-bottom: 8px;
+    color: #0f172a;
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.nt-board-columns-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px 10px;
+}
+
+.nt-board-columns-options label {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 4px;
+    border-radius: 7px;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.2;
+    cursor: pointer;
+}
+.nt-board-columns-options label:hover { background: #f1f5f9; }
+.nt-board-columns-options input {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    accent-color: #2563eb;
+    flex: 0 0 14px;
+}
+.nt-board-columns-note {
+    margin-top: 8px;
+    padding-top: 7px;
+    border-top: 1px solid #eef2f7;
+    color: #64748b;
+    font-size: 10px;
+}
+
+.nt-board-column-hidden { display: none !important; }
+
+/* Default full-board proportions. JS rebuilds this exact grid when columns are
+   hidden, causing the remaining columns to expand naturally across full width. */
+#epoch-tool-overview .nt-signal-table-card {
+    --nt-signal-columns:
+        minmax(0, 1.03fr)
+        minmax(0, 0.68fr)
+        minmax(0, 0.72fr)
+        minmax(0, 0.72fr)
+        minmax(0, 0.74fr)
+        minmax(0, 0.74fr)
+        minmax(0, 0.68fr)
+        minmax(0, 0.78fr)
+        minmax(0, 0.88fr)
+        minmax(0, 1.22fr)
+        minmax(0, 0.78fr)
+        minmax(0, 0.72fr)
+        minmax(0, 0.58fr);
+}
+
+/* Increase final board typography without reverting to horizontal scrolling. */
+.nt-signal-group-header { font-size: 13px !important; }
+#epoch-tool-overview .nt-signal-header,
+#epoch-tool-overview .nt-header-title,
+#epoch-tool-overview .nt-stat-header-sort-label {
+    font-size: 12px !important;
+    line-height: 1.15 !important;
+}
+#epoch-tool-overview .nt-signal-filter-select { font-size: 11.5px !important; }
+#signal-board .signal-row,
+#signal-board .signal-ticker { font-size: 13px !important; }
+#signal-board .signal-freshness-meta { font-size: 9.5px !important; }
+#signal-board .signal-badge,
+#signal-board .signal-pill,
+#signal-board .nt-signal-pill { font-size: 11.5px !important; }
+#signal-board .return-value,
+#signal-board .nt-stat-unavailable,
+#signal-board .signal-cell-right,
+#signal-board .nt-recommended-days-cell { font-size: 12.5px !important; }
+
+/* Give Outperformance Prob. enough weighted space to stay on one line. */
+#epoch-tool-overview .nt-signal-header > div:nth-child(10) .nt-stat-header-label { flex-wrap: nowrap; }
+#epoch-tool-overview .nt-signal-header > div:nth-child(10) .nt-stat-header-sort-label {
+    max-width: none;
+    white-space: nowrap;
+    text-wrap: nowrap;
+}
+
+/* Short final label also stays on one line. */
+#epoch-tool-overview .nt-signal-header > div:nth-child(13) .nt-stat-header-label,
+#epoch-tool-overview .nt-signal-header > div:nth-child(13) .nt-stat-header-sort-label {
+    white-space: nowrap !important;
+    flex-wrap: nowrap !important;
+    max-width: none !important;
+}
+
+@media (max-width: 1320px) {
+    #epoch-tool-overview .nt-controls-grid {
+        grid-template-columns: minmax(260px, 1fr) max-content max-content;
+        justify-content: stretch;
+    }
+}
+@media (max-width: 780px) {
+    #epoch-tool-overview .nt-controls-grid { grid-template-columns: 1fr; }
+    .nt-board-columns-toggle { width: 100%; }
+    .nt-board-columns-menu {
+        right: auto;
+        left: 0;
+        width: min(292px, calc(100vw - 48px));
+    }
+}
