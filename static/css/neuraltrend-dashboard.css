@@ -2494,3 +2494,80 @@
 #epoch-tool-overview .nt-stat-header-cell > .nt-sort-indicator {
     text-align: center;
 }
+
+
+/* ==================================================
+   Signal Board readability polish — Aug 12, 2026
+================================================== */
+.nt-signal-group-header {
+    font-size: 12px !important;
+}
+
+#epoch-tool-overview .nt-signal-header {
+    font-size: 11px !important;
+}
+
+#epoch-tool-overview .nt-header-title,
+#epoch-tool-overview .nt-stat-header-sort-label {
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+    font-weight: 800 !important;
+}
+
+#epoch-tool-overview .nt-signal-filter-select {
+    font-size: 11px !important;
+}
+
+#signal-board .signal-row {
+    font-size: 12px !important;
+}
+
+#signal-board .ticker-symbol,
+#signal-board .signal-ticker,
+#signal-board .nt-signal-ticker,
+#signal-board .ticker-name {
+    font-size: 12px !important;
+}
+
+#signal-board .ticker-meta,
+#signal-board .signal-meta,
+#signal-board .nt-signal-meta {
+    font-size: 10px !important;
+}
+
+#signal-board .signal-badge,
+#signal-board .signal-pill,
+#signal-board .nt-signal-pill {
+    font-size: 10.5px !important;
+}
+
+#signal-board .return-value,
+#signal-board .nt-stat-unavailable {
+    font-size: 11.5px !important;
+    line-height: 1.2 !important;
+}
+
+#epoch-tool-overview .nt-stat-header-info-button {
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px !important;
+    font-size: 9px !important;
+}
+
+#epoch-tool-overview .nt-signal-header > div:nth-child(13) .nt-stat-header-sort-label {
+    white-space: nowrap !important;
+}
+
+:root {
+    --nt-signal-columns:
+        minmax(124px, 1.05fr)
+        repeat(4, minmax(74px, 0.72fr))
+        minmax(88px, 0.82fr)
+        minmax(82px, 0.76fr)
+        minmax(88px, 0.82fr)
+        minmax(98px, 0.90fr)
+        minmax(108px, 0.96fr)
+        minmax(94px, 0.86fr)
+        minmax(86px, 0.80fr)
+        minmax(72px, 0.66fr);
+}
