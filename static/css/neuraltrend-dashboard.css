@@ -2745,3 +2745,149 @@
         width: min(292px, calc(100vw - 48px));
     }
 }
+
+
+/* ==================================================
+   Signal Overview controls + board readability polish — Aug 13, 2026
+================================================== */
+
+/* Keep five controls on one clean row. The search field absorbs any spare
+   horizontal room so spacing between every neighboring control stays equal. */
+#epoch-tool-overview .nt-controls-grid {
+    display: grid !important;
+    grid-template-columns:
+        minmax(190px, 1fr)
+        max-content
+        max-content
+        max-content
+        max-content !important;
+    align-items: end !important;
+    justify-content: stretch !important;
+    column-gap: 14px !important;
+    row-gap: 12px !important;
+}
+
+#epoch-tool-overview .nt-control-group {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+#epoch-tool-overview .nt-control-group-search {
+    width: 100% !important;
+    min-width: 190px !important;
+    max-width: none !important;
+}
+
+#epoch-tool-overview .nt-control-label {
+    min-height: 16px;
+    margin-bottom: 6px !important;
+    line-height: 16px;
+}
+
+/* Make the visible control surfaces share the same height/baseline. */
+#epoch-tool-overview .nt-search-shell,
+#epoch-tool-overview .nt-period-pills,
+#epoch-tool-overview .nt-asset-pills,
+#epoch-tool-overview .nt-selected-asset-actions,
+#epoch-tool-overview .nt-board-columns-toggle {
+    min-height: 38px !important;
+    box-sizing: border-box;
+}
+
+#epoch-tool-overview .nt-search-input {
+    min-height: 38px !important;
+}
+
+#epoch-tool-overview .nt-period-pills,
+#epoch-tool-overview .nt-asset-pills {
+    align-items: center;
+}
+
+#epoch-tool-overview .period-pill,
+#epoch-tool-overview .asset-pill {
+    min-height: 32px !important;
+}
+
+/* Board Columns now visually matches the other controls instead of looking
+   shorter/smaller. It remains the last control in the row. */
+#epoch-tool-overview .nt-control-group-columns {
+    min-width: 122px;
+}
+
+#epoch-tool-overview .nt-board-columns-toggle {
+    min-width: 122px;
+    height: 38px;
+    padding: 7px 11px;
+    border-radius: 11px;
+    font-size: 12px;
+}
+
+/* Selected Asset stays immediately beside Asset Type / Watchlist. */
+#epoch-tool-overview .nt-control-group-actions {
+    min-width: max-content;
+}
+
+/* A modest readability increase now that column visibility is user-controlled.
+   These remain compact enough for the full default board. */
+#signal-board .return-value,
+#signal-board .nt-stat-unavailable,
+#signal-board .signal-cell-right,
+#signal-board .nt-recommended-days-cell {
+    font-size: 13.5px !important;
+    line-height: 1.18 !important;
+}
+
+#signal-board .signal-badge,
+#signal-board .signal-pill,
+#signal-board .nt-signal-pill {
+    font-size: 12px !important;
+}
+
+#signal-board .signal-ticker,
+#signal-board .ticker-symbol,
+#signal-board .ticker-name {
+    font-size: 13.5px !important;
+}
+
+/* Slightly larger header text where space allows. */
+#epoch-tool-overview .nt-header-title,
+#epoch-tool-overview .nt-stat-header-sort-label {
+    font-size: 12.25px !important;
+}
+
+/* Keep the long probability label on one line at normal desktop widths.
+   It may wrap naturally on narrower screens rather than being clipped. */
+@media (min-width: 1181px) {
+    #epoch-tool-overview .nt-signal-header > div:nth-child(10) .nt-stat-header-label {
+        flex-wrap: nowrap;
+    }
+
+    #epoch-tool-overview .nt-signal-header > div:nth-child(10) .nt-stat-header-sort-label {
+        max-width: none;
+        white-space: nowrap;
+    }
+}
+
+/* Responsive fallbacks: retain equal gaps and let the fluid search field
+   shrink first before moving controls to the next row. */
+@media (max-width: 1180px) {
+    #epoch-tool-overview .nt-controls-grid {
+        grid-template-columns: minmax(220px, 1fr) max-content max-content !important;
+    }
+}
+
+@media (max-width: 780px) {
+    #epoch-tool-overview .nt-controls-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    #epoch-tool-overview .nt-control-group-search {
+        min-width: 0 !important;
+    }
+
+    #epoch-tool-overview .nt-board-columns-toggle {
+        width: 100%;
+    }
+}
