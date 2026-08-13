@@ -2439,3 +2439,58 @@
         max-height: 244px;
     }
 }
+
+/* ==================================================
+   Signal Board alignment polish — Aug 12, 2026
+   Keep numeric content visually centered under its header and give the
+   standalone Recommended Days column enough room for a single-line label.
+================================================== */
+
+:root {
+    --nt-signal-columns:
+        minmax(0, 1.30fr)
+        minmax(0, 0.80fr)
+        minmax(0, 0.88fr)
+        minmax(0, 0.86fr)
+        minmax(0, 0.90fr)
+        minmax(0, 0.82fr)
+        minmax(0, 0.74fr)
+        minmax(0, 0.84fr)
+        minmax(0, 0.94fr)
+        minmax(0, 1.08fr)
+        minmax(0, 0.86fr)
+        minmax(0, 0.74fr)
+        minmax(0, 1.14fr);
+}
+
+/* Statistical headers and values now share the same horizontal alignment.
+   This removes the visual offset caused by centered headers above right-
+   aligned numbers. */
+#signal-board .signal-cell-right,
+#signal-board .nt-recommended-days-cell {
+    justify-content: center;
+    text-align: center;
+}
+
+/* Keep the header text + info icon together as one centered inline unit.
+   The icon stays in normal flow, so it can never cover the label. */
+#epoch-tool-overview .nt-stat-header-label {
+    justify-content: center;
+}
+
+/* The final column has just enough extra width to keep its short heading on
+   one line without shrinking the already-small table font. */
+#epoch-tool-overview .nt-signal-header > div:nth-child(13) .nt-stat-header-label {
+    flex-wrap: nowrap;
+}
+
+#epoch-tool-overview .nt-signal-header > div:nth-child(13) .nt-stat-header-sort-label {
+    max-width: none;
+    white-space: nowrap;
+    text-wrap: nowrap;
+}
+
+/* Keep sort arrows visually centered under the same header/value axis. */
+#epoch-tool-overview .nt-stat-header-cell > .nt-sort-indicator {
+    text-align: center;
+}
