@@ -2679,19 +2679,19 @@
    hidden, causing the remaining columns to expand naturally across full width. */
 #epoch-tool-overview .nt-signal-table-card {
     --nt-signal-columns:
-        minmax(0, 1.03fr)
-        minmax(0, 0.68fr)
-        minmax(0, 0.72fr)
-        minmax(0, 0.72fr)
-        minmax(0, 0.74fr)
-        minmax(0, 0.74fr)
-        minmax(0, 0.68fr)
+        minmax(0, 0.98fr)
+        minmax(0, 0.56fr)
+        minmax(0, 0.59fr)
+        minmax(0, 0.59fr)
+        minmax(0, 0.61fr)
         minmax(0, 0.78fr)
-        minmax(0, 1.02fr)
+        minmax(0, 0.70fr)
+        minmax(0, 0.82fr)
+        minmax(0, 1.08fr)
         minmax(0, 1.16fr)
-        minmax(0, 0.76fr)
-        minmax(0, 0.68fr)
-        minmax(0, 0.54fr);
+        minmax(0, 0.96fr)
+        minmax(0, 0.70fr)
+        minmax(0, 0.68fr);
 }
 
 /* Increase final board typography without reverting to horizontal scrolling. */
@@ -2904,4 +2904,52 @@
         white-space: nowrap !important;
         text-wrap: nowrap !important;
     }
+}
+
+
+/* ==================================================
+   Signal Board spacing balance — Aug 14, 2026
+   Reclaim unused width from the four signal columns and give it to the
+   longer statistics labels so text and info icons remain cleanly paired.
+================================================== */
+
+/* Signal cells are intentionally compact; their pills/dropdowns do not need
+   the same horizontal breathing room as the statistics columns. */
+#epoch-tool-overview .nt-signal-header > div:nth-child(n+2):nth-child(-n+5),
+#signal-board .signal-row > div:nth-child(n+2):nth-child(-n+5) {
+    padding-left: 3px !important;
+    padding-right: 3px !important;
+}
+
+/* Keep the long statistic labels and their i icon together on one line at
+   normal desktop widths. The widths above now explicitly reserve room for it. */
+@media (min-width: 1181px) {
+    #epoch-tool-overview .nt-signal-header > div:nth-child(9) .nt-stat-header-label,
+    #epoch-tool-overview .nt-signal-header > div:nth-child(10) .nt-stat-header-label,
+    #epoch-tool-overview .nt-signal-header > div:nth-child(11) .nt-stat-header-label,
+    #epoch-tool-overview .nt-signal-header > div:nth-child(12) .nt-stat-header-label,
+    #epoch-tool-overview .nt-signal-header > div:nth-child(13) .nt-stat-header-label {
+        flex-wrap: nowrap !important;
+        column-gap: 5px !important;
+    }
+
+    #epoch-tool-overview .nt-signal-header > div:nth-child(9) .nt-stat-header-sort-label,
+    #epoch-tool-overview .nt-signal-header > div:nth-child(10) .nt-stat-header-sort-label,
+    #epoch-tool-overview .nt-signal-header > div:nth-child(11) .nt-stat-header-sort-label,
+    #epoch-tool-overview .nt-signal-header > div:nth-child(12) .nt-stat-header-sort-label,
+    #epoch-tool-overview .nt-signal-header > div:nth-child(13) .nt-stat-header-sort-label {
+        max-width: none !important;
+        white-space: nowrap !important;
+        text-wrap: nowrap !important;
+    }
+}
+
+/* Keep every info icon adjacent to its own label, never visually drifting
+   toward the neighboring column. */
+#epoch-tool-overview .nt-stat-header-info {
+    margin-left: 0 !important;
+}
+
+#epoch-tool-overview .nt-stat-header-label {
+    column-gap: 4px;
 }
