@@ -33,11 +33,11 @@
         {key: "buy_hold_period_return", group: "recent", weight: 0.74},
         {key: "strategy_period_return", group: "recent", weight: 0.68},
         {key: "outperformance_ratio", group: "recent", weight: 0.78},
-        {key: "alpha", group: "average", weight: 0.88},
-        {key: "alpha_prob", group: "average", weight: 1.22},
-        {key: "strategy_avg_return", group: "average", weight: 0.78},
-        {key: "strategy_profit_prob", group: "average", weight: 0.72},
-        {key: "recommended_days", group: "recommended", weight: 0.58}
+        {key: "alpha", group: "average", weight: 1.02},
+        {key: "alpha_prob", group: "average", weight: 1.16},
+        {key: "strategy_avg_return", group: "average", weight: 0.76},
+        {key: "strategy_profit_prob", group: "average", weight: 0.68},
+        {key: "recommended_days", group: "recommended", weight: 0.54}
     ];
 
     const ntVisibleSignalBoardColumns = new Set(
