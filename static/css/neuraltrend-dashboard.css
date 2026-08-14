@@ -2687,11 +2687,11 @@
         minmax(0, 0.74fr)
         minmax(0, 0.68fr)
         minmax(0, 0.78fr)
-        minmax(0, 0.88fr)
-        minmax(0, 1.22fr)
-        minmax(0, 0.78fr)
-        minmax(0, 0.72fr)
-        minmax(0, 0.58fr);
+        minmax(0, 1.02fr)
+        minmax(0, 1.16fr)
+        minmax(0, 0.76fr)
+        minmax(0, 0.68fr)
+        minmax(0, 0.54fr);
 }
 
 /* Increase final board typography without reverting to horizontal scrolling. */
@@ -2889,5 +2889,19 @@
 
     #epoch-tool-overview .nt-board-columns-toggle {
         width: 100%;
+    }
+}
+
+
+/* Avg. Return Ratio: keep the label + info icon on one line on desktop. */
+@media (min-width: 1181px) {
+    #epoch-tool-overview .nt-signal-header > div:nth-child(9) .nt-stat-header-label {
+        flex-wrap: nowrap !important;
+    }
+
+    #epoch-tool-overview .nt-signal-header > div:nth-child(9) .nt-stat-header-sort-label {
+        max-width: none !important;
+        white-space: nowrap !important;
+        text-wrap: nowrap !important;
     }
 }
