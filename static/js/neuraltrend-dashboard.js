@@ -25,18 +25,18 @@
     };
 
     const NT_SIGNAL_BOARD_COLUMNS = [
-        {key: "ticker", group: "ticker", weight: 0.98, alwaysVisible: true},
+        {key: "ticker", group: "ticker", weight: 1.09, alwaysVisible: true},
         {key: "today_signal", group: "signals", weight: 0.56, alwaysVisible: true},
         {key: "yesterday_signal", group: "signals", weight: 0.59},
         {key: "last_week_signal", group: "signals", weight: 0.59},
         {key: "last_month_signal", group: "signals", weight: 0.61},
-        {key: "buy_hold_period_return", group: "recent", weight: 0.78},
-        {key: "strategy_period_return", group: "recent", weight: 0.70},
-        {key: "outperformance_ratio", group: "recent", weight: 0.82},
-        {key: "alpha", group: "average", weight: 1.08},
-        {key: "alpha_prob", group: "average", weight: 1.16},
-        {key: "strategy_avg_return", group: "average", weight: 0.96},
-        {key: "strategy_profit_prob", group: "average", weight: 0.70},
+        {key: "buy_hold_period_return", group: "recent", weight: 0.76},
+        {key: "strategy_period_return", group: "recent", weight: 0.68},
+        {key: "outperformance_ratio", group: "recent", weight: 0.80},
+        {key: "alpha", group: "average", weight: 1.06},
+        {key: "alpha_prob", group: "average", weight: 1.14},
+        {key: "strategy_avg_return", group: "average", weight: 0.94},
+        {key: "strategy_profit_prob", group: "average", weight: 0.69},
         {key: "recommended_days", group: "recommended", weight: 0.68}
     ];
 
