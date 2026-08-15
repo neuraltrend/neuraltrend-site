@@ -698,8 +698,8 @@ def duration_to_days(duration_str: str):
 
     ``max`` is intentionally represented by ``None`` so callers can use the
     complete validated CSV history without inventing an arbitrary year cap.
-    Backtest durations still use ``parse_duration`` directly and therefore keep
-    their existing bounded-duration behavior.
+    Other dashboard horizon consumers still use ``parse_duration`` to convert
+    the supported preset labels into day counts.
     """
     clean = str(duration_str or "").strip().lower()
 
@@ -5970,6 +5970,59 @@ def sitemap_xml():
 def ads_txt():
     return send_from_directory(os.path.dirname(__file__), 'ads.txt')
 
+def get_backtest_date_bounds(ticker):
+    """Return the usable calendar-date bounds for an asset backtest.
+
+    Start dates may run from the asset's first available market-data date
+    through one calendar day before its latest available date. End dates may
+    run from one calendar day after the selected start through the asset's
+    latest available date.
+    """
+    signals_df = load_epoch_csv_for_ticker(ticker)
+    if signals_df is None or len(signals_df) < 2:
+        raise ValueError("Not enough market data to create a backtest date range.")
+
+    coverage_start = signals_df.index.min().date()
+    coverage_end = signals_df.index.max().date()
+    if coverage_start >= coverage_end:
+        raise ValueError("Not enough market data to create a backtest date range.")
+
+    return coverage_start, coverage_end
+
+
+@app.route('/backtest/date-range', methods=['GET'])
+def backtest_date_range():
+    ticker = normalize_ticker(request.args.get("ticker"))
+
+    support_error = require_supported_ticker_or_400(ticker)
+    if support_error:
+        return support_error
+
+    visibility_error = require_ticker_visible_or_404(ticker)
+    if visibility_error:
+        return visibility_error
+
+    try:
+        coverage_start, coverage_end = get_backtest_date_bounds(ticker)
+    except (ValueError, FileNotFoundError) as error:
+        return jsonify({"error": str(error)}), 400
+    except Exception:
+        app.logger.exception("Could not load backtest date range ticker=%s", ticker)
+        return jsonify({"error": "Backtest date range is temporarily unavailable."}), 503
+
+    response = jsonify({
+        "ticker": ticker,
+        "coverage_start": coverage_start.isoformat(),
+        "coverage_end": coverage_end.isoformat(),
+        "start_min": coverage_start.isoformat(),
+        "start_max": (coverage_end - timedelta(days=1)).isoformat(),
+        "end_min": (coverage_start + timedelta(days=1)).isoformat(),
+        "end_max": coverage_end.isoformat(),
+    })
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    return response
+
+
 @app.route('/backtest', methods=['POST'])
 def backtest():
     ticker = normalize_ticker(request.form.get("ticker"))
@@ -5989,7 +6042,7 @@ def backtest():
         return jsonify({"error": str(error)}), 400
 
     start_date_text = (request.form.get("start") or "").strip()
-    duration = (request.form.get("duration") or "").strip()
+    end_date_text = (request.form.get("end") or "").strip()
     
     # Position size per signal: 100%, 50%, 25%, etc.
     try:
@@ -5999,32 +6052,54 @@ def backtest():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-    # Parse and bound dates/horizon.
     try:
         start_date = datetime.strptime(start_date_text, "%Y-%m-%d").date()
     except ValueError:
         return jsonify({"error": "Start date must use YYYY-MM-DD."}), 400
 
-    today = datetime.utcnow().date()
-    if start_date > today:
-        return jsonify({"error": "Start date cannot be in the future."}), 400
+    try:
+        end_date = datetime.strptime(end_date_text, "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({"error": "End date must use YYYY-MM-DD."}), 400
+
+    if start_date >= end_date:
+        return jsonify({"error": "End date must be after the start date."}), 400
 
     try:
-        delta = parse_duration(duration)
-    except ValueError as error:
-        return jsonify({"error": str(error)}), 400
-
-    end_date = min(start_date + delta, today)
-
-    try:
-        signals_df = load_epoch_csv_for_ticker(ticker).reset_index()
+        raw_signals_df = load_epoch_csv_for_ticker(ticker)
     except (ValueError, FileNotFoundError) as error:
         return jsonify({"error": str(error)}), 400
     except Exception:
         app.logger.exception("Could not load backtest market data ticker=%s", ticker)
         return jsonify({"error": "Market data is temporarily unavailable."}), 503
+
+    if raw_signals_df is None or len(raw_signals_df) < 2:
+        return jsonify({"error": "Not enough market data to run a backtest."}), 400
+
+    coverage_start = raw_signals_df.index.min().date()
+    coverage_end = raw_signals_df.index.max().date()
+    latest_start_date = coverage_end - timedelta(days=1)
+    earliest_end_date = coverage_start + timedelta(days=1)
+
+    if start_date < coverage_start or start_date > latest_start_date:
+        return jsonify({
+            "error": (
+                f"Start date must be between {coverage_start.isoformat()} "
+                f"and {latest_start_date.isoformat()}."
+            )
+        }), 400
+
+    if end_date < earliest_end_date or end_date > coverage_end:
+        return jsonify({
+            "error": (
+                f"End date must be between {earliest_end_date.isoformat()} "
+                f"and {coverage_end.isoformat()}."
+            )
+        }), 400
+
+    signals_df = raw_signals_df.reset_index()
     
-    # Filter for the desired period
+    # Filter for the exact user-selected calendar date range.
     mask = (
         (signals_df["Date"] >= pd.to_datetime(start_date)) &
         (signals_df["Date"] <= pd.to_datetime(end_date))
@@ -6041,7 +6116,7 @@ def backtest():
     signals_df = signals_df.dropna(subset=["Close", "epoch_signal"])
     
     if len(signals_df) < 2:
-        return jsonify({"error": "Not enough data in selected duration"}), 400
+        return jsonify({"error": "Not enough data in selected date range"}), 400
     
     # Same transaction-cost rule used by EpochSignaler/live simulation
     transaction_cost = get_transaction_cost_rate(ticker)
