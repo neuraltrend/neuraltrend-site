@@ -661,8 +661,9 @@
         const optionExists = Array.from(tickerSelect.options)
             .some(option => option.value === ticker);
     
-        if (optionExists) {
+        if (optionExists && tickerSelect.value !== ticker) {
             tickerSelect.value = ticker;
+            tickerSelect.dispatchEvent(new Event("change", { bubbles: true }));
         }
     }
 

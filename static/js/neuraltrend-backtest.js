@@ -6,6 +6,23 @@
         
     document.getElementById('backtest-form').addEventListener('submit', function(e) {
         e.preventDefault();
+
+        if (!this.checkValidity()) {
+            this.reportValidity();
+            return;
+        }
+
+        const startDate = document.getElementById('start')?.value || '';
+        const endDate = document.getElementById('end')?.value || '';
+        if (!startDate || !endDate || startDate >= endDate) {
+            const endInput = document.getElementById('end');
+            if (endInput) {
+                endInput.setCustomValidity('End date must be after the start date.');
+                endInput.reportValidity();
+                endInput.setCustomValidity('');
+            }
+            return;
+        }
     
         const formData = new FormData(this);
         const resultsDiv = document.getElementById('results');

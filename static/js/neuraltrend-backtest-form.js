@@ -1,22 +1,166 @@
 
     
-    // Form Validation 
+    // Backtest date-range validation
     document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("backtest-form");
+        const tickerSelect = document.getElementById("ticker");
         const startInput = document.getElementById("start");
-    
-        if (!startInput) return;
-    
-        const maxDateObj = new Date();
-    
-        const yyyy = maxDateObj.getFullYear();
-        const mm = String(maxDateObj.getMonth() + 1).padStart(2, "0");
-        const dd = String(maxDateObj.getDate()).padStart(2, "0");
-    
-        const maxDate = `${yyyy}-${mm}-${dd}`;
-    
-        if (startInput) {
-            startInput.setAttribute("max", maxDate);
+        const endInput = document.getElementById("end");
+
+        if (!form || !tickerSelect || !startInput || !endInput) return;
+
+        let coverageStart = null;
+        let coverageEnd = null;
+        let boundsRequestId = 0;
+
+        function shiftIsoDate(isoDate, days) {
+            if (!isoDate) return "";
+            const date = new Date(`${isoDate}T00:00:00Z`);
+            if (Number.isNaN(date.getTime())) return "";
+            date.setUTCDate(date.getUTCDate() + days);
+            return date.toISOString().slice(0, 10);
         }
+
+        function updateDateConstraints(changedField = null) {
+            if (!coverageStart || !coverageEnd) return;
+
+            const absoluteStartMax = shiftIsoDate(coverageEnd, -1);
+            const absoluteEndMin = shiftIsoDate(coverageStart, 1);
+
+            startInput.min = coverageStart;
+            startInput.max = endInput.value
+                ? shiftIsoDate(endInput.value, -1)
+                : absoluteStartMax;
+
+            endInput.min = startInput.value
+                ? shiftIsoDate(startInput.value, 1)
+                : absoluteEndMin;
+            endInput.max = coverageEnd;
+
+            // If changing one boundary makes the other boundary invalid, clear
+            // only the now-invalid value and let the user choose a valid one.
+            if (
+                changedField === "start" &&
+                endInput.value &&
+                endInput.value <= startInput.value
+            ) {
+                endInput.value = "";
+                endInput.min = shiftIsoDate(startInput.value, 1);
+            }
+
+            if (
+                changedField === "end" &&
+                startInput.value &&
+                startInput.value >= endInput.value
+            ) {
+                startInput.value = "";
+                startInput.max = shiftIsoDate(endInput.value, -1);
+            }
+
+            startInput.setCustomValidity("");
+            endInput.setCustomValidity("");
+        }
+
+        async function loadBacktestDateBounds() {
+            const requestId = ++boundsRequestId;
+            const ticker = tickerSelect.value;
+
+            startInput.setCustomValidity("Loading available backtest dates…");
+            endInput.setCustomValidity("Loading available backtest dates…");
+
+            try {
+                const response = await fetch(
+                    `/backtest/date-range?ticker=${encodeURIComponent(ticker)}`,
+                    { cache: "no-store" }
+                );
+                const payload = await response.json();
+
+                if (requestId !== boundsRequestId) return;
+                if (!response.ok) {
+                    throw new Error(payload.error || "Backtest date range is unavailable.");
+                }
+
+                coverageStart = payload.coverage_start;
+                coverageEnd = payload.coverage_end;
+
+                // Keep already selected values only when they remain inside the
+                // new asset's available market-data coverage.
+                if (
+                    startInput.value &&
+                    (startInput.value < coverageStart ||
+                     startInput.value > shiftIsoDate(coverageEnd, -1))
+                ) {
+                    startInput.value = "";
+                }
+
+                if (
+                    endInput.value &&
+                    (endInput.value < shiftIsoDate(coverageStart, 1) ||
+                     endInput.value > coverageEnd)
+                ) {
+                    endInput.value = "";
+                }
+
+                if (
+                    startInput.value &&
+                    endInput.value &&
+                    startInput.value >= endInput.value
+                ) {
+                    endInput.value = "";
+                }
+
+                updateDateConstraints();
+            } catch (error) {
+                console.error("Could not load backtest date range:", error);
+                coverageStart = null;
+                coverageEnd = null;
+                startInput.removeAttribute("min");
+                startInput.removeAttribute("max");
+                endInput.removeAttribute("min");
+                endInput.removeAttribute("max");
+                startInput.setCustomValidity(
+                    "Available backtest dates could not be loaded for this asset."
+                );
+                endInput.setCustomValidity(
+                    "Available backtest dates could not be loaded for this asset."
+                );
+            }
+        }
+
+        startInput.addEventListener("change", function() {
+            updateDateConstraints("start");
+        });
+
+        endInput.addEventListener("change", function() {
+            updateDateConstraints("end");
+        });
+
+        tickerSelect.addEventListener("change", loadBacktestDateBounds);
+
+        form.addEventListener("submit", function(event) {
+            if (!coverageStart || !coverageEnd) {
+                event.preventDefault();
+                startInput.reportValidity();
+                return;
+            }
+
+            updateDateConstraints();
+
+            if (
+                !startInput.value ||
+                !endInput.value ||
+                startInput.value >= endInput.value
+            ) {
+                event.preventDefault();
+                if (startInput.value && endInput.value && startInput.value >= endInput.value) {
+                    endInput.setCustomValidity("End date must be after the start date.");
+                }
+                form.reportValidity();
+                return;
+            }
+        });
+
+        loadBacktestDateBounds();
     });
 
     /* ===============================

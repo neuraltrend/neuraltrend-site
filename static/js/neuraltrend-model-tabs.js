@@ -68,7 +68,8 @@ document.addEventListener("DOMContentLoaded", function() {
         backtestForm.addEventListener("submit", function() {
             ntTrack("backtest_submitted", {
                 ticker: document.getElementById("ticker")?.value || "unknown",
-                duration: document.getElementById("duration")?.value || "unknown"
+                start_date: document.getElementById("start")?.value || "unknown",
+                end_date: document.getElementById("end")?.value || "unknown"
             });
         });
     }
