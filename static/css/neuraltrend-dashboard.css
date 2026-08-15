@@ -2953,3 +2953,62 @@
 #epoch-tool-overview .nt-stat-header-label {
     column-gap: 4px;
 }
+
+
+/* ==================================================
+   Final Signal Board polish — Aug 14, 2026
+   Match the Board Columns control, reserve ticker room for the longest
+   symbols, and align the two section titles.
+================================================== */
+
+/* The Board Columns surface was visually a hair shorter than its peers.
+   A 2px lift matches the apparent height/baseline of the pill controls. */
+#epoch-tool-overview .nt-board-columns-toggle {
+    height: 40px !important;
+    min-height: 40px !important;
+}
+
+/* Reserve enough room for long supported tickers such as MOODENG-USD.
+   The runtime column chooser uses matching weights from dashboard.js. */
+:root {
+    --nt-signal-columns:
+        minmax(0, 1.09fr)
+        minmax(0, 0.56fr)
+        minmax(0, 0.59fr)
+        minmax(0, 0.59fr)
+        minmax(0, 0.61fr)
+        minmax(0, 0.76fr)
+        minmax(0, 0.68fr)
+        minmax(0, 0.80fr)
+        minmax(0, 1.06fr)
+        minmax(0, 1.14fr)
+        minmax(0, 0.94fr)
+        minmax(0, 0.69fr)
+        minmax(0, 0.68fr);
+}
+
+/* The statistics groups had a little unused horizontal breathing room.
+   Trim it subtly rather than reducing typography or wrapping headers. */
+#epoch-tool-overview .nt-signal-header > div:nth-child(n+6):nth-child(-n+12),
+#signal-board .signal-row > div:nth-child(n+6):nth-child(-n+12) {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+}
+
+/* Keep the longest ticker on one line and contained inside its own track. */
+#signal-board .signal-ticker-cell,
+#signal-board .signal-ticker-stack {
+    overflow: hidden;
+}
+
+#signal-board .signal-ticker {
+    display: block;
+    max-width: 100%;
+    overflow: visible;
+    white-space: nowrap !important;
+}
+
+/* These are peer section headings, so give them the same visual hierarchy. */
+#equity-preview-container .nt-preview-title {
+    font-size: 15px !important;
+}
