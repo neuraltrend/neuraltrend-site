@@ -52,13 +52,14 @@ def test_backtest_endpoint_returns_standardized_metrics(
         lambda ticker: sample_market_frame.copy(),
     )
     start = sample_market_frame.index.min().date().isoformat()
+    end = sample_market_frame.index.max().date().isoformat()
     response = client.post(
         "/backtest",
         data={
             "ticker": "BTC-USD",
             "cash": "10000",
             "start": start,
-            "duration": "1y",
+            "end": end,
             "dca_pct": "100_pct",
         },
     )
@@ -70,21 +71,108 @@ def test_backtest_endpoint_returns_standardized_metrics(
         len(payload["executed_buy_dates"]) + len(payload["executed_sell_dates"])
     )
 
+def test_backtest_respects_arbitrary_user_end_date(
+    client,
+    monkeypatch,
+    sample_market_frame,
+):
+    monkeypatch.setattr(
+        application,
+        "load_epoch_csv_for_ticker",
+        lambda ticker: sample_market_frame.copy(),
+    )
+    start = sample_market_frame.index.min().date()
+    chosen_end = sample_market_frame.index[3].date()
 
-def test_backtest_rejects_future_start_date(client):
-    future = (datetime.utcnow().date() + timedelta(days=1)).isoformat()
     response = client.post(
         "/backtest",
         data={
             "ticker": "BTC-USD",
             "cash": "10000",
-            "start": future,
-            "duration": "1y",
+            "start": start.isoformat(),
+            "end": chosen_end.isoformat(),
+            "dca_pct": "100_pct",
+        },
+    )
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["dates"][-1] == chosen_end.isoformat()
+    assert all(date <= chosen_end.isoformat() for date in payload["dates"])
+
+
+
+def test_backtest_rejects_start_after_available_coverage(
+    client,
+    monkeypatch,
+    sample_market_frame,
+):
+    monkeypatch.setattr(
+        application,
+        "load_epoch_csv_for_ticker",
+        lambda ticker: sample_market_frame.copy(),
+    )
+    coverage_end = sample_market_frame.index.max().date()
+    response = client.post(
+        "/backtest",
+        data={
+            "ticker": "BTC-USD",
+            "cash": "10000",
+            "start": coverage_end.isoformat(),
+            "end": (coverage_end + timedelta(days=1)).isoformat(),
             "dca_pct": "100_pct",
         },
     )
     assert response.status_code == 400
-    assert "future" in response.get_json()["error"].lower()
+    assert "start date must be between" in response.get_json()["error"].lower()
+
+
+def test_backtest_date_range_endpoint_uses_asset_coverage(
+    client,
+    monkeypatch,
+    sample_market_frame,
+):
+    monkeypatch.setattr(
+        application,
+        "load_epoch_csv_for_ticker",
+        lambda ticker: sample_market_frame.copy(),
+    )
+    response = client.get("/backtest/date-range?ticker=BTC-USD")
+    assert response.status_code == 200
+    payload = response.get_json()
+
+    coverage_start = sample_market_frame.index.min().date()
+    coverage_end = sample_market_frame.index.max().date()
+    assert payload["coverage_start"] == coverage_start.isoformat()
+    assert payload["coverage_end"] == coverage_end.isoformat()
+    assert payload["start_min"] == coverage_start.isoformat()
+    assert payload["start_max"] == (coverage_end - timedelta(days=1)).isoformat()
+    assert payload["end_min"] == (coverage_start + timedelta(days=1)).isoformat()
+    assert payload["end_max"] == coverage_end.isoformat()
+
+
+def test_backtest_rejects_end_on_or_before_start(
+    client,
+    monkeypatch,
+    sample_market_frame,
+):
+    monkeypatch.setattr(
+        application,
+        "load_epoch_csv_for_ticker",
+        lambda ticker: sample_market_frame.copy(),
+    )
+    start = sample_market_frame.index.min().date().isoformat()
+    response = client.post(
+        "/backtest",
+        data={
+            "ticker": "BTC-USD",
+            "cash": "10000",
+            "start": start,
+            "end": start,
+            "dca_pct": "100_pct",
+        },
+    )
+    assert response.status_code == 400
+    assert "after the start date" in response.get_json()["error"].lower()
 
 
 def test_summary_masking_hides_pro_signals_from_anonymous_user(app):
@@ -97,6 +185,7 @@ def test_summary_masking_hides_pro_signals_from_anonymous_user(app):
         "buy_hold_period_return": 0.2,
         "strategy_period_return": 0.3,
         "return_spread": 0.1,
+        "outperformance_ratio": 1.08,
         "coverage_end": "2026-07-25",
     }
     with app.app_context():
@@ -104,3 +193,4 @@ def test_summary_masking_hides_pro_signals_from_anonymous_user(app):
     assert safe["signals_locked"] is True
     assert safe["today_signal"] is None
     assert safe["strategy_period_return"] == 0.3
+    assert safe["outperformance_ratio"] == 1.08
