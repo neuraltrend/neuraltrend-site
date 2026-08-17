@@ -49,7 +49,19 @@ def test_create_and_list_live_simulation(
     )
     listed = authenticated_client.get("/live-simulations")
     assert listed.status_code == 200
-    assert listed.get_json()["count"] == 1
+    listed_payload = listed.get_json()
+    assert listed_payload["count"] == 1
+    assert listed_payload["portfolio_total"]["simulation_count"] == 1
+    assert listed_payload["portfolio_total"]["initial_cash"] == 10000
+    assert listed_payload["portfolio_total"]["latest_strategy_value"] == 10000
+
+    portfolio_response = authenticated_client.get("/live-simulations/portfolio")
+    assert portfolio_response.status_code == 200
+    portfolio = portfolio_response.get_json()["portfolio"]
+    assert portfolio["is_portfolio_total"] is True
+    assert portfolio["simulation_count"] == 1
+    assert portfolio["strategy_curve"] == [10000]
+    assert portfolio["benchmark_curve"] == [10000]
 
 
 def test_live_simulation_rejects_pro_asset_for_free_user(authenticated_client):
