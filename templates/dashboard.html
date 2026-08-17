@@ -7,7 +7,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 {% endblock %}
 
 {% block page_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260814-final-board-polish-v1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260817-live-portfolio-total-v1') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-watchlist.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
 {% endblock %}
@@ -1230,7 +1230,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                 
                     <div class="nt-live-sim-dashboard-header nt-live-sim-dashboard-header-compact">
                         <div class="nt-live-sim-dashboard-title-area">
-                            <div class="nt-section-eyebrow">Selected Simulation</div>
+                            <div id="live-sim-detail-eyebrow" class="nt-section-eyebrow">Selected Simulation</div>
                     
                             <h4 id="live-sim-detail-title" class="nt-live-sim-dashboard-title">
                                 —
@@ -1333,7 +1333,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                 Equity Curve
                             </div>
                 
-                            <div class="nt-live-sim-chart-subtitle">
+                            <div id="live-sim-chart-subtitle" class="nt-live-sim-chart-subtitle">
                                 Strategy value compared with Buy & Hold from the same start date.
                             </div>
                 
@@ -1560,7 +1560,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 
 {% block page_scripts %}
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest.js', v='20260814-backtest-date-range-v1') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260814-backtest-date-range-v1') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260817-live-portfolio-total-v1') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-watchlist.js', v='20260805-signal-actions-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-backtest-form.js', v='20260814-backtest-date-range-v1') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js', v='20260808-altindexer-summary-emphasis-v2') }}"></script>
