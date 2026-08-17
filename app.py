@@ -2469,6 +2469,352 @@ def live_simulation_detail(sim):
 
     return summary
 
+
+def build_live_simulation_portfolio_total(
+    simulations,
+    *,
+    summaries=None,
+    include_curve=False,
+    view="open",
+):
+    """Build a combined portfolio view across the supplied live simulations.
+
+    The combined equity curve sums every simulation's strategy and benchmark
+    equity. Simulations that started later are carried at their initial cash
+    before their own start date, which keeps the combined capital base stable
+    and avoids artificial jumps simply because a new simulation was created.
+    """
+    simulations = list(simulations or [])
+    if not simulations:
+        return None
+
+    if summaries is None:
+        summaries = [live_simulation_summary(sim) for sim in simulations]
+    else:
+        summaries = list(summaries)
+
+    summary_by_id = {
+        int(item.get("id")): item
+        for item in summaries
+        if item.get("id") is not None
+    }
+
+    total_initial_cash = sum(
+        safe_live_sim_float(sim.initial_cash) or 0.0
+        for sim in simulations
+    )
+    total_cash_balance = sum(
+        safe_live_sim_float(sim.cash_balance) or 0.0
+        for sim in simulations
+    )
+
+    latest_strategy_value = 0.0
+    latest_benchmark_value = 0.0
+    total_trade_count = 0
+
+    for sim in simulations:
+        item = summary_by_id.get(int(sim.id), {})
+        initial_cash = safe_live_sim_float(sim.initial_cash) or 0.0
+
+        strategy_value = (
+            safe_live_sim_float(item.get("latest_strategy_value"))
+            if item
+            else None
+        )
+        benchmark_value = (
+            safe_live_sim_float(item.get("latest_benchmark_value"))
+            if item
+            else None
+        )
+
+        latest_strategy_value += (
+            strategy_value if strategy_value is not None else initial_cash
+        )
+        latest_benchmark_value += (
+            benchmark_value if benchmark_value is not None else initial_cash
+        )
+        total_trade_count += int(item.get("trade_count") or 0) if item else 0
+
+    strategy_return = safe_live_sim_return(
+        latest_strategy_value,
+        total_initial_cash,
+    )
+    benchmark_return = safe_live_sim_return(
+        latest_benchmark_value,
+        total_initial_cash,
+    )
+    return_spread = None
+    if strategy_return is not None and benchmark_return is not None:
+        return_spread = strategy_return - benchmark_return
+
+    value_difference = latest_strategy_value - latest_benchmark_value
+
+    start_dates = [sim.start_date for sim in simulations if sim.start_date]
+    earliest_start_date = min(start_dates) if start_dates else None
+
+    latest_equity_dates = []
+    data_through_dates = []
+    site_update_timestamps = []
+    freshness_statuses = []
+    all_current_with_csv = True
+
+    for sim in simulations:
+        item = summary_by_id.get(int(sim.id), {})
+        latest_equity_date = item.get("latest_equity_date") if item else None
+        data_through = item.get("data_through") if item else None
+        site_update = item.get("site_data_updated_at_utc") if item else None
+        freshness_status = str(item.get("freshness_status") or "unknown") if item else "unknown"
+
+        if latest_equity_date:
+            try:
+                latest_equity_dates.append(
+                    datetime.strptime(str(latest_equity_date)[:10], "%Y-%m-%d").date()
+                )
+            except ValueError:
+                pass
+
+        if data_through:
+            try:
+                data_through_dates.append(
+                    datetime.strptime(str(data_through)[:10], "%Y-%m-%d").date()
+                )
+            except ValueError:
+                pass
+
+        if site_update:
+            site_update_timestamps.append(str(site_update))
+
+        freshness_statuses.append(freshness_status)
+        if not bool(item.get("is_current_with_csv")):
+            all_current_with_csv = False
+
+    # A combined portfolio is only as current as its least-current component.
+    freshness_rank = {
+        "current": 0,
+        "delayed": 1,
+        "stale": 2,
+        "unknown": 3,
+    }
+    portfolio_freshness_status = max(
+        freshness_statuses or ["unknown"],
+        key=lambda value: freshness_rank.get(value, 3),
+    )
+    portfolio_freshness_label = FRESHNESS_STATUS_LABELS.get(
+        portfolio_freshness_status,
+        "Unknown",
+    )
+
+    common_simulation_through = (
+        min(latest_equity_dates).isoformat()
+        if latest_equity_dates and len(latest_equity_dates) == len(simulations)
+        else None
+    )
+    common_data_through = (
+        min(data_through_dates).isoformat()
+        if data_through_dates and len(data_through_dates) == len(simulations)
+        else None
+    )
+    latest_equity_date = (
+        max(latest_equity_dates).isoformat()
+        if latest_equity_dates
+        else earliest_start_date.isoformat() if earliest_start_date else None
+    )
+
+    # Build portfolio-level horizon metrics by weighting every simulation by
+    # its actual capital base instead of averaging individual percentages.
+    horizon_returns = {}
+    for horizon_key in LIVE_SIM_HORIZON_DAYS.keys():
+        base_strategy_value = 0.0
+        base_benchmark_value = 0.0
+        current_strategy_value = 0.0
+        current_benchmark_value = 0.0
+        base_dates = []
+        latest_dates = []
+
+        for sim in simulations:
+            item = summary_by_id.get(int(sim.id), {})
+            metrics = (item.get("horizon_returns") or {}).get(horizon_key)
+            if metrics is None:
+                metrics = (item.get("horizon_returns") or {}).get("since_start") or {}
+
+            initial_cash = safe_live_sim_float(sim.initial_cash) or 0.0
+            current_strategy = (
+                safe_live_sim_float(item.get("latest_strategy_value"))
+                if item
+                else None
+            )
+            current_benchmark = (
+                safe_live_sim_float(item.get("latest_benchmark_value"))
+                if item
+                else None
+            )
+            current_strategy = current_strategy if current_strategy is not None else initial_cash
+            current_benchmark = current_benchmark if current_benchmark is not None else initial_cash
+
+            base_strategy = safe_live_sim_float(metrics.get("base_strategy_value"))
+            base_benchmark = safe_live_sim_float(metrics.get("base_benchmark_value"))
+            if base_strategy is None:
+                base_strategy = initial_cash
+            if base_benchmark is None:
+                base_benchmark = initial_cash
+
+            base_strategy_value += base_strategy
+            base_benchmark_value += base_benchmark
+            current_strategy_value += current_strategy
+            current_benchmark_value += current_benchmark
+
+            if metrics.get("base_date"):
+                base_dates.append(str(metrics.get("base_date")))
+            if metrics.get("latest_date"):
+                latest_dates.append(str(metrics.get("latest_date")))
+
+        portfolio_strategy_return = safe_live_sim_return(
+            current_strategy_value,
+            base_strategy_value,
+        )
+        portfolio_benchmark_return = safe_live_sim_return(
+            current_benchmark_value,
+            base_benchmark_value,
+        )
+        portfolio_return_spread = None
+        if portfolio_strategy_return is not None and portfolio_benchmark_return is not None:
+            portfolio_return_spread = portfolio_strategy_return - portfolio_benchmark_return
+
+        strategy_change = current_strategy_value - base_strategy_value
+        benchmark_change = current_benchmark_value - base_benchmark_value
+
+        horizon_returns[horizon_key] = {
+            "base_date": min(base_dates) if base_dates else None,
+            "latest_date": max(latest_dates) if latest_dates else latest_equity_date,
+            "strategy_return": portfolio_strategy_return,
+            "benchmark_return": portfolio_benchmark_return,
+            "return_spread": portfolio_return_spread,
+            "strategy_change": strategy_change,
+            "benchmark_change": benchmark_change,
+            "value_difference": strategy_change - benchmark_change,
+            "strategy_value": current_strategy_value,
+            "benchmark_value": current_benchmark_value,
+            "base_strategy_value": base_strategy_value,
+            "base_benchmark_value": base_benchmark_value,
+        }
+
+    output = {
+        "id": "portfolio-total",
+        "is_portfolio_total": True,
+        "name": "Portfolio Total",
+        "ticker": "All assets",
+        "asset_type": "mixed",
+        "status": str(view or "open"),
+        "view": str(view or "open"),
+        "simulation_count": len(simulations),
+        "initial_cash": total_initial_cash,
+        "cash_balance": total_cash_balance,
+        "position_quantity": None,
+        "position_size_pct": None,
+        "start_date": earliest_start_date.isoformat() if earliest_start_date else None,
+        "latest_strategy_value": latest_strategy_value,
+        "latest_benchmark_value": latest_benchmark_value,
+        "strategy_return": strategy_return,
+        "benchmark_return": benchmark_return,
+        "value_difference": value_difference,
+        "return_spread": return_spread,
+        "trade_count": total_trade_count,
+        "latest_equity_date": latest_equity_date,
+        "latest_signal": None,
+        "latest_close_price": None,
+        "latest_csv_date": common_data_through,
+        "data_through": common_data_through,
+        "simulation_through": common_simulation_through,
+        "site_data_updated_at_utc": max(site_update_timestamps) if site_update_timestamps else None,
+        "freshness_status": portfolio_freshness_status,
+        "freshness_label": portfolio_freshness_label,
+        "freshness_message": (
+            "Combined portfolio freshness reflects the least-current simulation in this view."
+        ),
+        "is_current_with_csv": all_current_with_csv,
+        "horizon_returns": horizon_returns,
+    }
+
+    if include_curve:
+        sim_ids = [sim.id for sim in simulations]
+        equity_points = (
+            LiveSimulationEquity.query
+            .filter(LiveSimulationEquity.simulation_id.in_(sim_ids))
+            .order_by(
+                LiveSimulationEquity.equity_date.asc(),
+                LiveSimulationEquity.simulation_id.asc(),
+            )
+            .all()
+        )
+
+        points_by_sim = {int(sim.id): [] for sim in simulations}
+        all_dates = set(start_dates)
+        for point in equity_points:
+            points_by_sim.setdefault(int(point.simulation_id), []).append(point)
+            if point.equity_date:
+                all_dates.add(point.equity_date)
+
+        ordered_dates = sorted(date for date in all_dates if date is not None)
+        states = {}
+        for sim in simulations:
+            states[int(sim.id)] = {
+                "points": points_by_sim.get(int(sim.id), []),
+                "index": -1,
+                "strategy": safe_live_sim_float(sim.initial_cash) or 0.0,
+                "benchmark": safe_live_sim_float(sim.initial_cash) or 0.0,
+            }
+
+        strategy_curve = []
+        benchmark_curve = []
+
+        for equity_date in ordered_dates:
+            portfolio_strategy_value = 0.0
+            portfolio_benchmark_value = 0.0
+
+            for sim in simulations:
+                state = states[int(sim.id)]
+                points = state["points"]
+
+                while (
+                    state["index"] + 1 < len(points)
+                    and points[state["index"] + 1].equity_date <= equity_date
+                ):
+                    state["index"] += 1
+                    point = points[state["index"]]
+                    strategy_value = safe_live_sim_float(point.strategy_value)
+                    benchmark_value = safe_live_sim_float(point.benchmark_value)
+                    if strategy_value is not None:
+                        state["strategy"] = strategy_value
+                    if benchmark_value is not None:
+                        state["benchmark"] = benchmark_value
+
+                portfolio_strategy_value += state["strategy"]
+                portfolio_benchmark_value += state["benchmark"]
+
+            strategy_curve.append(portfolio_strategy_value)
+            benchmark_curve.append(portfolio_benchmark_value)
+
+        output.update({
+            "dates": [date.isoformat() for date in ordered_dates],
+            "strategy_curve": strategy_curve,
+            "benchmark_curve": benchmark_curve,
+            "signals": [],
+            "close_prices": [],
+            "trades": [],
+            "curve_note": (
+                "Each simulation contributes its initial cash before its own start date, "
+                "then its recorded equity thereafter."
+            ),
+        })
+
+        if strategy_curve:
+            output["latest_strategy_value"] = strategy_curve[-1]
+        if benchmark_curve:
+            output["latest_benchmark_value"] = benchmark_curve[-1]
+
+    return output
+
+
 def can_access_live_sim_ticker_for_user(user, ticker):
     return can_use_live_simulation_ticker(user, ticker)
 
@@ -4963,6 +5309,13 @@ def list_live_simulations():
     all_count = open_count + archived_count
 
     user_limit = get_live_simulation_limit_for_user(current_user)
+    simulation_summaries = [live_simulation_summary(sim) for sim in sims]
+    portfolio_total = build_live_simulation_portfolio_total(
+        sims,
+        summaries=simulation_summaries,
+        include_curve=False,
+        view=requested_status,
+    )
 
     return jsonify({
         "limit": user_limit,
@@ -4976,7 +5329,8 @@ def list_live_simulations():
         "open_count": open_count,
         "all_count": all_count,
         "view": requested_status,
-        "simulations": [live_simulation_summary(sim) for sim in sims],
+        "simulations": simulation_summaries,
+        "portfolio_total": portfolio_total,
     })
 
 @app.route("/live-simulations", methods=["POST"])
@@ -5131,6 +5485,57 @@ def create_live_simulation():
         "message": "Live simulation created.",
         "simulation": live_simulation_detail(sim)
     }), 201
+
+@app.route("/live-simulations/portfolio", methods=["GET"])
+@login_required
+def get_live_simulation_portfolio():
+    freeze_locked_live_simulations_for_user(current_user)
+    enforce_free_live_simulation_limit_for_user(current_user)
+
+    requested_status = request.args.get("status", "open").strip().lower()
+    query = visible_live_simulation_query()
+
+    if requested_status == "active":
+        query = query.filter_by(status="active")
+    elif requested_status == "paused":
+        query = query.filter_by(status="paused")
+    elif requested_status == "archived":
+        query = query.filter_by(status="archived")
+    elif requested_status == "all":
+        pass
+    else:
+        requested_status = "open"
+        query = query.filter(LiveSimulation.status.in_(["active", "paused"]))
+
+    simulations = query.order_by(LiveSimulation.created_at.desc()).all()
+    if not simulations:
+        return jsonify({"error": "No simulations are available in this view."}), 404
+
+    for sim in simulations:
+        if not live_sim_can_update_for_user(current_user, sim):
+            continue
+        try:
+            update_live_simulation_from_csv(sim, current_user)
+        except Exception:
+            app.logger.exception(
+                "Live simulation portfolio refresh failed: simulation_id=%s",
+                sim.id,
+            )
+
+    simulations = query.order_by(LiveSimulation.created_at.desc()).all()
+    summaries = [live_simulation_summary(sim) for sim in simulations]
+    portfolio = build_live_simulation_portfolio_total(
+        simulations,
+        summaries=summaries,
+        include_curve=True,
+        view=requested_status,
+    )
+
+    if portfolio is None:
+        return jsonify({"error": "No simulations are available in this view."}), 404
+
+    return jsonify({"portfolio": portfolio})
+
 
 @app.route("/live-simulations/<int:simulation_id>", methods=["GET"])
 @login_required
