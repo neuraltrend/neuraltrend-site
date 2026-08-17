@@ -3012,3 +3012,75 @@
 #equity-preview-container .nt-preview-title {
     font-size: 15px !important;
 }
+
+
+/* ==================================================
+   Live Simulation — sticky combined portfolio total
+   Aug 17, 2026
+================================================== */
+
+.nt-live-sim-board-table tfoot {
+    position: sticky;
+    bottom: 0;
+    z-index: 24;
+}
+
+.nt-live-sim-board-table tfoot td {
+    padding: 8px 8px;
+    vertical-align: middle;
+    background: #eef6ff;
+    border-top: 2px solid rgba(37, 99, 235, 0.34);
+    border-bottom: 0;
+    box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.nt-live-sim-board-table tfoot tr {
+    position: sticky;
+    bottom: 0;
+    z-index: 24;
+    cursor: pointer;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nt-live-sim-board-table tfoot tr:hover td {
+    background: #e5f0ff;
+}
+
+.nt-live-sim-board-table tfoot tr.active td {
+    background: #dbeafe;
+}
+
+.nt-live-sim-board-table tfoot tr.active td:first-child {
+    box-shadow: inset 3px 0 0 var(--nt-blue);
+}
+
+.nt-live-sim-portfolio-total-row .nt-live-sim-board-name,
+.nt-live-sim-portfolio-total-row .nt-live-sim-board-main-value {
+    font-weight: 900;
+}
+
+.nt-live-sim-portfolio-total-row .nt-live-sim-board-status {
+    color: var(--nt-blue);
+    font-weight: 800;
+}
+
+.nt-live-sim-portfolio-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(37, 99, 235, 0.24);
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--nt-blue);
+    font-size: 11px;
+    font-weight: 850;
+}
+
+.nt-live-sim-portfolio-selected-actions {
+    align-items: center;
+}
+
+.nt-live-sim-portfolio-trade-note {
+    margin: 8px 0;
+}
