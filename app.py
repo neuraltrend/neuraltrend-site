@@ -943,12 +943,12 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "STEP-USD", "STG-USD", "STORJ-USD", "STRK-USD", "SUI-USD", "SUNDOG-USD", "SUPER-USD", "TAI-USD", "TAO-USD", 'TCEHY', 
                "TET-USD", "TFUEL-USD", "THETA-USD", "TLOS-USD", "TON-USD", "TRAC-USD", "TRIAS-USD", "TRU-USD", 'TSLA', 'TSM', "TURBO-USD",
                "UNI-USD", "UNIBOT-USD", "UOS-USD", 'V', "VAI-USD", "VET-USD", "VIA-USD", "VIRTUAL-USD", "VOO", "VR-USD", "VRA-USD",
-               "WAXP-USD", "WHALES-USD", "WIF-USD", "WIFI-USD", "WILD-USD", "WINR-USD", "WLD-USD", "WMT", "WMTX-USD", "XAI-USD", 
+               "WAXP-USD", "WHALES-USD", "WIF-USD", "WIFI-USD", "WILD-USD", "WINR-USD", "WLD-USD", "WMTX-USD", "XAI-USD", 
                "XCAD-USD", "XLM-USD", "XMR-USD", "XOM", "XTZ-USD", "XYO-USD", "YGG-USD", "ZBCN-USD", "ZEN-USD", "ZEREBRO-USD", "ZETA-USD", 
                "ZIG-USD", "ZKJ-USD", "ZRX-USD"]
 
 TOP_FREE_TICKERS = {"BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD"}
-ADMIN_ONLY_TICKERS = {"MU", "JNJ", "LLY"}
+ADMIN_ONLY_TICKERS = {"MU", "JNJ", "LLY", "JPM"}
 ALL_SUPPORTED_TICKERS = frozenset(
     str(ticker).strip().upper()
     for ticker in [*SUPPORTED_TICKERS, *ADMIN_ONLY_TICKERS]
@@ -2604,6 +2604,20 @@ def build_live_simulation_portfolio_total(
         "Unknown",
     )
 
+    freshness_counts = {
+        "current": 0,
+        "delayed": 0,
+        "stale": 0,
+        "unknown": 0,
+    }
+    for freshness_status in freshness_statuses:
+        normalized_status = (
+            freshness_status
+            if freshness_status in freshness_counts
+            else "unknown"
+        )
+        freshness_counts[normalized_status] += 1
+
     common_simulation_through = (
         min(latest_equity_dates).isoformat()
         if latest_equity_dates and len(latest_equity_dates) == len(simulations)
@@ -2729,8 +2743,9 @@ def build_live_simulation_portfolio_total(
         "freshness_status": portfolio_freshness_status,
         "freshness_label": portfolio_freshness_label,
         "freshness_message": (
-            "Combined portfolio freshness reflects the least-current simulation in this view."
+            "Combined portfolio freshness is summarized across all simulations in this view."
         ),
+        "freshness_counts": freshness_counts,
         "is_current_with_csv": all_current_with_csv,
         "horizon_returns": horizon_returns,
     }
