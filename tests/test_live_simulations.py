@@ -54,6 +54,8 @@ def test_create_and_list_live_simulation(
     assert listed_payload["portfolio_total"]["simulation_count"] == 1
     assert listed_payload["portfolio_total"]["initial_cash"] == 10000
     assert listed_payload["portfolio_total"]["latest_strategy_value"] == 10000
+    assert "freshness_counts" in listed_payload["portfolio_total"]
+    assert sum(listed_payload["portfolio_total"]["freshness_counts"].values()) == 1
 
     portfolio_response = authenticated_client.get("/live-simulations/portfolio")
     assert portfolio_response.status_code == 200
@@ -62,6 +64,8 @@ def test_create_and_list_live_simulation(
     assert portfolio["simulation_count"] == 1
     assert portfolio["strategy_curve"] == [10000]
     assert portfolio["benchmark_curve"] == [10000]
+    assert "freshness_counts" in portfolio
+    assert sum(portfolio["freshness_counts"].values()) == 1
 
 
 def test_live_simulation_rejects_pro_asset_for_free_user(authenticated_client):
