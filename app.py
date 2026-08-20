@@ -943,12 +943,12 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "STEP-USD", "STG-USD", "STORJ-USD", "STRK-USD", "SUI-USD", "SUNDOG-USD", "SUPER-USD", "TAI-USD", "TAO-USD", 'TCEHY', 
                "TET-USD", "TFUEL-USD", "THETA-USD", "TLOS-USD", "TON-USD", "TRAC-USD", "TRIAS-USD", "TRU-USD", 'TSLA', 'TSM', "TURBO-USD",
                "UNI-USD", "UNIBOT-USD", "UOS-USD", 'V', "VAI-USD", "VET-USD", "VIA-USD", "VIRTUAL-USD", "VOO", "VR-USD", "VRA-USD",
-               "WAXP-USD", "WHALES-USD", "WIF-USD", "WIFI-USD", "WILD-USD", "WINR-USD", "WLD-USD", "WMTX-USD", "XAI-USD", 
+               "WAXP-USD", "WHALES-USD", "WIF-USD", "WIFI-USD", "WILD-USD", "WINR-USD", "WLD-USD", "WMT", "WMTX-USD", "XAI-USD", 
                "XCAD-USD", "XLM-USD", "XMR-USD", "XOM", "XTZ-USD", "XYO-USD", "YGG-USD", "ZBCN-USD", "ZEN-USD", "ZEREBRO-USD", "ZETA-USD", 
                "ZIG-USD", "ZKJ-USD", "ZRX-USD"]
 
 TOP_FREE_TICKERS = {"BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD"}
-ADMIN_ONLY_TICKERS = {"MU", "JNJ", "LLY", "WMT1","WMT2","WMT3","WMT4","WMT5","WMT6","WMT7"}
+ADMIN_ONLY_TICKERS = {"MU", "JNJ", "LLY"}
 ALL_SUPPORTED_TICKERS = frozenset(
     str(ticker).strip().upper()
     for ticker in [*SUPPORTED_TICKERS, *ADMIN_ONLY_TICKERS]
