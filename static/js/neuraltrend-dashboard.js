@@ -2459,6 +2459,7 @@
     let recentlyCreatedLiveSimulationId = null;
     let liveSimulationsCache = [];
     let liveSimPortfolioCache = null;
+    let liveSimSelectedDetailCache = null;
     let liveSimStatusFilter = "open";
     
     let liveSimLoggedIn = false;
@@ -2472,7 +2473,7 @@
 
     let liveSimBoardStrategyDisplayMode = "percent";
     let liveSimBoardBenchmarkDisplayMode = "percent";
-    let liveSimBoardSpreadDisplayMode = "percent";
+    let liveSimBoardSpreadDisplayMode = "ratio";
     let liveSimBoardSearchQuery = "";
 
     let liveSimBoardHorizon = "since_start";
@@ -2708,8 +2709,8 @@
                             </th>
     
                             <th class="numeric">
-                                <button type="button" data-live-sim-board-sort="return_spread">
-                                    Return Spread ${liveSimBoardSortArrow("return_spread")}
+                                <button type="button" data-live-sim-board-sort="outperformance">
+                                    Outperformance ${liveSimBoardSortArrow("outperformance")}
                                 </button>
                             </th>
                         </tr>
@@ -2756,8 +2757,9 @@
                             </th>
     
                             <th class="numeric">
-                                <select id="live-sim-board-spread-mode" aria-label="Return spread display mode">
-                                    <option value="percent" ${liveSimBoardSpreadDisplayMode === "percent" ? "selected" : ""}>Spread (pts)</option>
+                                <select id="live-sim-board-outperformance-mode" aria-label="Outperformance display mode">
+                                    <option value="ratio" ${liveSimBoardSpreadDisplayMode === "ratio" ? "selected" : ""}>Ratio</option>
+                                    <option value="percent" ${liveSimBoardSpreadDisplayMode === "percent" ? "selected" : ""}>%</option>
                                     <option value="value" ${liveSimBoardSpreadDisplayMode === "value" ? "selected" : ""}>$ Value</option>
                                 </select>
                             </th>
@@ -2810,8 +2812,17 @@
                                             </td>
     
                                             <td>
-                                                <div class="nt-live-sim-board-ticker">
-                                                    ${escapeHTML(sim.ticker || "—")}
+                                                <div class="nt-live-sim-ticker-stack">
+                                                    <div class="nt-live-sim-board-ticker">
+                                                        ${escapeHTML(sim.ticker || "—")}
+                                                    </div>
+                                                    <div
+                                                        class="signal-freshness-meta nt-freshness-${ntSafeFreshnessStatus(sim.freshness_status)}"
+                                                        title="${escapeHTML(sim.freshness_message || "Freshness unavailable.")}"
+                                                    >
+                                                        <span class="signal-freshness-dot" aria-hidden="true"></span>
+                                                        <span>${escapeHTML(ntFreshnessCompactText(sim))}</span>
+                                                    </div>
                                                 </div>
                                             </td>
     
@@ -2841,7 +2852,7 @@
                                             </td>
                                             
                                             <td class="numeric">
-                                                ${liveSimBoardSpreadMetricHTML(valueDifference, returnSpread, liveSimBoardSpreadDisplayMode)}
+                                                ${liveSimBoardOutperformanceMetricHTML(sim, liveSimBoardSpreadDisplayMode)}
                                             </td>
                                         </tr>
                                     `;
@@ -2875,16 +2886,28 @@
                                     data-live-sim-portfolio-row="true"
                                 >
                                     <td>
-                                        <div class="nt-live-sim-board-main-value">TOTAL</div>
+                                        <div class="nt-live-sim-portfolio-total-label">
+                                            <span class="nt-live-sim-board-main-value">TOTAL</span>
+                                            <span class="nt-stat-header-info nt-live-sim-portfolio-info" data-live-sim-portfolio-info-root>
+                                                <button
+                                                    type="button"
+                                                    class="nt-stat-header-info-button"
+                                                    data-live-sim-portfolio-info-button
+                                                    aria-label="About the combined portfolio calculation"
+                                                    aria-expanded="false"
+                                                >i</button>
+                                                <span class="nt-stat-header-tooltip nt-live-sim-portfolio-info-tooltip" role="tooltip">Each simulation keeps its own initial cash allocation. Before a simulation starts, that allocation is treated as idle cash; from its start date onward, its recorded strategy and Buy &amp; Hold values are used. Portfolio dollar values are summed across simulations, while percentage returns are calculated from the combined value relative to the combined starting or horizon-base capital rather than averaging individual returns.</span>
+                                            </span>
+                                        </div>
                                         <div class="nt-live-sim-board-sub-value neutral">${escapeHTML(liveSimFilterLabel(liveSimStatusFilter))}</div>
                                     </td>
                                     <td>
                                         <div class="nt-live-sim-board-name">Portfolio Total</div>
-                                        <div class="nt-live-sim-board-status">Click for combined equity</div>
+                                        <div class="nt-live-sim-board-status">${Number(portfolio.simulation_count || 0)} simulations · click for combined equity</div>
                                     </td>
                                     <td>
                                         <div class="nt-live-sim-board-ticker">All assets</div>
-                                        <div class="nt-live-sim-board-sub-value neutral">${Number(portfolio.simulation_count || 0)} simulations</div>
+                                        ${liveSimPortfolioFreshnessCountsHTML(portfolio)}
                                     </td>
                                     <td>
                                         <span class="nt-live-sim-board-signal hold">—</span>
@@ -2904,7 +2927,7 @@
                                         ${liveSimBoardReturnMetricHTML(benchmarkValue, benchmarkReturn, liveSimBoardBenchmarkDisplayMode)}
                                     </td>
                                     <td class="numeric">
-                                        ${liveSimBoardSpreadMetricHTML(valueDifference, returnSpread, liveSimBoardSpreadDisplayMode)}
+                                        ${liveSimBoardOutperformanceMetricHTML(portfolio, liveSimBoardSpreadDisplayMode)}
                                     </td>
                                 </tr>
                             </tfoot>
@@ -2967,7 +2990,8 @@
     function renderLiveSimulationDetail(sim) {
         const dashboard = document.getElementById("live-sim-dashboard");
         if (!dashboard) return;
-    
+
+        liveSimSelectedDetailCache = sim;
         dashboard.style.display = "block";
     
         const isPortfolioTotal = Boolean(sim.is_portfolio_total);
@@ -3004,10 +3028,16 @@
             );
         }
 
-        ntApplyFreshnessBadge(
-            document.getElementById("live-sim-freshness-badge"),
-            sim
-        );
+        const liveFreshnessBadge = document.getElementById("live-sim-freshness-badge");
+        if (isPortfolioTotal) {
+            if (liveFreshnessBadge) {
+                liveFreshnessBadge.className = "nt-freshness-badge nt-live-sim-portfolio-freshness-badge";
+                liveFreshnessBadge.textContent = liveSimPortfolioFreshnessCountsText(sim);
+                liveFreshnessBadge.title = "Freshness across the simulations included in this portfolio view.";
+            }
+        } else {
+            ntApplyFreshnessBadge(liveFreshnessBadge, sim);
+        }
 
         const detailSignalWrap = document.getElementById("live-sim-detail-signal-wrap");
         if (detailSignalWrap) {
@@ -3091,6 +3121,50 @@
         }
     }
     
+    function liveSimCurveSliceForHorizon(sim) {
+        const dates = Array.isArray(sim?.dates) ? sim.dates : [];
+        const strategyCurve = Array.isArray(sim?.strategy_curve) ? sim.strategy_curve : [];
+        const benchmarkCurve = Array.isArray(sim?.benchmark_curve) ? sim.benchmark_curve : [];
+
+        if (!dates.length || liveSimBoardHorizon === "since_start") {
+            return {dates, strategyCurve, benchmarkCurve};
+        }
+
+        const horizonDays = {
+            "1d": 1,
+            "1w": 7,
+            "1mo": 30,
+            "3mo": 90,
+            "6mo": 180,
+            "1y": 365
+        };
+        const days = horizonDays[liveSimBoardHorizon];
+        if (!days) return {dates, strategyCurve, benchmarkCurve};
+
+        const latestDate = ntParseChartDate(dates[dates.length - 1]);
+        if (Number.isNaN(latestDate.getTime())) return {dates, strategyCurve, benchmarkCurve};
+
+        const targetDate = new Date(latestDate);
+        targetDate.setDate(targetDate.getDate() - days);
+
+        let startIndex = 0;
+        for (let index = 0; index < dates.length; index++) {
+            const currentDate = ntParseChartDate(dates[index]);
+            if (Number.isNaN(currentDate.getTime())) continue;
+            if (currentDate <= targetDate) {
+                startIndex = index;
+                continue;
+            }
+            break;
+        }
+
+        return {
+            dates: dates.slice(startIndex),
+            strategyCurve: strategyCurve.slice(startIndex),
+            benchmarkCurve: benchmarkCurve.slice(startIndex)
+        };
+    }
+
     function renderLiveSimulationChart(sim) {
         const canvas = document.getElementById("live-sim-chart");
         if (!canvas) return;
@@ -3100,6 +3174,8 @@
         if (liveSimChart) {
             liveSimChart.destroy();
         }
+
+        const curveView = liveSimCurveSliceForHorizon(sim);
     
         const colors = typeof NT_COLORS !== "undefined"
             ? NT_COLORS
@@ -3111,11 +3187,11 @@
         liveSimChart = new Chart(ctx, {
             type: "line",
             data: {
-                labels: sim.dates || [],
+                labels: curveView.dates,
                 datasets: [
                     {
                         label: sim.is_portfolio_total ? "Combined Live Strategy" : `${sim.ticker} Live Strategy`,
-                        data: sim.strategy_curve || [],
+                        data: curveView.strategyCurve,
                         borderColor: colors.chartAI,
                         backgroundColor: colors.chartAI,
                         pointRadius: 2,
@@ -3124,7 +3200,7 @@
                     },
                     {
                         label: sim.is_portfolio_total ? "Combined Buy & Hold" : `${sim.ticker} Buy & Hold`,
-                        data: sim.benchmark_curve || [],
+                        data: curveView.benchmarkCurve,
                         borderColor: colors.chartBuyHold,
                         backgroundColor: colors.chartBuyHold,
                         borderDash: [5, 5],
@@ -3392,6 +3468,7 @@
         const dashboard = document.getElementById("live-sim-dashboard");
     
         liveSimulationsCache = [];
+        liveSimSelectedDetailCache = null;
         selectedLiveSimulationId = null;
     
         if (limitEl) {
@@ -4148,12 +4225,17 @@
             return liveSimBoardBenchmarkDollarForHorizon(sim) ?? -Infinity;
         }
         
-        if (key === "return_spread") {
-            if (liveSimBoardSpreadDisplayMode === "percent") {
-                return liveSimBoardReturnSpreadForHorizon(sim) ?? -Infinity;
+        if (key === "outperformance") {
+            if (liveSimBoardSpreadDisplayMode === "value") {
+                return liveSimBoardValueDifferenceForHorizon(sim) ?? -Infinity;
             }
 
-            return liveSimBoardValueDifferenceForHorizon(sim) ?? -Infinity;
+            const ratio = liveSimBoardOutperformanceRatioForHorizon(sim);
+            if (ratio === null) return -Infinity;
+
+            return liveSimBoardSpreadDisplayMode === "percent"
+                ? ratio - 1
+                : ratio;
         }
     
         return "";
@@ -4326,7 +4408,7 @@
     
         liveSimBoardStrategyDisplayMode = "percent";
         liveSimBoardBenchmarkDisplayMode = "percent";
-        liveSimBoardSpreadDisplayMode = "percent";
+        liveSimBoardSpreadDisplayMode = "ratio";
     
         liveSimBoardSortKey = "created_at";
         liveSimBoardSortDirection = "desc";   
@@ -4439,6 +4521,68 @@
         return strategyChange - benchmarkChange;
     }
     
+    function liveSimBoardOutperformanceRatioForHorizon(sim) {
+        const strategyReturn = liveSimBoardStrategyReturnForHorizon(sim);
+        const benchmarkReturn = liveSimBoardBenchmarkReturnForHorizon(sim);
+
+        if (
+            strategyReturn === null || benchmarkReturn === null ||
+            !Number.isFinite(Number(strategyReturn)) ||
+            !Number.isFinite(Number(benchmarkReturn))
+        ) return null;
+
+        const strategyGrowth = 1 + Number(strategyReturn);
+        const benchmarkGrowth = 1 + Number(benchmarkReturn);
+        if (benchmarkGrowth <= 0 || strategyGrowth < 0) return null;
+
+        return strategyGrowth / benchmarkGrowth;
+    }
+
+    function liveSimBoardOutperformanceMetricHTML(sim, displayMode = "ratio") {
+        const ratio = liveSimBoardOutperformanceRatioForHorizon(sim);
+        const percent = ratio === null ? null : ratio - 1;
+        const valueDifference = liveSimBoardValueDifferenceForHorizon(sim);
+        const toneMetric = displayMode === "value" ? valueDifference : percent;
+        const toneClass = liveSimBoardToneClass(toneMetric);
+
+        let text = "—";
+        if (displayMode === "value") {
+            text = valueDifference === null ? "—" : liveSimSignedMoney(valueDifference);
+        } else if (displayMode === "percent") {
+            text = percent === null ? "—" : liveSimSignedPercent(percent);
+        } else {
+            text = ratio === null ? "—" : `${ratio.toFixed(3)}×`;
+        }
+
+        return `<div class="nt-live-sim-board-main-value ${toneClass}">${text}</div>`;
+    }
+
+    function liveSimPortfolioFreshnessCounts(portfolio) {
+        const source = portfolio?.freshness_counts || {};
+        return [
+            ["current", Number(source.current || 0)],
+            ["delayed", Number(source.delayed || 0)],
+            ["stale", Number(source.stale || 0)],
+            ["unknown", Number(source.unknown || 0)]
+        ].filter(([, count]) => Number.isFinite(count) && count > 0);
+    }
+
+    function liveSimPortfolioFreshnessCountsText(portfolio) {
+        const entries = liveSimPortfolioFreshnessCounts(portfolio);
+        return entries.length
+            ? entries.map(([status, count]) => `${count} ${status}`).join(" · ")
+            : "Freshness unavailable";
+    }
+
+    function liveSimPortfolioFreshnessCountsHTML(portfolio) {
+        const entries = liveSimPortfolioFreshnessCounts(portfolio);
+        if (!entries.length) {
+            return `<div class="signal-freshness-meta nt-freshness-unknown"><span class="signal-freshness-dot" aria-hidden="true"></span><span>Freshness unavailable</span></div>`;
+        }
+
+        return `<div class="nt-live-sim-portfolio-freshness-counts" title="Freshness across simulations in this portfolio view">${entries.map(([status, count]) => `<span class="nt-live-sim-portfolio-freshness-count nt-freshness-${ntSafeFreshnessStatus(status)}"><span class="signal-freshness-dot" aria-hidden="true"></span><span>${count} ${escapeHTML(status)}</span></span>`).join("")}</div>`;
+    }
+
     function liveSimBoardSpreadMetricHTML(
         valueDifference,
         returnSpread,
@@ -4510,6 +4654,10 @@
     
         syncLiveSimHorizonPills();
         renderLiveSimulationList(liveSimulationsCache);
+
+        if (liveSimSelectedDetailCache) {
+            renderLiveSimulationChart(liveSimSelectedDetailCache);
+        }
     });
     
     document.getElementById("live-sim-form")?.addEventListener("submit", async function (e) {
@@ -4736,6 +4884,34 @@
     });
 
     document.addEventListener("click", async function (e) {
+        const portfolioInfoButton = e.target.closest("[data-live-sim-portfolio-info-button]");
+        const portfolioInfoRoots = Array.from(document.querySelectorAll("[data-live-sim-portfolio-info-root]"));
+
+        if (portfolioInfoButton) {
+            e.preventDefault();
+            e.stopPropagation();
+            const root = portfolioInfoButton.closest("[data-live-sim-portfolio-info-root]");
+            const shouldOpen = root && !root.classList.contains("is-open");
+
+            portfolioInfoRoots.forEach(item => {
+                item.classList.remove("is-open");
+                item.querySelector("[data-live-sim-portfolio-info-button]")?.setAttribute("aria-expanded", "false");
+            });
+
+            if (root && shouldOpen) {
+                root.classList.add("is-open");
+                portfolioInfoButton.setAttribute("aria-expanded", "true");
+            }
+            return;
+        }
+
+        portfolioInfoRoots.forEach(root => {
+            if (!root.contains(e.target)) {
+                root.classList.remove("is-open");
+                root.querySelector("[data-live-sim-portfolio-info-button]")?.setAttribute("aria-expanded", "false");
+            }
+        });
+
         const sortButton = e.target.closest("[data-live-sim-board-sort]");
     
         if (sortButton) {
@@ -4803,7 +4979,7 @@
             return;
         }
         
-        if (e.target && e.target.id === "live-sim-board-spread-mode") {
+        if (e.target && e.target.id === "live-sim-board-outperformance-mode") {
             liveSimBoardSpreadDisplayMode = e.target.value;
             renderLiveSimulationList(liveSimulationsCache);
             return;
