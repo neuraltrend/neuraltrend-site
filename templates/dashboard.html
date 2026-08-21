@@ -7,7 +7,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 {% endblock %}
 
 {% block page_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260819-live-sim-board-portfolio-polish-v1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-dashboard.css', v='20260821-live-backtest-robust-v2') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-watchlist.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend-forward-record.css') }}">
 {% endblock %}
@@ -905,12 +905,32 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
         
                     <div class="form-group">
                         <label for="start">Start Date:</label>
-                        <input type="date" id="start" name="start" required />
+                        <input
+                            type="text"
+                            id="start"
+                            inputmode="numeric"
+                            autocomplete="off"
+                            placeholder="MM/DD/YYYY"
+                            aria-describedby="backtest-start-date-hint"
+                            required
+                        />
+                        <input type="hidden" id="start-iso" name="start" />
+                        <small id="backtest-start-date-hint" class="nt-backtest-date-hint"></small>
                     </div>
         
                     <div class="form-group">
                         <label for="end">End Date:</label>
-                        <input type="date" id="end" name="end" required />
+                        <input
+                            type="text"
+                            id="end"
+                            inputmode="numeric"
+                            autocomplete="off"
+                            placeholder="MM/DD/YYYY"
+                            aria-describedby="backtest-end-date-hint"
+                            required
+                        />
+                        <input type="hidden" id="end-iso" name="end" />
+                        <small id="backtest-end-date-hint" class="nt-backtest-date-hint"></small>
                     </div>
 
                     <div class="form-group">
@@ -1559,10 +1579,10 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
 {% endblock %}
 
 {% block page_scripts %}
-<script src="{{ url_for('static', filename='js/neuraltrend-backtest.js', v='20260814-backtest-date-range-v1') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260819-live-sim-board-portfolio-polish-v1') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-backtest.js', v='20260821-live-backtest-robust-v2') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-dashboard.js', v='20260821-live-backtest-robust-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-watchlist.js', v='20260805-signal-actions-v2') }}"></script>
-<script src="{{ url_for('static', filename='js/neuraltrend-backtest-form.js', v='20260814-backtest-date-range-v1') }}"></script>
+<script src="{{ url_for('static', filename='js/neuraltrend-backtest-form.js', v='20260821-live-backtest-robust-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-altindexer.js', v='20260808-altindexer-summary-emphasis-v2') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-subscription-bridge.js') }}"></script>
 <script src="{{ url_for('static', filename='js/neuraltrend-checkout-status.js') }}"></script>
