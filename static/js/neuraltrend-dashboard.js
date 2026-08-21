@@ -2460,6 +2460,8 @@
     let liveSimulationsCache = [];
     let liveSimPortfolioCache = null;
     let liveSimSelectedDetailCache = null;
+    const liveSimPortfolioDetailCache = new Map();
+    const liveSimPortfolioDetailRequests = new Map();
     let liveSimStatusFilter = "open";
     
     let liveSimLoggedIn = false;
@@ -2583,10 +2585,25 @@
             updateLiveSimFilterCounts(data);
 
             liveSimulationsCache = data.simulations || [];
-            liveSimPortfolioCache = data.portfolio_total || null;
+            const nextPortfolioSummary = data.portfolio_total || null;
+            const previousPortfolioSignature = liveSimPortfolioSummarySignature(liveSimPortfolioCache);
+            const nextPortfolioSignature = liveSimPortfolioSummarySignature(nextPortfolioSummary);
+
+            // Keep an already-built combined curve when the underlying
+            // simulations have not changed. This makes repeated TOTAL clicks
+            // instantaneous instead of rebuilding the same portfolio curve.
+            if (previousPortfolioSignature !== nextPortfolioSignature) {
+                invalidateLiveSimPortfolioDetail(liveSimStatusFilter);
+            }
+            liveSimPortfolioCache = nextPortfolioSummary;
             
             limitEl.textContent = liveSimLimitText(data);
-            
+
+            // Start the combined-curve request before the synchronous table
+            // render. Usually it finishes while the user is reading the board.
+            if (liveSimulationsCache.length) {
+                prefetchLiveSimPortfolioDetail(liveSimStatusFilter);
+            }
             renderLiveSimulationList(liveSimulationsCache);
     
             if (data.simulations && data.simulations.length > 0) {
@@ -2949,18 +2966,157 @@
         }
     }
     
+    function liveSimPortfolioSummarySignature(portfolio) {
+        if (!portfolio) return "none";
+        return [
+            portfolio.simulation_count ?? "",
+            portfolio.latest_equity_date ?? "",
+            portfolio.latest_strategy_value ?? "",
+            portfolio.latest_benchmark_value ?? "",
+            portfolio.cash_balance ?? "",
+            portfolio.trade_count ?? "",
+            portfolio.view ?? portfolio.status ?? ""
+        ].join("|");
+    }
+
+    function liveSimPortfolioCacheKey(status = liveSimStatusFilter) {
+        return String(status || "open").trim().toLowerCase() || "open";
+    }
+
+    function invalidateLiveSimPortfolioDetail(status = liveSimStatusFilter) {
+        const key = liveSimPortfolioCacheKey(status);
+        liveSimPortfolioDetailCache.delete(key);
+        liveSimPortfolioDetailRequests.delete(key);
+    }
+
+    function getLiveSimPortfolioDetail(status = liveSimStatusFilter) {
+        const key = liveSimPortfolioCacheKey(status);
+
+        if (liveSimPortfolioDetailCache.has(key)) {
+            return Promise.resolve(liveSimPortfolioDetailCache.get(key));
+        }
+
+        if (liveSimPortfolioDetailRequests.has(key)) {
+            return liveSimPortfolioDetailRequests.get(key);
+        }
+
+        const request = liveSimFetchJSON(
+            `/live-simulations/portfolio?status=${encodeURIComponent(key)}&skip_refresh=1`,
+            {cache: "no-store"}
+        )
+            .then(data => {
+                const portfolio = data?.portfolio || null;
+                if (portfolio) {
+                    liveSimPortfolioDetailCache.set(key, portfolio);
+                }
+                return portfolio;
+            })
+            .finally(() => {
+                liveSimPortfolioDetailRequests.delete(key);
+            });
+
+        liveSimPortfolioDetailRequests.set(key, request);
+        return request;
+    }
+
+    function prefetchLiveSimPortfolioDetail(status = liveSimStatusFilter) {
+        const key = liveSimPortfolioCacheKey(status);
+        if (liveSimPortfolioDetailCache.has(key) || liveSimPortfolioDetailRequests.has(key)) {
+            return;
+        }
+
+        // Fire immediately; request de-duplication in getLiveSimPortfolioDetail
+        // means a quick TOTAL click simply awaits this same in-flight request.
+        getLiveSimPortfolioDetail(key).catch(error => {
+            console.debug("Portfolio equity prefetch skipped:", error);
+        });
+    }
+
+    function setLiveSimulationDetailLoading(title = "Portfolio Total") {
+        const dashboard = document.getElementById("live-sim-dashboard");
+        if (!dashboard) return;
+
+        dashboard.style.display = "block";
+        liveSimSelectedDetailCache = null;
+
+        const titleEl = document.getElementById("live-sim-detail-title");
+        const subtitleEl = document.getElementById("live-sim-detail-subtitle");
+        if (titleEl) titleEl.textContent = title;
+        if (subtitleEl) subtitleEl.textContent = "Loading combined portfolio equity…";
+
+        [
+            "live-sim-strategy-value",
+            "live-sim-benchmark-value",
+            "live-sim-cash-balance",
+            "live-sim-spread-value"
+        ].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = "—";
+        });
+
+        [
+            "live-sim-strategy-return",
+            "live-sim-benchmark-return",
+            "live-sim-position-quantity",
+            "live-sim-spread-detail"
+        ].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = "Loading…";
+        });
+
+        const chartSubtitle = document.getElementById("live-sim-chart-subtitle");
+        if (chartSubtitle) chartSubtitle.textContent = "Preparing combined equity curve…";
+
+        if (liveSimChart) {
+            liveSimChart.destroy();
+            liveSimChart = null;
+        }
+
+        const shell = document.querySelector(".nt-live-sim-chart-shell");
+        if (shell) shell.classList.add("is-loading");
+    }
+
+    function clearLiveSimulationChartLoading() {
+        document.querySelector(".nt-live-sim-chart-shell")?.classList.remove("is-loading");
+    }
+
     async function selectLiveSimulationPortfolio() {
         selectedLiveSimulationId = LIVE_SIM_PORTFOLIO_TOTAL_ID;
+        updateLiveSimBoardActiveRow();
+        renderLiveSimSelectedActions();
+
+        const key = liveSimPortfolioCacheKey(liveSimStatusFilter);
+        const cachedPortfolio = liveSimPortfolioDetailCache.get(key);
+
+        if (cachedPortfolio) {
+            liveSimPortfolioCache = cachedPortfolio;
+            renderLiveSimulationDetail(cachedPortfolio);
+            return;
+        }
+
+        setLiveSimulationDetailLoading("Portfolio Total");
+        // Let the loading overlay paint before waiting on a potentially large
+        // combined-equity request.
+        await new Promise(resolve => window.requestAnimationFrame(() => resolve()));
 
         try {
-            const statusQuery = encodeURIComponent(liveSimStatusFilter || "open");
-            const data = await liveSimFetchJSON(`/live-simulations/portfolio?status=${statusQuery}`);
-            liveSimPortfolioCache = data.portfolio || liveSimPortfolioCache;
-            renderLiveSimulationDetail(data.portfolio);
+            const portfolio = await getLiveSimPortfolioDetail(key);
+            if (!portfolio) {
+                throw new Error("Combined portfolio equity is unavailable.");
+            }
+
+            liveSimPortfolioCache = portfolio;
+            renderLiveSimulationDetail(portfolio);
             updateLiveSimBoardActiveRow();
             renderLiveSimSelectedActions();
         } catch (error) {
+            clearLiveSimulationChartLoading();
             setLiveSimMessage(error.message, true);
+
+            const subtitleEl = document.getElementById("live-sim-detail-subtitle");
+            const chartSubtitle = document.getElementById("live-sim-chart-subtitle");
+            if (subtitleEl) subtitleEl.textContent = "Combined portfolio equity could not be loaded.";
+            if (chartSubtitle) chartSubtitle.textContent = "Please try selecting Portfolio Total again.";
         }
     }
 
@@ -2992,6 +3148,7 @@
         if (!dashboard) return;
 
         liveSimSelectedDetailCache = sim;
+        clearLiveSimulationChartLoading();
         dashboard.style.display = "block";
     
         const isPortfolioTotal = Boolean(sim.is_portfolio_total);
@@ -3469,6 +3626,8 @@
     
         liveSimulationsCache = [];
         liveSimSelectedDetailCache = null;
+        liveSimPortfolioDetailCache.clear();
+        liveSimPortfolioDetailRequests.clear();
         selectedLiveSimulationId = null;
     
         if (limitEl) {
@@ -4883,34 +5042,126 @@
         }
     });
 
+    let liveSimPortfolioTooltipPinned = false;
+    let liveSimPortfolioTooltipAnchor = null;
+
+    function getLiveSimPortfolioTooltipPortal() {
+        let portal = document.getElementById("live-sim-portfolio-tooltip-portal");
+        if (portal) return portal;
+
+        portal = document.createElement("div");
+        portal.id = "live-sim-portfolio-tooltip-portal";
+        portal.className = "nt-live-sim-portfolio-tooltip-portal";
+        portal.setAttribute("role", "tooltip");
+        // Popovers render in the browser's top layer, above every dashboard
+        // stacking context and outside all overflow-clipping containers.
+        portal.setAttribute("popover", "manual");
+        document.body.appendChild(portal);
+        return portal;
+    }
+
+    function positionLiveSimPortfolioTooltip() {
+        const portal = document.getElementById("live-sim-portfolio-tooltip-portal");
+        const anchor = liveSimPortfolioTooltipAnchor;
+        if (!portal || !anchor || !portal.classList.contains("is-visible")) return;
+
+        const buttonRect = anchor.getBoundingClientRect();
+        const tooltipRect = portal.getBoundingClientRect();
+        const padding = 12;
+        const gap = 10;
+
+        let left = buttonRect.left + buttonRect.width / 2 - tooltipRect.width / 2;
+        left = Math.max(padding, Math.min(left, window.innerWidth - tooltipRect.width - padding));
+
+        let top = buttonRect.top - tooltipRect.height - gap;
+        let placement = "above";
+        if (top < padding) {
+            top = buttonRect.bottom + gap;
+            placement = "below";
+        }
+        top = Math.max(padding, Math.min(top, window.innerHeight - tooltipRect.height - padding));
+
+        portal.style.left = `${Math.round(left)}px`;
+        portal.style.top = `${Math.round(top)}px`;
+        portal.dataset.placement = placement;
+    }
+
+    function showLiveSimPortfolioTooltip(button, {pinned = false} = {}) {
+        const root = button?.closest("[data-live-sim-portfolio-info-root]");
+        const source = root?.querySelector(".nt-live-sim-portfolio-info-tooltip");
+        if (!button || !source) return;
+
+        const portal = getLiveSimPortfolioTooltipPortal();
+        liveSimPortfolioTooltipAnchor = button;
+        liveSimPortfolioTooltipPinned = Boolean(pinned);
+        portal.textContent = source.textContent.trim();
+        portal.classList.add("is-visible");
+        if (typeof portal.showPopover === "function") {
+            try {
+                if (!portal.matches(":popover-open")) portal.showPopover();
+            } catch (error) {
+                // Older/partial Popover implementations fall back to the
+                // fixed-position portal styling below.
+            }
+        }
+        button.setAttribute("aria-expanded", "true");
+        window.requestAnimationFrame(positionLiveSimPortfolioTooltip);
+    }
+
+    function hideLiveSimPortfolioTooltip(force = false) {
+        if (!force && liveSimPortfolioTooltipPinned) return;
+
+        const portal = document.getElementById("live-sim-portfolio-tooltip-portal");
+        portal?.classList.remove("is-visible");
+        if (portal && typeof portal.hidePopover === "function") {
+            try {
+                if (portal.matches(":popover-open")) portal.hidePopover();
+            } catch (error) {
+                // Fixed-position fallback needs no extra cleanup.
+            }
+        }
+        liveSimPortfolioTooltipAnchor?.setAttribute("aria-expanded", "false");
+        liveSimPortfolioTooltipAnchor = null;
+        liveSimPortfolioTooltipPinned = false;
+    }
+
+    document.addEventListener("pointerover", function (event) {
+        if (liveSimPortfolioTooltipPinned) return;
+        const button = event.target.closest("[data-live-sim-portfolio-info-button]");
+        if (button) showLiveSimPortfolioTooltip(button);
+    });
+
+    document.addEventListener("pointerout", function (event) {
+        if (liveSimPortfolioTooltipPinned) return;
+        const root = event.target.closest("[data-live-sim-portfolio-info-root]");
+        if (!root || root.contains(event.relatedTarget)) return;
+        hideLiveSimPortfolioTooltip(true);
+    });
+
+    window.addEventListener("resize", positionLiveSimPortfolioTooltip);
+    window.addEventListener("scroll", positionLiveSimPortfolioTooltip, true);
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") hideLiveSimPortfolioTooltip(true);
+    });
+
     document.addEventListener("click", async function (e) {
         const portfolioInfoButton = e.target.closest("[data-live-sim-portfolio-info-button]");
-        const portfolioInfoRoots = Array.from(document.querySelectorAll("[data-live-sim-portfolio-info-root]"));
-
         if (portfolioInfoButton) {
             e.preventDefault();
             e.stopPropagation();
-            const root = portfolioInfoButton.closest("[data-live-sim-portfolio-info-root]");
-            const shouldOpen = root && !root.classList.contains("is-open");
 
-            portfolioInfoRoots.forEach(item => {
-                item.classList.remove("is-open");
-                item.querySelector("[data-live-sim-portfolio-info-button]")?.setAttribute("aria-expanded", "false");
-            });
-
-            if (root && shouldOpen) {
-                root.classList.add("is-open");
-                portfolioInfoButton.setAttribute("aria-expanded", "true");
+            const sameAnchor = liveSimPortfolioTooltipAnchor === portfolioInfoButton;
+            if (sameAnchor && liveSimPortfolioTooltipPinned) {
+                hideLiveSimPortfolioTooltip(true);
+            } else {
+                showLiveSimPortfolioTooltip(portfolioInfoButton, {pinned: true});
             }
             return;
         }
 
-        portfolioInfoRoots.forEach(root => {
-            if (!root.contains(e.target)) {
-                root.classList.remove("is-open");
-                root.querySelector("[data-live-sim-portfolio-info-button]")?.setAttribute("aria-expanded", "false");
-            }
-        });
+        if (liveSimPortfolioTooltipPinned) {
+            hideLiveSimPortfolioTooltip(true);
+        }
 
         const sortButton = e.target.closest("[data-live-sim-board-sort]");
     

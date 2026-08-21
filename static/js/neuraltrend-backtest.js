@@ -7,13 +7,27 @@
     document.getElementById('backtest-form').addEventListener('submit', function(e) {
         e.preventDefault();
 
+        if (
+            typeof window.validateBacktestDateRange === "function" &&
+            !window.validateBacktestDateRange()
+        ) {
+            this.reportValidity();
+            return;
+        }
+
         if (!this.checkValidity()) {
             this.reportValidity();
             return;
         }
 
-        const startDate = document.getElementById('start')?.value || '';
-        const endDate = document.getElementById('end')?.value || '';
+        const normalizedDates = typeof window.getBacktestIsoDates === "function"
+            ? window.getBacktestIsoDates()
+            : {
+                start: document.getElementById("start-iso")?.value || "",
+                end: document.getElementById("end-iso")?.value || ""
+            };
+        const startDate = normalizedDates.start || "";
+        const endDate = normalizedDates.end || "";
         if (!startDate || !endDate || startDate >= endDate) {
             const endInput = document.getElementById('end');
             if (endInput) {
@@ -299,13 +313,31 @@
     
         const ctx = document.getElementById('equity-chart').getContext('2d');
     
-        // --- Compute dynamic offset for markers ---
-        const equity_min = Math.min(...epoch_equity_curve);
-        const equity_max = Math.max(...epoch_equity_curve);
-        const offset = (equity_max - equity_min) * 0.04; // 4% of range
-    
-        const adjustedBuySignals = dates.map((d, i) => executed_buy_dates.includes(d) ? epoch_equity_curve[i] - offset : null);
-        const adjustedSellSignals = dates.map((d, i) => executed_sell_dates.includes(d) ? epoch_equity_curve[i] + offset : null);
+        // Keep execution markers on the actual strategy-equity observation.
+        // A fixed dollar offset looks reasonable on a linear axis but becomes
+        // badly distorted after switching to logarithmic scale. Exact y-values
+        // are scale-independent and stay attached to the trade they represent.
+        const strategyEquityByDate = new Map();
+        dates.forEach((dateValue, index) => {
+            const equityValue = Number(epoch_equity_curve[index]);
+            if (dateValue && Number.isFinite(equityValue) && equityValue > 0) {
+                strategyEquityByDate.set(dateValue, equityValue);
+            }
+        });
+
+        function executionMarkerPoints(executedDates) {
+            return Array.from(new Set(executedDates || []))
+                .map(dateValue => {
+                    const equityValue = strategyEquityByDate.get(dateValue);
+                    return Number.isFinite(equityValue)
+                        ? {x: dateValue, y: equityValue}
+                        : null;
+                })
+                .filter(Boolean);
+        }
+
+        const adjustedBuySignals = executionMarkerPoints(executed_buy_dates);
+        const adjustedSellSignals = executionMarkerPoints(executed_sell_dates);
     
         const datasets = [
             {
@@ -330,23 +362,31 @@
                 fill: false
             },
             {
+                type: 'scatter',
                 label: 'Executed BUY',
                 data: adjustedBuySignals,
                 pointStyle: 'triangle',
-                pointRadius: 10,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBorderWidth: 1.25,
                 backgroundColor: NT_COLORS.buy,
-                borderColor: NT_COLORS.buy,
-                showLine: false
+                borderColor: "#ffffff",
+                showLine: false,
+                order: 20
             },
             {
+                type: 'scatter',
                 label: 'Executed SELL',
                 data: adjustedSellSignals,
                 pointStyle: 'triangle',
                 rotation: 180,
-                pointRadius: 10,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBorderWidth: 1.25,
                 backgroundColor: NT_COLORS.sell,
-                borderColor: NT_COLORS.sell,
-                showLine: false
+                borderColor: "#ffffff",
+                showLine: false,
+                order: 20
             }
         ];
     

@@ -1,295 +1,229 @@
+// Backtest date-range validation with keyboard-friendly MM/DD/YYYY entry.
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("backtest-form");
+    const tickerSelect = document.getElementById("ticker");
+    const startInput = document.getElementById("start");
+    const endInput = document.getElementById("end");
+    const startIsoInput = document.getElementById("start-iso");
+    const endIsoInput = document.getElementById("end-iso");
+    const startHint = document.getElementById("backtest-start-date-hint");
+    const endHint = document.getElementById("backtest-end-date-hint");
 
-    
-    // Backtest date-range validation
-    document.addEventListener("DOMContentLoaded", function() {
-        const form = document.getElementById("backtest-form");
-        const tickerSelect = document.getElementById("ticker");
-        const startInput = document.getElementById("start");
-        const endInput = document.getElementById("end");
+    if (!form || !tickerSelect || !startInput || !endInput || !startIsoInput || !endIsoInput) return;
 
-        if (!form || !tickerSelect || !startInput || !endInput) return;
+    let coverageStart = null;
+    let coverageEnd = null;
+    let boundsRequestId = 0;
 
-        let coverageStart = null;
-        let coverageEnd = null;
-        let boundsRequestId = 0;
+    function shiftIsoDate(isoDate, days) {
+        if (!isoDate) return "";
+        const date = new Date(`${isoDate}T00:00:00Z`);
+        if (Number.isNaN(date.getTime())) return "";
+        date.setUTCDate(date.getUTCDate() + days);
+        return date.toISOString().slice(0, 10);
+    }
 
-        function shiftIsoDate(isoDate, days) {
-            if (!isoDate) return "";
-            const date = new Date(`${isoDate}T00:00:00Z`);
-            if (Number.isNaN(date.getTime())) return "";
-            date.setUTCDate(date.getUTCDate() + days);
-            return date.toISOString().slice(0, 10);
-        }
+    function isoToDisplay(isoDate) {
+        const match = String(isoDate || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        return match ? `${match[2]}/${match[3]}/${match[1]}` : "";
+    }
 
-        function updateDateConstraints(changedField = null) {
-            if (!coverageStart || !coverageEnd) return;
-
-            const absoluteStartMax = shiftIsoDate(coverageEnd, -1);
-            const absoluteEndMin = shiftIsoDate(coverageStart, 1);
-
-            startInput.min = coverageStart;
-            startInput.max = endInput.value
-                ? shiftIsoDate(endInput.value, -1)
-                : absoluteStartMax;
-
-            endInput.min = startInput.value
-                ? shiftIsoDate(startInput.value, 1)
-                : absoluteEndMin;
-            endInput.max = coverageEnd;
-
-            // If changing one boundary makes the other boundary invalid, clear
-            // only the now-invalid value and let the user choose a valid one.
-            if (
-                changedField === "start" &&
-                endInput.value &&
-                endInput.value <= startInput.value
-            ) {
-                endInput.value = "";
-                endInput.min = shiftIsoDate(startInput.value, 1);
-            }
-
-            if (
-                changedField === "end" &&
-                startInput.value &&
-                startInput.value >= endInput.value
-            ) {
-                startInput.value = "";
-                startInput.max = shiftIsoDate(endInput.value, -1);
-            }
-
-            startInput.setCustomValidity("");
-            endInput.setCustomValidity("");
-        }
-
-        async function loadBacktestDateBounds() {
-            const requestId = ++boundsRequestId;
-            const ticker = tickerSelect.value;
-
-            startInput.setCustomValidity("Loading available backtest dates…");
-            endInput.setCustomValidity("Loading available backtest dates…");
-
-            try {
-                const response = await fetch(
-                    `/backtest/date-range?ticker=${encodeURIComponent(ticker)}`,
-                    { cache: "no-store" }
-                );
-                const payload = await response.json();
-
-                if (requestId !== boundsRequestId) return;
-                if (!response.ok) {
-                    throw new Error(payload.error || "Backtest date range is unavailable.");
-                }
-
-                coverageStart = payload.coverage_start;
-                coverageEnd = payload.coverage_end;
-
-                // Keep already selected values only when they remain inside the
-                // new asset's available market-data coverage.
-                if (
-                    startInput.value &&
-                    (startInput.value < coverageStart ||
-                     startInput.value > shiftIsoDate(coverageEnd, -1))
-                ) {
-                    startInput.value = "";
-                }
-
-                if (
-                    endInput.value &&
-                    (endInput.value < shiftIsoDate(coverageStart, 1) ||
-                     endInput.value > coverageEnd)
-                ) {
-                    endInput.value = "";
-                }
-
-                if (
-                    startInput.value &&
-                    endInput.value &&
-                    startInput.value >= endInput.value
-                ) {
-                    endInput.value = "";
-                }
-
-                updateDateConstraints();
-            } catch (error) {
-                console.error("Could not load backtest date range:", error);
-                coverageStart = null;
-                coverageEnd = null;
-                startInput.removeAttribute("min");
-                startInput.removeAttribute("max");
-                endInput.removeAttribute("min");
-                endInput.removeAttribute("max");
-                startInput.setCustomValidity(
-                    "Available backtest dates could not be loaded for this asset."
-                );
-                endInput.setCustomValidity(
-                    "Available backtest dates could not be loaded for this asset."
-                );
+    function parseDisplayDate(rawValue) {
+        const value = String(rawValue || "").trim();
+        let match = value.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+        if (!match) {
+            const digits = value.replace(/\D/g, "");
+            if (digits.length === 8) {
+                match = [digits, digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)];
             }
         }
+        if (!match) return null;
 
-        startInput.addEventListener("change", function() {
-            updateDateConstraints("start");
-        });
+        const month = Number(match[1]);
+        const day = Number(match[2]);
+        const year = Number(match[3]);
+        if (year < 1000 || month < 1 || month > 12 || day < 1 || day > 31) return null;
 
-        endInput.addEventListener("change", function() {
-            updateDateConstraints("end");
-        });
+        const date = new Date(Date.UTC(year, month - 1, day));
+        if (
+            date.getUTCFullYear() !== year ||
+            date.getUTCMonth() !== month - 1 ||
+            date.getUTCDate() !== day
+        ) {
+            return null;
+        }
 
-        tickerSelect.addEventListener("change", loadBacktestDateBounds);
+        return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    }
 
-        form.addEventListener("submit", function(event) {
-            if (!coverageStart || !coverageEnd) {
-                event.preventDefault();
-                startInput.reportValidity();
-                return;
+    function isPotentialPartialDate(rawValue) {
+        const value = String(rawValue || "").trim();
+        if (!value) return true;
+        return /^[0-9/\-.\s]{1,10}$/.test(value);
+    }
+
+    function currentRange() {
+        const startIso = parseDisplayDate(startInput.value);
+        const endIso = parseDisplayDate(endInput.value);
+        const startMax = endIso
+            ? shiftIsoDate(endIso, -1)
+            : coverageEnd ? shiftIsoDate(coverageEnd, -1) : "";
+        const endMin = startIso
+            ? shiftIsoDate(startIso, 1)
+            : coverageStart ? shiftIsoDate(coverageStart, 1) : "";
+        return {startIso, endIso, startMax, endMin};
+    }
+
+    function updateHints() {
+        if (!coverageStart || !coverageEnd) return;
+        const {startMax, endMin} = currentRange();
+        if (startHint) {
+            startHint.textContent = `Available: ${isoToDisplay(coverageStart)} – ${isoToDisplay(startMax)}`;
+        }
+        if (endHint) {
+            endHint.textContent = `Available: ${isoToDisplay(endMin)} – ${isoToDisplay(coverageEnd)}`;
+        }
+    }
+
+    function validateDateInputs({reportPartial = false} = {}) {
+        startInput.setCustomValidity("");
+        endInput.setCustomValidity("");
+        startIsoInput.value = "";
+        endIsoInput.value = "";
+
+        if (!coverageStart || !coverageEnd) {
+            startInput.setCustomValidity("Available backtest dates are still loading.");
+            return false;
+        }
+
+        const startRaw = startInput.value.trim();
+        const endRaw = endInput.value.trim();
+        const {startIso, endIso, startMax, endMin} = currentRange();
+
+        if (startRaw && !startIso) {
+            if (reportPartial || !isPotentialPartialDate(startRaw)) {
+                startInput.setCustomValidity("Enter a valid date as MM/DD/YYYY.");
             }
-
-            updateDateConstraints();
-
-            if (
-                !startInput.value ||
-                !endInput.value ||
-                startInput.value >= endInput.value
-            ) {
-                event.preventDefault();
-                if (startInput.value && endInput.value && startInput.value >= endInput.value) {
-                    endInput.setCustomValidity("End date must be after the start date.");
-                }
-                form.reportValidity();
-                return;
+            return false;
+        }
+        if (endRaw && !endIso) {
+            if (reportPartial || !isPotentialPartialDate(endRaw)) {
+                endInput.setCustomValidity("Enter a valid date as MM/DD/YYYY.");
             }
-        });
+            return false;
+        }
 
-        loadBacktestDateBounds();
-    });
+        if (!startIso || !endIso) return false;
 
-    /* ===============================
-       EpochSignaler internal tool tabs
-       Signal Overview | Backtest | Live Simulation
-    ================================ */
-    
-    function setActiveEpochToolPanel(panelId) {
-        const targetPanel = document.getElementById(panelId);
-        if (!targetPanel) return;
-    
-        document.querySelectorAll(".nt-epoch-tool-tab").forEach(tab => {
-            const isActive = tab.dataset.epochToolTarget === panelId;
-    
-            tab.classList.toggle("active", isActive);
-            tab.setAttribute("aria-selected", isActive ? "true" : "false");
-        });
-    
-        document.querySelectorAll(".nt-epoch-tool-panel").forEach(panel => {
-            panel.classList.toggle(
-                "nt-epoch-tool-panel-active",
-                panel.id === panelId
+        if (startIso < coverageStart || startIso > startMax) {
+            startInput.setCustomValidity(
+                `Start date must be between ${isoToDisplay(coverageStart)} and ${isoToDisplay(startMax)}.`
             );
-        });
-
-        const toolContentCard = document.querySelector(".nt-epoch-tool-content-card");
-        if (toolContentCard) {
-            toolContentCard.dataset.activeTool = panelId;
+            return false;
         }
-    
-        // Resize visible charts after switching tabs
-        setTimeout(() => {
-            if (panelId === "epoch-tool-overview") {
-                if (typeof previewChart !== "undefined" && previewChart) {
-                    previewChart.resize();
-                }
-            }
-    
-            if (panelId === "epoch-tool-backtest") {
-                if (typeof equityChart !== "undefined" && equityChart) {
-                    equityChart.resize();
-                }
-            }
-    
-            if (panelId === "epoch-tool-live") {
-                if (typeof liveSimChart !== "undefined" && liveSimChart) {
-                    liveSimChart.resize();
-                }
-            }
-        }, 80);
+
+        if (endIso < endMin || endIso > coverageEnd) {
+            endInput.setCustomValidity(
+                `End date must be between ${isoToDisplay(endMin)} and ${isoToDisplay(coverageEnd)}.`
+            );
+            return false;
+        }
+
+        if (startIso >= endIso) {
+            endInput.setCustomValidity("End date must be after the start date.");
+            return false;
+        }
+
+        startIsoInput.value = startIso;
+        endIsoInput.value = endIso;
+        return true;
     }
-    
-    document.querySelectorAll(".nt-epoch-tool-tab").forEach(tab => {
-        tab.addEventListener("click", function () {
-            const panelId = this.dataset.epochToolTarget;
-            setActiveEpochToolPanel(panelId);
+
+    function onDateInput(input) {
+        // Never clear or rewrite a partially typed year. Once a complete valid
+        // date exists, normalize its display only on blur (not while typing).
+        input.setCustomValidity("");
+        validateDateInputs({reportPartial: false});
+        updateHints();
+    }
+
+    [startInput, endInput].forEach(input => {
+        input.addEventListener("input", () => onDateInput(input));
+        input.addEventListener("blur", () => {
+            const iso = parseDisplayDate(input.value);
+            if (iso) input.value = isoToDisplay(iso);
+            validateDateInputs({reportPartial: true});
+            updateHints();
         });
     });
-    
-    // Default internal EpochSignaler tab
-    setActiveEpochToolPanel("epoch-tool-overview");
 
-    /* ===============================
-       Model tab behavior
-    ================================ */
-    
-    function setActiveModelPanel(panelId) {
-        const targetPanel = document.getElementById(panelId);
-        if (!targetPanel) return;
-    
-        document.querySelectorAll(".nt-model-tab").forEach(tab => {
-            const isActive = tab.dataset.modelTarget === panelId;
-            tab.classList.toggle("active", isActive);
-            tab.setAttribute("aria-selected", isActive ? "true" : "false");
-        });
-    
-        document.querySelectorAll(".nt-model-panel").forEach(panel => {
-            panel.classList.toggle("nt-model-panel-active", panel.id === panelId);
-        });
+    async function loadBacktestDateBounds() {
+        const requestId = ++boundsRequestId;
+        const ticker = tickerSelect.value;
 
-        const modelContent = document.querySelector(".nt-model-content");
-        if (modelContent) {
-            modelContent.dataset.activeModel = panelId;
+        coverageStart = null;
+        coverageEnd = null;
+        startIsoInput.value = "";
+        endIsoInput.value = "";
+        if (startHint) startHint.textContent = "Loading available dates…";
+        if (endHint) endHint.textContent = "Loading available dates…";
+
+        try {
+            const response = await fetch(
+                `/backtest/date-range?ticker=${encodeURIComponent(ticker)}`,
+                {cache: "no-store"}
+            );
+            const payload = await response.json();
+
+            if (requestId !== boundsRequestId) return;
+            if (!response.ok) throw new Error(payload.error || "Backtest date range is unavailable.");
+
+            coverageStart = payload.coverage_start;
+            coverageEnd = payload.coverage_end;
+
+            // Preserve typed dates only when they remain valid for this asset.
+            const startIso = parseDisplayDate(startInput.value);
+            const endIso = parseDisplayDate(endInput.value);
+            if (startIso && (startIso < coverageStart || startIso > shiftIsoDate(coverageEnd, -1))) {
+                startInput.value = "";
+            }
+            if (endIso && (endIso < shiftIsoDate(coverageStart, 1) || endIso > coverageEnd)) {
+                endInput.value = "";
+            }
+
+            validateDateInputs({reportPartial: false});
+            updateHints();
+        } catch (error) {
+            console.error("Could not load backtest date range:", error);
+            coverageStart = null;
+            coverageEnd = null;
+            if (startHint) startHint.textContent = "Available dates could not be loaded.";
+            if (endHint) endHint.textContent = "Available dates could not be loaded.";
+            startInput.setCustomValidity("Available backtest dates could not be loaded for this asset.");
+            endInput.setCustomValidity("Available backtest dates could not be loaded for this asset.");
         }
     }
-    
-    document.querySelectorAll(".nt-model-tab").forEach(tab => {
-        tab.addEventListener("click", function () {
-            const panelId = this.dataset.modelTarget;
-            setActiveModelPanel(panelId);
-        });
+
+    tickerSelect.addEventListener("change", loadBacktestDateBounds);
+
+    window.getBacktestIsoDates = function() {
+        validateDateInputs({reportPartial: true});
+        return {
+            start: startIsoInput.value,
+            end: endIsoInput.value
+        };
+    };
+
+    window.validateBacktestDateRange = function() {
+        return Boolean(validateDateInputs({reportPartial: true}));
+    };
+
+    form.addEventListener("submit", function(event) {
+        if (!window.validateBacktestDateRange()) {
+            event.preventDefault();
+            form.reportValidity();
+        }
     });
-    
-    function activateDashboardHash() {
-        const targetId = String(window.location.hash || "").replace(/^#/, "");
-        const modelTargets = new Set([
-            "epochsignaler-section",
-            "altindexer-section",
-            "epochforecaster-section"
-        ]);
-        const toolTargets = new Set([
-            "epoch-tool-overview",
-            "epoch-tool-live",
-            "epoch-tool-backtest"
-        ]);
 
-        if (modelTargets.has(targetId)) {
-            setActiveModelPanel(targetId);
-        } else if (toolTargets.has(targetId)) {
-            setActiveModelPanel("epochsignaler-section");
-            setActiveEpochToolPanel(targetId);
-        } else {
-            setActiveModelPanel("epochsignaler-section");
-        }
-
-        if (targetId === "signal-overview") {
-            setActiveModelPanel("epochsignaler-section");
-            setActiveEpochToolPanel("epoch-tool-overview");
-        }
-
-        if (targetId) {
-            window.setTimeout(() => {
-                document.getElementById(targetId)?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-            }, 100);
-        }
-    }
-
-    activateDashboardHash();
-    window.addEventListener("hashchange", activateDashboardHash);
+    loadBacktestDateBounds();
+});
