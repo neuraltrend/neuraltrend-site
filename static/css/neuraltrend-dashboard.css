@@ -3102,3 +3102,105 @@
     border-top-color: #ffffff !important;
     border-bottom-color: transparent !important;
 }
+
+
+/* ==================================================
+   Live Simulation tooltip portal + portfolio loading — Aug 20, 2026
+================================================== */
+
+/* The in-row source tooltip stays hidden; a fixed body-level copy is used so
+   sticky/scroll containers cannot clip it. */
+.nt-live-sim-portfolio-info .nt-live-sim-portfolio-info-tooltip {
+    display: none !important;
+}
+
+.nt-live-sim-portfolio-tooltip-portal {
+    position: fixed;
+    z-index: 2147483000;
+    width: min(390px, calc(100vw - 24px));
+    padding: 10px 12px;
+    border: 1px solid #dbe4f0;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.45;
+    text-align: left;
+    white-space: normal;
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.22);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(3px);
+    transition: opacity 0.12s ease, visibility 0.12s ease, transform 0.12s ease;
+}
+
+.nt-live-sim-portfolio-tooltip-portal.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.nt-live-sim-chart-shell {
+    position: relative;
+}
+
+.nt-live-sim-chart-shell::after {
+    content: "Loading combined equity curve…";
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border-radius: inherit;
+    background: rgba(248, 250, 252, 0.94);
+    color: #475569;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    text-align: center;
+    z-index: 8;
+}
+
+.nt-live-sim-chart-shell.is-loading::after {
+    display: flex;
+}
+
+.nt-live-sim-chart-shell.is-loading canvas {
+    visibility: hidden;
+}
+
+
+/* ==================================================
+   Live TOTAL top-layer tooltip + keyboard-safe backtest dates — Aug 21, 2026
+================================================== */
+
+/* Popover API places this node in the browser top layer. Explicit resets avoid
+   user-agent popover margins/insets changing our anchor positioning. */
+.nt-live-sim-portfolio-tooltip-portal[popover] {
+    inset: auto;
+    margin: 0;
+    overflow: visible;
+}
+
+.nt-live-sim-portfolio-tooltip-portal:popover-open {
+    display: block;
+}
+
+.nt-backtest-date-hint {
+    display: block;
+    min-height: 14px;
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 9.5px;
+    font-weight: 650;
+    line-height: 1.25;
+    white-space: nowrap;
+}
+
+#backtest-form input#start,
+#backtest-form input#end {
+    font-variant-numeric: tabular-nums;
+}
