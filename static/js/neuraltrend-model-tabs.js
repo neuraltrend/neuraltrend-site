@@ -1,103 +1,199 @@
-
 document.addEventListener("DOMContentLoaded", function() {
+    const modelTabs = Array.from(document.querySelectorAll(".nt-model-tab"));
+    const modelPanels = Array.from(document.querySelectorAll(".nt-model-panel"));
+    const epochToolTabs = Array.from(document.querySelectorAll(".nt-epoch-tool-tab"));
+    const epochToolPanels = Array.from(document.querySelectorAll(".nt-epoch-tool-panel"));
 
-    // Product model tabs: EpochSignaler, AltIndexer, EpochForecaster
-    document.querySelectorAll(".nt-model-tab").forEach(tab => {
-        tab.addEventListener("click", function() {
-            ntTrack("model_tab_clicked", {
-                model: this.dataset.modelTarget || "unknown"
-            });
-        });
-    });
-
-    // EpochSignaler internal tabs: Overview, Backtest, Live Simulation
-    document.querySelectorAll(".nt-epoch-tool-tab").forEach(tab => {
-        tab.addEventListener("click", function() {
-            ntTrack("epoch_tool_tab_clicked", {
-                tool: this.dataset.epochToolTarget || "unknown"
-            });
-        });
-    });
-
-    // Signal board row click
-    const signalBoard = document.getElementById("signal-board");
-    if (signalBoard) {
-        signalBoard.addEventListener("click", function(event) {
-            const row = event.target.closest(".signal-row");
-            if (!row) return;
-
-            ntTrack("signal_row_clicked", {
-                ticker: row.dataset.ticker || "unknown"
-            });
-        });
+    function safeTrack(eventName, payload) {
+        if (typeof ntTrack === "function") {
+            ntTrack(eventName, payload);
+        }
     }
 
-    // Ticker search — track only when user leaves/searches, not every keypress
-    const tickerSearch = document.getElementById("ticker-search");
-    if (tickerSearch) {
-        tickerSearch.addEventListener("change", function() {
-            const query = this.value.trim();
+    function resizeVisibleChart(panelId) {
+        window.setTimeout(() => {
+            try {
+                if (
+                    panelId === "epoch-tool-overview" &&
+                    typeof previewChart !== "undefined" &&
+                    previewChart
+                ) {
+                    previewChart.resize();
+                }
 
-            if (query) {
-                ntTrack("ticker_search_used");
+                if (
+                    panelId === "epoch-tool-backtest" &&
+                    typeof equityChart !== "undefined" &&
+                    equityChart
+                ) {
+                    equityChart.resize();
+                }
+
+                if (
+                    panelId === "epoch-tool-live" &&
+                    typeof liveSimChart !== "undefined" &&
+                    liveSimChart
+                ) {
+                    liveSimChart.resize();
+                }
+
+                if (
+                    panelId === "altindexer-section" &&
+                    typeof Plotly !== "undefined"
+                ) {
+                    const altChart = document.getElementById("altindexer-chart");
+                    if (altChart) {
+                        Plotly.Plots.resize(altChart);
+                    }
+                }
+            } catch (error) {
+                console.warn("Dashboard chart resize skipped:", error);
             }
-        });
+        }, 80);
     }
 
-    // Return horizon buttons
-    document.querySelectorAll(".period-pill").forEach(button => {
-        button.addEventListener("click", function() {
-            ntTrack("return_horizon_changed", {
-                horizon: this.dataset.value || this.dataset.liveSimHorizon || "unknown"
+    function setActiveEpochToolPanel(panelId) {
+        const targetPanel = document.getElementById(panelId);
+
+        if (
+            !targetPanel ||
+            !targetPanel.classList.contains("nt-epoch-tool-panel")
+        ) {
+            return false;
+        }
+
+        epochToolTabs.forEach(tab => {
+            const isActive = tab.dataset.epochToolTarget === panelId;
+            tab.classList.toggle("active", isActive);
+            tab.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+
+        epochToolPanels.forEach(panel => {
+            panel.classList.toggle(
+                "nt-epoch-tool-panel-active",
+                panel.id === panelId
+            );
+        });
+
+        const toolContentCard = document.querySelector(".nt-epoch-tool-content-card");
+        if (toolContentCard) {
+            toolContentCard.dataset.activeTool = panelId;
+        }
+
+        resizeVisibleChart(panelId);
+        return true;
+    }
+
+    function setActiveModelPanel(panelId) {
+        const targetPanel = document.getElementById(panelId);
+
+        if (
+            !targetPanel ||
+            !targetPanel.classList.contains("nt-model-panel")
+        ) {
+            return false;
+        }
+
+        modelTabs.forEach(tab => {
+            const isActive = tab.dataset.modelTarget === panelId;
+            tab.classList.toggle("active", isActive);
+            tab.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+
+        modelPanels.forEach(panel => {
+            panel.classList.toggle(
+                "nt-model-panel-active",
+                panel.id === panelId
+            );
+        });
+
+        const modelContent = document.querySelector(".nt-model-content");
+        if (modelContent) {
+            modelContent.dataset.activeModel = panelId;
+        }
+
+        resizeVisibleChart(panelId);
+        return true;
+    }
+
+    /*
+      Dashboard navigation belongs here rather than inside Backtest-specific
+      code. This prevents future changes to the Backtest form from disabling
+      EpochSignaler / AltIndexer / EpochForecaster or the three tool tabs.
+    */
+    modelTabs.forEach(tab => {
+        tab.addEventListener("click", function() {
+            const panelId = this.dataset.modelTarget;
+            if (!panelId) return;
+
+            setActiveModelPanel(panelId);
+
+            safeTrack("model_tab_clicked", {
+                model: panelId
             });
         });
     });
 
-    // Asset filter buttons
-    document.querySelectorAll(".asset-pill").forEach(button => {
-        button.addEventListener("click", function() {
-            ntTrack("asset_filter_changed", {
-                asset_filter: this.dataset.value || this.dataset.liveSimAssetFilter || "unknown"
+    epochToolTabs.forEach(tab => {
+        tab.addEventListener("click", function() {
+            const panelId = this.dataset.epochToolTarget;
+            if (!panelId) return;
+
+            setActiveModelPanel("epochsignaler-section");
+            setActiveEpochToolPanel(panelId);
+
+            safeTrack("epoch_tool_tab_clicked", {
+                tool: panelId
             });
         });
     });
 
-    // Backtest submit
-    const backtestForm = document.getElementById("backtest-form");
-    if (backtestForm) {
-        backtestForm.addEventListener("submit", function() {
-            ntTrack("backtest_submitted", {
-                ticker: document.getElementById("ticker")?.value || "unknown",
-                start_date: document.getElementById("start")?.value || "unknown",
-                end_date: document.getElementById("end")?.value || "unknown"
-            });
-        });
+    function activateDashboardHash({scroll = true} = {}) {
+        const targetId = String(window.location.hash || "").replace(/^#/, "");
+
+        const modelTargets = new Set([
+            "epochsignaler-section",
+            "altindexer-section",
+            "epochforecaster-section"
+        ]);
+
+        const toolTargets = new Set([
+            "epoch-tool-overview",
+            "epoch-tool-live",
+            "epoch-tool-backtest"
+        ]);
+
+        if (modelTargets.has(targetId)) {
+            setActiveModelPanel(targetId);
+        } else if (toolTargets.has(targetId)) {
+            setActiveModelPanel("epochsignaler-section");
+            setActiveEpochToolPanel(targetId);
+        } else if (targetId === "signal-overview") {
+            setActiveModelPanel("epochsignaler-section");
+            setActiveEpochToolPanel("epoch-tool-overview");
+        } else {
+            setActiveModelPanel("epochsignaler-section");
+            setActiveEpochToolPanel("epoch-tool-overview");
+        }
+
+        if (scroll && targetId) {
+            window.setTimeout(() => {
+                document.getElementById(targetId)?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            }, 100);
+        }
     }
 
-    // Live simulation submit
-    const liveSimForm = document.getElementById("live-sim-form");
-    if (liveSimForm) {
-        liveSimForm.addEventListener("submit", function() {
-            ntTrack("live_simulation_submitted", {
-                ticker: document.getElementById("live-sim-ticker")?.value || "unknown"
-            });
-        });
-    }
+    window.ntSetActiveModelPanel = setActiveModelPanel;
+    window.ntSetActiveEpochToolPanel = setActiveEpochToolPanel;
 
-    // Contact form
-    const contactForm = document.querySelector(".nt-contact-form");
-    if (contactForm) {
-        contactForm.addEventListener("submit", function() {
-            ntTrack("contact_form_submitted");
-        });
-    }
+    activateDashboardHash({
+        scroll: Boolean(window.location.hash)
+    });
 
-    // Pro card on homepage
-    const proCardButton = document.getElementById("pro-card-action-btn");
-    if (proCardButton) {
-        proCardButton.addEventListener("click", function() {
-            ntTrack("homepage_pro_card_clicked");
-        });
-    }
-
+    window.addEventListener("hashchange", function() {
+        activateDashboardHash({scroll: true});
+    });
 });
