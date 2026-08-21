@@ -943,12 +943,12 @@ SUPPORTED_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'NVDA', 'AAPL',
                "STEP-USD", "STG-USD", "STORJ-USD", "STRK-USD", "SUI-USD", "SUNDOG-USD", "SUPER-USD", "TAI-USD", "TAO-USD", 'TCEHY', 
                "TET-USD", "TFUEL-USD", "THETA-USD", "TLOS-USD", "TON-USD", "TRAC-USD", "TRIAS-USD", "TRU-USD", 'TSLA', 'TSM', "TURBO-USD",
                "UNI-USD", "UNIBOT-USD", "UOS-USD", 'V', "VAI-USD", "VET-USD", "VIA-USD", "VIRTUAL-USD", "VOO", "VR-USD", "VRA-USD",
-               "WAXP-USD", "WHALES-USD", "WIF-USD", "WIFI-USD", "WILD-USD", "WINR-USD", "WLD-USD", "WMT", "WMTX-USD", "XAI-USD", 
+               "WAXP-USD", "WHALES-USD", "WIF-USD", "WIFI-USD", "WILD-USD", "WINR-USD", "WLD-USD", "WMTX-USD", "XAI-USD", 
                "XCAD-USD", "XLM-USD", "XMR-USD", "XOM", "XTZ-USD", "XYO-USD", "YGG-USD", "ZBCN-USD", "ZEN-USD", "ZEREBRO-USD", "ZETA-USD", 
                "ZIG-USD", "ZKJ-USD", "ZRX-USD"]
 
 TOP_FREE_TICKERS = {"BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD"}
-ADMIN_ONLY_TICKERS = {"JNJ", "LLY"}
+ADMIN_ONLY_TICKERS = {"MU", "JNJ", "LLY", "JPM"}
 ALL_SUPPORTED_TICKERS = frozenset(
     str(ticker).strip().upper()
     for ticker in [*SUPPORTED_TICKERS, *ADMIN_ONLY_TICKERS]
@@ -3297,6 +3297,46 @@ LIVE_SIM_HORIZON_DAYS = {
     "since_start": None,
 }
 
+# Combined portfolio curves can contain many thousands of equity observations.
+# Cache only completed user/status/fingerprint results. The fingerprint changes
+# whenever an included simulation is updated, so current data never reuses an
+# obsolete curve. A small bounded cache prevents unbounded process memory use.
+LIVE_SIM_PORTFOLIO_CURVE_CACHE = {}
+LIVE_SIM_PORTFOLIO_CURVE_CACHE_MAX = 48
+
+
+def live_sim_portfolio_curve_cache_key(user_id, view, simulations):
+    fingerprint = tuple(
+        sorted(
+            (
+                int(sim.id),
+                str(sim.status or ""),
+                sim.updated_at.isoformat() if sim.updated_at else "",
+                sim.last_processed_date.isoformat() if sim.last_processed_date else "",
+                float(sim.initial_cash or 0.0),
+            )
+            for sim in simulations
+        )
+    )
+    return (int(user_id), str(view or "open"), fingerprint)
+
+
+def get_cached_live_sim_portfolio_curve(cache_key):
+    cached = LIVE_SIM_PORTFOLIO_CURVE_CACHE.get(cache_key)
+    if cached is None:
+        return None
+    return cached
+
+
+def store_cached_live_sim_portfolio_curve(cache_key, portfolio):
+    if len(LIVE_SIM_PORTFOLIO_CURVE_CACHE) >= LIVE_SIM_PORTFOLIO_CURVE_CACHE_MAX:
+        # Dicts preserve insertion order on supported Python versions.
+        oldest_key = next(iter(LIVE_SIM_PORTFOLIO_CURVE_CACHE), None)
+        if oldest_key is not None:
+            LIVE_SIM_PORTFOLIO_CURVE_CACHE.pop(oldest_key, None)
+    LIVE_SIM_PORTFOLIO_CURVE_CACHE[cache_key] = portfolio
+
+
 def safe_live_sim_return(current_value, base_value):
     try:
         current_value = float(current_value)
@@ -5526,18 +5566,32 @@ def get_live_simulation_portfolio():
     if not simulations:
         return jsonify({"error": "No simulations are available in this view."}), 404
 
-    for sim in simulations:
-        if not live_sim_can_update_for_user(current_user, sim):
-            continue
-        try:
-            update_live_simulation_from_csv(sim, current_user)
-        except Exception:
-            app.logger.exception(
-                "Live simulation portfolio refresh failed: simulation_id=%s",
-                sim.id,
-            )
+    skip_refresh = str(request.args.get("skip_refresh", "")).strip().lower() in {"1", "true", "yes"}
+    if not skip_refresh:
+        for sim in simulations:
+            if not live_sim_can_update_for_user(current_user, sim):
+                continue
+            try:
+                update_live_simulation_from_csv(sim, current_user)
+            except Exception:
+                app.logger.exception(
+                    "Live simulation portfolio refresh failed: simulation_id=%s",
+                    sim.id,
+                )
 
-    simulations = query.order_by(LiveSimulation.created_at.desc()).all()
+        simulations = query.order_by(LiveSimulation.created_at.desc()).all()
+    cache_key = live_sim_portfolio_curve_cache_key(
+        current_user.id,
+        requested_status,
+        simulations,
+    )
+    cached_portfolio = get_cached_live_sim_portfolio_curve(cache_key)
+    if cached_portfolio is not None:
+        response = jsonify({"portfolio": cached_portfolio})
+        response.headers["X-NeuralTrend-Portfolio-Cache"] = "HIT"
+        response.headers["Cache-Control"] = "private, no-store, max-age=0"
+        return response
+
     summaries = [live_simulation_summary(sim) for sim in simulations]
     portfolio = build_live_simulation_portfolio_total(
         simulations,
@@ -5549,7 +5603,11 @@ def get_live_simulation_portfolio():
     if portfolio is None:
         return jsonify({"error": "No simulations are available in this view."}), 404
 
-    return jsonify({"portfolio": portfolio})
+    store_cached_live_sim_portfolio_curve(cache_key, portfolio)
+    response = jsonify({"portfolio": portfolio})
+    response.headers["X-NeuralTrend-Portfolio-Cache"] = "MISS"
+    response.headers["Cache-Control"] = "private, no-store, max-age=0"
+    return response
 
 
 @app.route("/live-simulations/<int:simulation_id>", methods=["GET"])
