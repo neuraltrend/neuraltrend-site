@@ -115,3 +115,78 @@ def test_live_simulation_default_name_includes_ticker_cash_and_position(
     payload = created.get_json()["simulation"]
     assert payload["name"] == "BTC-USD_10000_50%"
 
+
+
+def test_live_simulation_portfolio_can_filter_by_simulation_ids(
+    authenticated_client,
+    monkeypatch,
+    sample_market_frame,
+):
+    monkeypatch.setattr(
+        application,
+        "load_epoch_csv_for_ticker",
+        lambda ticker: sample_market_frame.copy(),
+    )
+
+    def initialize(simulation, user):
+        simulation.last_processed_date = simulation.start_date
+        db.session.commit()
+        return simulation
+
+    monkeypatch.setattr(
+        application,
+        "update_live_simulation_from_csv",
+        initialize,
+    )
+
+    first = authenticated_client.post(
+        "/live-simulations",
+        json={
+            "ticker": "BTC-USD",
+            "name": "BTC filtered total",
+            "initial_cash": 10000,
+            "position_size_pct": 100,
+        },
+    )
+    second = authenticated_client.post(
+        "/live-simulations",
+        json={
+            "ticker": "ETH-USD",
+            "name": "ETH filtered total",
+            "initial_cash": 20000,
+            "position_size_pct": 100,
+        },
+    )
+
+    assert first.status_code == 201
+    assert second.status_code == 201
+
+    first_id = first.get_json()["simulation"]["id"]
+    second_id = second.get_json()["simulation"]["id"]
+
+    monkeypatch.setattr(
+        application,
+        "update_live_simulation_from_csv",
+        lambda simulation, user: simulation,
+    )
+
+    filtered = authenticated_client.get(
+        f"/live-simulations/portfolio?ids={first_id}&skip_refresh=1"
+    )
+    assert filtered.status_code == 200
+    filtered_portfolio = filtered.get_json()["portfolio"]
+    assert filtered_portfolio["simulation_count"] == 1
+    assert filtered_portfolio["initial_cash"] == 10000
+
+    both = authenticated_client.get(
+        f"/live-simulations/portfolio?ids={first_id},{second_id}&skip_refresh=1"
+    )
+    assert both.status_code == 200
+    both_portfolio = both.get_json()["portfolio"]
+    assert both_portfolio["simulation_count"] == 2
+    assert both_portfolio["initial_cash"] == 30000
+
+    missing = authenticated_client.get(
+        "/live-simulations/portfolio?ids=999999&skip_refresh=1"
+    )
+    assert missing.status_code == 404
