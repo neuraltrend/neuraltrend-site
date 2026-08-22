@@ -5645,7 +5645,11 @@ def get_live_simulation(simulation_id):
     if access_error:
         return access_error
 
-    if live_sim_can_update_for_user(current_user, sim):
+    skip_refresh = str(request.args.get("skip_refresh", "")).strip().lower() in {
+        "1", "true", "yes"
+    }
+
+    if not skip_refresh and live_sim_can_update_for_user(current_user, sim):
         try:
             updated_sim = update_live_simulation_from_csv(
                 sim,
