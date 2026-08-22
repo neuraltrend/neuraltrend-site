@@ -2553,7 +2553,9 @@
         try {
             data = JSON.parse(text);
         } catch (e) {
-            throw new Error(`Unexpected server response (${response.status}).`);
+            const error = new Error(`Unexpected server response (${response.status}).`);
+            error.status = response.status;
+            throw error;
         }
     
         if (!response.ok) {
@@ -2566,6 +2568,46 @@
         return data;
     }
     
+    function isTransientLiveSimServerError(error) {
+        const status = Number(error?.status);
+        return status === 502 || status === 503 || status === 504;
+    }
+
+    async function liveSimFetchJSONWithRetry(url, options = {}, {retries = 2} = {}) {
+        let lastError = null;
+        for (let attempt = 0; attempt <= retries; attempt += 1) {
+            try {
+                return await liveSimFetchJSON(url, options);
+            } catch (error) {
+                lastError = error;
+                if (!isTransientLiveSimServerError(error) || attempt >= retries) throw error;
+                const delayMs = attempt === 0 ? 350 : 900;
+                await new Promise(resolve => window.setTimeout(resolve, delayMs));
+            }
+        }
+        throw lastError || new Error("Live simulation data is temporarily unavailable.");
+    }
+
+    let liveSimDeferredPortfolioPrefetchTimer = null;
+
+    function scheduleDeferredLiveSimPortfolioPrefetch(simulations = null) {
+        if (liveSimDeferredPortfolioPrefetchTimer) {
+            window.clearTimeout(liveSimDeferredPortfolioPrefetchTimer);
+            liveSimDeferredPortfolioPrefetchTimer = null;
+        }
+
+        const visibleSimulations = Array.isArray(simulations)
+            ? simulations
+            : getFilteredAndSortedLiveSimulations(liveSimulationsCache);
+
+        if (!visibleSimulations.length || visibleSimulations.length > 40) return;
+
+        liveSimDeferredPortfolioPrefetchTimer = window.setTimeout(() => {
+            liveSimDeferredPortfolioPrefetchTimer = null;
+            prefetchLiveSimPortfolioDetail(liveSimStatusFilter, visibleSimulations);
+        }, 1400);
+    }
+
     async function loadLiveSimulations() {
         const listEl = document.getElementById("live-sim-list");
         const limitEl = document.getElementById("live-sim-limit");
@@ -2601,14 +2643,7 @@
             
             limitEl.textContent = liveSimLimitText(data);
 
-            // Start the combined-curve request before the synchronous table
-            // render. Usually it finishes while the user is reading the board.
-            if (liveSimulationsCache.length) {
-                prefetchLiveSimPortfolioDetail(
-                    liveSimStatusFilter,
-                    getFilteredAndSortedLiveSimulations(liveSimulationsCache)
-                );
-            }
+            // Render first; TOTAL prefetch is deferred until the selected detail is ready.
             renderLiveSimulationList(liveSimulationsCache);
     
             if (data.simulations && data.simulations.length > 0) {
@@ -2619,8 +2654,12 @@
                 } else {
                     const selectedExists = data.simulations.some(sim => Number(sim.id) === Number(selectedLiveSimulationId));
                     const targetId = selectedExists ? selectedLiveSimulationId : data.simulations[0].id;
-                    await selectLiveSimulation(targetId);
+                    await selectLiveSimulation(targetId, {skipRefresh: true});
                 }
+
+                scheduleDeferredLiveSimPortfolioPrefetch(
+                    getFilteredAndSortedLiveSimulations(liveSimulationsCache)
+                );
             } else {
                 document.getElementById("live-sim-dashboard").style.display = "none";
             
@@ -3250,7 +3289,7 @@
             }
 
             if (visibleSimulations.length) {
-                prefetchLiveSimPortfolioDetail(liveSimStatusFilter, visibleSimulations);
+                scheduleDeferredLiveSimPortfolioPrefetch(visibleSimulations);
             }
         };
 
@@ -3262,7 +3301,7 @@
         liveSimPortfolioFilterRefreshTimer = window.setTimeout(run, 220);
     }
 
-    function setLiveSimulationDetailLoading(title = "Portfolio Total") {
+    function setLiveSimulationDetailLoading(title = "Portfolio Total", {portfolio = true} = {}) {
         const dashboard = document.getElementById("live-sim-dashboard");
         if (!dashboard) return;
 
@@ -3272,7 +3311,11 @@
         const titleEl = document.getElementById("live-sim-detail-title");
         const subtitleEl = document.getElementById("live-sim-detail-subtitle");
         if (titleEl) titleEl.textContent = title;
-        if (subtitleEl) subtitleEl.textContent = "Loading combined portfolio equity…";
+        if (subtitleEl) {
+            subtitleEl.textContent = portfolio
+                ? "Loading combined portfolio equity…"
+                : "Loading simulation equity…";
+        }
 
         [
             "live-sim-strategy-value",
@@ -3295,7 +3338,11 @@
         });
 
         const chartSubtitle = document.getElementById("live-sim-chart-subtitle");
-        if (chartSubtitle) chartSubtitle.textContent = "Preparing combined equity curve…";
+        if (chartSubtitle) {
+            chartSubtitle.textContent = portfolio
+                ? "Preparing combined equity curve…"
+                : "Preparing equity curve…";
+        }
 
         if (liveSimChart) {
             liveSimChart.destroy();
@@ -3367,29 +3414,41 @@
         }
     }
 
-    async function selectLiveSimulation(simId) {
+    async function selectLiveSimulation(simId, {skipRefresh = false} = {}) {
         selectedLiveSimulationId = simId;
-    
+        updateLiveSimBoardActiveRow();
+        renderLiveSimSelectedActions();
+
+        const cachedSummary = liveSimulationsCache.find(sim => Number(sim?.id) === Number(simId));
+        setLiveSimulationDetailLoading(
+            cachedSummary?.name || cachedSummary?.ticker || "Live Simulation",
+            {portfolio: false}
+        );
+
         try {
-            const data = await liveSimFetchJSON(`/live-simulations/${simId}`);
+            const params = new URLSearchParams();
+            if (skipRefresh) params.set("skip_refresh", "1");
+            const query = params.toString();
+            const url = `/live-simulations/${simId}${query ? `?${query}` : ""}`;
+
+            const data = await liveSimFetchJSONWithRetry(url, {cache: "no-store"}, {retries: 2});
             renderLiveSimulationDetail(data.simulation);
 
             document.querySelectorAll(".nt-live-sim-item").forEach(card => {
-                card.classList.toggle(
-                    "active",
-                    Number(card.dataset.liveSimId) === Number(simId)
-                );
+                card.classList.toggle("active", Number(card.dataset.liveSimId) === Number(simId));
             });
-            
             updateLiveSimBoardActiveRow();
-            
             renderLiveSimSelectedActions();
-    
         } catch (error) {
+            clearLiveSimulationChartLoading();
             setLiveSimMessage(error.message, true);
+            const subtitleEl = document.getElementById("live-sim-detail-subtitle");
+            const chartSubtitle = document.getElementById("live-sim-chart-subtitle");
+            if (subtitleEl) subtitleEl.textContent = "Simulation equity could not be loaded.";
+            if (chartSubtitle) chartSubtitle.textContent = "Please try selecting the simulation again or press Refresh.";
         }
     }
-    
+
     function renderLiveSimulationDetail(sim) {
         const dashboard = document.getElementById("live-sim-dashboard");
         if (!dashboard) return;
@@ -5471,7 +5530,12 @@
                 selectedLiveSimulationId = simId;
                 updateLiveSimBoardActiveRow();
         
-                await selectLiveSimulation(simId);
+                const rowSummary = liveSimulationsCache.find(
+                    sim => Number(sim?.id) === Number(simId)
+                );
+                const skipRefresh = Boolean(rowSummary?.is_current_with_csv);
+
+                await selectLiveSimulation(simId, {skipRefresh});
         
                 updateLiveSimBoardActiveRow();
             }
