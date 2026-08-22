@@ -5562,9 +5562,29 @@ def get_live_simulation_portfolio():
         requested_status = "open"
         query = query.filter(LiveSimulation.status.in_(["active", "paused"]))
 
+    requested_ids_raw = str(request.args.get("ids", "") or "").strip()
+    requested_ids = None
+    if requested_ids_raw:
+        try:
+            requested_ids = sorted({
+                int(value)
+                for value in requested_ids_raw.split(",")
+                if str(value).strip()
+            })
+        except (TypeError, ValueError):
+            return jsonify({"error": "Invalid simulation filter."}), 400
+
+        requested_ids = [value for value in requested_ids if value > 0]
+        if not requested_ids:
+            return jsonify({"error": "No simulations match the current filters."}), 404
+        if len(requested_ids) > 100:
+            return jsonify({"error": "Too many simulations were requested."}), 400
+
+        query = query.filter(LiveSimulation.id.in_(requested_ids))
+
     simulations = query.order_by(LiveSimulation.created_at.desc()).all()
     if not simulations:
-        return jsonify({"error": "No simulations are available in this view."}), 404
+        return jsonify({"error": "No simulations match the current filters."}), 404
 
     skip_refresh = str(request.args.get("skip_refresh", "")).strip().lower() in {"1", "true", "yes"}
     if not skip_refresh:
