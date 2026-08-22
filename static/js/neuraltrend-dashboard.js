@@ -2459,9 +2459,11 @@
     let recentlyCreatedLiveSimulationId = null;
     let liveSimulationsCache = [];
     let liveSimPortfolioCache = null;
+    let liveSimFilteredPortfolioSummary = null;
     let liveSimSelectedDetailCache = null;
     const liveSimPortfolioDetailCache = new Map();
     const liveSimPortfolioDetailRequests = new Map();
+    let liveSimPortfolioFilterRefreshTimer = null;
     let liveSimStatusFilter = "open";
     
     let liveSimLoggedIn = false;
@@ -2602,13 +2604,18 @@
             // Start the combined-curve request before the synchronous table
             // render. Usually it finishes while the user is reading the board.
             if (liveSimulationsCache.length) {
-                prefetchLiveSimPortfolioDetail(liveSimStatusFilter);
+                prefetchLiveSimPortfolioDetail(
+                    liveSimStatusFilter,
+                    getFilteredAndSortedLiveSimulations(liveSimulationsCache)
+                );
             }
             renderLiveSimulationList(liveSimulationsCache);
     
             if (data.simulations && data.simulations.length > 0) {
-                if (selectedLiveSimulationId === LIVE_SIM_PORTFOLIO_TOTAL_ID && liveSimPortfolioCache) {
-                    await selectLiveSimulationPortfolio();
+                if (selectedLiveSimulationId === LIVE_SIM_PORTFOLIO_TOTAL_ID && liveSimFilteredPortfolioSummary) {
+                    await selectLiveSimulationPortfolio({
+                        simulations: getFilteredAndSortedLiveSimulations(liveSimulationsCache)
+                    });
                 } else {
                     const selectedExists = data.simulations.some(sim => Number(sim.id) === Number(selectedLiveSimulationId));
                     const targetId = selectedExists ? selectedLiveSimulationId : data.simulations[0].id;
@@ -2658,6 +2665,7 @@
     
         const allSimulations = simulations || [];
         const visibleSimulations = getFilteredAndSortedLiveSimulations(allSimulations);
+        liveSimFilteredPortfolioSummary = buildLiveSimFilteredPortfolioSummary(visibleSimulations);
     
         const positionOptions = Array.from(
             new Set(
@@ -2886,8 +2894,8 @@
                         }
                     </tbody>
 
-                    ${liveSimPortfolioCache ? (() => {
-                        const portfolio = liveSimPortfolioCache;
+                    ${liveSimFilteredPortfolioSummary ? (() => {
+                        const portfolio = liveSimFilteredPortfolioSummary;
                         const strategyValue = liveSimBoardStrategyDollarForHorizon(portfolio);
                         const benchmarkValue = liveSimBoardBenchmarkDollarForHorizon(portfolio);
                         const valueDifference = liveSimBoardValueDifferenceForHorizon(portfolio);
@@ -2913,7 +2921,7 @@
                                                     aria-label="About the combined portfolio calculation"
                                                     aria-expanded="false"
                                                 >i</button>
-                                                <span class="nt-stat-header-tooltip nt-live-sim-portfolio-info-tooltip" role="tooltip">Each simulation keeps its own initial cash allocation. Before a simulation starts, that allocation is treated as idle cash; from its start date onward, its recorded strategy and Buy &amp; Hold values are used. Portfolio dollar values are summed across simulations, while percentage returns are calculated from the combined value relative to the combined starting or horizon-base capital rather than averaging individual returns.</span>
+                                                <span class="nt-stat-header-tooltip nt-live-sim-portfolio-info-tooltip" role="tooltip">To combine simulations with different start dates, each simulation’s initial cash allocation is included from the earliest date in the combined portfolio. Until that simulation actually starts, its allocation remains constant as idle cash; from its own start date onward, its recorded strategy and Buy &amp; Hold equity are used. This keeps the combined capital base stable and avoids artificial jumps when later simulations begin. Portfolio dollar values are summed across simulations, while percentage returns are calculated from combined portfolio values rather than averaging individual returns.</span>
                                             </span>
                                         </div>
                                         <div class="nt-live-sim-board-sub-value neutral">${escapeHTML(liveSimFilterLabel(liveSimStatusFilter))}</div>
@@ -2923,7 +2931,7 @@
                                         <div class="nt-live-sim-board-status">${Number(portfolio.simulation_count || 0)} simulations · click for combined equity</div>
                                     </td>
                                     <td>
-                                        <div class="nt-live-sim-board-ticker">All assets</div>
+                                        <div class="nt-live-sim-board-ticker">${escapeHTML(liveSimPortfolioAssetScopeLabel())}</div>
                                         ${liveSimPortfolioFreshnessCountsHTML(portfolio)}
                                     </td>
                                     <td>
@@ -2979,18 +2987,62 @@
         ].join("|");
     }
 
-    function liveSimPortfolioCacheKey(status = liveSimStatusFilter) {
-        return String(status || "open").trim().toLowerCase() || "open";
+    function liveSimFilteredSimulationIds(simulations = null) {
+        const source = Array.isArray(simulations)
+            ? simulations
+            : getFilteredAndSortedLiveSimulations(liveSimulationsCache);
+
+        return source
+            .map(sim => Number(sim?.id))
+            .filter(id => Number.isInteger(id) && id > 0)
+            .sort((a, b) => a - b);
     }
 
-    function invalidateLiveSimPortfolioDetail(status = liveSimStatusFilter) {
-        const key = liveSimPortfolioCacheKey(status);
-        liveSimPortfolioDetailCache.delete(key);
-        liveSimPortfolioDetailRequests.delete(key);
+    function liveSimPortfolioCacheKey(
+        status = liveSimStatusFilter,
+        simulations = null
+    ) {
+        const normalizedStatus = String(status || "open").trim().toLowerCase() || "open";
+        const ids = liveSimFilteredSimulationIds(simulations);
+        return `${normalizedStatus}|${ids.join(",")}`;
     }
 
-    function getLiveSimPortfolioDetail(status = liveSimStatusFilter) {
-        const key = liveSimPortfolioCacheKey(status);
+    function invalidateLiveSimPortfolioDetail(
+        status = liveSimStatusFilter,
+        simulations = null
+    ) {
+        const normalizedStatus = String(status || "open").trim().toLowerCase() || "open";
+
+        if (Array.isArray(simulations)) {
+            const key = liveSimPortfolioCacheKey(normalizedStatus, simulations);
+            liveSimPortfolioDetailCache.delete(key);
+            liveSimPortfolioDetailRequests.delete(key);
+            return;
+        }
+
+        const prefix = `${normalizedStatus}|`;
+        Array.from(liveSimPortfolioDetailCache.keys()).forEach(key => {
+            if (String(key).startsWith(prefix)) liveSimPortfolioDetailCache.delete(key);
+        });
+        Array.from(liveSimPortfolioDetailRequests.keys()).forEach(key => {
+            if (String(key).startsWith(prefix)) liveSimPortfolioDetailRequests.delete(key);
+        });
+    }
+
+    function getLiveSimPortfolioDetail(
+        status = liveSimStatusFilter,
+        simulations = null
+    ) {
+        const visibleSimulations = Array.isArray(simulations)
+            ? simulations
+            : getFilteredAndSortedLiveSimulations(liveSimulationsCache);
+        const ids = liveSimFilteredSimulationIds(visibleSimulations);
+
+        if (!ids.length) {
+            return Promise.resolve(null);
+        }
+
+        const key = liveSimPortfolioCacheKey(status, visibleSimulations);
 
         if (liveSimPortfolioDetailCache.has(key)) {
             return Promise.resolve(liveSimPortfolioDetailCache.get(key));
@@ -3000,8 +3052,14 @@
             return liveSimPortfolioDetailRequests.get(key);
         }
 
+        const params = new URLSearchParams({
+            status: String(status || "open"),
+            skip_refresh: "1",
+            ids: ids.join(",")
+        });
+
         const request = liveSimFetchJSON(
-            `/live-simulations/portfolio?status=${encodeURIComponent(key)}&skip_refresh=1`,
+            `/live-simulations/portfolio?${params.toString()}`,
             {cache: "no-store"}
         )
             .then(data => {
@@ -3019,17 +3077,189 @@
         return request;
     }
 
-    function prefetchLiveSimPortfolioDetail(status = liveSimStatusFilter) {
-        const key = liveSimPortfolioCacheKey(status);
+    function prefetchLiveSimPortfolioDetail(
+        status = liveSimStatusFilter,
+        simulations = null
+    ) {
+        const visibleSimulations = Array.isArray(simulations)
+            ? simulations
+            : getFilteredAndSortedLiveSimulations(liveSimulationsCache);
+        const ids = liveSimFilteredSimulationIds(visibleSimulations);
+        if (!ids.length) return;
+
+        const key = liveSimPortfolioCacheKey(status, visibleSimulations);
         if (liveSimPortfolioDetailCache.has(key) || liveSimPortfolioDetailRequests.has(key)) {
             return;
         }
 
-        // Fire immediately; request de-duplication in getLiveSimPortfolioDetail
-        // means a quick TOTAL click simply awaits this same in-flight request.
-        getLiveSimPortfolioDetail(key).catch(error => {
+        getLiveSimPortfolioDetail(status, visibleSimulations).catch(error => {
             console.debug("Portfolio equity prefetch skipped:", error);
         });
+    }
+
+    function liveSimHasSubsetFilters() {
+        return (
+            liveSimStatusFilter !== "open" ||
+            Boolean(liveSimBoardSearchQuery.trim()) ||
+            liveSimBoardAssetTypeFilter !== "all" ||
+            liveSimBoardSignalFilter !== "all" ||
+            liveSimBoardPositionFilter !== "all"
+        );
+    }
+
+    function liveSimPortfolioAssetScopeLabel() {
+        return liveSimHasSubsetFilters() ? "Filtered assets" : "All assets";
+    }
+
+    function liveSimPortfolioFreshnessCountsFromSimulations(simulations) {
+        const counts = {current: 0, delayed: 0, stale: 0, unknown: 0};
+
+        (simulations || []).forEach(sim => {
+            const status = String(sim?.freshness_status || "unknown").toLowerCase();
+            const normalized = Object.prototype.hasOwnProperty.call(counts, status)
+                ? status
+                : "unknown";
+            counts[normalized] += 1;
+        });
+
+        return counts;
+    }
+
+    function buildLiveSimFilteredPortfolioSummary(simulations) {
+        const source = Array.isArray(simulations) ? simulations : [];
+        if (!source.length) return null;
+
+        const number = value => {
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? parsed : null;
+        };
+        const sum = values => values.reduce((total, value) => total + (number(value) ?? 0), 0);
+
+        const initialCash = sum(source.map(sim => sim.initial_cash));
+        const cashBalance = sum(source.map(sim => sim.cash_balance));
+        const latestStrategyValue = sum(source.map(sim => sim.latest_strategy_value ?? sim.initial_cash));
+        const latestBenchmarkValue = sum(source.map(sim => sim.latest_benchmark_value ?? sim.initial_cash));
+        const tradeCount = sum(source.map(sim => sim.trade_count));
+
+        const safeReturn = (current, base) => (
+            Number.isFinite(current) && Number.isFinite(base) && base > 0
+                ? current / base - 1
+                : null
+        );
+
+        const horizonKeys = ["1d", "1w", "1mo", "3mo", "6mo", "1y", "since_start"];
+        const horizonReturns = {};
+
+        horizonKeys.forEach(horizonKey => {
+            let baseStrategyValue = 0;
+            let baseBenchmarkValue = 0;
+            let currentStrategyValue = 0;
+            let currentBenchmarkValue = 0;
+            const baseDates = [];
+            const latestDates = [];
+
+            source.forEach(sim => {
+                const allMetrics = sim.horizon_returns || {};
+                const metrics = allMetrics[horizonKey] || allMetrics.since_start || {};
+                const simInitial = number(sim.initial_cash) ?? 0;
+                const strategyCurrent = number(sim.latest_strategy_value) ?? simInitial;
+                const benchmarkCurrent = number(sim.latest_benchmark_value) ?? simInitial;
+                const strategyBase = number(metrics.base_strategy_value) ?? simInitial;
+                const benchmarkBase = number(metrics.base_benchmark_value) ?? simInitial;
+
+                baseStrategyValue += strategyBase;
+                baseBenchmarkValue += benchmarkBase;
+                currentStrategyValue += strategyCurrent;
+                currentBenchmarkValue += benchmarkCurrent;
+
+                if (metrics.base_date) baseDates.push(String(metrics.base_date));
+                if (metrics.latest_date) latestDates.push(String(metrics.latest_date));
+            });
+
+            const strategyReturn = safeReturn(currentStrategyValue, baseStrategyValue);
+            const benchmarkReturn = safeReturn(currentBenchmarkValue, baseBenchmarkValue);
+            const strategyChange = currentStrategyValue - baseStrategyValue;
+            const benchmarkChange = currentBenchmarkValue - baseBenchmarkValue;
+
+            horizonReturns[horizonKey] = {
+                base_date: baseDates.length ? baseDates.sort()[0] : null,
+                latest_date: latestDates.length ? latestDates.sort().at(-1) : null,
+                strategy_return: strategyReturn,
+                benchmark_return: benchmarkReturn,
+                return_spread: strategyReturn !== null && benchmarkReturn !== null
+                    ? strategyReturn - benchmarkReturn
+                    : null,
+                strategy_change: strategyChange,
+                benchmark_change: benchmarkChange,
+                value_difference: strategyChange - benchmarkChange,
+                strategy_value: currentStrategyValue,
+                benchmark_value: currentBenchmarkValue,
+                base_strategy_value: baseStrategyValue,
+                base_benchmark_value: baseBenchmarkValue
+            };
+        });
+
+        const freshnessCounts = liveSimPortfolioFreshnessCountsFromSimulations(source);
+        const latestDates = source
+            .map(sim => sim.latest_equity_date)
+            .filter(Boolean)
+            .map(String)
+            .sort();
+        const startDates = source
+            .map(sim => sim.start_date)
+            .filter(Boolean)
+            .map(String)
+            .sort();
+
+        return {
+            id: LIVE_SIM_PORTFOLIO_TOTAL_ID,
+            is_portfolio_total: true,
+            name: "Portfolio Total",
+            ticker: liveSimPortfolioAssetScopeLabel(),
+            asset_type: "mixed",
+            status: liveSimStatusFilter,
+            view: liveSimStatusFilter,
+            simulation_count: source.length,
+            initial_cash: initialCash,
+            cash_balance: cashBalance,
+            latest_strategy_value: latestStrategyValue,
+            latest_benchmark_value: latestBenchmarkValue,
+            strategy_return: safeReturn(latestStrategyValue, initialCash),
+            benchmark_return: safeReturn(latestBenchmarkValue, initialCash),
+            value_difference: latestStrategyValue - latestBenchmarkValue,
+            trade_count: tradeCount,
+            start_date: startDates.length ? startDates[0] : null,
+            latest_equity_date: latestDates.length ? latestDates.at(-1) : null,
+            freshness_counts: freshnessCounts,
+            horizon_returns: horizonReturns
+        };
+    }
+
+    function scheduleLiveSimFilteredPortfolioRefresh({immediate = false} = {}) {
+        if (liveSimPortfolioFilterRefreshTimer) {
+            window.clearTimeout(liveSimPortfolioFilterRefreshTimer);
+            liveSimPortfolioFilterRefreshTimer = null;
+        }
+
+        const run = () => {
+            const visibleSimulations = getFilteredAndSortedLiveSimulations(liveSimulationsCache);
+
+            if (selectedLiveSimulationId === LIVE_SIM_PORTFOLIO_TOTAL_ID) {
+                selectLiveSimulationPortfolio({simulations: visibleSimulations});
+                return;
+            }
+
+            if (visibleSimulations.length) {
+                prefetchLiveSimPortfolioDetail(liveSimStatusFilter, visibleSimulations);
+            }
+        };
+
+        if (immediate) {
+            run();
+            return;
+        }
+
+        liveSimPortfolioFilterRefreshTimer = window.setTimeout(run, 220);
     }
 
     function setLiveSimulationDetailLoading(title = "Portfolio Total") {
@@ -3080,16 +3310,30 @@
         document.querySelector(".nt-live-sim-chart-shell")?.classList.remove("is-loading");
     }
 
-    async function selectLiveSimulationPortfolio() {
+    async function selectLiveSimulationPortfolio({simulations = null} = {}) {
         selectedLiveSimulationId = LIVE_SIM_PORTFOLIO_TOTAL_ID;
         updateLiveSimBoardActiveRow();
         renderLiveSimSelectedActions();
 
-        const key = liveSimPortfolioCacheKey(liveSimStatusFilter);
+        const visibleSimulations = Array.isArray(simulations)
+            ? simulations
+            : getFilteredAndSortedLiveSimulations(liveSimulationsCache);
+
+        if (!visibleSimulations.length) {
+            setLiveSimulationDetailLoading("Portfolio Total");
+            const subtitleEl = document.getElementById("live-sim-detail-subtitle");
+            const chartSubtitle = document.getElementById("live-sim-chart-subtitle");
+            if (subtitleEl) subtitleEl.textContent = "No simulations match the current filters.";
+            if (chartSubtitle) chartSubtitle.textContent = "Adjust the filters to view combined equity.";
+            clearLiveSimulationChartLoading();
+            return;
+        }
+
+        const key = liveSimPortfolioCacheKey(liveSimStatusFilter, visibleSimulations);
         const cachedPortfolio = liveSimPortfolioDetailCache.get(key);
 
         if (cachedPortfolio) {
-            liveSimPortfolioCache = cachedPortfolio;
+            cachedPortfolio.ticker = liveSimPortfolioAssetScopeLabel();
             renderLiveSimulationDetail(cachedPortfolio);
             return;
         }
@@ -3100,12 +3344,15 @@
         await new Promise(resolve => window.requestAnimationFrame(() => resolve()));
 
         try {
-            const portfolio = await getLiveSimPortfolioDetail(key);
+            const portfolio = await getLiveSimPortfolioDetail(
+                liveSimStatusFilter,
+                visibleSimulations
+            );
             if (!portfolio) {
                 throw new Error("Combined portfolio equity is unavailable.");
             }
 
-            liveSimPortfolioCache = portfolio;
+            portfolio.ticker = liveSimPortfolioAssetScopeLabel();
             renderLiveSimulationDetail(portfolio);
             updateLiveSimBoardActiveRow();
             renderLiveSimSelectedActions();
@@ -4102,7 +4349,7 @@
                     <div class="nt-live-sim-selected-actions-info">
                         <div class="nt-live-sim-selected-actions-label">Combined portfolio</div>
                         <div class="nt-live-sim-selected-actions-name">
-                            Portfolio Total · ${Number(liveSimPortfolioCache.simulation_count || 0)} simulations
+                            Portfolio Total · ${Number(liveSimFilteredPortfolioSummary.simulation_count || 0)} simulations
                         </div>
                     </div>
                     <div class="nt-live-sim-selected-actions-empty">
@@ -4570,7 +4817,12 @@
         liveSimBoardSpreadDisplayMode = "ratio";
     
         liveSimBoardSortKey = "created_at";
-        liveSimBoardSortDirection = "desc";   
+        liveSimBoardSortDirection = "desc";
+        liveSimFilteredPortfolioSummary = null;
+        if (liveSimPortfolioFilterRefreshTimer) {
+            window.clearTimeout(liveSimPortfolioFilterRefreshTimer);
+            liveSimPortfolioFilterRefreshTimer = null;
+        }
 
         const liveSimSearchInput = document.getElementById("live-sim-board-search");
         if (liveSimSearchInput) {
@@ -4739,7 +4991,20 @@
             return `<div class="signal-freshness-meta nt-freshness-unknown"><span class="signal-freshness-dot" aria-hidden="true"></span><span>Freshness unavailable</span></div>`;
         }
 
-        return `<div class="nt-live-sim-portfolio-freshness-counts" title="Freshness across simulations in this portfolio view">${entries.map(([status, count]) => `<span class="nt-live-sim-portfolio-freshness-count nt-freshness-${ntSafeFreshnessStatus(status)}"><span class="signal-freshness-dot" aria-hidden="true"></span><span>${count} ${escapeHTML(status)}</span></span>`).join("")}</div>`;
+        const parts = [];
+        entries.forEach(([status, count], index) => {
+            if (index > 0) {
+                parts.push(`<span class="nt-live-sim-portfolio-freshness-separator" aria-hidden="true">·</span>`);
+            }
+            parts.push(`
+                <span class="nt-live-sim-portfolio-freshness-count nt-freshness-${ntSafeFreshnessStatus(status)}">
+                    <span class="signal-freshness-dot" aria-hidden="true"></span>
+                    <span>${count} ${escapeHTML(status)}</span>
+                </span>
+            `);
+        });
+
+        return `<div class="nt-live-sim-portfolio-freshness-counts" title="Freshness across simulations in this filtered portfolio view">${parts.join("")}</div>`;
     }
 
     function liveSimBoardSpreadMetricHTML(
@@ -5188,7 +5453,9 @@
             e.preventDefault();
             selectedLiveSimulationId = LIVE_SIM_PORTFOLIO_TOTAL_ID;
             updateLiveSimBoardActiveRow();
-            await selectLiveSimulationPortfolio();
+            await selectLiveSimulationPortfolio({
+                simulations: getFilteredAndSortedLiveSimulations(liveSimulationsCache)
+            });
             updateLiveSimBoardActiveRow();
             return;
         }
@@ -5215,6 +5482,7 @@
         if (e.target && e.target.id === "live-sim-board-asset-filter") {
             liveSimBoardAssetTypeFilter = e.target.value;
             renderLiveSimulationList(liveSimulationsCache);
+            scheduleLiveSimFilteredPortfolioRefresh({immediate: true});
             return;
         }
         
@@ -5239,12 +5507,14 @@
         if (e.target && e.target.id === "live-sim-board-signal-filter") {
             liveSimBoardSignalFilter = e.target.value;
             renderLiveSimulationList(liveSimulationsCache);
+            scheduleLiveSimFilteredPortfolioRefresh({immediate: true});
             return;
         }
     
         if (e.target && e.target.id === "live-sim-board-position-filter") {
             liveSimBoardPositionFilter = e.target.value;
             renderLiveSimulationList(liveSimulationsCache);
+            scheduleLiveSimFilteredPortfolioRefresh({immediate: true});
         }
     });
 
@@ -5267,6 +5537,7 @@
     
             syncLiveSimAssetPills();
             renderLiveSimulationList(liveSimulationsCache);
+            scheduleLiveSimFilteredPortfolioRefresh({immediate: true});
         }
     });
 
@@ -5274,6 +5545,7 @@
         if (e.target && e.target.id === "live-sim-board-search") {
             liveSimBoardSearchQuery = e.target.value || "";
             renderLiveSimulationList(liveSimulationsCache);
+            scheduleLiveSimFilteredPortfolioRefresh();
         }
     });
         
