@@ -3084,8 +3084,6 @@
 .nt-live-sim-portfolio-trade-note {
     margin: 8px 0;
 }
-\n\n/* ==================================================\n   Live Simulation portfolio + board polish — Aug 19, 2026\n================================================== */\n\n.nt-live-sim-board-table tfoot td {\n    background: linear-gradient(180deg, #dbeafe 0%, #eaf3ff 100%) !important;\n    border-top: 3px solid #2563eb !important;\n    border-bottom: 1px solid rgba(37, 99, 235, 0.24) !important;\n    box-shadow: 0 -7px 18px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;\n}\n.nt-live-sim-board-table tfoot tr:hover td { background: linear-gradient(180deg, #cfe5ff 0%, #e3efff 100%) !important; }\n.nt-live-sim-board-table tfoot tr.active td { background: linear-gradient(180deg, #bfdbfe 0%, #dbeafe 100%) !important; }\n.nt-live-sim-portfolio-total-row td:first-child { border-left: 3px solid #2563eb; }\n.nt-live-sim-portfolio-total-row .nt-live-sim-board-name,\n.nt-live-sim-portfolio-total-row .nt-live-sim-board-main-value { color: #0f3f96; font-weight: 900; }\n.nt-live-sim-portfolio-total-label { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }\n.nt-live-sim-portfolio-info { flex: 0 0 auto; }\n.nt-live-sim-portfolio-info-tooltip { min-width: 300px; max-width: 390px; white-space: normal; text-align: left; line-height: 1.45; }\n.nt-live-sim-ticker-stack { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; gap: 2px; }\n.nt-live-sim-board-table .signal-freshness-meta { max-width: 140px; font-size: 9.5px; }\n.nt-live-sim-portfolio-freshness-counts { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 7px; margin-top: 2px; line-height: 1.1; }\n.nt-live-sim-portfolio-freshness-count { display: inline-flex; align-items: center; gap: 4px; padding: 0 !important; border: 0 !important; background: transparent !important; font-size: 9px; font-weight: 800; white-space: nowrap; }\n.nt-live-sim-portfolio-freshness-count .signal-freshness-dot { width: 5px; height: 5px; flex-basis: 5px; }\n.nt-live-sim-portfolio-freshness-badge { color: #334155 !important; background: #eef2ff !important; border-color: #c7d2fe !important; white-space: nowrap; }\n.nt-live-sim-board-table th:nth-child(9), .nt-live-sim-board-table td:nth-child(9) { min-width: 116px; }\n#live-sim-board-outperformance-mode { min-width: 92px; }\n
-
 /* Keep the sticky-row calculation tooltip above the row so it is not clipped
    by the scroll container at the bottom of the board. */
 .nt-live-sim-portfolio-info-tooltip {
@@ -3203,4 +3201,29 @@
 #backtest-form input#start,
 #backtest-form input#end {
     font-variant-numeric: tabular-nums;
+}
+
+
+/* Filtered Portfolio Total freshness summary — explicit visual separators. */
+.nt-live-sim-portfolio-freshness-counts {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 5px !important;
+    row-gap: 3px !important;
+    white-space: normal;
+}
+
+.nt-live-sim-portfolio-freshness-count {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px !important;
+}
+
+.nt-live-sim-portfolio-freshness-separator {
+    display: inline-block;
+    color: #94a3b8;
+    font-weight: 900;
+    line-height: 1;
+    margin: 0 1px;
 }
