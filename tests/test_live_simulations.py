@@ -190,3 +190,30 @@ def test_live_simulation_portfolio_can_filter_by_simulation_ids(
         "/live-simulations/portfolio?ids=999999&skip_refresh=1"
     )
     assert missing.status_code == 404
+
+
+def test_live_simulation_detail_skip_refresh_avoids_redundant_update(
+    authenticated_client, monkeypatch, sample_market_frame
+):
+    monkeypatch.setattr(application, "load_epoch_csv_for_ticker", lambda ticker: sample_market_frame.copy())
+
+    def initialize(simulation, user):
+        simulation.last_processed_date = simulation.start_date
+        db.session.commit()
+        return simulation
+
+    monkeypatch.setattr(application, "update_live_simulation_from_csv", initialize)
+    created = authenticated_client.post(
+        "/live-simulations",
+        json={"ticker": "BTC-USD", "name": "skip refresh detail", "initial_cash": 10000, "position_size_pct": 100},
+    )
+    assert created.status_code == 201
+    sim_id = created.get_json()["simulation"]["id"]
+
+    def should_not_run(*args, **kwargs):
+        raise AssertionError("detail refresh should have been skipped")
+
+    monkeypatch.setattr(application, "update_live_simulation_from_csv", should_not_run)
+    detail = authenticated_client.get(f"/live-simulations/{sim_id}?skip_refresh=1")
+    assert detail.status_code == 200
+    assert detail.get_json()["simulation"]["id"] == sim_id
