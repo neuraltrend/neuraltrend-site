@@ -1,19 +1,19 @@
-// Backtest date-range validation with keyboard-friendly MM/DD/YYYY entry.
+// Backtest native date-range controls with keyboard-safe manual entry.
 document.addEventListener("DOMContentLoaded", function() {
     const form = document.getElementById("backtest-form");
     const tickerSelect = document.getElementById("ticker");
     const startInput = document.getElementById("start");
     const endInput = document.getElementById("end");
-    const startIsoInput = document.getElementById("start-iso");
-    const endIsoInput = document.getElementById("end-iso");
-    const startHint = document.getElementById("backtest-start-date-hint");
-    const endHint = document.getElementById("backtest-end-date-hint");
 
-    if (!form || !tickerSelect || !startInput || !endInput || !startIsoInput || !endIsoInput) return;
+    if (!form || !tickerSelect || !startInput || !endInput) return;
 
     let coverageStart = null;
     let coverageEnd = null;
+    let committedStart = "";
+    let committedEnd = "";
     let boundsRequestId = 0;
+
+    const keyboardEditing = new WeakSet();
 
     function shiftIsoDate(isoDate, days) {
         if (!isoDate) return "";
@@ -23,137 +23,185 @@ document.addEventListener("DOMContentLoaded", function() {
         return date.toISOString().slice(0, 10);
     }
 
-    function isoToDisplay(isoDate) {
-        const match = String(isoDate || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
-        return match ? `${match[2]}/${match[3]}/${match[1]}` : "";
+    function isIsoDate(value) {
+        return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
     }
 
-    function parseDisplayDate(rawValue) {
-        const value = String(rawValue || "").trim();
-        let match = value.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
-        if (!match) {
-            const digits = value.replace(/\D/g, "");
-            if (digits.length === 8) {
-                match = [digits, digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)];
-            }
-        }
-        if (!match) return null;
-
-        const month = Number(match[1]);
-        const day = Number(match[2]);
-        const year = Number(match[3]);
-        if (year < 1000 || month < 1 || month > 12 || day < 1 || day > 31) return null;
-
-        const date = new Date(Date.UTC(year, month - 1, day));
-        if (
-            date.getUTCFullYear() !== year ||
-            date.getUTCMonth() !== month - 1 ||
-            date.getUTCDate() !== day
-        ) {
-            return null;
-        }
-
-        return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    function absoluteStartMax() {
+        return coverageEnd ? shiftIsoDate(coverageEnd, -1) : "";
     }
 
-    function isPotentialPartialDate(rawValue) {
-        const value = String(rawValue || "").trim();
-        if (!value) return true;
-        return /^[0-9/\-.\s]{1,10}$/.test(value);
+    function absoluteEndMin() {
+        return coverageStart ? shiftIsoDate(coverageStart, 1) : "";
     }
 
-    function currentRange() {
-        const startIso = parseDisplayDate(startInput.value);
-        const endIso = parseDisplayDate(endInput.value);
-        const startMax = endIso
-            ? shiftIsoDate(endIso, -1)
-            : coverageEnd ? shiftIsoDate(coverageEnd, -1) : "";
-        const endMin = startIso
-            ? shiftIsoDate(startIso, 1)
-            : coverageStart ? shiftIsoDate(coverageStart, 1) : "";
-        return {startIso, endIso, startMax, endMin};
+    function startMaxForCommittedRange() {
+        return committedEnd
+            ? shiftIsoDate(committedEnd, -1)
+            : absoluteStartMax();
     }
 
-    function updateHints() {
+    function endMinForCommittedRange() {
+        return committedStart
+            ? shiftIsoDate(committedStart, 1)
+            : absoluteEndMin();
+    }
+
+    function applyConstraintsToInput(input, minValue, maxValue) {
+        if (keyboardEditing.has(input)) return;
+
+        if (minValue) input.min = minValue;
+        else input.removeAttribute("min");
+
+        if (maxValue) input.max = maxValue;
+        else input.removeAttribute("max");
+    }
+
+    function restoreDateConstraints() {
         if (!coverageStart || !coverageEnd) return;
-        const {startMax, endMin} = currentRange();
-        if (startHint) {
-            startHint.textContent = `Available: ${isoToDisplay(coverageStart)} – ${isoToDisplay(startMax)}`;
+
+        applyConstraintsToInput(
+            startInput,
+            coverageStart,
+            startMaxForCommittedRange()
+        );
+        applyConstraintsToInput(
+            endInput,
+            endMinForCommittedRange(),
+            coverageEnd
+        );
+    }
+
+    function finishKeyboardEditing(input = null) {
+        if (input) keyboardEditing.delete(input);
+        else {
+            keyboardEditing.delete(startInput);
+            keyboardEditing.delete(endInput);
         }
-        if (endHint) {
-            endHint.textContent = `Available: ${isoToDisplay(endMin)} – ${isoToDisplay(coverageEnd)}`;
+        restoreDateConstraints();
+    }
+
+    function beginKeyboardEditing(input) {
+        keyboardEditing.add(input);
+
+        // Native Chromium date controls can validate the partially typed year
+        // against min/max (for example "20" while entering "2024") and reset
+        // the field. Suspend only this field's bounds while numeric segments
+        // are being typed. The picker still receives the bounds because they
+        // are restored on pointerdown before it opens.
+        input.removeAttribute("min");
+        input.removeAttribute("max");
+        input.setCustomValidity("");
+    }
+
+    function valueInsideAbsoluteCoverage(value, kind) {
+        if (!value || !coverageStart || !coverageEnd) return false;
+
+        if (kind === "start") {
+            return value >= coverageStart && value <= absoluteStartMax();
+        }
+        return value >= absoluteEndMin() && value <= coverageEnd;
+    }
+
+    function commitStartValue() {
+        const value = startInput.value;
+        committedStart = valueInsideAbsoluteCoverage(value, "start") ? value : "";
+
+        if (committedStart && committedEnd && committedEnd <= committedStart) {
+            committedEnd = "";
+            endInput.value = "";
         }
     }
 
-    function validateDateInputs({reportPartial = false} = {}) {
+    function commitEndValue() {
+        const value = endInput.value;
+        committedEnd = valueInsideAbsoluteCoverage(value, "end") ? value : "";
+
+        if (committedStart && committedEnd && committedStart >= committedEnd) {
+            committedStart = "";
+            startInput.value = "";
+        }
+    }
+
+    function validateDateRange({report = false} = {}) {
+        finishKeyboardEditing();
         startInput.setCustomValidity("");
         endInput.setCustomValidity("");
-        startIsoInput.value = "";
-        endIsoInput.value = "";
 
         if (!coverageStart || !coverageEnd) {
             startInput.setCustomValidity("Available backtest dates are still loading.");
+            if (report) startInput.reportValidity();
             return false;
         }
 
-        const startRaw = startInput.value.trim();
-        const endRaw = endInput.value.trim();
-        const {startIso, endIso, startMax, endMin} = currentRange();
+        const startValue = startInput.value;
+        const endValue = endInput.value;
 
-        if (startRaw && !startIso) {
-            if (reportPartial || !isPotentialPartialDate(startRaw)) {
-                startInput.setCustomValidity("Enter a valid date as MM/DD/YYYY.");
-            }
-            return false;
-        }
-        if (endRaw && !endIso) {
-            if (reportPartial || !isPotentialPartialDate(endRaw)) {
-                endInput.setCustomValidity("Enter a valid date as MM/DD/YYYY.");
-            }
+        if (!startValue) {
+            startInput.setCustomValidity("Choose a start date.");
+            if (report) startInput.reportValidity();
             return false;
         }
 
-        if (!startIso || !endIso) return false;
-
-        if (startIso < coverageStart || startIso > startMax) {
-            startInput.setCustomValidity(
-                `Start date must be between ${isoToDisplay(coverageStart)} and ${isoToDisplay(startMax)}.`
-            );
+        if (!endValue) {
+            endInput.setCustomValidity("Choose an end date.");
+            if (report) endInput.reportValidity();
             return false;
         }
 
-        if (endIso < endMin || endIso > coverageEnd) {
-            endInput.setCustomValidity(
-                `End date must be between ${isoToDisplay(endMin)} and ${isoToDisplay(coverageEnd)}.`
-            );
+        if (!isIsoDate(startValue) || !valueInsideAbsoluteCoverage(startValue, "start")) {
+            startInput.setCustomValidity("Choose a start date within the available range.");
+            if (report) startInput.reportValidity();
             return false;
         }
 
-        if (startIso >= endIso) {
+        if (!isIsoDate(endValue) || !valueInsideAbsoluteCoverage(endValue, "end")) {
+            endInput.setCustomValidity("Choose an end date within the available range.");
+            if (report) endInput.reportValidity();
+            return false;
+        }
+
+        if (startValue >= endValue) {
             endInput.setCustomValidity("End date must be after the start date.");
+            if (report) endInput.reportValidity();
             return false;
         }
 
-        startIsoInput.value = startIso;
-        endIsoInput.value = endIso;
+        committedStart = startValue;
+        committedEnd = endValue;
+        restoreDateConstraints();
         return true;
     }
 
-    function onDateInput(input) {
-        // Never clear or rewrite a partially typed year. Once a complete valid
-        // date exists, normalize its display only on blur (not while typing).
+    function handleCommittedChange(input) {
+        finishKeyboardEditing(input);
         input.setCustomValidity("");
-        validateDateInputs({reportPartial: false});
-        updateHints();
+
+        if (input === startInput) commitStartValue();
+        else commitEndValue();
+
+        restoreDateConstraints();
     }
 
     [startInput, endInput].forEach(input => {
-        input.addEventListener("input", () => onDateInput(input));
+        input.addEventListener("keydown", event => {
+            if (/^\d$/.test(event.key) || event.key === "Backspace" || event.key === "Delete") {
+                beginKeyboardEditing(input);
+            }
+        });
+
+        // Restore bounds before the native calendar opens so dates outside the
+        // allowed range remain greyed out and cannot be selected.
+        input.addEventListener("pointerdown", () => {
+            finishKeyboardEditing(input);
+        });
+
+        input.addEventListener("change", () => {
+            handleCommittedChange(input);
+        });
+
         input.addEventListener("blur", () => {
-            const iso = parseDisplayDate(input.value);
-            if (iso) input.value = isoToDisplay(iso);
-            validateDateInputs({reportPartial: true});
-            updateHints();
+            handleCommittedChange(input);
         });
     });
 
@@ -163,10 +211,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
         coverageStart = null;
         coverageEnd = null;
-        startIsoInput.value = "";
-        endIsoInput.value = "";
-        if (startHint) startHint.textContent = "Loading available dates…";
-        if (endHint) endHint.textContent = "Loading available dates…";
+        committedStart = "";
+        committedEnd = "";
+        finishKeyboardEditing();
+
+        startInput.disabled = true;
+        endInput.disabled = true;
+        startInput.setCustomValidity("");
+        endInput.setCustomValidity("");
 
         try {
             const response = await fetch(
@@ -176,50 +228,75 @@ document.addEventListener("DOMContentLoaded", function() {
             const payload = await response.json();
 
             if (requestId !== boundsRequestId) return;
-            if (!response.ok) throw new Error(payload.error || "Backtest date range is unavailable.");
+            if (!response.ok) {
+                throw new Error(payload.error || "Backtest date range is unavailable.");
+            }
 
             coverageStart = payload.coverage_start;
             coverageEnd = payload.coverage_end;
 
-            // Preserve typed dates only when they remain valid for this asset.
-            const startIso = parseDisplayDate(startInput.value);
-            const endIso = parseDisplayDate(endInput.value);
-            if (startIso && (startIso < coverageStart || startIso > shiftIsoDate(coverageEnd, -1))) {
+            if (!coverageStart || !coverageEnd || coverageStart >= coverageEnd) {
+                throw new Error("Backtest date coverage is invalid for this asset.");
+            }
+
+            // Preserve selections only when they remain valid for the newly
+            // chosen ticker. Otherwise leave the native date field blank.
+            if (valueInsideAbsoluteCoverage(startInput.value, "start")) {
+                committedStart = startInput.value;
+            } else {
                 startInput.value = "";
             }
-            if (endIso && (endIso < shiftIsoDate(coverageStart, 1) || endIso > coverageEnd)) {
+
+            if (valueInsideAbsoluteCoverage(endInput.value, "end")) {
+                committedEnd = endInput.value;
+            } else {
                 endInput.value = "";
             }
 
-            validateDateInputs({reportPartial: false});
-            updateHints();
+            if (committedStart && committedEnd && committedStart >= committedEnd) {
+                endInput.value = "";
+                committedEnd = "";
+            }
+
+            restoreDateConstraints();
+            startInput.disabled = false;
+            endInput.disabled = false;
         } catch (error) {
             console.error("Could not load backtest date range:", error);
             coverageStart = null;
             coverageEnd = null;
-            if (startHint) startHint.textContent = "Available dates could not be loaded.";
-            if (endHint) endHint.textContent = "Available dates could not be loaded.";
-            startInput.setCustomValidity("Available backtest dates could not be loaded for this asset.");
-            endInput.setCustomValidity("Available backtest dates could not be loaded for this asset.");
+            committedStart = "";
+            committedEnd = "";
+            startInput.removeAttribute("min");
+            startInput.removeAttribute("max");
+            endInput.removeAttribute("min");
+            endInput.removeAttribute("max");
+            startInput.disabled = false;
+            endInput.disabled = false;
+            startInput.setCustomValidity(
+                "Available backtest dates could not be loaded for this asset."
+            );
+            endInput.setCustomValidity(
+                "Available backtest dates could not be loaded for this asset."
+            );
         }
     }
 
     tickerSelect.addEventListener("change", loadBacktestDateBounds);
 
     window.getBacktestIsoDates = function() {
-        validateDateInputs({reportPartial: true});
         return {
-            start: startIsoInput.value,
-            end: endIsoInput.value
+            start: startInput.value || "",
+            end: endInput.value || ""
         };
     };
 
     window.validateBacktestDateRange = function() {
-        return Boolean(validateDateInputs({reportPartial: true}));
+        return Boolean(validateDateRange({report: false}));
     };
 
     form.addEventListener("submit", function(event) {
-        if (!window.validateBacktestDateRange()) {
+        if (!validateDateRange({report: false})) {
             event.preventDefault();
             form.reportValidity();
         }

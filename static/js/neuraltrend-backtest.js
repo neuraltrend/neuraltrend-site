@@ -23,8 +23,8 @@
         const normalizedDates = typeof window.getBacktestIsoDates === "function"
             ? window.getBacktestIsoDates()
             : {
-                start: document.getElementById("start-iso")?.value || "",
-                end: document.getElementById("end-iso")?.value || ""
+                start: document.getElementById("start")?.value || "",
+                end: document.getElementById("end")?.value || ""
             };
         const startDate = normalizedDates.start || "";
         const endDate = normalizedDates.end || "";
@@ -366,11 +366,11 @@
                 label: 'Executed BUY',
                 data: adjustedBuySignals,
                 pointStyle: 'triangle',
-                pointRadius: 6,
-                pointHoverRadius: 8,
-                pointBorderWidth: 1.25,
+                pointRadius: 10,
+                pointHoverRadius: 12,
+                pointBorderWidth: 1,
                 backgroundColor: NT_COLORS.buy,
-                borderColor: "#ffffff",
+                borderColor: NT_COLORS.buy,
                 showLine: false,
                 order: 20
             },
@@ -380,11 +380,11 @@
                 data: adjustedSellSignals,
                 pointStyle: 'triangle',
                 rotation: 180,
-                pointRadius: 6,
-                pointHoverRadius: 8,
-                pointBorderWidth: 1.25,
+                pointRadius: 10,
+                pointHoverRadius: 12,
+                pointBorderWidth: 1,
                 backgroundColor: NT_COLORS.sell,
-                borderColor: "#ffffff",
+                borderColor: NT_COLORS.sell,
                 showLine: false,
                 order: 20
             }
