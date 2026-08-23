@@ -2463,7 +2463,14 @@
     let liveSimSelectedDetailCache = null;
     const liveSimPortfolioDetailCache = new Map();
     const liveSimPortfolioDetailRequests = new Map();
+    const liveSimDetailCache = new Map();
+    const liveSimDetailRequests = new Map();
+    let liveSimDetailRetryTimer = null;
     let liveSimPortfolioFilterRefreshTimer = null;
+    let liveSimInitialLoadStarted = false;
+    let liveSimInitialLoadComplete = false;
+    let liveSimLoadPromise = null;
+    let liveSimBackgroundRefreshTimer = null;
     let liveSimStatusFilter = "open";
     
     let liveSimLoggedIn = false;
@@ -2573,18 +2580,23 @@
         return status === 502 || status === 503 || status === 504;
     }
 
-    async function liveSimFetchJSONWithRetry(url, options = {}, {retries = 2} = {}) {
+    async function liveSimFetchJSONWithRetry(url, options = {}, {retries = 4} = {}) {
         let lastError = null;
+        const retryDelays = [450, 1000, 2200, 4200];
+
         for (let attempt = 0; attempt <= retries; attempt += 1) {
             try {
                 return await liveSimFetchJSON(url, options);
             } catch (error) {
                 lastError = error;
-                if (!isTransientLiveSimServerError(error) || attempt >= retries) throw error;
-                const delayMs = attempt === 0 ? 350 : 900;
+                if (!isTransientLiveSimServerError(error) || attempt >= retries) {
+                    throw error;
+                }
+                const delayMs = retryDelays[Math.min(attempt, retryDelays.length - 1)];
                 await new Promise(resolve => window.setTimeout(resolve, delayMs));
             }
         }
+
         throw lastError || new Error("Live simulation data is temporarily unavailable.");
     }
 
@@ -2608,23 +2620,34 @@
         }, 1400);
     }
 
-    async function loadLiveSimulations() {
+    async function loadLiveSimulations({refresh = true, silent = false} = {}) {
         const listEl = document.getElementById("live-sim-list");
         const limitEl = document.getElementById("live-sim-limit");
         const refreshBtn = document.getElementById("live-sim-refresh-btn");
     
         if (!listEl || !limitEl) return;
     
-        if (refreshBtn) {
+        if (refreshBtn && !silent) {
             refreshBtn.disabled = true;
             refreshBtn.textContent = "Refreshing...";
         }
     
-        setLiveSimRefreshStatus("Checking latest saved simulations...");
+        if (!silent) {
+            setLiveSimRefreshStatus(
+                refresh
+                    ? "Checking latest saved simulations..."
+                    : "Loading saved simulations..."
+            );
+        }
     
         try {
             const statusQuery = encodeURIComponent(liveSimStatusFilter || "open");
-            const data = await liveSimFetchJSON(`/live-simulations?status=${statusQuery}`);
+            const refreshQuery = refresh ? "1" : "0";
+            const data = await liveSimFetchJSONWithRetry(
+                `/live-simulations?status=${statusQuery}&refresh=${refreshQuery}`,
+                {cache: "no-store"},
+                {retries: 3}
+            );
 
             updateLiveSimFilterCounts(data);
 
@@ -2674,6 +2697,7 @@
             }
 
             setLiveSimRefreshStatus(`Last refreshed at ${liveSimRefreshTimestamp()}.`);
+            return true;
     
         } catch (error) {
             resetLiveSimFilterCounts();
@@ -2683,15 +2707,18 @@
                 renderLiveSimulationLoggedOutState();
                 setLiveSimMessage("Log in or sign up to create and save live simulations.");
                 setLiveSimRefreshStatus("Login required to load saved simulations.");
-            } else {
+            } else if (!silent) {
                 limitEl.textContent = "Could not load simulations.";
                 listEl.innerHTML = "";
                 setLiveSimMessage(error.message, true);
                 setLiveSimRefreshStatus("Could not refresh simulations.");
+            } else {
+                console.debug("Background Live Simulation refresh skipped:", error);
             }
+            return false;
         
         } finally {
-            if (refreshBtn) {
+            if (refreshBtn && !silent) {
                 refreshBtn.disabled = false;
                 refreshBtn.textContent = "Refresh";
             }
@@ -3414,25 +3441,90 @@
         }
     }
 
-    async function selectLiveSimulation(simId, {skipRefresh = false} = {}) {
+    function liveSimDetailCacheKey(summary) {
+        if (!summary) return null;
+        return [
+            Number(summary.id),
+            summary.updated_at || "",
+            summary.last_processed_date || "",
+            summary.latest_equity_date || ""
+        ].join("|");
+    }
+
+    function scheduleLiveSimDetailRetry(simId, cacheKey) {
+        if (liveSimDetailRetryTimer) {
+            window.clearTimeout(liveSimDetailRetryTimer);
+        }
+
+        liveSimDetailRetryTimer = window.setTimeout(() => {
+            liveSimDetailRetryTimer = null;
+            if (Number(selectedLiveSimulationId) !== Number(simId)) return;
+
+            const summary = liveSimulationsCache.find(
+                sim => Number(sim?.id) === Number(simId)
+            );
+            if (!summary || liveSimDetailCacheKey(summary) !== cacheKey) return;
+
+            selectLiveSimulation(simId, {skipRefresh: true, automaticRetry: true});
+        }, 5000);
+    }
+
+    async function selectLiveSimulation(simId, {skipRefresh = false, automaticRetry = false} = {}) {
+        if (liveSimDetailRetryTimer) {
+            window.clearTimeout(liveSimDetailRetryTimer);
+            liveSimDetailRetryTimer = null;
+        }
         selectedLiveSimulationId = simId;
         updateLiveSimBoardActiveRow();
         renderLiveSimSelectedActions();
 
-        const cachedSummary = liveSimulationsCache.find(sim => Number(sim?.id) === Number(simId));
+        const cachedSummary = liveSimulationsCache.find(
+            sim => Number(sim?.id) === Number(simId)
+        );
+        const cacheKey = liveSimDetailCacheKey(cachedSummary);
+        const cachedDetail = cacheKey ? liveSimDetailCache.get(cacheKey) : null;
+
+        if (cachedDetail) {
+            renderLiveSimulationDetail(cachedDetail);
+            updateLiveSimBoardActiveRow();
+            renderLiveSimSelectedActions();
+            return;
+        }
+
         setLiveSimulationDetailLoading(
             cachedSummary?.name || cachedSummary?.ticker || "Live Simulation",
             {portfolio: false}
         );
 
         try {
-            const params = new URLSearchParams();
-            if (skipRefresh) params.set("skip_refresh", "1");
-            const query = params.toString();
-            const url = `/live-simulations/${simId}${query ? `?${query}` : ""}`;
+            let request = cacheKey ? liveSimDetailRequests.get(cacheKey) : null;
 
-            const data = await liveSimFetchJSONWithRetry(url, {cache: "no-store"}, {retries: 2});
-            renderLiveSimulationDetail(data.simulation);
+            if (!request) {
+                const url = `/live-simulations/${simId}?curve_only=1`;
+                request = liveSimFetchJSONWithRetry(
+                    url,
+                    {cache: "no-store"},
+                    {retries: 4}
+                );
+
+                if (cacheKey) {
+                    liveSimDetailRequests.set(cacheKey, request);
+                }
+            }
+
+            const data = await request;
+            if (cacheKey) liveSimDetailRequests.delete(cacheKey);
+
+            const detail = {
+                ...(cachedSummary || {}),
+                ...(data?.curve || {})
+            };
+
+            if (cacheKey) {
+                liveSimDetailCache.set(cacheKey, detail);
+            }
+
+            renderLiveSimulationDetail(detail);
 
             document.querySelectorAll(".nt-live-sim-item").forEach(card => {
                 card.classList.toggle("active", Number(card.dataset.liveSimId) === Number(simId));
@@ -3440,10 +3532,26 @@
             updateLiveSimBoardActiveRow();
             renderLiveSimSelectedActions();
         } catch (error) {
-            clearLiveSimulationChartLoading();
-            setLiveSimMessage(error.message, true);
+            if (cacheKey) liveSimDetailRequests.delete(cacheKey);
+
             const subtitleEl = document.getElementById("live-sim-detail-subtitle");
             const chartSubtitle = document.getElementById("live-sim-chart-subtitle");
+
+            if (isTransientLiveSimServerError(error)) {
+                if (subtitleEl) {
+                    subtitleEl.textContent = "Equity is temporarily unavailable — retrying automatically…";
+                }
+                if (chartSubtitle) {
+                    chartSubtitle.textContent = "Keeping the chart in loading state while the server recovers.";
+                }
+                scheduleLiveSimDetailRetry(simId, cacheKey);
+                return;
+            }
+
+            clearLiveSimulationChartLoading();
+            if (!automaticRetry) {
+                setLiveSimMessage(error.message, true);
+            }
             if (subtitleEl) subtitleEl.textContent = "Simulation equity could not be loaded.";
             if (chartSubtitle) chartSubtitle.textContent = "Please try selecting the simulation again or press Refresh.";
         }
@@ -3934,6 +4042,8 @@
         liveSimSelectedDetailCache = null;
         liveSimPortfolioDetailCache.clear();
         liveSimPortfolioDetailRequests.clear();
+        liveSimDetailCache.clear();
+        liveSimDetailRequests.clear();
         selectedLiveSimulationId = null;
     
         if (limitEl) {
@@ -4245,7 +4355,7 @@
             setLiveSimMessage("Simulation renamed successfully.");
             selectedLiveSimulationId = simId;
     
-            await loadLiveSimulations();
+            await loadLiveSimulations({refresh: false});
     
         } catch (error) {
             setLiveSimMessage(error.message, true);
@@ -4288,7 +4398,7 @@
                 setLiveSimMessage("Simulation restored/resumed.");
             }
     
-            await loadLiveSimulations();
+            await loadLiveSimulations({refresh: false});
     
         } catch (error) {
             setLiveSimMessage(error.message, true);
@@ -4892,7 +5002,7 @@
         syncLiveSimAssetPills();
         syncLiveSimHorizonPills();
     
-        await loadLiveSimulations();
+        await loadLiveSimulations({refresh: false});
     }
 
     function syncLiveSimHorizonPills() {
@@ -5224,7 +5334,7 @@
             
             setLiveSimMessage("Simulation created successfully. New card highlighted below.");
             
-            await loadLiveSimulations();
+            await loadLiveSimulations({refresh: false});
     
                 } catch (error) {
                     if (isLiveSimLoginError(error)) {
@@ -5269,7 +5379,8 @@
 
     document.getElementById("live-sim-refresh-btn")?.addEventListener("click", async function () {
         setLiveSimMessage("Refreshing simulations from latest available CSV data...");
-        await loadLiveSimulations();
+        liveSimInitialLoadComplete = false;
+        await ensureLiveSimulationsLoaded({forceRefresh: true});
         setLiveSimMessage("Simulations refreshed.");
     });
 
@@ -5290,7 +5401,7 @@
     
             setLiveSimMessage(`Showing ${liveSimFilterLabel(liveSimStatusFilter).toLowerCase()} simulations.`);
     
-            await loadLiveSimulations();
+            await loadLiveSimulations({refresh: false});
         });
     });
 
@@ -5358,7 +5469,7 @@
                 selectedLiveSimulationId = null;
                 setLiveSimMessage("Simulation deleted.");
     
-                await loadLiveSimulations();
+                await loadLiveSimulations({refresh: false});
     
             } catch (error) {
                 setLiveSimMessage(error.message, true);
@@ -5613,12 +5724,66 @@
         }
     });
         
-    // Auto-load saved simulations when page loads.
+    function scheduleLiveSimBackgroundRefresh() {
+        if (liveSimBackgroundRefreshTimer) {
+            window.clearTimeout(liveSimBackgroundRefreshTimer);
+        }
+
+        liveSimBackgroundRefreshTimer = window.setTimeout(async () => {
+            liveSimBackgroundRefreshTimer = null;
+            if (!liveSimInitialLoadComplete) return;
+            await loadLiveSimulations({refresh: true, silent: true});
+        }, 3500);
+    }
+
+    async function ensureLiveSimulationsLoaded({forceRefresh = false} = {}) {
+        if (liveSimLoadPromise) return liveSimLoadPromise;
+        if (liveSimInitialLoadComplete && !forceRefresh) return true;
+
+        liveSimInitialLoadStarted = true;
+        liveSimLoadPromise = (async () => {
+            await refreshLiveSimAuthState();
+            const loaded = await loadLiveSimulations({refresh: Boolean(forceRefresh)});
+            liveSimInitialLoadComplete = Boolean(loaded);
+            if (loaded) {
+                scheduleLiveSimBackgroundRefresh();
+            }
+            return Boolean(loaded);
+        })().finally(() => {
+            liveSimLoadPromise = null;
+        });
+
+        return liveSimLoadPromise;
+    }
+
+    // Initialize the form immediately, but defer the expensive saved-simulation
+    // requests until the user actually opens Live Simulation. This avoids
+    // competing with Signal Overview and AltIndexer requests during dashboard
+    // startup on a single-worker deployment.
     initializeLiveSimTickerSelector();
     updateLiveSimAssumptionPanel("BTC-USD");
     updateLiveSimFilterUI();
     refreshLiveSimAuthState();
-    loadLiveSimulations();
+
+    document.addEventListener("click", function (event) {
+        const liveTab = event.target.closest(
+            '.nt-epoch-tool-tab[data-epoch-tool-target="epoch-tool-live"]'
+        );
+        if (!liveTab) return;
+        ensureLiveSimulationsLoaded();
+    });
+
+    function maybeLoadLiveSimulationHash() {
+        if (window.location.hash === "#epoch-tool-live") {
+            ensureLiveSimulationsLoaded();
+        }
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", maybeLoadLiveSimulationHash, {once: true});
+    } else {
+        maybeLoadLiveSimulationHash();
+    }
     
     // Global delegated click handler
     document.addEventListener("click", function (e) {
