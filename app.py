@@ -5683,8 +5683,17 @@ def get_live_simulation_portfolio():
         requested_ids = [value for value in requested_ids if value > 0]
         if not requested_ids:
             return jsonify({"error": "No simulations match the current filters."}), 404
-        if len(requested_ids) > 100:
-            return jsonify({"error": "Too many simulations were requested."}), 400
+        # Filtered Portfolio Total can legitimately include well over 100
+        # simulations.  The previous hard limit of 100 made the combined
+        # equity endpoint fail for larger accounts even though the unfiltered
+        # portfolio endpoint could already aggregate the same simulations.
+        # Keep a generous defensive ceiling only to reject clearly abusive
+        # query strings; ownership is still enforced by
+        # visible_live_simulation_query().
+        if len(requested_ids) > 2000:
+            return jsonify({
+                "error": "The filtered portfolio is too large to request at once."
+            }), 400
 
         query = query.filter(LiveSimulation.id.in_(requested_ids))
 
