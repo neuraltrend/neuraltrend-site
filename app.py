@@ -2387,9 +2387,29 @@ def enforce_free_live_simulation_limit_for_user(user):
 
     return paused_count
 
-def live_simulation_summary(sim):
-    latest = get_latest_equity_point(sim.id)
-    latest_csv_date = get_latest_csv_date_for_ticker(sim.ticker)
+_LIVE_SIM_LATEST_CSV_UNSET = object()
+
+def live_simulation_summary(
+    sim,
+    *,
+    latest_csv_date=_LIVE_SIM_LATEST_CSV_UNSET,
+    equity_points=None,
+):
+    # Reuse a single ordered equity query for the latest point and all horizon
+    # calculations. The old implementation queried the same history twice per
+    # simulation, which became expensive for accounts with many simulations.
+    if equity_points is None:
+        equity_points = (
+            LiveSimulationEquity.query
+            .filter_by(simulation_id=sim.id)
+            .order_by(LiveSimulationEquity.equity_date.asc())
+            .all()
+        )
+
+    latest = equity_points[-1] if equity_points else None
+
+    if latest_csv_date is _LIVE_SIM_LATEST_CSV_UNSET:
+        latest_csv_date = get_latest_csv_date_for_ticker(sim.ticker)
     
     strategy_value = latest.strategy_value if latest else sim.initial_cash
     benchmark_value = latest.benchmark_value if latest else sim.initial_cash
@@ -2436,10 +2456,45 @@ def live_simulation_summary(sim):
             sim.last_processed_date == latest_csv_date
             if sim.last_processed_date and latest_csv_date else False
         ),
-        "horizon_returns": build_live_sim_horizon_returns(sim),
+        "horizon_returns": build_live_sim_horizon_returns(
+            sim,
+            points=equity_points,
+        ),
     })
 
     return data
+
+def live_simulation_curve_payload(sim):
+    """Return the chart/trade payload without recomputing summary metrics.
+
+    The Signal Board-style Live Simulation table already has the simulation
+    summary. Loading a selected chart should therefore only fetch the curve and
+    trades instead of re-reading the full history again for summary/horizon
+    calculations.
+    """
+    equity_points = (
+        LiveSimulationEquity.query
+        .filter_by(simulation_id=sim.id)
+        .order_by(LiveSimulationEquity.equity_date.asc())
+        .all()
+    )
+
+    trades = (
+        LiveSimulationTrade.query
+        .filter_by(simulation_id=sim.id)
+        .order_by(LiveSimulationTrade.trade_date.asc(), LiveSimulationTrade.id.asc())
+        .all()
+    )
+
+    return {
+        "dates": [p.equity_date.isoformat() for p in equity_points],
+        "strategy_curve": [p.strategy_value for p in equity_points],
+        "benchmark_curve": [p.benchmark_value for p in equity_points],
+        "signals": [p.signal for p in equity_points],
+        "close_prices": [p.close_price for p in equity_points],
+        "trades": [t.to_dict() for t in trades],
+    }
+
 
 def live_simulation_detail(sim):
     equity_points = (
@@ -2456,7 +2511,10 @@ def live_simulation_detail(sim):
         .all()
     )
 
-    summary = live_simulation_summary(sim)
+    summary = live_simulation_summary(
+        sim,
+        equity_points=equity_points,
+    )
 
     summary.update({
         "dates": [p.equity_date.isoformat() for p in equity_points],
@@ -3384,13 +3442,14 @@ def get_live_sim_horizon_base_point(points, latest_point, horizon_key):
     return points[0]
 
 
-def build_live_sim_horizon_returns(sim):
-    points = (
-        LiveSimulationEquity.query
-        .filter_by(simulation_id=sim.id)
-        .order_by(LiveSimulationEquity.equity_date.asc())
-        .all()
-    )
+def build_live_sim_horizon_returns(sim, *, points=None):
+    if points is None:
+        points = (
+            LiveSimulationEquity.query
+            .filter_by(simulation_id=sim.id)
+            .order_by(LiveSimulationEquity.equity_date.asc())
+            .all()
+        )
 
     if not points:
         return {}
@@ -5313,6 +5372,48 @@ def unsubscribe_signal_alerts(token):
     )
 
 
+def get_live_sim_latest_csv_dates(simulations):
+    """Read each unique ticker CSV once for a Live Simulation request."""
+    latest_dates = {}
+    for sim in simulations:
+        ticker = normalize_ticker(sim.ticker)
+        if ticker in latest_dates:
+            continue
+        latest_dates[ticker] = get_latest_csv_date_for_ticker(ticker)
+    return latest_dates
+
+
+def refresh_live_simulations_if_needed(simulations, user, latest_csv_dates):
+    """Refresh only simulations that are actually behind their source CSV.
+
+    Previously opening the Live Simulation board acquired a row lock and read a
+    full market CSV for every active simulation, even when almost all of them
+    were already current. On large accounts this could keep a Gunicorn worker
+    busy long enough for the proxy to return a transient 502.
+    """
+    for sim in simulations:
+        if not live_sim_can_update_for_user(user, sim):
+            continue
+
+        ticker = normalize_ticker(sim.ticker)
+        latest_csv_date = latest_csv_dates.get(ticker)
+
+        if (
+            latest_csv_date is not None
+            and sim.last_processed_date is not None
+            and sim.last_processed_date >= latest_csv_date
+        ):
+            continue
+
+        try:
+            update_live_simulation_from_csv(sim, user)
+        except Exception:
+            app.logger.exception(
+                "Live simulation list refresh failed: simulation_id=%s",
+                sim.id,
+            )
+
+
 # --------------------
 # Live simulation API
 # --------------------
@@ -5341,20 +5442,19 @@ def list_live_simulations():
         query = query.filter(LiveSimulation.status.in_(["active", "paused"]))
 
     sims = query.order_by(LiveSimulation.created_at.desc()).all()
+    latest_csv_dates = get_live_sim_latest_csv_dates(sims)
 
-    for sim in sims:
-        if not live_sim_can_update_for_user(current_user, sim):
-            continue
+    should_refresh = str(request.args.get("refresh", "1")).strip().lower() not in {
+        "0", "false", "no"
+    }
 
-        try:
-            update_live_simulation_from_csv(sim, current_user)
-        except Exception:
-            app.logger.exception(
-                "Live simulation list refresh failed: simulation_id=%s",
-                sim.id,
-            )
-
-    sims = query.order_by(LiveSimulation.created_at.desc()).all()
+    if should_refresh:
+        refresh_live_simulations_if_needed(
+            sims,
+            current_user,
+            latest_csv_dates,
+        )
+        sims = query.order_by(LiveSimulation.created_at.desc()).all()
 
     active_count = visible_live_simulation_query().filter_by(status="active").count()
     paused_count = visible_live_simulation_query().filter_by(status="paused").count()
@@ -5364,7 +5464,13 @@ def list_live_simulations():
     all_count = open_count + archived_count
 
     user_limit = get_live_simulation_limit_for_user(current_user)
-    simulation_summaries = [live_simulation_summary(sim) for sim in sims]
+    simulation_summaries = [
+        live_simulation_summary(
+            sim,
+            latest_csv_date=latest_csv_dates.get(normalize_ticker(sim.ticker)),
+        )
+        for sim in sims
+    ]
     portfolio_total = build_live_simulation_portfolio_total(
         sims,
         summaries=simulation_summaries,
@@ -5644,6 +5750,17 @@ def get_live_simulation(simulation_id):
     access_error = require_live_simulation_ticker_access(sim.ticker)
     if access_error:
         return access_error
+
+    curve_only = str(request.args.get("curve_only", "")).strip().lower() in {
+        "1", "true", "yes"
+    }
+
+    if curve_only:
+        response = jsonify({
+            "curve": live_simulation_curve_payload(sim)
+        })
+        response.headers["Cache-Control"] = "private, no-store, max-age=0"
+        return response
 
     skip_refresh = str(request.args.get("skip_refresh", "")).strip().lower() in {
         "1", "true", "yes"
