@@ -242,3 +242,59 @@ def test_live_simulation_curve_only_endpoint_avoids_summary_refresh(authenticate
     assert "dates" in payload["curve"]
     assert "strategy_curve" in payload["curve"]
     assert "benchmark_curve" in payload["curve"]
+
+
+def test_live_simulation_portfolio_accepts_more_than_100_requested_ids(
+    authenticated_client,
+    monkeypatch,
+    sample_market_frame,
+):
+    """Large filtered accounts must not fail at the old 100-ID ceiling."""
+    monkeypatch.setattr(
+        application,
+        "load_epoch_csv_for_ticker",
+        lambda ticker: sample_market_frame.copy(),
+    )
+
+    def initialize(simulation, user):
+        simulation.last_processed_date = simulation.start_date
+        db.session.commit()
+        return simulation
+
+    monkeypatch.setattr(
+        application,
+        "update_live_simulation_from_csv",
+        initialize,
+    )
+
+    created = authenticated_client.post(
+        "/live-simulations",
+        json={
+            "ticker": "BTC-USD",
+            "name": "Large filtered portfolio test",
+            "initial_cash": 10000,
+            "position_size_pct": 100,
+        },
+    )
+    assert created.status_code == 201
+    owned_id = created.get_json()["simulation"]["id"]
+
+    monkeypatch.setattr(
+        application,
+        "update_live_simulation_from_csv",
+        lambda simulation, user: simulation,
+    )
+
+    # Include >100 IDs.  Only the owned simulation should match the
+    # ownership-scoped query, but the request itself must no longer be
+    # rejected simply because the ID list exceeds 100 entries.
+    requested_ids = [owned_id] + list(range(100000, 100150))
+    response = authenticated_client.get(
+        "/live-simulations/portfolio?skip_refresh=1&ids="
+        + ",".join(str(value) for value in requested_ids)
+    )
+
+    assert response.status_code == 200
+    portfolio = response.get_json()["portfolio"]
+    assert portfolio["simulation_count"] == 1
+    assert portfolio["initial_cash"] == 10000
