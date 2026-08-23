@@ -183,24 +183,98 @@ document.addEventListener("DOMContentLoaded", function() {
         restoreDateConstraints();
     }
 
+    const pickerPointerActive = new WeakSet();
+
+    function pointerIsOnNativePicker(input, event) {
+        if (
+            !event ||
+            typeof event.clientX !== "number" ||
+            typeof input.getBoundingClientRect !== "function"
+        ) {
+            return false;
+        }
+
+        const rect = input.getBoundingClientRect();
+
+        // Chromium/WebKit place the native calendar affordance at the far
+        // right of a date input. Keep this zone deliberately narrow so
+        // clicking the YYYY segment still enters keyboard-edit mode.
+        return event.clientX >= (rect.right - 32);
+    }
+
     [startInput, endInput].forEach(input => {
-        input.addEventListener("keydown", event => {
-            if (/^\d$/.test(event.key) || event.key === "Backspace" || event.key === "Delete") {
+        /*
+          IMPORTANT:
+          Native Chromium date inputs can reject a partially typed year before
+          a normal keydown handler has a chance to help when min/max are active.
+          Example: while entering 2024, the intermediate "20" can be considered
+          outside a min year such as 2000 and the control resets.
+
+          Therefore bounds are suspended as soon as the user focuses/clicks the
+          editable date segments, not merely after the first digit is typed.
+          They are restored before the native calendar picker opens, so dates
+          outside the allowed range remain greyed out and unselectable.
+        */
+        input.addEventListener("pointerdown", event => {
+            if (pointerIsOnNativePicker(input, event)) {
+                pickerPointerActive.add(input);
+                finishKeyboardEditing(input);
+            } else {
+                pickerPointerActive.delete(input);
                 beginKeyboardEditing(input);
             }
         });
 
-        // Restore bounds before the native calendar opens so dates outside the
-        // allowed range remain greyed out and cannot be selected.
-        input.addEventListener("pointerdown", () => {
-            finishKeyboardEditing(input);
+        input.addEventListener("focus", () => {
+            if (!pickerPointerActive.has(input)) {
+                beginKeyboardEditing(input);
+            }
         });
 
+        input.addEventListener("click", event => {
+            if (pointerIsOnNativePicker(input, event)) {
+                finishKeyboardEditing(input);
+            } else {
+                beginKeyboardEditing(input);
+            }
+
+            pickerPointerActive.delete(input);
+        });
+
+        input.addEventListener("keydown", event => {
+            // Keyboard focus (Tab into the field) also needs bounds suspended
+            // before numeric segment editing. Alt+Down is treated as a picker
+            // request, so restore constraints for that interaction.
+            if (event.altKey && event.key === "ArrowDown") {
+                finishKeyboardEditing(input);
+                return;
+            }
+
+            if (
+                /^\d$/.test(event.key) ||
+                event.key === "Backspace" ||
+                event.key === "Delete"
+            ) {
+                beginKeyboardEditing(input);
+            }
+        }, true);
+
         input.addEventListener("change", () => {
+            /*
+              Chrome may emit change events while individual MM/DD/YYYY
+              segments are still being edited. Do NOT restore min/max here
+              during keyboard entry; doing so is what causes the next year
+              digit (notably the 0 in 2024) to reset the whole field.
+
+              A calendar selection is not in keyboard-edit mode, so it still
+              commits immediately through this same event.
+            */
+            if (keyboardEditing.has(input)) return;
             handleCommittedChange(input);
         });
 
         input.addEventListener("blur", () => {
+            pickerPointerActive.delete(input);
             handleCommittedChange(input);
         });
     });
