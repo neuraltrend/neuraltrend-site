@@ -3095,6 +3095,19 @@
         });
     }
 
+    function liveSimPortfolioNeedsExplicitIds() {
+        // The status filter is already represented by the `status` query
+        // parameter, and the return horizon changes metrics rather than which
+        // simulations are included.  Only filters that actually select a
+        // subset of rows need an explicit ID list.
+        return (
+            Boolean(liveSimBoardSearchQuery.trim()) ||
+            liveSimBoardAssetTypeFilter !== "all" ||
+            liveSimBoardSignalFilter !== "all" ||
+            liveSimBoardPositionFilter !== "all"
+        );
+    }
+
     function getLiveSimPortfolioDetail(
         status = liveSimStatusFilter,
         simulations = null
@@ -3120,9 +3133,16 @@
 
         const params = new URLSearchParams({
             status: String(status || "open"),
-            skip_refresh: "1",
-            ids: ids.join(",")
+            skip_refresh: "1"
         });
+
+        // In the default/status-only view, let the backend select the full
+        // status set directly.  This keeps the request compact even for users
+        // with hundreds of simulations.  When search/asset/signal/position
+        // filters are active, send the exact visible subset.
+        if (liveSimPortfolioNeedsExplicitIds()) {
+            params.set("ids", ids.join(","));
+        }
 
         const request = liveSimFetchJSON(
             `/live-simulations/portfolio?${params.toString()}`,
