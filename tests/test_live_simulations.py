@@ -217,3 +217,28 @@ def test_live_simulation_detail_skip_refresh_avoids_redundant_update(
     detail = authenticated_client.get(f"/live-simulations/{sim_id}?skip_refresh=1")
     assert detail.status_code == 200
     assert detail.get_json()["simulation"]["id"] == sim_id
+
+
+def test_live_simulation_curve_only_endpoint_avoids_summary_refresh(authenticated_client, app_module, monkeypatch):
+    """The initial chart request should be a lean curve/trade read, not a second full summary refresh."""
+    application = app_module
+
+    simulation = application.LiveSimulation.query.filter_by(user_id=1).first()
+    if simulation is None:
+        pytest.skip("Fixture has no live simulation to inspect.")
+
+    def fail_summary(*args, **kwargs):
+        raise AssertionError("curve_only must not rebuild live_simulation_summary")
+
+    monkeypatch.setattr(application, "live_simulation_summary", fail_summary)
+
+    response = authenticated_client.get(
+        f"/live-simulations/{simulation.id}?curve_only=1"
+    )
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert "curve" in payload
+    assert "dates" in payload["curve"]
+    assert "strategy_curve" in payload["curve"]
+    assert "benchmark_curve" in payload["curve"]
