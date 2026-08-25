@@ -93,7 +93,7 @@ if not secret:
 app.config["SECRET_KEY"] = secret
 
 app.config.update(
-    MAIL_SERVER="smtp.gmail.com",
+    MAIL_SERVER="mail.privateemail.com",
     MAIL_PORT=587,
     MAIL_USE_TLS=True,
     MAIL_USERNAME=os.environ.get("EMAIL_USER"),
