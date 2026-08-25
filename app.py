@@ -98,7 +98,8 @@ app.config.update(
     MAIL_USE_TLS=True,
     MAIL_USERNAME=os.environ.get("EMAIL_USER"),
     MAIL_PASSWORD=os.environ.get("EMAIL_PASS"),
-    MAIL_SUPPRESS_SEND=TESTING_MODE,
+    MAIL_DEFAULT_SENDER=("NeuralTrend", "contact@neuraltrend.org"),
+    MAIL_SUPPRESS_SEND=False,
 )
 
 mail = Mail(app)
