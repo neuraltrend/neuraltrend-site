@@ -534,7 +534,7 @@ def build_alert_message(user, ticker, event):
 
     message = Message(
         subject=subject,
-        sender=app.config["MAIL_USERNAME"],
+        sender=("NeuralTrend", "contact@neuraltrend.org"),
         recipients=[user.email],
     )
 
