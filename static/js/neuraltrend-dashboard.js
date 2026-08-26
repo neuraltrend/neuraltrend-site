@@ -12,6 +12,7 @@
     let signalBoardAuthRefreshPromise = null;
     let lastSignalBoardAuthSignature = null;
     let signalSummaryIsLoading = false;
+    let pendingDashboardPreset = null;
 
     const NT_COLORS = {
         positive: "#16A34A",
@@ -1592,6 +1593,13 @@
 
             updateSortIndicators();
             applyAllFilters();
+
+            // Apply homepage CTA presets only after the board has real data.
+            // This prevents false empty results (for example BUY filter being
+            // evaluated before today's signals exist).
+            if (pendingDashboardPreset) {
+                applyDashboardPreset();
+            }
 
             // Auto-load BTC-USD preview only once
             if (!currentTicker) {
@@ -5869,6 +5877,12 @@
 
         if (!preset) return;
 
+        pendingDashboardPreset = preset;
+
+        // If data is already available, apply immediately. Otherwise the
+        // loader will apply it after allSignals has been populated.
+        if (!allSignals.length) return;
+
         if (preset === "opportunities") {
             assetTypeFilter = "all";
 
@@ -5902,9 +5916,9 @@
         }
     }
 
-    setTimeout(() => {
-        applyDashboardPreset();
-    }, 250);
+    // Presets are applied after signal data is loaded (see loadSignalSummary).
+    // Applying them earlier races with default initialization and can result in
+    // filters being overwritten or applied to an empty board.
 
     // Load default ticker
     setTimeout(() => {
