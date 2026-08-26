@@ -5873,20 +5873,22 @@
     // marketing pages to send users directly to a useful starting view.
     function applyDashboardPreset() {
         const params = new URLSearchParams(window.location.search);
-        const preset = params.get("preset");
+        const preset = params.get("preset") || params.get("view");
 
         if (!preset) return;
 
         pendingDashboardPreset = preset;
 
-        // If data is already available, apply immediately. Otherwise the
-        // loader will apply it after allSignals has been populated.
+        // Apply only after the board has data and the normal dashboard
+        // initialization has completed. This prevents the default crypto/HOLD
+        // state from overwriting homepage entry choices.
         if (!allSignals.length) return;
+
+        const assetSelect = document.getElementById("asset-type-filter");
 
         if (preset === "opportunities") {
             assetTypeFilter = "all";
 
-            const assetSelect = document.getElementById("asset-type-filter");
             if (assetSelect) {
                 assetSelect.value = "all";
             }
@@ -5896,29 +5898,42 @@
             const todaySignal = document.querySelector(
                 '.signal-filter[data-signal-period="today_signal"]'
             );
+
             if (todaySignal) {
                 todaySignal.value = "BUY";
                 todaySignal.classList.add("nt-filter-active");
             }
 
+            const signalPeriod = document.getElementById("signal-period-filter");
+            if (signalPeriod) {
+                signalPeriod.value = "today_signal";
+            }
+
             applyAllFilters();
+            return;
         }
 
         if (preset === "watchlist") {
+            // Watchlist is a board mode, not an asset class. Use the same
+            // internal filter state as the user's Watchlist control.
             assetTypeFilter = "watchlist";
 
-            const assetSelect = document.getElementById("asset-type-filter");
             if (assetSelect) {
                 assetSelect.value = "watchlist";
             }
 
             applyAllFilters();
+
+            // Some accounts load watchlist metadata after signal data. Retry
+            // once after it becomes available so the first landing page does
+            // not incorrectly fall back to Crypto.
+            setTimeout(() => {
+                if (assetTypeFilter === "watchlist") {
+                    applyAllFilters();
+                }
+            }, 800);
         }
     }
-
-    // Presets are applied after signal data is loaded (see loadSignalSummary).
-    // Applying them earlier races with default initialization and can result in
-    // filters being overwritten or applied to an empty board.
 
     // Load default ticker
     setTimeout(() => {
