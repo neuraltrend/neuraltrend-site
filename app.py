@@ -343,7 +343,7 @@ def send_verification_email(user_email):
 
     msg = Message(
         subject="Verify your NeuralTrend account",
-        sender=app.config["MAIL_USERNAME"],
+        sender=("NeuralTrend", "contact@neuraltrend.org"),
         recipients=[user_email]
     )
 
@@ -624,7 +624,7 @@ def get_password_reset_user_from_session():
 def send_password_changed_email(user_email):
     msg = Message(
         subject="Your NeuralTrend password was changed",
-        sender=app.config["MAIL_USERNAME"],
+        sender=("NeuralTrend", "contact@neuraltrend.org"),
         recipients=[user_email],
     )
 
@@ -5935,7 +5935,7 @@ def request_password_reset():
 
         msg = Message(
             subject="Reset your NeuralTrend password",
-            sender=app.config["MAIL_USERNAME"],
+            sender=("NeuralTrend", "contact@neuraltrend.org"),
             recipients=[user.email],
         )
 
@@ -6141,7 +6141,7 @@ def request_delete_account():
 
     msg = Message(
         subject="Confirm your NeuralTrend account deletion",
-        sender=app.config["MAIL_USERNAME"],
+        sender=("NeuralTrend", "contact@neuraltrend.org"),
         recipients=[user.email]
     )
 
