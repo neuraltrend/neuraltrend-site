@@ -12,7 +12,6 @@
     let signalBoardAuthRefreshPromise = null;
     let lastSignalBoardAuthSignature = null;
     let signalSummaryIsLoading = false;
-    let pendingDashboardPreset = null;
 
     const NT_COLORS = {
         positive: "#16A34A",
@@ -1593,13 +1592,6 @@
 
             updateSortIndicators();
             applyAllFilters();
-
-            // Apply homepage CTA presets only after the board has real data.
-            // This prevents false empty results (for example BUY filter being
-            // evaluated before today's signals exist).
-            if (pendingDashboardPreset) {
-                applyDashboardPreset();
-            }
 
             // Auto-load BTC-USD preview only once
             if (!currentTicker) {
@@ -5867,74 +5859,6 @@
         chart.update();
     });
     
-
-    // Apply dashboard presets coming from homepage CTAs.
-    // These keep the normal dashboard behavior intact while allowing
-    // marketing pages to send users directly to a useful starting view.
-    function applyDashboardPreset() {
-        const params = new URLSearchParams(window.location.search);
-        const preset = params.get("preset") || params.get("view");
-
-        if (!preset) return;
-
-        pendingDashboardPreset = preset;
-
-        // Apply only after the board has data and the normal dashboard
-        // initialization has completed. This prevents the default crypto/HOLD
-        // state from overwriting homepage entry choices.
-        if (!allSignals.length) return;
-
-        const assetSelect = document.getElementById("asset-type-filter");
-
-        if (preset === "opportunities") {
-            assetTypeFilter = "all";
-
-            if (assetSelect) {
-                assetSelect.value = "all";
-            }
-
-            signalFilters.today_signal = "BUY";
-
-            const todaySignal = document.querySelector(
-                '.signal-filter[data-signal-period="today_signal"]'
-            );
-
-            if (todaySignal) {
-                todaySignal.value = "BUY";
-                todaySignal.classList.add("nt-filter-active");
-            }
-
-            const signalPeriod = document.getElementById("signal-period-filter");
-            if (signalPeriod) {
-                signalPeriod.value = "today_signal";
-            }
-
-            applyAllFilters();
-            return;
-        }
-
-        if (preset === "watchlist") {
-            // Watchlist is a board mode, not an asset class. Use the same
-            // internal filter state as the user's Watchlist control.
-            assetTypeFilter = "watchlist";
-
-            if (assetSelect) {
-                assetSelect.value = "watchlist";
-            }
-
-            applyAllFilters();
-
-            // Some accounts load watchlist metadata after signal data. Retry
-            // once after it becomes available so the first landing page does
-            // not incorrectly fall back to Crypto.
-            setTimeout(() => {
-                if (assetTypeFilter === "watchlist") {
-                    applyAllFilters();
-                }
-            }, 800);
-        }
-    }
-
     // Load default ticker
     setTimeout(() => {
         loadTicker("BTC-USD");
