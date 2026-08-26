@@ -5859,6 +5859,53 @@
         chart.update();
     });
     
+
+    // Apply dashboard presets coming from homepage CTAs.
+    // These keep the normal dashboard behavior intact while allowing
+    // marketing pages to send users directly to a useful starting view.
+    function applyDashboardPreset() {
+        const params = new URLSearchParams(window.location.search);
+        const preset = params.get("preset");
+
+        if (!preset) return;
+
+        if (preset === "opportunities") {
+            assetTypeFilter = "all";
+
+            const assetSelect = document.getElementById("asset-type-filter");
+            if (assetSelect) {
+                assetSelect.value = "all";
+            }
+
+            signalFilters.today_signal = "BUY";
+
+            const todaySignal = document.querySelector(
+                '.signal-filter[data-signal-period="today_signal"]'
+            );
+            if (todaySignal) {
+                todaySignal.value = "BUY";
+                todaySignal.classList.add("nt-filter-active");
+            }
+
+            applyAllFilters();
+        }
+
+        if (preset === "watchlist") {
+            assetTypeFilter = "watchlist";
+
+            const assetSelect = document.getElementById("asset-type-filter");
+            if (assetSelect) {
+                assetSelect.value = "watchlist";
+            }
+
+            applyAllFilters();
+        }
+    }
+
+    setTimeout(() => {
+        applyDashboardPreset();
+    }, 250);
+
     // Load default ticker
     setTimeout(() => {
         loadTicker("BTC-USD");
