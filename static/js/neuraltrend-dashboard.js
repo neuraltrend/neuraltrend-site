@@ -5909,7 +5909,7 @@ function applySignalBoardEntryStateFromURL() {
             todayFilter.value = "1";
             todayFilter.classList.add("nt-filter-active");
             if (typeof signalFilters !== "undefined") {
-                signalFilters.today_signal = "1";
+                signalFilters.today_signal = 1;
             }
         }
 
