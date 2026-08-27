@@ -5882,3 +5882,59 @@ function activateSignalSortControl(event) {
 
 document.addEventListener("click", activateSignalSortControl);
 document.addEventListener("keydown", activateSignalSortControl);
+
+
+/* ==================================================
+   URL ENTRY STATES
+   Allow external CTAs to open Signal Board in a
+   purposeful starting view instead of the default view.
+================================================== */
+
+function applySignalBoardEntryStateFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get("signal_view");
+
+    if (!view) return;
+
+    const assetSelect = document.getElementById("asset-type-filter");
+    if (!assetSelect) return;
+
+    if (view === "opportunities") {
+        // "See current opportunities" -> show assets with a BUY signal today.
+        assetTypeFilter = "all";
+        assetSelect.value = "all";
+
+        const todayFilter = document.querySelector('.signal-filter[data-key="today_signal"]');
+        if (todayFilter) {
+            todayFilter.value = "1";
+            todayFilter.classList.add("nt-filter-active");
+            if (typeof signalFilters !== "undefined") {
+                signalFilters.today_signal = "1";
+            }
+        }
+
+        if (typeof syncAssetPills === "function") {
+            syncAssetPills();
+        }
+    }
+
+    if (view === "watchlist") {
+        // "Create watchlist" -> open Signal Board with My Watchlist selected.
+        assetTypeFilter = "watchlist";
+        assetSelect.value = "watchlist";
+
+        if (typeof syncAssetPills === "function") {
+            syncAssetPills();
+        }
+    }
+
+    if (typeof applyAllFilters === "function") {
+        applyAllFilters();
+    }
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", applySignalBoardEntryStateFromURL, {once: true});
+} else {
+    applySignalBoardEntryStateFromURL();
+}
