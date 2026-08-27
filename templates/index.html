@@ -545,7 +545,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                             <h3>Find opportunities without starting from a ticker</h3>
                             <p>Follow a simple path to surface high-conviction ideas and act with clarity.</p>
                         </div>
-                        <a href="{{ url_for('dashboard') }}#signal-overview" target="_blank" rel="noopener noreferrer">See current opportunities →</a>
+                        <a href="{{ url_for('dashboard') }}?signal_view=opportunities#signal-overview" target="_blank" rel="noopener noreferrer">See current opportunities →</a>
                     </div>
 
                     <div class="nt-home-path-steps">
@@ -712,7 +712,7 @@ Explore NeuralTrend's AI market signals, transparent historical simulations, app
                     <p>Validate a strategy across historical periods with transparent assumptions.</p>
                     <span>Run backtests →</span>
                 </a>
-                <a href="{{ url_for('dashboard') }}#signal-overview" class="nt-home-tool-card nt-home-tool-green">
+                <a href="{{ url_for('dashboard') }}?signal_view=watchlist#signal-overview" class="nt-home-tool-card nt-home-tool-green">
                     <span class="nt-home-tool-icon">☆</span>
                     <strong>Watchlists &amp; Alerts</strong>
                     <p>Follow assets before acting and receive updates when their signals change.</p>
