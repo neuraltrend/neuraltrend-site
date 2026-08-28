@@ -4413,7 +4413,7 @@
                 selectedLiveSimulationId = null;
                 setLiveSimMessage("Simulation archived. It is hidden from the main list.");
             } else if (newStatus === "paused") {
-                setLiveSimMessage("Simulation paused. It will not process new CSV rows until resumed.");
+                setLiveSimMessage("Simulation paused. It will not process new dates until resumed.");
             } else {
                 setLiveSimMessage("Simulation restored/resumed.");
             }
@@ -5398,7 +5398,7 @@
     });
 
     document.getElementById("live-sim-refresh-btn")?.addEventListener("click", async function () {
-        setLiveSimMessage("Refreshing simulations from latest available CSV data...");
+        setLiveSimMessage("Refreshing simulations from latest available data...");
         liveSimInitialLoadComplete = false;
         await ensureLiveSimulationsLoaded({forceRefresh: true});
         setLiveSimMessage("Simulations refreshed.");
