@@ -41,6 +41,7 @@ os.environ["BASE_URL"] = "http://localhost"
 os.environ["EMAIL_USER"] = "test-sender@example.com"
 os.environ["EMAIL_PASS"] = "test-email-password"
 os.environ["ADMIN_EMAILS"] = "admin@example.com"
+os.environ["ADMIN_TOTP_SECRET"] = "JBSWY3DPEHPK3PXP"
 os.environ["STRIPE_SECRET_KEY"] = "sk_" + "test_" + "neuraltrend_unit_tests"
 os.environ["STRIPE_PRO_PRICE_ID"] = "price_monthly_test"
 os.environ["STRIPE_PRO_MONTHLY_PRICE_ID"] = "price_monthly_test"
@@ -158,9 +159,14 @@ def authenticated_client(client, create_user, login):
 
 @pytest.fixture
 def admin_client(client, create_user, login):
-    create_user(email="admin@example.com")
+    user_id = create_user(email="admin@example.com")
     response = login(email="admin@example.com")
     assert response.status_code == 200
+    with client.session_transaction() as sess:
+        from time import time as _time
+        sess["admin_mfa_verified_at"] = int(_time())
+        sess["admin_mfa_user_id"] = int(user_id)
+        sess["admin_mfa_auth_version"] = 1
     return client
 
 

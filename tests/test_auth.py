@@ -139,3 +139,15 @@ def test_password_reset_token_is_one_time(client, app, create_user):
     reused = client.get(f"/reset-password/{token}", follow_redirects=True)
     assert reused.status_code == 400
     assert b"invalid" in reused.data.lower()
+
+
+def test_signup_does_not_reveal_existing_verified_account(client, create_user):
+    create_user(email="existing@example.com", verified=True)
+    response = client.post(
+        "/signup",
+        json={"email": "existing@example.com", "password": TEST_PASSWORD},
+    )
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert "message" in payload
+    assert "already exists" not in payload["message"].lower()
