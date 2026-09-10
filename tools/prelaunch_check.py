@@ -23,6 +23,7 @@ from app import (  # noqa: E402
     ADMIN_ONLY_TICKERS,
     FORWARD_RECORD_STORAGE_DIR,
     FORWARD_RECORD_STORAGE_EXPLICIT,
+    BACKUP_STORAGE_EXPLICIT,
     STRIPE_BILLING_PORTAL_CONFIGURATION_ID,
     STRIPE_PRO_ANNUAL_PRICE_ID,
     STRIPE_PRO_MONTHLY_PRICE_ID,
@@ -65,6 +66,31 @@ def main() -> int:
         if not configured(name):
             errors.append(f"Missing required environment variable: {name}")
 
+    secret_key = os.environ.get("SECRET_KEY", "")
+    if secret_key and len(secret_key.encode("utf-8")) < 32:
+        errors.append("SECRET_KEY must be at least 32 bytes in production.")
+
+    admin_emails = [
+        value.strip().lower()
+        for value in os.environ.get("ADMIN_EMAILS", "").split(",")
+        if value.strip()
+    ]
+    has_single_totp = bool(os.environ.get("ADMIN_TOTP_SECRET", "").strip())
+    totp_json = os.environ.get("ADMIN_TOTP_SECRETS", "").strip()
+    has_totp_json = False
+    if totp_json:
+        try:
+            import json
+            parsed_totp = json.loads(totp_json)
+            has_totp_json = isinstance(parsed_totp, dict) and all(
+                str(email).lower() in {str(k).lower() for k in parsed_totp.keys()}
+                for email in admin_emails
+            )
+        except Exception:
+            errors.append("ADMIN_TOTP_SECRETS must be valid JSON.")
+    if admin_emails and not (has_totp_json or (len(admin_emails) == 1 and has_single_totp)):
+        errors.append("Administrator TOTP MFA is not configured for every admin email.")
+
     if not STRIPE_PRO_MONTHLY_PRICE_ID:
         errors.append("Monthly Stripe Pro Price ID is not configured.")
     if not STRIPE_PRO_ANNUAL_PRICE_ID:
@@ -101,6 +127,16 @@ def main() -> int:
     if not FORWARD_RECORD_STORAGE_EXPLICIT:
         errors.append(
             "FORWARD_RECORD_STORAGE_DIR is not explicitly configured."
+        )
+
+    if not BACKUP_STORAGE_EXPLICIT:
+        errors.append(
+            "NEURALTREND_BACKUP_DIR is not explicitly configured for persistent backups."
+        )
+
+    if os.environ.get("ADSENSE_ENABLED", "").strip().lower() in {"1", "true", "yes", "on"}:
+        warnings.append(
+            "AdSense is enabled. Confirm consent/privacy requirements and page placement before launch."
         )
 
     storage = Path(FORWARD_RECORD_STORAGE_DIR)
