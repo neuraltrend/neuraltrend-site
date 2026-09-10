@@ -1,8 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9633315289535323"
-     crossorigin="anonymous"></script>
+    {% set nt_ad_pages = [
+        'resources',
+        'ai_crypto_trading_signals',
+        'crypto_paper_trading_simulator',
+        'buy_and_hold_vs_ai_strategy'
+    ] %}
+    {% if config['ADSENSE_ENABLED'] and config['ADSENSE_CLIENT_ID'] and request.endpoint in nt_ad_pages and not current_user.is_authenticated %}
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ config['ADSENSE_CLIENT_ID'] | e }}" crossorigin="anonymous"></script>
+    {% endif %}
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,10 +42,14 @@
     
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Plotly CDN (include once per page, ideally in <head>) -->
+    {% set nt_chart_endpoints = ['index', 'dashboard', 'performance', 'admin_forward_record'] %}
+    {% if request.endpoint in nt_chart_endpoints %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+    {% endif %}
+
+    {% if request.endpoint == 'dashboard' %}
     <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    {% endif %}
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/neuraltrend.css', v='20260811-logo-v1') }}">
     {% block page_styles %}{% endblock %}
@@ -312,11 +323,15 @@
         </div>
     </div>
     
-    <!-- 100% privacy-first analytics -->
+    <!-- First-party event hooks; external analytics stays off authenticated/private pages. -->
     <script src="{{ url_for('static', filename='js/neuraltrend-analytics.js') }}"></script>
-    
+    {% set nt_analytics_endpoints = [
+        'index', 'resources', 'ai_crypto_trading_signals',
+        'crypto_paper_trading_simulator', 'buy_and_hold_vs_ai_strategy',
+        'methodology', 'performance', 'subscription', 'contact'
+    ] %}
+    {% if config['SIMPLE_ANALYTICS_ENABLED'] and request.endpoint in nt_analytics_endpoints and not current_user.is_authenticated %}
     <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
-    
     <script
         async
         data-collect="outbound,emails,downloads"
@@ -325,6 +340,7 @@
         data-full-urls="false"
         src="https://scripts.simpleanalyticscdn.com/auto-events.js">
     </script>
+    {% endif %}
     
     <script src="{{ url_for('static', filename='js/neuraltrend-site-shell.js', v='20260810-auth-unlock-refresh-v1') }}"></script>
     <script src="{{ url_for('static', filename='js/neuraltrend-responsive.js') }}"></script>

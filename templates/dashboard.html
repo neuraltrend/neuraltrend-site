@@ -418,7 +418,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                                 <label><input type="checkbox" data-board-column-toggle="alpha_prob" checked> Outperformance Prob.</label>
                                                 <label><input type="checkbox" data-board-column-toggle="strategy_avg_return" checked> AI Avg. Return</label>
                                                 <label><input type="checkbox" data-board-column-toggle="strategy_profit_prob" checked> Profit Prob.</label>
-                                                <label><input type="checkbox" data-board-column-toggle="recommended_days" checked> Min. Days</label>
+                                                <label><input type="checkbox" data-board-column-toggle="recommended_days" checked> 50%+ Prob. Days</label>
                                             </div>
                                             <div class="nt-board-columns-note">Ticker and Today are always shown.</div>
                                         </div>
@@ -706,7 +706,7 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                     tabindex="0"
                                 >
                                     <div class="nt-stat-header-label">
-                                        <span class="nt-stat-header-sort-label">Min. Days</span>
+                                        <span class="nt-stat-header-sort-label">50%+ Prob. Days</span>
                                         <span class="nt-stat-header-info" data-stat-info-root>
                                             <button
                                                 type="button"
@@ -714,14 +714,14 @@ Use the NeuralTrend research dashboard to explore AI signals, compare strategy p
                                                 data-stat-info-button
                                                 aria-expanded="false"
                                                 aria-describedby="recommended-days-tooltip"
-                                                aria-label="About recommended days"
+                                                aria-label="About 50 percent probability days"
                                             >i</button>
                                             <span
                                                 id="recommended-days-tooltip"
                                                 class="nt-stat-header-tooltip"
                                                 data-stat-tooltip="recommended-days"
                                                 role="tooltip"
-                                            >Recommended minimum number of days to follow the strategy for profitability and outperformance</span>
+                                            >Smallest available historical window where the AI strategy profit probability reaches at least 50%. This is a descriptive statistic, not a recommended holding period.</span>
                                         </span>
                                     </div>
                                     <span id="recommended-days-sort-indicator" class="nt-sort-indicator">▲▼</span>

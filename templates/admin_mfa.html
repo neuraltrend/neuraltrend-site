@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Admin verification | NeuralTrend{% endblock %}
+{% block meta_description %}Administrator verification for NeuralTrend.{% endblock %}
+
+{% block content %}
+<main id="nt-main-content">
+    <div class="nt-page-container">
+        <section class="nt-legal-page" style="max-width: 560px; margin: 48px auto;">
+            <div class="nt-account-modal-kicker">Administrator security</div>
+            <h1>Verify administrator access</h1>
+            <p>Enter the 6-digit code from your authenticator app. This verification remains valid for up to 12 hours in this browser session.</p>
+            {% if error %}<p role="alert" style="color:#b42318;"><strong>{{ error }}</strong></p>{% endif %}
+            <form method="post" action="{{ url_for('admin_mfa') }}" autocomplete="off">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="next" value="{{ next_url }}">
+                <label for="admin-mfa-code"><strong>Authenticator code</strong></label>
+                <input id="admin-mfa-code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required autofocus style="display:block;width:100%;margin:10px 0 18px;padding:12px;box-sizing:border-box;">
+                <button type="submit" class="nt-account-modal-primary">Verify and continue</button>
+            </form>
+        </section>
+    </div>
+</main>
+{% endblock %}
