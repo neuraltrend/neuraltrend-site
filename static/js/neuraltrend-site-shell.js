@@ -353,8 +353,8 @@
         const data = await response.json();
     
         if (data.message) {
-            ntTrack("signup_created_pending_verification");
-            authMessage.innerText = "Check your email to verify your account. If you do not see it, please check your spam folder.";
+            ntTrack("signup_submitted");
+            authMessage.innerText = data.message;
     
             // Close modal after short delay (better UX)
             setTimeout(() => {

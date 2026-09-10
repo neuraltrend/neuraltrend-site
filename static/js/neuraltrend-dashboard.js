@@ -422,7 +422,7 @@
         if (key === "alpha_prob") return "Outperformance Prob.";
         if (key === "strategy_avg_return") return "AI Avg. Return";
         if (key === "strategy_profit_prob") return "Profit Prob.";
-        if (key === "recommended_days") return "Min. Days";
+        if (key === "recommended_days") return "50%+ Prob. Days";
         return "";
     }
     
@@ -1077,7 +1077,7 @@
         const recommendedDaysTooltip = document.querySelector('[data-stat-tooltip="recommended-days"]');
 
         if (recommendedDaysTooltip) {
-            recommendedDaysTooltip.textContent = "Recommended minimum number of days to follow the strategy for profitability and outperformance";
+            recommendedDaysTooltip.textContent = "Smallest available historical window where the AI strategy profit probability reaches at least 50%. This is a descriptive statistic, not a recommended holding period.";
         }
 
         if (duration === "max") {
