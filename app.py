@@ -39,6 +39,8 @@ from werkzeug.exceptions import RequestEntityTooLarge
 import stripe
 import traceback
 import secrets
+import base64
+import struct
 import hashlib
 import hmac
 import time
@@ -106,30 +108,56 @@ mail = Mail(app)
 
 BASE_URL = os.environ.get("BASE_URL", "https://neuraltrend.org").rstrip("/")
 
+def env_flag(name, default=False):
+    raw = os.environ.get(name)
+    if raw is None:
+        return bool(default)
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+# Advertising is deliberately opt-in. Do not enable until the applicable
+# consent/privacy flow and page placement have been reviewed.
+app.config["ADSENSE_ENABLED"] = env_flag("ADSENSE_ENABLED", False)
+app.config["ADSENSE_CLIENT_ID"] = os.environ.get(
+    "ADSENSE_CLIENT_ID", "ca-pub-9633315289535323"
+).strip()
+app.config["SIMPLE_ANALYTICS_ENABLED"] = env_flag(
+    "SIMPLE_ANALYTICS_ENABLED", True
+)
+
 # 🔐 REQUIRED FOR SESSIONS
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# 🔒 Cookie security (recommended)
+# 🔒 Cookie security. Production uses a __Host- session cookie: Secure,
+# host-only, and Path=/ (the browser rejects Domain-scoped variants).
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-app.config["SESSION_COOKIE_SECURE"] = True  # important on Render HTTPS
+app.config["SESSION_COOKIE_SECURE"] = True
+app.config["SESSION_COOKIE_NAME"] = "__Host-neuraltrend_session"
+app.config["REMEMBER_COOKIE_HTTPONLY"] = True
+app.config["REMEMBER_COOKIE_SAMESITE"] = "Lax"
+app.config["REMEMBER_COOKIE_SECURE"] = True
 
 # CSRF tokens are bound to the current Flask session. A longer time limit avoids
 # interrupting users who keep the dashboard open for several hours.
 app.config["WTF_CSRF_TIME_LIMIT"] = 12 * 60 * 60
 app.config["WTF_CSRF_SSL_STRICT"] = True
 
-# Bound browser request bodies. NeuralTrend forms and JSON payloads are tiny;
-# rejecting oversized bodies reduces accidental/malicious memory and parser use.
-app.config["MAX_CONTENT_LENGTH"] = 64 * 1024  # 64 KiB
-app.config["MAX_FORM_MEMORY_SIZE"] = 64 * 1024
+# Bound request bodies. Stripe webhook events can legitimately exceed the
+# ordinary browser/API limit, so Flask's hard ceiling is 1 MiB and a separate
+# before-request check keeps normal NeuralTrend requests at 64 KiB.
+ORDINARY_REQUEST_BODY_LIMIT = 64 * 1024
+STRIPE_WEBHOOK_BODY_LIMIT = 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = STRIPE_WEBHOOK_BODY_LIMIT
+app.config["MAX_FORM_MEMORY_SIZE"] = ORDINARY_REQUEST_BODY_LIMIT
 
 # Test runs are isolated through environment variables before app import. Keep
 # production defaults strict while making Flask's test client deterministic.
 app.config["TESTING"] = TESTING_MODE
 if TESTING_MODE:
     app.config["SESSION_COOKIE_SECURE"] = False
+    app.config["SESSION_COOKIE_NAME"] = "neuraltrend_test_session"
+    app.config["REMEMBER_COOKIE_SECURE"] = False
     app.config["WTF_CSRF_SSL_STRICT"] = False
     app.config["MAIL_SUPPRESS_SEND"] = True
     app.config["PROPAGATE_EXCEPTIONS"] = True
@@ -226,6 +254,96 @@ def load_user(user_id):
         return None
 
 
+def _path_matches(path, value):
+    """Match one exact route prefix without confusing /me with /methodology."""
+    return path == value or path.startswith(value.rstrip("/") + "/")
+
+
+@app.before_request
+def enforce_ordinary_request_body_limit():
+    # Stripe verifies its signed raw payload itself and gets the larger 1 MiB
+    # Flask ceiling. All ordinary browser/API requests stay at 64 KiB.
+    if request.path == "/stripe/webhook":
+        return None
+
+    content_length = request.content_length
+    if content_length is not None and content_length > ORDINARY_REQUEST_BODY_LIMIT:
+        raise RequestEntityTooLarge()
+    return None
+
+
+@app.after_request
+def add_security_headers(response):
+    """Apply a conservative browser-security baseline to every response."""
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault(
+        "Permissions-Policy",
+        "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+    )
+
+    # Start CSP in Report-Only mode because the current front end still uses
+    # inline styles/scripts and selected external integrations. Enforce it only
+    # after checking the browser console/reporting in staging.
+    response.headers.setdefault(
+        "Content-Security-Policy-Report-Only",
+        "; ".join((
+            "default-src 'self'",
+            "base-uri 'self'",
+            "object-src 'none'",
+            "frame-ancestors 'none'",
+            "form-action 'self' https://formspree.io",
+            "img-src 'self' data: https:",
+            "font-src 'self' data:",
+            "style-src 'self' 'unsafe-inline'",
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.plot.ly https://scripts.simpleanalyticscdn.com https://pagead2.googlesyndication.com",
+            "connect-src 'self' https://queue.simpleanalyticscdn.com https://simpleanalytics.com https://formspree.io https://api.stripe.com",
+            "frame-src https://js.stripe.com https://checkout.stripe.com https://billing.stripe.com https://googleads.g.doubleclick.net",
+        )),
+    )
+
+    if request.is_secure and not TESTING_MODE:
+        response.headers.setdefault(
+            "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+        )
+
+    no_store_paths = (
+        "/me",
+        "/login",
+        "/signup",
+        "/logout",
+        "/change-password",
+        "/resend-verification",
+        "/request-password-reset",
+        "/reset-password",
+        "/request-delete-account",
+        "/confirm-delete",
+        "/watchlist",
+        "/live-simulations",
+        "/subscription-state",
+        "/billing-portal",
+        "/create-checkout-session",
+        "/admin",
+        "/signal-alerts/unsubscribe",
+    )
+    if any(_path_matches(request.path, value) for value in no_store_paths):
+        response.headers["Cache-Control"] = "no-store, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+
+    noindex_paths = (
+        "/admin",
+        "/reset-password",
+        "/confirm-delete",
+        "/verify",
+        "/signal-alerts/unsubscribe",
+    )
+    if any(_path_matches(request.path, value) for value in noindex_paths):
+        response.headers["X-Robots-Tag"] = "noindex, nofollow"
+
+    return response
+
+
 @app.before_request
 def enforce_authenticated_session_version():
     """
@@ -247,6 +365,7 @@ def enforce_authenticated_session_version():
         # future password-reset revocation.
         logout_user()
         session.pop("auth_version", None)
+        clear_admin_mfa_session()
         return None
 
     try:
@@ -257,6 +376,7 @@ def enforce_authenticated_session_version():
     if stored_version != current_version:
         logout_user()
         session.pop("auth_version", None)
+        clear_admin_mfa_session()
 
     return None
     
@@ -963,6 +1083,92 @@ PAID_WATCHLIST_LIMIT = 100
 SIGNAL_ALERT_UNSUBSCRIBE_SALT = "signal-alert-unsubscribe"
 
 PAID_SUBSCRIPTION_STATUSES = {"active", "trialing"}
+ADMIN_MFA_MAX_AGE_SECONDS = 12 * 60 * 60
+ADMIN_MFA_SESSION_KEYS = (
+    "admin_mfa_verified_at",
+    "admin_mfa_user_id",
+    "admin_mfa_auth_version",
+)
+
+def configured_admin_emails():
+    return {
+        email.strip().lower()
+        for email in os.environ.get("ADMIN_EMAILS", "").split(",")
+        if email.strip()
+    }
+
+def _admin_totp_secret_map():
+    """Read per-admin base32 TOTP secrets from environment, never the DB."""
+    result = {}
+    raw = os.environ.get("ADMIN_TOTP_SECRETS", "").strip()
+    if raw:
+        try:
+            payload = json.loads(raw)
+        except json.JSONDecodeError:
+            app.logger.error("ADMIN_TOTP_SECRETS is not valid JSON")
+            payload = {}
+        if isinstance(payload, dict):
+            for email, secret in payload.items():
+                if isinstance(email, str) and isinstance(secret, str) and secret.strip():
+                    result[email.strip().lower()] = secret.strip().replace(" ", "").upper()
+
+    # Convenience fallback for a deployment with exactly one admin account.
+    single_secret = os.environ.get("ADMIN_TOTP_SECRET", "").strip()
+    admins = configured_admin_emails()
+    if single_secret and len(admins) == 1:
+        result.setdefault(
+            next(iter(admins)),
+            single_secret.replace(" ", "").upper(),
+        )
+    return result
+
+def admin_totp_secret_for_user(user):
+    if not is_admin_user(user):
+        return None
+    return _admin_totp_secret_map().get(user.email.strip().lower())
+
+def _totp_code(secret, counter, digits=6):
+    normalized = re.sub(r"[^A-Z2-7]", "", str(secret or "").upper())
+    if not normalized:
+        return None
+    padding = "=" * ((8 - len(normalized) % 8) % 8)
+    try:
+        key = base64.b32decode(normalized + padding, casefold=True)
+    except Exception:
+        return None
+    digest = hmac.new(key, struct.pack(">Q", int(counter)), hashlib.sha1).digest()
+    offset = digest[-1] & 0x0F
+    binary = struct.unpack(">I", digest[offset:offset + 4])[0] & 0x7FFFFFFF
+    return str(binary % (10 ** digits)).zfill(digits)
+
+def verify_admin_totp(secret, code, *, now=None):
+    code = str(code or "").strip().replace(" ", "")
+    if not re.fullmatch(r"\d{6}", code):
+        return False
+    timestamp = int(time.time() if now is None else now)
+    counter = timestamp // 30
+    return any(
+        hmac.compare_digest(_totp_code(secret, counter + offset) or "", code)
+        for offset in (-1, 0, 1)
+    )
+
+def clear_admin_mfa_session():
+    for key in ADMIN_MFA_SESSION_KEYS:
+        session.pop(key, None)
+
+def admin_mfa_session_is_valid(user):
+    try:
+        verified_at = int(session.get("admin_mfa_verified_at", 0))
+        user_id = int(session.get("admin_mfa_user_id", -1))
+        auth_version = int(session.get("admin_mfa_auth_version", -1))
+    except (TypeError, ValueError):
+        return False
+    age = int(time.time()) - verified_at
+    return (
+        0 <= age <= ADMIN_MFA_MAX_AGE_SECONDS
+        and user_id == int(user.id)
+        and auth_version == int(getattr(user, "auth_version", 1) or 1)
+    )
 
 def is_admin_user(user):
     if (
@@ -972,13 +1178,51 @@ def is_admin_user(user):
     ):
         return False
 
-    admin_emails = {
-        email.strip().lower()
-        for email in os.environ.get("ADMIN_EMAILS", "").split(",")
-        if email.strip()
-    }
+    return user.email.lower() in configured_admin_emails()
 
-    return user.email.lower() in admin_emails
+
+def _safe_admin_next_url(value):
+    value = str(value or "").strip()
+    if value.startswith("/admin/") and not value.startswith("/admin/mfa"):
+        return value
+    return url_for("admin_operations")
+
+
+@app.before_request
+def enforce_admin_mfa():
+    if not _path_matches(request.path, "/admin"):
+        return None
+    if not current_user.is_authenticated:
+        return None
+    if not is_admin_user(current_user):
+        abort(404)
+    if request.endpoint == "admin_mfa":
+        return None
+
+    secret = admin_totp_secret_for_user(current_user)
+    if not secret:
+        app.logger.error(
+            "Admin MFA is not configured for user_id=%s", current_user.id
+        )
+        return (
+            "Administrator MFA is required but is not configured. "
+            "Set ADMIN_TOTP_SECRETS (or ADMIN_TOTP_SECRET for a single admin).",
+            503,
+        )
+
+    if admin_mfa_session_is_valid(current_user):
+        return None
+
+    next_url = request.full_path.rstrip("?")
+    mfa_url = url_for("admin_mfa", next=next_url)
+    if request.path.endswith(".json") or request.is_json:
+        return jsonify({
+            "error": "Administrator MFA verification required.",
+            "admin_mfa_required": True,
+            "mfa_url": mfa_url,
+        }), 401
+    return redirect(mfa_url)
+
 
 def is_paid_user(user):
     if is_admin_user(user):
@@ -3680,14 +3924,17 @@ def signup():
     existing_user = User.query.filter_by(email=email).first()
 
     if existing_user:
+        # Do not reveal whether a verified account already exists. For an
+        # unverified account, safely re-send verification; for a verified one,
+        # return the same generic response without sending anything.
         if not existing_user.is_verified:
             send_verification_email(email)
-
-            return jsonify({
-                "message": "This account already exists but is not verified. We sent a new verification email. Please check your inbox and spam folder."
-            })
-
-        return jsonify({"error": "User already exists. Please log in."}), 400
+        return jsonify({
+            "message": (
+                "If this email can be used to create or verify a NeuralTrend "
+                "account, check the inbox and spam folder for next steps."
+            )
+        })
 
     hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
@@ -3750,8 +3997,21 @@ def verify_email(token):
 
     return "Email verified successfully! You can now log in."
 
+def login_account_rate_limit_key():
+    data = request.get_json(silent=True)
+    email = normalize_email(data.get("email")) if isinstance(data, dict) else ""
+    material = (email or "unknown").encode("utf-8", errors="ignore")
+    digest = hmac.new(
+        app.config["SECRET_KEY"].encode("utf-8"),
+        material,
+        hashlib.sha256,
+    ).hexdigest()
+    return "login-account:" + digest
+
+
 @app.route("/login", methods=["POST"])
 @limiter.limit("5 per minute")
+@limiter.limit("10 per 15 minutes", key_func=login_account_rate_limit_key)
 def login():
     data = get_json_object() or {}
 
@@ -3775,25 +4035,14 @@ def login():
     if not user:
         return jsonify({"error": "Invalid email or password"}), 401
 
-    # 🔒 Check lockout
-    if user.locked_until and user.locked_until > datetime.utcnow():
-        return jsonify({
-            "error": "Account locked. Try again later."
-        }), 403
-
-    # 🔒 Check password
+    # 🔒 Check password. Brute-force protection is handled by both IP and
+    # privacy-preserving per-account rate limits above. Avoid a persistent hard
+    # account lock, which an attacker could otherwise trigger as a denial of
+    # service against a known customer email.
     if not bcrypt.check_password_hash(user.password_hash, password):
-        user.failed_attempts += 1
-
-        if user.failed_attempts >= 5:
-            user.locked_until = datetime.utcnow() + timedelta(minutes=15)
-            user.failed_attempts = 0
-
-        db.session.commit()
-
         return jsonify({"error": "Invalid email or password"}), 401
 
-    # ✅ Successful password check → reset counters
+    # Clear legacy lockout fields after a successful login.
     user.failed_attempts = 0
     user.locked_until = None
     
@@ -3812,6 +4061,7 @@ def login():
     
     db.session.commit()
     
+    clear_admin_mfa_session()
     login_user(user)
     session["auth_version"] = int(getattr(user, "auth_version", 1) or 1)
 
@@ -3826,6 +4076,7 @@ def login():
 def logout():
     logout_user()
     session.pop("auth_version", None)
+    clear_admin_mfa_session()
     clear_password_reset_session()
     return jsonify({"message": "Logged out"})
 
@@ -4226,6 +4477,47 @@ def build_operational_status():
         result["status"] = "warning"
 
     return result
+
+
+@app.route("/admin/mfa", methods=["GET", "POST"])
+@login_required
+@limiter.limit("5 per minute")
+def admin_mfa():
+    if not is_admin_user(current_user):
+        abort(404)
+
+    secret = admin_totp_secret_for_user(current_user)
+    if not secret:
+        app.logger.error(
+            "Admin MFA challenge unavailable for user_id=%s", current_user.id
+        )
+        return (
+            "Administrator MFA is required but is not configured. "
+            "Set ADMIN_TOTP_SECRETS (or ADMIN_TOTP_SECRET for a single admin).",
+            503,
+        )
+
+    next_url = _safe_admin_next_url(request.args.get("next"))
+    error = None
+    if request.method == "POST":
+        next_url = _safe_admin_next_url(request.form.get("next"))
+        if verify_admin_totp(secret, request.form.get("code")):
+            session["admin_mfa_verified_at"] = int(time.time())
+            session["admin_mfa_user_id"] = int(current_user.id)
+            session["admin_mfa_auth_version"] = int(
+                getattr(current_user, "auth_version", 1) or 1
+            )
+            return redirect(next_url)
+        error = "Invalid or expired authenticator code."
+
+    response = app.make_response(render_template(
+        "admin_mfa.html",
+        error=error,
+        next_url=next_url,
+    ))
+    response.headers["Cache-Control"] = "no-store, max-age=0"
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    return response
 
 
 @app.route("/admin/operations")
@@ -6043,6 +6335,7 @@ def reset_password():
             if current_user.is_authenticated and current_user.id == reset_user_id:
                 logout_user()
                 session.pop("auth_version", None)
+                clear_admin_mfa_session()
 
             clear_password_reset_session()
             send_password_changed_email(reset_user_email)
@@ -6295,6 +6588,7 @@ def confirm_delete(token):
 
         if current_user.is_authenticated and current_user.id == user_id:
             logout_user()
+            clear_admin_mfa_session()
 
         db.session.delete(user)
         db.session.commit()

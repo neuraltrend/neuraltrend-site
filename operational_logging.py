@@ -37,7 +37,7 @@ _SENSITIVE_PATH_PREFIXES = (
     "/verify/",
     "/reset-password/",
     "/confirm-delete/",
-    "/unsubscribe-signal-alerts/",
+    "/signal-alerts/unsubscribe/",
 )
 
 
