@@ -1,4 +1,16 @@
-Flask==2.3.2
+# Flask and Werkzeug must be upgraded together. Flask 2.3.2 declares
+# "Werkzeug>=2.3.3" with NO upper bound, so a fresh install today pulls a
+# modern Werkzeug (3.x+) that Flask 2.3.2 was never tested against, which is
+# exactly why tests/conftest.py had to patch a missing `werkzeug.__version__`
+# attribute. The app's own code also already sets `MAX_FORM_MEMORY_SIZE`,
+# a Flask config key that only exists starting in Flask 3.1 - so the code was
+# effectively written for Flask 3.1+ already. Pinning Flask/Werkzeug to the
+# matching 3.1.x line (rather than downgrading Werkzeug) makes the installed
+# framework match what the code assumes.
+# IMPORTANT: run `pip install -r requirements.txt -r requirements-dev.txt`
+# and the full `pytest` suite locally after this change, before deploying.
+Flask>=3.1,<4
+Werkzeug>=3.1,<4
 gunicorn>=22.0.0
 setuptools
 yfinance
