@@ -219,10 +219,8 @@ def test_live_simulation_detail_skip_refresh_avoids_redundant_update(
     assert detail.get_json()["simulation"]["id"] == sim_id
 
 
-def test_live_simulation_curve_only_endpoint_avoids_summary_refresh(authenticated_client, app_module, monkeypatch):
+def test_live_simulation_curve_only_endpoint_avoids_summary_refresh(authenticated_client, monkeypatch):
     """The initial chart request should be a lean curve/trade read, not a second full summary refresh."""
-    application = app_module
-
     simulation = application.LiveSimulation.query.filter_by(user_id=1).first()
     if simulation is None:
         pytest.skip("Fixture has no live simulation to inspect.")
