@@ -19,7 +19,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          # .python-version is the file Render itself reads to pick the
+          # production interpreter (runtime.txt is a Heroku convention and
+          # Render does not read it - see docs/LAUNCH_READINESS_PASS2.md).
+          # Pointing CI at the same file means there is exactly one place
+          # to change the Python version, and CI can no longer silently
+          # drift from what production actually runs.
+          python-version-file: '.python-version'
           cache: pip
 
       - name: Install dependencies
