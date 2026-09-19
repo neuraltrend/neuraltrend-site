@@ -219,11 +219,34 @@ def test_live_simulation_detail_skip_refresh_avoids_redundant_update(
     assert detail.get_json()["simulation"]["id"] == sim_id
 
 
-def test_live_simulation_curve_only_endpoint_avoids_summary_refresh(authenticated_client, monkeypatch):
+def test_live_simulation_curve_only_endpoint_avoids_summary_refresh(
+    authenticated_client, monkeypatch, sample_market_frame
+):
     """The initial chart request should be a lean curve/trade read, not a second full summary refresh."""
-    simulation = application.LiveSimulation.query.filter_by(user_id=1).first()
-    if simulation is None:
-        pytest.skip("Fixture has no live simulation to inspect.")
+    monkeypatch.setattr(
+        application,
+        "load_epoch_csv_for_ticker",
+        lambda ticker: sample_market_frame.copy(),
+    )
+
+    def initialize(simulation, user):
+        simulation.last_processed_date = simulation.start_date
+        db.session.commit()
+        return simulation
+
+    monkeypatch.setattr(application, "update_live_simulation_from_csv", initialize)
+
+    created = authenticated_client.post(
+        "/live-simulations",
+        json={
+            "ticker": "BTC-USD",
+            "name": "curve only",
+            "initial_cash": 10000,
+            "position_size_pct": 100,
+        },
+    )
+    assert created.status_code == 201
+    sim_id = created.get_json()["simulation"]["id"]
 
     def fail_summary(*args, **kwargs):
         raise AssertionError("curve_only must not rebuild live_simulation_summary")
@@ -231,7 +254,7 @@ def test_live_simulation_curve_only_endpoint_avoids_summary_refresh(authenticate
     monkeypatch.setattr(application, "live_simulation_summary", fail_summary)
 
     response = authenticated_client.get(
-        f"/live-simulations/{simulation.id}?curve_only=1"
+        f"/live-simulations/{sim_id}?curve_only=1"
     )
 
     assert response.status_code == 200
