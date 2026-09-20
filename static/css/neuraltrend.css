@@ -574,6 +574,24 @@
                 width: 100%;
                 text-align: left;
             }
+
+            /* The Assumptions chip's value is much longer than the other
+               filter chips ("$1 normalized · costs on executed trades ·
+               open positions marked to market"), which was overlapping the
+               "Assumptions" label at narrow widths. Stack label above value
+               instead of trying to fit both on one inline-flex row. */
+            .nt-active-chip.chip-assumption {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 2px;
+                width: 100%;
+            }
+
+            .nt-active-chip.chip-assumption .nt-active-chip-value {
+                white-space: normal;
+                word-break: break-word;
+            }
         }
 
         /* ===============================
@@ -9940,5 +9958,36 @@ body.nt-account-modal-open {
 
     .nt-backtest-summary-card .nt-result-label {
         min-height: 0;
+    }
+}
+
+/* ==========================================================
+   FINAL mobile fix: Live Simulation horizon/status pill rows
+   Sept 2026 QA — both rows were overflowing past the page edge
+   on phones, because an earlier unconditional "FINAL FIX" block
+   above (search "Put this at the VERY END of the style block")
+   sets width:auto/overflow:visible with no mobile fallback, and
+   long labels ("Since Start") had nowhere to go but off-page.
+   Match the same horizontal-scroll pattern already used
+   successfully for Signal Board / neuraltrend-responsive.css's
+   period/asset pills, rather than clipping or wrapping unevenly.
+   Placed at the true end of the file so it wins the cascade.
+========================================================== */
+@media (max-width: 700px) {
+    .nt-live-sim-horizon-pills,
+    .nt-live-sim-status-pills {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        flex-wrap: nowrap !important;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nt-live-sim-horizon-pills .period-pill,
+    .live-sim-status-pill {
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
     }
 }
