@@ -2429,8 +2429,9 @@
 
     #epoch-tool-overview .nt-signal-board-scroll {
         width: 1120px;
-        max-height: none;
-        overflow: visible;
+        max-height: 250px;
+        overflow-x: visible;
+        overflow-y: auto;
     }
 }
 
