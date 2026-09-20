@@ -7,16 +7,28 @@
     document.getElementById('backtest-form').addEventListener('submit', function(e) {
         e.preventDefault();
 
+        const resultsDiv = document.getElementById('results');
+
+        function showValidationError(message) {
+            resultsDiv.innerHTML = `
+                <div style="color: var(--nt-negative); font-weight: 700;">
+                    ${escapeHTML(message)}
+                </div>
+            `;
+        }
+
         if (
             typeof window.validateBacktestDateRange === "function" &&
             !window.validateBacktestDateRange()
         ) {
             this.reportValidity();
+            showValidationError("Choose a start and end date within the available data range.");
             return;
         }
 
         if (!this.checkValidity()) {
             this.reportValidity();
+            showValidationError("Please fill in every field before running a backtest.");
             return;
         }
 
@@ -35,11 +47,11 @@
                 endInput.reportValidity();
                 endInput.setCustomValidity('');
             }
+            showValidationError("End date must be after the start date.");
             return;
         }
     
         const formData = new FormData(this);
-        const resultsDiv = document.getElementById('results');
     
         fetch('/backtest', {
             method: 'POST',
@@ -338,6 +350,54 @@
 
         const adjustedBuySignals = executionMarkerPoints(executed_buy_dates);
         const adjustedSellSignals = executionMarkerPoints(executed_sell_dates);
+
+        // Mirrors the dashboard's signalMarkerPlugin (neuraltrend-dashboard.js):
+        // draws BUY/SELL triangles offset above/below the curve in pixel space,
+        // rather than exactly on it, so trade markers don't sit on top of the
+        // equity line. Kept as a local copy (distinct id/name) rather than
+        // reusing the dashboard's version directly, so this file doesn't
+        // depend on load order relative to neuraltrend-dashboard.js.
+        const backtestSignalMarkerPlugin = {
+            id: "backtestSignalMarkerPlugin",
+            afterDatasetsDraw(chart) {
+                const { ctx } = chart;
+
+                chart.data.datasets.forEach((dataset, datasetIndex) => {
+                    if (!dataset.isSignal) return;
+
+                    const meta = chart.getDatasetMeta(datasetIndex);
+
+                    meta.data.forEach(point => {
+                        if (!point || point.skip) return;
+
+                        const x = point.x;
+                        const y = point.y;
+                        const offset = dataset.offsetPx || 0;
+
+                        ctx.save();
+                        ctx.translate(x, y + offset);
+                        ctx.beginPath();
+
+                        if (dataset.direction === "buy") {
+                            // Up triangle
+                            ctx.moveTo(0, -8);
+                            ctx.lineTo(6, 6);
+                            ctx.lineTo(-6, 6);
+                        } else {
+                            // Down triangle
+                            ctx.moveTo(0, 8);
+                            ctx.lineTo(6, -6);
+                            ctx.lineTo(-6, -6);
+                        }
+
+                        ctx.closePath();
+                        ctx.fillStyle = dataset.color;
+                        ctx.fill();
+                        ctx.restore();
+                    });
+                });
+            }
+        };
     
         const datasets = [
             {
@@ -362,30 +422,29 @@
                 fill: false
             },
             {
-                type: 'scatter',
                 label: 'Executed BUY',
                 data: adjustedBuySignals,
-                pointStyle: 'triangle',
-                pointRadius: 10,
-                pointHoverRadius: 12,
-                pointBorderWidth: 1,
+                pointRadius: 0,
                 backgroundColor: NT_COLORS.buy,
                 borderColor: NT_COLORS.buy,
                 showLine: false,
+                isSignal: true,
+                direction: 'buy',
+                color: NT_COLORS.buy,
+                offsetPx: 11,
                 order: 20
             },
             {
-                type: 'scatter',
                 label: 'Executed SELL',
                 data: adjustedSellSignals,
-                pointStyle: 'triangle',
-                rotation: 180,
-                pointRadius: 10,
-                pointHoverRadius: 12,
-                pointBorderWidth: 1,
+                pointRadius: 0,
                 backgroundColor: NT_COLORS.sell,
                 borderColor: NT_COLORS.sell,
                 showLine: false,
+                isSignal: true,
+                direction: 'sell',
+                color: NT_COLORS.sell,
+                offsetPx: -10,
                 order: 20
             }
         ];
@@ -397,6 +456,7 @@
         
         equityChart = new Chart(ctx, {
             type: 'line',
+            plugins: [backtestSignalMarkerPlugin],
             data: {
                 labels: dates,
                 datasets: datasets
