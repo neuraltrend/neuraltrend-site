@@ -2411,36 +2411,63 @@
 }
 
 /* On genuinely narrow screens, keep readability by falling back to one
-   synchronized card-level horizontal scroll rather than crushing columns. */
+   synchronized card-level horizontal scroll rather than crushing columns.
+
+   Sept 2026: originally tried making #signal-board its own independently
+   horizontal-scrolling region (separate from the header) so the sticky
+   ticker cell would have a real scroll ancestor, kept in sync with the
+   header via a small JS scroll-mirroring script. That looked correct on
+   desktop but was visibly janky on touch devices: native touch scrolling
+   runs on the compositor thread ahead of any JS scroll-event handler, so
+   the two "synced" regions drift apart during a swipe. Reverted to a
+   single real scroll container for both header and rows - the header is
+   now sticky *within* it (top: 0) instead of living outside it - so both
+   scroll axes are handled natively with nothing for JS to keep in sync. */
 @media (max-width: 1050px) {
     #epoch-tool-overview .nt-signal-table-card {
         overflow-x: auto !important;
-        overscroll-behavior-inline: contain;
+        overflow-y: auto !important;
+        max-height: 340px !important;
+        overscroll-behavior: contain;
         scrollbar-width: thin;
     }
 
     .nt-signal-group-header,
     #epoch-tool-overview .nt-signal-header,
+    #signal-board,
     #signal-board .signal-row {
         width: 1120px !important;
         min-width: 1120px !important;
         max-width: none !important;
     }
 
+    /* #signal-board is no longer its own scroll container - it's just
+       in-flow content inside the card, which now owns all scrolling. */
     #epoch-tool-overview .nt-signal-board-scroll {
-        width: 100%;
-        max-width: 100%;
-        max-height: 250px;
-        overflow-x: auto;
-        overflow-y: auto;
-        scrollbar-width: thin;
+        max-height: none !important;
+        overflow: visible !important;
     }
 
-    /* The header's first column was already sticky, but the ticker cell in
-       each data row was not, so ticker names disappeared while scrolling
-       horizontally. Force it to stick alongside the header. Background and
-       hover/selected colors are left to the existing rules in
-       neuraltrend-responsive.css, which are more specific for those states. */
+    /* Column header row (Ticker / Today / Yesterday / ...) stays pinned
+       to the top of the card as rows scroll vertically beneath it. */
+    #epoch-tool-overview .nt-signal-header {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 6 !important;
+        background: #ffffff !important;
+    }
+
+    /* Ticker column stays pinned to the left for both the header and
+       each data row as the user scrolls horizontally. Row background and
+       hover/selected colors are left to the existing, more specific
+       rules in neuraltrend-responsive.css for those states. */
+    #epoch-tool-overview .nt-signal-header > div:first-child {
+        position: sticky !important;
+        left: 0 !important;
+        z-index: 7 !important;
+        background: #ffffff !important;
+    }
+
     #signal-board .signal-row > .signal-ticker-cell {
         position: sticky !important;
         left: 0 !important;
