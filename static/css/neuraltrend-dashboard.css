@@ -2433,6 +2433,17 @@
         overflow-x: visible;
         overflow-y: auto;
     }
+
+    /* The header's first column was already sticky, but the ticker cell in
+       each data row was not, so ticker names disappeared while scrolling
+       horizontally. Force it to stick alongside the header. Background and
+       hover/selected colors are left to the existing rules in
+       neuraltrend-responsive.css, which are more specific for those states. */
+    #signal-board .signal-row > .signal-ticker-cell {
+        position: sticky !important;
+        left: 0 !important;
+        z-index: 3 !important;
+    }
 }
 
 @media (min-width: 1280px) and (min-height: 800px) {
