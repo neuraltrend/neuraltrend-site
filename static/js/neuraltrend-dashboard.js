@@ -5938,3 +5938,41 @@ if (document.readyState === "loading") {
 } else {
     applySignalBoardEntryStateFromURL();
 }
+
+// On mobile, the Signal Board's header and its rows are two independently
+// scrolling regions horizontally (necessary so the ticker column can stay
+// sticky within the rows - see neuraltrend-dashboard.css, the
+// "#epoch-tool-overview .nt-signal-board-scroll" mobile rule for why one
+// shared scroll box doesn't work here). Keep them visually in sync so a
+// horizontal swipe on either one moves both together.
+(function syncSignalBoardHorizontalScroll() {
+    function init() {
+        const card = document.querySelector("#epoch-tool-overview .nt-signal-table-card");
+        const board = document.getElementById("signal-board");
+        if (!card || !board) return;
+
+        let activeSource = null;
+
+        function bind(source, target) {
+            source.addEventListener("scroll", () => {
+                if (activeSource && activeSource !== source) return;
+                activeSource = source;
+                if (target.scrollLeft !== source.scrollLeft) {
+                    target.scrollLeft = source.scrollLeft;
+                }
+                window.requestAnimationFrame(() => {
+                    if (activeSource === source) activeSource = null;
+                });
+            }, {passive: true});
+        }
+
+        bind(card, board);
+        bind(board, card);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init, {once: true});
+    } else {
+        init();
+    }
+})();
