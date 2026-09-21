@@ -2428,10 +2428,12 @@
     }
 
     #epoch-tool-overview .nt-signal-board-scroll {
-        width: 1120px;
+        width: 100%;
+        max-width: 100%;
         max-height: 250px;
-        overflow-x: visible;
+        overflow-x: auto;
         overflow-y: auto;
+        scrollbar-width: thin;
     }
 
     /* The header's first column was already sticky, but the ticker cell in
