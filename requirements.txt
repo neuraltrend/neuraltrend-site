@@ -23,6 +23,10 @@ Flask-Mail
 Flask-Limiter
 Flask-WTF>=1.2,<2.0
 psycopg2-binary
+# psycopg (v3, no "2") - Render's managed Postgres DATABASE_URL now appears
+# to default to the "postgresql+psycopg://" scheme, which needs this
+# package specifically (a different module than psycopg2-binary above).
+psycopg[binary]
 itsdangerous
 python-dotenv
 python-dateutil
