@@ -1896,7 +1896,22 @@
             }
     
             if (!response.ok) {
-                showLockedEquityPreview(data);
+                if (data && data.upgrade_required) {
+                    showLockedEquityPreview(data);
+                } else if (response.status === 429) {
+                    showLockedEquityPreview({
+                        rateLimited: true,
+                        ticker: ticker,
+                        error: data && data.error
+                            ? data.error
+                            : "You're browsing quickly - please wait a moment and try again."
+                    });
+                } else {
+                    showLockedEquityPreview({
+                        ticker: ticker,
+                        error: (data && data.error) || "Could not load equity preview."
+                    });
+                }
                 return;
             }
     
@@ -1992,27 +2007,53 @@
 
         const previewDataThrough = document.getElementById("preview-data-through");
         if (previewDataThrough) previewDataThrough.textContent = "—";
+
+        if (data.upgrade_required) {
+            ntApplyFreshnessBadge(
+                document.getElementById("preview-freshness-badge"),
+                { freshness_status: "unknown", freshness_label: "Locked", freshness_message: "Upgrade to load this asset's data freshness." },
+                true
+            );
+
+            chartDiv.innerHTML = `
+                <div class="nt-pro-lock-card">
+                    <div class="nt-pro-lock-icon">🔒</div>
+        
+                    <h3>Pro feature locked</h3>
+        
+                    <p>
+                        Full signal history, equity preview, and backtesting for ${escapeHTML(ticker)}
+                        are available with NeuralTrend Pro.
+                    </p>
+        
+                    <button type="button" class="nt-pro-upgrade-btn"
+                                data-nt-go-subscription>
+                        Upgrade to Pro
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        // Rate-limited or a generic error: not a Pro-lock, so no lock icon
+        // and no "Upgrade" button - upgrading wouldn't fix either of these,
+        // and telling a paying subscriber their asset is "locked" here would
+        // just be wrong.
         ntApplyFreshnessBadge(
             document.getElementById("preview-freshness-badge"),
-            { freshness_status: "unknown", freshness_label: "Locked", freshness_message: "Upgrade to load this asset's data freshness." },
+            { freshness_status: "unknown", freshness_label: "Unavailable", freshness_message: "Could not check data freshness right now." },
             true
         );
-    
+
+        const message = data.error || "Could not load this preview right now.";
+
         chartDiv.innerHTML = `
             <div class="nt-pro-lock-card">
-                <div class="nt-pro-lock-icon">🔒</div>
+                <div class="nt-pro-lock-icon">${data.rateLimited ? "⏳" : "⚠️"}</div>
     
-                <h3>Pro feature locked</h3>
+                <h3>${data.rateLimited ? "Slow down a moment" : "Couldn't load preview"}</h3>
     
-                <p>
-                    Full signal history, equity preview, and backtesting for ${escapeHTML(ticker)}
-                    are available with NeuralTrend Pro.
-                </p>
-    
-                <button type="button" class="nt-pro-upgrade-btn"
-                            data-nt-go-subscription>
-                    Upgrade to Pro
-                </button>
+                <p>${escapeHTML(message)}</p>
             </div>
         `;
     }
